@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.preproc.preproc_annot &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../preproc.html">wbia.algo.preproc</a> &raquo;</li>
+      <li>wbia.algo.preproc.preproc_annot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.preproc.preproc_annot</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">helpers for controller manual_annot_funcs</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[preproc_annot]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="make_annotation_uuids"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_annot.make_annotation_uuids">[docs]</a><span class="k">def</span> <span class="nf">make_annotation_uuids</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Check to make sure bbox input is a tuple-list, not a list-list</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+                    <span class="n">bbox_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span>
+                <span class="p">),</span> <span class="s1">&#39;Bounding boxes must be tuples of ints!&#39;</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+                    <span class="n">bbox_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span>
+                <span class="p">),</span> <span class="s1">&#39;Bounding boxes must be tuples of ints!&#39;</span>
+            <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;bbox_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox_list</span><span class="p">,))</span>
+                <span class="k">raise</span>
+        <span class="n">annotation_uuid_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="n">img_uuid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">img_uuid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deterministic</span><span class="p">:</span>
+            <span class="c1"># Augment determenistic uuid with a random uuid to ensure randomness</span>
+            <span class="c1"># (this should be ensured in all hardward situations)</span>
+            <span class="n">annotation_uuid_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">random_uuid</span><span class="p">(),</span> <span class="n">_uuid</span><span class="p">)</span> <span class="k">for</span> <span class="n">_uuid</span> <span class="ow">in</span> <span class="n">annotation_uuid_list</span>
+            <span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+            <span class="n">ex</span><span class="p">,</span>
+            <span class="s1">&#39;Error building annotation_uuids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;[add_annot]&#39;</span><span class="p">,</span>
+            <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;image_uuid_list&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">annotation_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="generate_annot_properties"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_annot.generate_annot_properties">[docs]</a><span class="k">def</span> <span class="nf">generate_annot_properties</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">gid_list</span><span class="p">,</span>
+    <span class="n">bbox_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">theta_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">nid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">name_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">detect_confidence_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">notes_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">vert_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">annot_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">yaw_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># annot_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,</span>
+    <span class="c1">#                                                      theta_list, deterministic=False)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">annot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">))]</span>
+    <span class="c1"># Prepare the SQL input</span>
+    <span class="k">assert</span> <span class="n">name_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;cannot specify both names and nids&#39;</span>
+    <span class="c1"># For import only, we can specify both by setting import_override to True</span>
+    <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">bbox_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">bool</span><span class="p">(</span>
+        <span class="n">vert_list</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">),</span> <span class="s1">&#39;must specify exactly one of bbox_list or vert_list&#39;</span>
+
+    <span class="k">if</span> <span class="n">theta_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">theta_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">name_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">detect_confidence_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">detect_confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">notes_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">notes_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">vert_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vert_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">verts_list_from_bboxes_list</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">bbox_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">bboxes_from_vert_list</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+
+    <span class="n">len_bbox</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+    <span class="n">len_vert</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+    <span class="n">len_gid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">len_notes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">notes_list</span><span class="p">)</span>
+    <span class="n">len_theta</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta_list</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">len_vert</span> <span class="o">==</span> <span class="n">len_bbox</span><span class="p">,</span> <span class="s1">&#39;bbox and verts are not of same size&#39;</span>
+        <span class="k">assert</span> <span class="n">len_gid</span> <span class="o">==</span> <span class="n">len_bbox</span><span class="p">,</span> <span class="s1">&#39;bbox and gid are not of same size&#39;</span>
+        <span class="k">assert</span> <span class="n">len_gid</span> <span class="o">==</span> <span class="n">len_theta</span><span class="p">,</span> <span class="s1">&#39;bbox and gid are not of same size&#39;</span>
+        <span class="k">assert</span> <span class="n">len_notes</span> <span class="o">==</span> <span class="n">len_gid</span><span class="p">,</span> <span class="s1">&#39;notes and gids are not of same size&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+            <span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;len_vert&#39;</span><span class="p">,</span> <span class="s1">&#39;len_gid&#39;</span><span class="p">,</span> <span class="s1">&#39;len_bbox&#39;</span> <span class="s1">&#39;len_theta&#39;</span><span class="p">,</span> <span class="s1">&#39;len_notes&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">raise</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># nothing is being added</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] WARNING: 0 annotations are beign added!&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="nb">locals</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="c1"># Build ~~deterministic?~~ random and unique ANNOTATION ids</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="c1"># annot_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,</span>
+    <span class="c1">#                                                      theta_list, deterministic=False)</span>
+    <span class="k">if</span> <span class="n">annot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">yaw_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">yaw_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">nVert_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span> <span class="k">for</span> <span class="n">verts</span> <span class="ow">in</span> <span class="n">vert_list</span><span class="p">]</span>
+    <span class="n">vertstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span> <span class="k">for</span> <span class="n">verts</span> <span class="ow">in</span> <span class="n">vert_list</span><span class="p">]</span>
+    <span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span> <span class="n">width_list</span><span class="p">,</span> <span class="n">height_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">bbox_list</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">nVert_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">)</span></div>
+    <span class="c1"># Define arguments to insert</span>
+
+
+<div class="viewcode-block" id="testdata_preproc_annot"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_annot.testdata_preproc_annot">[docs]</a><span class="k">def</span> <span class="nf">testdata_preproc_annot</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span></div>
+
+
+<div class="viewcode-block" id="postget_annot_verts"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_annot.postget_annot_verts">[docs]</a><span class="k">def</span> <span class="nf">postget_annot_verts</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">):</span>
+    <span class="c1"># TODO: Sanatize input for eval</span>
+    <span class="c1"># logger.info(&#39;vertstr_list = %r&#39; % (vertstr_list,))</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">globals_</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">eval</span><span class="p">(</span><span class="n">vertstr</span><span class="p">,</span> <span class="n">globals_</span><span class="p">,</span> <span class="n">locals_</span><span class="p">)</span> <span class="k">for</span> <span class="n">vertstr</span> <span class="ow">in</span> <span class="n">vertstr_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">vert_list</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

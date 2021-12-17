@@ -18,7 +18,7 @@ def ishow_analysis(ibs, cm, qreq_=None, **kwargs):
         python -m wbia.viz.interact.interact_qres --test-ishow_analysis:0 --show
         python -m wbia.viz.interact.interact_qres --test-ishow_analysis:1 --show
 
-    Example0:
+    Example:
         >>> # SLOW_DOCTEST
         >>> from wbia.viz.interact.interact_qres import *  # NOQA
         >>> import wbia
@@ -26,7 +26,7 @@ def ishow_analysis(ibs, cm, qreq_=None, **kwargs):
         >>> fig = ishow_analysis(qreq_.ibs, cm, qreq_=qreq_)
         >>> pt.show_if_requested()
 
-    Example1:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.viz.interact.interact_qres import *  # NOQA
         >>> import wbia

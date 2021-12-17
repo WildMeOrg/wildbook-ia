@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.interact_impaint &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.interact_impaint</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.interact_impaint</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">helpers for painting on top of images for groundtruthing</span>
+
+<span class="sd">References:</span>
+<span class="sd">    http://stackoverflow.com/questions/22232812/drawing-on-image-with-matplotlib-and-opencv-update-image</span>
+<span class="sd">    http://stackoverflow.com/questions/34933254/force-matplotlib-to-block-in-a-pyqt-thread-process</span>
+<span class="sd">    http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html</span>
+<span class="sd">    http://stackoverflow.com/questions/22410663/block-qmainwindow-while-child-widget-is-alive-pyqt</span>
+<span class="sd">    http://stackoverflow.com/questions/20289939/pause-execution-until-button-press</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">abstract_interaction</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="s1">&#39;impaint&#39;</span><span class="p">)</span>
+
+
+<span class="n">PAINTER_BASE</span> <span class="o">=</span> <span class="n">abstract_interaction</span><span class="o">.</span><span class="n">AbstractInteraction</span>
+
+
+<div class="viewcode-block" id="PaintInteraction"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction">[docs]</a><span class="k">class</span> <span class="nc">PaintInteraction</span><span class="p">(</span><span class="n">PAINTER_BASE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/22232812/drawing-on-image-with-mpl</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.interact_impaint --exec-draw_demo --show</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PaintInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">init_mask</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;init_mask&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">init_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">init_mask</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img</span> <span class="o">=</span> <span class="n">img</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brush_size</span> <span class="o">=</span> <span class="mi">75</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_colors1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="c1"># (&#39;background&#39;, (255 * pt.BLACK).tolist()),</span>
+                <span class="p">(</span><span class="s1">&#39;scenery&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">pt</span><span class="o">.</span><span class="n">BLACK</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()),</span>
+                <span class="p">(</span><span class="s1">&#39;photobomb&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">pt</span><span class="o">.</span><span class="n">RED</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_colors2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="s1">&#39;foreground&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">pt</span><span class="o">.</span><span class="n">WHITE</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color1_idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_colors1</span><span class="p">[</span><span class="s1">&#39;scenery&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_colors2</span><span class="p">[</span><span class="s1">&#39;foreground&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_stroke</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished_callback</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_imshow_running</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="PaintInteraction.update_title"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.update_title">[docs]</a>    <span class="k">def</span> <span class="nf">update_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_colors1</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="bp">self</span><span class="o">.</span><span class="n">color1_idx</span><span class="p">]</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
+            <span class="s1">&#39;Click on the image to draw. exit to finish.</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="s1">&#39;Right click erases, scroll wheel resizes.&#39;</span>
+            <span class="s1">&#39;t changes current_color=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,)</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="PaintInteraction.static_plot"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.static_plot">[docs]</a>    <span class="k">def</span> <span class="nf">static_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="c1"># self.ax.imshow(img, interpolation=&#39;nearest&#39;, alpha=1)</span>
+        <span class="c1"># self.ax.imshow(mask, interpolation=&#39;nearest&#39;, alpha=0.6)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_title</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PaintInteraction.update_image"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.update_image">[docs]</a>    <span class="k">def</span> <span class="nf">update_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="c1"># print(&#39;update_image&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="c1"># self.ax.imshow(self.mask, interpolation=&#39;nearest&#39;, alpha=0.6)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+        <span class="c1"># self.do_blit()</span>
+        <span class="c1"># self.update()</span>
+        <span class="c1"># self.ax.imshow(vt.blend_images_multiply(self.img, self.mask))</span>
+        <span class="c1"># self.ax.grid(False)</span>
+        <span class="c1"># self.ax.set_xticks([])</span>
+        <span class="c1"># self.ax.set_yticks([])</span>
+
+<div class="viewcode-block" id="PaintInteraction.on_close"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.on_close">[docs]</a>    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PaintInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_close</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PaintInteraction.do_blit"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.do_blit">[docs]</a>    <span class="k">def</span> <span class="nf">do_blit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.impaint] do_blit&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">background</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">copy_from_bbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">restore_region</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="p">)</span>
+            <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PaintInteraction.on_draw"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.on_draw">[docs]</a>    <span class="k">def</span> <span class="nf">on_draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="c1"># print(&#39;on draw&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">copy_from_bbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PaintInteraction.apply_stroke"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.apply_stroke">[docs]</a>    <span class="k">def</span> <span class="nf">apply_stroke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">cv2</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.impaint] apply stroke&#39;</span><span class="p">)</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brush_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">thickness</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">color_bgr</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">circle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">color_bgr</span><span class="p">,</span> <span class="n">thickness</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_stroke</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_stroke</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">color</span><span class="p">:</span>
+                <span class="n">old_center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_stroke</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">line_thickness</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brush_size</span><span class="p">)</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">old_center</span><span class="p">,</span> <span class="n">color_bgr</span><span class="p">,</span> <span class="n">line_thickness</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_stroke</span> <span class="o">=</span> <span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="PaintInteraction.on_click_inside"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.on_click_inside">[docs]</a>    <span class="k">def</span> <span class="nf">on_click_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">ydata</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">LEFT_BUTTON</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_stroke</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">RIGHT_BUTTON</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_stroke</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_image</span><span class="p">()</span></div>
+        <span class="c1"># self.draw()</span>
+        <span class="c1"># self.print_status()</span>
+
+<div class="viewcode-block" id="PaintInteraction.on_scroll"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.on_scroll">[docs]</a>    <span class="k">def</span> <span class="nf">on_scroll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brush_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brush_size</span> <span class="o">+</span> <span class="n">event</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self.brush_size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brush_size</span><span class="p">,))</span></div>
+
+<div class="viewcode-block" id="PaintInteraction.on_key_press"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.on_key_press">[docs]</a>    <span class="k">def</span> <span class="nf">on_key_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;toggle color&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">color1_idx</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color1_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_colors1</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_colors1</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="bp">self</span><span class="o">.</span><span class="n">color1_idx</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">color1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_colors1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self.color1_idx = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color1_idx</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;key = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_title</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PaintInteraction.on_drag_stop"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.on_drag_stop">[docs]</a>    <span class="k">def</span> <span class="nf">on_drag_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_stroke</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="PaintInteraction.on_drag_inside"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.PaintInteraction.on_drag_inside">[docs]</a>    <span class="k">def</span> <span class="nf">on_drag_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="c1"># self.print_status()</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">ydata</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">LEFT_BUTTON</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_stroke</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">RIGHT_BUTTON</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_stroke</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_image</span><span class="p">()</span></div></div>
+        <span class="c1"># self.do_blit()</span>
+        <span class="c1"># self.draw()</span>
+
+
+<div class="viewcode-block" id="impaint_mask2"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.impaint_mask2">[docs]</a><span class="k">def</span> <span class="nf">impaint_mask2</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">init_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -m wbia.plottool.interact_impaint --exec-draw_demo --show</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">QT</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># NOQA</span>
+        <span class="c1"># if QT:</span>
+        <span class="c1">#    from wbia.guitool import mpl_embed</span>
+        <span class="c1">#    import wbia.guitool</span>
+        <span class="c1">#    guitool.ensure_qapp()  # must be ensured before any embeding</span>
+        <span class="c1">#    wgt = mpl_embed.QtAbstractMplInteraction()</span>
+        <span class="c1">#    fig = wgt.fig</span>
+        <span class="c1">#    ax = wgt.axes</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#    fig = plt.figure(1)</span>
+        <span class="c1">#    ax = plt.subplot(111)</span>
+        <span class="c1"># if init_mask is None:</span>
+        <span class="c1">#    mask = np.zeros(img.shape, np.uint8) + 255</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#    mask = init_mask</span>
+        <span class="c1"># ax.imshow(img, interpolation=&#39;nearest&#39;, alpha=1)</span>
+        <span class="c1"># ax.imshow(mask, interpolation=&#39;nearest&#39;, alpha=0.6)</span>
+        <span class="c1"># ax.grid(False)</span>
+        <span class="c1"># ax.set_xticks([])</span>
+        <span class="c1"># ax.set_yticks([])</span>
+
+        <span class="c1"># pstartntr = _OldPainter(fig, ax, mask)</span>
+        <span class="c1"># ax.set_title(&#39;Click on the image to draw. exit to finish&#39;)</span>
+        <span class="c1"># print(&#39;Starting interaction&#39;)</span>
+        <span class="c1"># if not QT:</span>
+        <span class="c1">#    plt.show(block=True)</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#    guitool.qtapp_loop(wgt, frequency=100, init_signals=True)</span>
+        <span class="c1">#    wgt.show()</span>
+        <span class="c1"># # input(&#39;hack to block... press enter when done&#39;)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pntr</span> <span class="o">=</span> <span class="n">PaintInteraction</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">init_mask</span><span class="o">=</span><span class="n">init_mask</span><span class="p">)</span>
+        <span class="c1"># pntr.show_page()</span>
+        <span class="c1"># print(&#39;Starting interaction&#39;)</span>
+        <span class="n">pntr</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">pntr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="c1"># Hacky code to block until the interaction is actually done</span>
+        <span class="c1"># pntr.show()</span>
+        <span class="kn">import</span> <span class="nn">time</span>
+        <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span> <span class="k">as</span> <span class="n">QtWidgets</span>
+
+        <span class="k">while</span> <span class="n">pntr</span><span class="o">.</span><span class="n">is_running</span><span class="p">:</span>
+            <span class="n">QtWidgets</span><span class="o">.</span><span class="n">qApp</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="c1"># plt.show()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Finished interaction&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pntr</span><span class="o">.</span><span class="n">mask</span></div>
+
+
+<div class="viewcode-block" id="draw_demo"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_impaint.draw_demo">[docs]</a><span class="k">def</span> <span class="nf">draw_demo</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.interact_impaint --exec-draw_demo --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.interact_impaint import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = draw_demo()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">(</span><span class="s1">&#39;zebra.png&#39;</span><span class="p">)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">impaint_mask2</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mask = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mask</span><span class="p">,))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mask.sum() = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">(),))</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">blend_images_multiply</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">mask</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -66,6 +66,9 @@ def parse_imageinfo(gpath):
 
     import urllib
 
+    if gpath is None:
+        return None
+
     urlsplit = urllib.parse.urlsplit
     urlquote = urllib.parse.quote
     urlunquote = urllib.parse.unquote
@@ -174,6 +177,9 @@ def parse_imageinfo(gpath):
             canvas = Image.new('RGB', pil_img.size, (255, 255, 255))
             canvas.paste(pil_img, mask=pil_img.split()[3])  # 3 is the alpha channel
             canvas.save(gpath_)
+            pil_img.close()
+
+            # Reload image
             pil_img = Image.open(gpath_, 'r')
 
         time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
@@ -244,7 +250,7 @@ def parse_imageinfo(gpath):
 #     CommandLine:
 #         python -m wbia.algo.preproc.preproc_image --exec-add_images_params_gen
 
-#     Example0:
+#     Example:
 #         >>> # ENABLE_DOCTEST
 #         >>> from wbia.algo.preproc.preproc_image import *   # NOQA
 #         >>> from vtool.tests import grabdata

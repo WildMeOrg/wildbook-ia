@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_imageset_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_imageset_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_imageset_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">IMAGESET_OCCURRENCE_FLAG</span> <span class="o">=</span> <span class="s1">&#39;imageset_occurrence_flag&#39;</span>
+<span class="n">IMAGESET_END_TIME_POSIX</span> <span class="o">=</span> <span class="s1">&#39;imageset_end_time_posix&#39;</span>
+<span class="n">IMAGESET_GPS_LAT</span> <span class="o">=</span> <span class="s1">&#39;imageset_gps_lat&#39;</span>
+<span class="n">IMAGESET_GPS_LON</span> <span class="o">=</span> <span class="s1">&#39;imageset_gps_lon&#39;</span>
+<span class="n">IMAGESET_NOTE</span> <span class="o">=</span> <span class="s1">&#39;imageset_note&#39;</span>
+<span class="n">IMAGESET_PROCESSED_FLAG</span> <span class="o">=</span> <span class="s1">&#39;imageset_processed_flag&#39;</span>
+<span class="n">IMAGESET_ROWID</span> <span class="o">=</span> <span class="s1">&#39;imageset_rowid&#39;</span>
+<span class="n">IMAGESET_SHIPPED_FLAG</span> <span class="o">=</span> <span class="s1">&#39;imageset_shipped_flag&#39;</span>
+<span class="n">IMAGESET_START_TIME_POSIX</span> <span class="o">=</span> <span class="s1">&#39;imageset_start_time_posix&#39;</span>
+<span class="n">IMAGESET_SMART_WAYPOINT_ID</span> <span class="o">=</span> <span class="s1">&#39;imageset_smart_waypoint_id&#39;</span>
+<span class="n">IMAGESET_SMART_XML_FNAME</span> <span class="o">=</span> <span class="s1">&#39;imageset_smart_xml_fname&#39;</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="k">def</span> <span class="nf">_get_all_imageset_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  all unfiltered imgsetids (imageset rowids)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_imgsetids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_imgsetids</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="k">def</span> <span class="nf">_get_all_imgsetids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    alias</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_all_imageset_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_valid_imgsetids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_valid_imgsetids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_valid_imgsetids</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">min_num_gids</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">processed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">shipped</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">is_occurrence</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">is_special</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    FIX NAME imgagesetids</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  list of all imageset ids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_imgsetids</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">min_num_gids</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">num_gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_num_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_gids</span> <span class="o">&gt;=</span> <span class="n">min_num_gids</span> <span class="k">for</span> <span class="n">num_gids</span> <span class="ow">in</span> <span class="n">num_gids_list</span><span class="p">]</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">processed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_processed_flags</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">processed</span> <span class="k">else</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">shipped</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_shipped_flags</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">shipped</span> <span class="k">else</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_occurrence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_occurrence_flags</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">flag</span> <span class="o">==</span> <span class="n">is_occurrence</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_special</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_special_imageset</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">flag</span> <span class="o">==</span> <span class="n">is_special</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">imgsetid_list</span></div>
+
+
+<div class="viewcode-block" id="is_special_imageset"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.is_special_imageset">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">is_special_imageset</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="n">imagesettext_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">isspecial_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">imagesettext</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIAL_IMAGESET_LABELS</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">imagesettext</span> <span class="ow">in</span> <span class="n">imagesettext_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">isspecial_list</span></div>
+
+
+<div class="viewcode-block" id="add_imagesets"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.add_imagesets">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">adder</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">add_imagesets</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">imagesettext_list</span><span class="p">,</span>
+    <span class="n">imageset_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">notes_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">occurence_flag_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds a list of imagesets.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imagesettext_list (list):</span>
+<span class="sd">        imageset_uuid_list (list):</span>
+<span class="sd">        notes_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        imgsetid_list (list): added imageset rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/imageset/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] adding </span><span class="si">%d</span><span class="s1"> imagesets&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">imagesettext_list</span><span class="p">))</span>
+    <span class="c1"># Add imageset text names to database</span>
+    <span class="k">if</span> <span class="n">notes_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">notes_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">imagesettext_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">imageset_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">imageset_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imagesettext_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">occurence_flag_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">occurence_flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">imagesettext_list</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;imageset_text&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;imageset_uuid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;imageset_occurrence_flag&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;imageset_note&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">imagesettext_list</span><span class="p">,</span> <span class="n">imageset_uuid_list</span><span class="p">,</span> <span class="n">occurence_flag_list</span><span class="p">,</span> <span class="n">notes_list</span>
+    <span class="p">)</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imgsetid_list</span></div>
+
+
+<span class="c1"># SETTERS::IMAGESET</span>
+
+
+<div class="viewcode-block" id="set_imageset_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">imageset_text_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets names of imagesets (groups of animals)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Special set checks</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">is_special_imageset</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot rename special imagesets&#39;</span><span class="p">)</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">imgsetid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">imageset_text</span><span class="p">,)</span> <span class="k">for</span> <span class="n">imageset_text</span> <span class="ow">in</span> <span class="n">imageset_text_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;imageset_text&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># GETTERS::IMAGESET</span>
+
+
+<div class="viewcode-block" id="get_imageset_num_imgs_reviewed"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_num_imgs_reviewed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/num/image/reviewed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_num_imgs_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/num/image/reviewed/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; # Reset and compute imagesets</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_all_imagesets()</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_occurrences(config={&#39;use_gps&#39;: False, &#39;seconds_thresh&#39;: 600})</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = ibs.get_valid_imgsetids()</span>
+<span class="sd">        &gt;&gt;&gt; num_reviwed_list = ibs.get_imageset_num_imgs_reviewed(imgsetid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = num_reviwed_list</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [0, 0]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">num_reviwed_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">flags</span> <span class="ow">in</span> <span class="n">flags_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">num_reviwed_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_num_annots_reviewed"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_num_annots_reviewed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/num/annot/reviewed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_num_annots_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/num/annot/reviewed/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; # Reset and compute imagesets</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_all_imagesets()</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_occurrences(config={&#39;use_gps&#39;: False, &#39;seconds_thresh&#39;: 600})</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = ibs.get_valid_imgsetids()</span>
+<span class="sd">        &gt;&gt;&gt; num_reviwed_list = ibs.get_imageset_num_imgs_reviewed(imgsetid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = num_reviwed_list</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [0, 0]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_reviewed</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">num_reviwed_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">flags</span> <span class="ow">in</span> <span class="n">flags_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">num_reviwed_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_num_annotmatch_reviewed"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_num_annotmatch_reviewed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/imageset/num/annotmatch/reviewed/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_imageset_num_annotmatch_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/num/annotmatch/reviewed/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; num_annots_reviewed_list = ibs.get_imageset_num_annotmatch_reviewed(imgsetid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_custom_filtered_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">has_revieweds_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_reviewed_matching_aids</span><span class="p">,</span> <span class="n">aids_list</span>
+    <span class="p">)</span>
+    <span class="n">num_annots_reviewed_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">sum</span><span class="p">,</span> <span class="n">has_revieweds_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">num_annots_reviewed_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_num_names_with_exemplar"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_num_names_with_exemplar">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/num/name/exemplar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_num_names_with_exemplar</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/num/name/exemplar/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; num_annots_reviewed_list = ibs.get_imageset_num_annotmatch_reviewed(imgsetid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_custom_filtered_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">exflags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">groups_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">exflags</span><span class="p">,</span> <span class="n">nids</span><span class="p">)</span> <span class="k">for</span> <span class="n">exflags</span><span class="p">,</span> <span class="n">nids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">exflags_list</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c1"># num_names_list = [len(groups) for groups in groups_list]</span>
+    <span class="n">num_exemplared_names_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">sum</span><span class="p">([</span><span class="nb">any</span><span class="p">(</span><span class="n">exflags</span><span class="p">)</span> <span class="k">for</span> <span class="n">exflags</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span> <span class="k">for</span> <span class="n">groups</span> <span class="ow">in</span> <span class="n">groups_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">num_exemplared_names_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_fraction_names_with_exemplar"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_fraction_names_with_exemplar">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_imageset_fraction_names_with_exemplar</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb2&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; fraction_exemplared_names_list = ibs.get_imageset_fraction_names_with_exemplar(imgsetid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_custom_filtered_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="c1"># exflags_list = ibs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)))</span>
+    <span class="p">)</span>
+    <span class="n">aids_list_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">)</span>
+    <span class="n">flags_list_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">aids_list_list</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># groups_list = [ut.group_items(exflags, nids)</span>
+    <span class="c1">#               for exflags, nids in zip(exflags_list, nids_list)]</span>
+    <span class="n">num_names_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">))</span>
+    <span class="n">num_exemplared_names_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">sum</span><span class="p">([</span><span class="nb">any</span><span class="p">(</span><span class="n">exflags</span><span class="p">)</span> <span class="k">for</span> <span class="n">exflags</span> <span class="ow">in</span> <span class="n">flags_list</span><span class="p">])</span> <span class="k">for</span> <span class="n">flags_list</span> <span class="ow">in</span> <span class="n">flags_list_list</span>
+    <span class="p">]</span>
+    <span class="n">fraction_exemplared_names_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="n">num_names</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">num_exemplared_names</span> <span class="o">/</span> <span class="n">num_names</span>
+        <span class="k">for</span> <span class="n">num_exemplared_names</span><span class="p">,</span> <span class="n">num_names</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">num_exemplared_names_list</span><span class="p">,</span> <span class="n">num_names_list</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">fraction_exemplared_names_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_fraction_annotmatch_reviewed"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_fraction_annotmatch_reviewed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_imageset_fraction_annotmatch_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_custom_filtered_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_reviewed_matching_aids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">fraction_annotmatch_reviewed_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">sum</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">flags</span> <span class="ow">in</span> <span class="n">flags_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">fraction_annotmatch_reviewed_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_custom_filtered_aids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_custom_filtered_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @register_api(&#39;/api/imageset/aids/filtered/custom/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_imageset_custom_filtered_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    hacks to filter aids to only certain views and qualities</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="c1"># HACK: Get percentage for the annots we currently care about</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">aids_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_fraction_imgs_reviewed"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_fraction_imgs_reviewed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_imageset_fraction_imgs_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">fraction_imgs_reviewed_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">sum</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">flags</span> <span class="ow">in</span> <span class="n">flags_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">fraction_imgs_reviewed_list</span></div>
+
+
+<span class="k">def</span> <span class="nf">_percent_str</span><span class="p">(</span><span class="n">pcnt</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;undef&#39;</span> <span class="k">if</span> <span class="n">pcnt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="si">%06.2f</span><span class="s1"> </span><span class="si">%%</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcnt</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,)</span>
+
+
+<div class="viewcode-block" id="get_imageset_percent_names_with_exemplar_str"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_percent_names_with_exemplar_str">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_getter</span><span class="p">(</span>
+    <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="s1">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>  <span class="c1"># HACK</span>
+<span class="k">def</span> <span class="nf">get_imageset_percent_names_with_exemplar_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="n">fraction_exemplared_names_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_fraction_names_with_exemplar</span><span class="p">(</span>
+        <span class="n">imgsetid_list</span>
+    <span class="p">)</span>
+    <span class="n">percent_exemplared_names_list_str</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span><span class="n">_percent_str</span><span class="p">,</span> <span class="n">fraction_exemplared_names_list</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">percent_exemplared_names_list_str</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_percent_imgs_reviewed_str"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_percent_imgs_reviewed_str">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_getter</span><span class="p">(</span>
+    <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="s1">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>  <span class="c1"># HACK</span>
+<span class="k">def</span> <span class="nf">get_imageset_percent_imgs_reviewed_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="n">fraction_imgs_reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_fraction_imgs_reviewed</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">percent_imgs_reviewed_str_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_percent_str</span><span class="p">,</span> <span class="n">fraction_imgs_reviewed_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">percent_imgs_reviewed_str_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_percent_annotmatch_reviewed_str"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_percent_annotmatch_reviewed_str">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_getter</span><span class="p">(</span>
+    <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="s1">&#39;percent_annotmatch_reviewed_str&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>  <span class="c1"># HACK</span>
+<span class="k">def</span> <span class="nf">get_imageset_percent_annotmatch_reviewed_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="n">fraction_annotmatch_reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_fraction_annotmatch_reviewed</span><span class="p">(</span>
+        <span class="n">imgsetid_list</span>
+    <span class="p">)</span>
+    <span class="n">percent_annotmach_reviewed_str_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span><span class="n">_percent_str</span><span class="p">,</span> <span class="n">fraction_annotmatch_reviewed_list</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">percent_annotmach_reviewed_str_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_num_gids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_num_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/num/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_num_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        nGids_list (list): number of images in each imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/num/image/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nGids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">nGids_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_num_aids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_num_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/num/annot/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_num_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        nGids_list (list): number of images in each imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/num/annot/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nAids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">nAids_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_aids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/annot/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        aids_list (list):  a list of list of aids in each imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/annot/rowid/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        imgsetid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: aids_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_imageset_funcs --test-get_imageset_aids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_imagesets(ibs.get_valid_imgsetids())</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_occurrences(config={&#39;use_gps&#39;: False, &#39;seconds_thresh&#39;: 600})</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = ibs.get_valid_imgsetids()</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = get_imageset_aids(ibs, imgsetid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;aids_list = %s&#39; % (str(aids_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="n">aids_list_</span><span class="p">))</span>
+    <span class="c1"># logger.info(&#39;get_imageset_aids&#39;)</span>
+    <span class="c1"># logger.info(&#39;imgsetid_list = %r&#39; % (imgsetid_list,))</span>
+    <span class="c1"># logger.info(&#39;gids_list = %r&#39; % (gids_list,))</span>
+    <span class="c1"># logger.info(&#39;aids_list_ = %r&#39; % (aids_list_,))</span>
+    <span class="c1"># logger.info(&#39;aids_list = %r&#39; % (aids_list,))</span>
+    <span class="k">return</span> <span class="n">aids_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/annot/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        imgsetid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: annot_uuids_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/annot/uuid/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_imageset_funcs --test-get_imageset_aids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_imagesets(ibs.get_valid_imgsetids())</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_occurrences(config={&#39;use_gps&#39;: False, &#39;seconds_thresh&#39;: 600})</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = ibs.get_valid_imgsetids()</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = get_imageset_aids(ibs, imgsetid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;aids_list = %s&#39; % (str(aids_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">annot_uuids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">annot_uuids_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_gids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="s1">&#39;image_rowids&#39;</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/image/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        gids_list (list):  a list of list of gids in each imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/image/rowid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">NEW_INDEX_HACK</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">NEW_INDEX_HACK</span><span class="p">:</span>
+        <span class="c1"># FIXME: This index should when the database is defined.</span>
+        <span class="c1"># Ensure that an index exists on the image column of the annotation table</span>
+        <span class="k">with</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE INDEX IF NOT EXISTS gids_to_gs ON {GSG_RELATION_TABLE} (imageset_rowid);</span>
+<span class="sd">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">GSG_RELATION_TABLE</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">GSG_RELATION_TABLE</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">GSG_RELATION_TABLE</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,),</span>
+        <span class="n">imgsetid_list</span><span class="p">,</span>
+        <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;imageset_rowid&#39;</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># logger.info(&#39;get_imageset_gids&#39;)</span>
+    <span class="c1"># logger.info(&#39;imgsetid_list = %r&#39; % (imgsetid_list,))</span>
+    <span class="c1"># logger.info(&#39;gids_list = %r&#39; % (gids_list,))</span>
+    <span class="k">return</span> <span class="n">gids_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_image_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_image_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/image/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        gids_list (list):  a list of list of gids in each imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/image/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">gid_list</span> <span class="ow">in</span> <span class="n">gids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">image_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_gsgrids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_gsgrids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @register_api(&#39;/api/imageset/gsgrids/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_imageset_gsgrids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  a list of imageset-image-relationship rowids for each encouterid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># WEIRD FUNCTION FIXME</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">imgsetid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">),</span> <span class="s1">&#39;Either imgsetid_list or gid_list must be None&#39;</span>
+    <span class="k">if</span> <span class="n">imgsetid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO: Group type</span>
+        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">imgsetid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span><span class="p">)</span>
+        <span class="c1"># list of relationships for each imageset</span>
+        <span class="n">gsgrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">GSG_RELATION_TABLE</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;gsgr_rowid&#39;</span><span class="p">,),</span>
+            <span class="n">params_iter</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;imageset_rowid&#39;</span><span class="p">,),</span>
+            <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">imgsetid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO: Group type</span>
+        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
+        <span class="c1"># list of relationships for each imageset</span>
+        <span class="n">gsgrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">GSG_RELATION_TABLE</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;gsgr_rowid&#39;</span><span class="p">,),</span>
+            <span class="n">params_iter</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,),</span>
+            <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># TODO: Group type</span>
+        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span> <span class="k">for</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">))</span>
+        <span class="c1"># list of relationships for each imageset</span>
+        <span class="n">gsgrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">GSG_RELATION_TABLE</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;gsgr_rowid&#39;</span><span class="p">,),</span>
+            <span class="n">params_iter</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;imageset_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;image_rowid&#39;</span><span class="p">),</span>
+            <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">gsgrids_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_nids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_nids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/name/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  a list of list of known nids in each imageset</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_imageset_funcs --test-get_imageset_nids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/name/rowid/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_imagesets(ibs.get_valid_imgsetids())</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_occurrences(config={&#39;use_gps&#39;: False, &#39;seconds_thresh&#39;: 600})</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = ibs.get_valid_imgsetids()</span>
+<span class="sd">        &gt;&gt;&gt; nids_list = ibs.get_imageset_nids(imgsetid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = nids_list</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[1, 2, 3], [4, 5, 6, 7]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: SLOW</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="c1"># nids_list_ = [[nid[0] for nid in nids if len(nid) &gt; 0] for nids in nids_list]</span>
+    <span class="c1"># Remove any unknown anmes</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nids</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">nids_list</span><span class="p">]</span>
+
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">))</span>
+    <span class="c1"># logger.info(&#39;get_imageset_nids&#39;)</span>
+    <span class="c1"># logger.info(&#39;imgsetid_list = %r&#39; % (imgsetid_list,))</span>
+    <span class="c1"># logger.info(&#39;aids_list = %r&#39; % (aids_list,))</span>
+    <span class="c1"># logger.info(&#39;nids_list_ = %r&#39; % (nids_list_,))</span>
+    <span class="c1"># logger.info(&#39;nids_list = %r&#39; % (nids_list,))</span>
+    <span class="k">return</span> <span class="n">nids_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_name_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_name_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/name/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_name_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        name_uuid_list (list):  a list of list of known name uuids in each imageset</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_imageset_funcs --test-get_imageset_name_uuids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/name/uuid/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_imagesets(ibs.get_valid_imgsetids())</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_occurrences(config={&#39;use_gps&#39;: False, &#39;seconds_thresh&#39;: 600})</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = ibs.get_valid_imgsetids()</span>
+<span class="sd">        &gt;&gt;&gt; nids_list = ibs.get_imageset_nids(imgsetid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = nids_list</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[1, 2, 3], [4, 5, 6, 7]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_nids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">name_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_uuids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">nid_list</span> <span class="ow">in</span> <span class="n">nids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">name_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_uuid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_uuid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): imageset_uuid of each imgsetid in imgsetid_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">encuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;imageset_uuid&#39;</span><span class="p">,),</span>
+        <span class="n">imgsetid_list</span><span class="p">,</span>
+        <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;imageset_rowid&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">encuuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): imageset_text of each imgsetid in imgsetid_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">imagesettext_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;imageset_text&#39;</span><span class="p">,),</span>
+        <span class="n">imgsetid_list</span><span class="p">,</span>
+        <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;imageset_rowid&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imagesettext_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_imgsetids_from_uuid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_imgsetids_from_uuid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/rowid/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_imgsetids_from_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): a list of imgsetids corresponding to each imageset imagesettext</span>
+<span class="sd">    #FIXME: make new naming scheme for non-primary-key-getters</span>
+<span class="sd">    get_imageset_imgsetids_from_text_from_text</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/rowid/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;imageset_rowid&#39;</span><span class="p">,),</span> <span class="n">uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;imageset_uuid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imgsetid_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_imgsetids_from_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_imgsetids_from_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/rowid/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imagesettext_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): a list of imgsetids corresponding to each imageset imagesettext</span>
+<span class="sd">    #FIXME: make new naming scheme for non-primary-key-getters</span>
+<span class="sd">    get_imageset_imgsetids_from_text_from_text</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/rowid/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span><span class="n">imagesettext_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;imageset_rowid&#39;</span><span class="p">,),</span>
+            <span class="n">imagesettext_list</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;imageset_text&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imgsetid_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_note"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_note">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_note</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): imageset_note of each imgsetid in imgsetid_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">encnote_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;imageset_note&#39;</span><span class="p">,),</span>
+        <span class="n">imgsetid_list</span><span class="p">,</span>
+        <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;imageset_rowid&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">encnote_list</span></div>
+
+
+<div class="viewcode-block" id="delete_imagesets"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.delete_imagesets">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">deleter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">delete_imagesets</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Removes imagesets and thier relationships (images are not effected)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: DELETE</span>
+<span class="sd">        URL:    /api/imageset/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Optimization hack, less SQL calls</span>
+    <span class="c1"># gsgrid_list = ut.flatten(ibs.get_imageset_gsgrids(imgsetid_list=imgsetid_list))</span>
+    <span class="c1"># ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)</span>
+    <span class="c1"># ibs.db.delete(const.GSG_RELATION_TABLE, imgsetid_list, id_colname=&#39;imageset_rowid&#39;)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> imagesets&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_gsgr_imageset_relations</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_end_time_posix"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_end_time_posix">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/time/posix/end/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_end_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_end_time_posix_list &lt;- imageset.imageset_end_time_posix[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_end_time_posix&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_end_time_posix_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_end_time_posix</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/time/posix/end/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_end_time_posix_list = ibs.get_imageset_end_time_posix(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_end_time_posix_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_END_TIME_POSIX</span><span class="p">,)</span>
+    <span class="n">imageset_end_time_posix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_end_time_posix_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_gps_lats"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_gps_lats">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/gps/lat/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_imageset_gps_lats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_gps_lat_list &lt;- imageset.imageset_gps_lat[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_gps_lat&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_gps_lat_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_gps_lat</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/gps/lat/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_gps_lat_list = ibs.get_imageset_gps_lats(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_gps_lat_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_GPS_LAT</span><span class="p">,)</span>
+    <span class="n">imageset_gps_lat_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_gps_lat_list</span></div>
+
+
+<div class="viewcode-block" id="update_imageset_info"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.update_imageset_info">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/info/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">update_imageset_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sets start and end time for imagesets</span>
+
+<span class="sd">    FIXME: should not need to bulk update, should be handled as it goes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/info/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs.get_valid_imgsetids()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imageset_rowid_list</span><span class="p">)</span>
+    <span class="n">hasgids_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">gids</span> <span class="ow">in</span> <span class="n">gids_list_</span><span class="p">]</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gids_list_</span><span class="p">,</span> <span class="n">hasgids_list</span><span class="p">)</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">hasgids_list</span><span class="p">)</span>
+    <span class="n">unixtimes_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">gid_list</span> <span class="ow">in</span> <span class="n">gids_list</span>
+    <span class="p">]</span>
+    <span class="c1"># TODO: replace -1&#39;s with nans and do nanmin</span>
+    <span class="n">imageset_start_time_posix_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">unixtimes</span><span class="p">)</span> <span class="k">for</span> <span class="n">unixtimes</span> <span class="ow">in</span> <span class="n">unixtimes_list</span><span class="p">]</span>
+    <span class="n">imageset_end_time_posix_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">unixtimes</span><span class="p">)</span> <span class="k">for</span> <span class="n">unixtimes</span> <span class="ow">in</span> <span class="n">unixtimes_list</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_imageset_start_time_posix</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">imageset_start_time_posix_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_imageset_end_time_posix</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">imageset_end_time_posix_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_gps_lons"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_gps_lons">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/gps/lon/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_imageset_gps_lons</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_gps_lon_list &lt;- imageset.imageset_gps_lon[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_gps_lon&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_gps_lon_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_gps_lon</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/gps/lon/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_gps_lon_list = ibs.get_imageset_gps_lons(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_gps_lon_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_GPS_LON</span><span class="p">,)</span>
+    <span class="n">imageset_gps_lon_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_gps_lon_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_notes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_notes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/imageset/note/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_imageset_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_note_list &lt;- imageset.imageset_note[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_note&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_note_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_note</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_note_list = ibs.get_imageset_notes(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_note_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_NOTE</span><span class="p">,)</span>
+    <span class="n">imageset_note_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_note_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): imageset metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/metadata/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;imageset_metadata_json&#39;</span><span class="p">,),</span> <span class="n">imageset_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">metadata_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">metadata_str</span> <span class="k">if</span> <span class="n">return_raw</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+        <span class="n">metadata_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metadata_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_occurrence_flags"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_occurrence_flags">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/occurrence/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_occurrence_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_occurrence_flag_list &lt;- imageset.imageset_occurrence_flag[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_occurrence_flag&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_occurrence_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_occurrence_flag</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/occurrence/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_imageset_funcs --test-get_imageset_occurrence_flags</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_occurrence_flag_list = ibs.get_imageset_occurrence_flags(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_occurrence_flag_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_OCCURRENCE_FLAG</span><span class="p">,)</span>
+    <span class="n">imageset_occurrence_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_occurrence_flag_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_processed_flags"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_processed_flags">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/processed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_processed_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_processed_flag_list &lt;- imageset.imageset_processed_flag[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_processed_flag&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_processed_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_processed_flag</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/processed/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_processed_flag_list = ibs.get_imageset_processed_flags(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_processed_flag_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_PROCESSED_FLAG</span><span class="p">,)</span>
+    <span class="n">imageset_processed_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_processed_flag_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_shipped_flags"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_shipped_flags">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/shipped/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_shipped_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_shipped_flag_list &lt;- imageset.imageset_shipped_flag[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_shipped_flag&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_shipped_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_shipped_flag</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/shipped/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_shipped_flag_list = ibs.get_imageset_shipped_flags(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_shipped_flag_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_SHIPPED_FLAG</span><span class="p">,)</span>
+    <span class="n">imageset_shipped_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_shipped_flag_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_start_time_posix"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_start_time_posix">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/time/posix/start/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_start_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_start_time_posix_list &lt;- imageset.imageset_start_time_posix[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_start_time_posix&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_start_time_posix_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_start_time_posix</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/time/posix/start/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_start_time_posix_list = ibs.get_imageset_start_time_posix(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_start_time_posix_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_START_TIME_POSIX</span><span class="p">,)</span>
+    <span class="n">imageset_start_time_posix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_start_time_posix_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_duration"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_duration">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/duration/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_duration</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    gets the imageset&#39;s duration</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_duration</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/duration/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_process</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;None&#39;</span>
+        <span class="n">seconds_in_day</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span>
+        <span class="n">days</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">duration</span> <span class="o">&gt;=</span> <span class="n">seconds_in_day</span><span class="p">:</span>
+            <span class="n">days</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">//</span> <span class="n">seconds_in_day</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">%</span> <span class="n">seconds_in_day</span>
+        <span class="n">duration_str</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%H:%M:%S&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">gmtime</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">days</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">duration_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> days, </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">days</span><span class="p">,</span> <span class="n">duration_str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">duration_str</span>
+
+    <span class="kn">import</span> <span class="nn">time</span>
+
+    <span class="n">start_time_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_start_time_posix</span><span class="p">(</span><span class="n">imageset_rowid_list</span><span class="p">)</span>
+    <span class="n">end_time_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_end_time_posix</span><span class="p">(</span><span class="n">imageset_rowid_list</span><span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">start_time_list</span><span class="p">,</span> <span class="n">end_time_list</span><span class="p">)</span>
+    <span class="n">duration_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_process</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">duration_list</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_end_time_posix"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_end_time_posix">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/time/posix/end/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_end_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_end_time_posix_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_end_time_posix_list -&gt; imageset.imageset_end_time_posix[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_end_time_posix_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_end_time_posix</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/time/posix/end/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_END_TIME_POSIX</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">imageset_end_time_posix_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_gps_lats"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_gps_lats">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/gps/lat/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">set_imageset_gps_lats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_gps_lat_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_gps_lat_list -&gt; imageset.imageset_gps_lat[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_gps_lat_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_gps_lat</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/gps/lat/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_GPS_LAT</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">imageset_gps_lat_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_gps_lons"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_gps_lons">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/gps/lon/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">set_imageset_gps_lons</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_gps_lon_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_gps_lon_list -&gt; imageset.imageset_gps_lon[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_gps_lon_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_gps_lon</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/gps/lon/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_GPS_LON</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">imageset_gps_lon_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_notes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_notes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_note_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_note_list -&gt; imageset.imageset_note[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_note_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_note</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_NOTE</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">imageset_note_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">metadata_dict_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the imageset&#39;s metadata using a metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/metadata/</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">imageset_rowid_list</span><span class="p">)</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_dict</span> <span class="ow">in</span> <span class="n">metadata_dict_list</span><span class="p">:</span>
+        <span class="n">metadata_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+        <span class="n">metadata_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_str</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;imageset_metadata_json&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_occurrence_flags"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_occurrence_flags">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/occurrence/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_occurrence_flags</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_occurrence_flag_list</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_occurrence_flag_list -&gt; imageset.imageset_occurrence_flag[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_occurrence_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_occurrence_flag</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/occurrence/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_OCCURRENCE_FLAG</span><span class="p">,)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">occurrence_flag</span><span class="p">,)</span> <span class="k">for</span> <span class="n">occurrence_flag</span> <span class="ow">in</span> <span class="n">imageset_occurrence_flag_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_processed_flags"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_processed_flags">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/processed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_processed_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_processed_flag_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_processed_flag_list -&gt; imageset.imageset_processed_flag[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_processed_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_processed_flag</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/processed/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_PROCESSED_FLAG</span><span class="p">,)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">processed_flag</span><span class="p">,)</span> <span class="k">for</span> <span class="n">processed_flag</span> <span class="ow">in</span> <span class="n">imageset_processed_flag_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_shipped_flags"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_shipped_flags">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/shipped/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_shipped_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_shipped_flag_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_shipped_flag_list -&gt; imageset.imageset_shipped_flag[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_shipped_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_shipped_flag</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/shipped/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_SHIPPED_FLAG</span><span class="p">,)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">shipped_flag</span><span class="p">,)</span> <span class="k">for</span> <span class="n">shipped_flag</span> <span class="ow">in</span> <span class="n">imageset_shipped_flag_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_start_time_posix"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_start_time_posix">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/time/posix/start/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_start_time_posix</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_start_time_posix_list</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_start_time_posix_list -&gt; imageset.imageset_start_time_posix[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_start_time_posix_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_start_time_posix</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/time/posix/start/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_START_TIME_POSIX</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">imageset_start_time_posix_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_smart_waypoint_ids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_smart_waypoint_ids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_WAYPOINT_ID)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/smart/waypoint/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_smart_waypoint_ids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_smart_waypoint_id_list &lt;- imageset.imageset_smart_waypoint_id[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_smart_waypoint_id&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_smart_waypoint_id_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_smart_waypoint_id</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/smart/waypoint/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_smart_waypoint_id_list = ibs.get_imageset_smart_waypoint_ids(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_smart_waypoint_id_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_SMART_WAYPOINT_ID</span><span class="p">,)</span>
+    <span class="n">imageset_smart_waypoint_id_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_smart_waypoint_id_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_smart_xml_fnames"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_smart_xml_fnames">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_XML_FNAME)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/smart/xml/file/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_smart_xml_fnames</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_smart_xml_fname_list &lt;- imageset.imageset_smart_xml_fname[imageset_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;imageset_smart_xml_fname&quot; in the &quot;imageset&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: imageset_smart_xml_fname_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = imageset_smart_xml_fname</span>
+<span class="sd">        tbl = imageset</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/imageset/smart/xml/file/name/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_imageset_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_rowid_list = ibs._get_all_imageset_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(imageset_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(imageset_rowid_list) == len(imageset_smart_xml_fname_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_SMART_XML_FNAME</span><span class="p">,)</span>
+    <span class="n">imageset_smart_xml_fname_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imageset_smart_xml_fname_list</span></div>
+
+
+<div class="viewcode-block" id="get_imageset_smart_xml_contents"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.get_imageset_smart_xml_contents">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_XML_FNAME)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/smart/xml/file/content/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_imageset_smart_xml_contents</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+
+    <span class="n">imageset_smart_xml_fname_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_smart_xml_fnames</span><span class="p">(</span><span class="n">imageset_rowid_list</span><span class="p">)</span>
+    <span class="n">content_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">smart_patrol_dir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_smart_patrol_dir</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">imageset_smart_xml_fname</span> <span class="ow">in</span> <span class="n">imageset_smart_xml_fname_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">imageset_smart_xml_fname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">content_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">imageset_smart_xml_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">smart_patrol_dir</span><span class="p">,</span> <span class="n">imageset_smart_xml_fname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">imageset_smart_xml_fpath</span><span class="p">):</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">imageset_smart_xml_fpath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">imageset_smart_xml</span><span class="p">:</span>
+                    <span class="n">content</span> <span class="o">=</span> <span class="n">imageset_smart_xml</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                    <span class="n">content_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">content_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">content_list</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_smart_waypoint_ids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_smart_waypoint_ids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/smart/waypoint/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_smart_waypoint_ids</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_smart_waypoint_id_list</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_smart_waypoint_id_list -&gt; imageset.imageset_smart_waypoint_id[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_smart_waypoint_id_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_smart_waypoint_id</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/smart/waypoint/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_SMART_WAYPOINT_ID</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">imageset_smart_waypoint_id_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_imageset_smart_xml_fnames"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.set_imageset_smart_xml_fnames">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/smart/xml/file/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_imageset_smart_xml_fnames</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_rowid_list</span><span class="p">,</span> <span class="n">imageset_smart_xml_fname_list</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    imageset_smart_xml_fname_list -&gt; imageset.imageset_smart_xml_fname[imageset_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imageset_rowid_list</span>
+<span class="sd">        imageset_smart_xml_fname_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = imageset</span>
+<span class="sd">        col = imageset_smart_xml_fname</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/imageset/smart/xml/fname/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">imageset_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">IMAGESET_SMART_XML_FNAME</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">imageset_smart_xml_fname_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_imageset_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -4,6 +4,7 @@ exclude: |
   (?x)(
       ^docs/ |
       ^_docs/_build/html/ |
+      ^docs/ |
       wbia/web/static/
   )
 repos:
@@ -14,6 +15,11 @@ repos:
   #       language_version: python3.6
   - repo: local
     hooks:
+      # - id: update-documentation
+      #   name: Update Documentation
+      #   entry: ./build_documentation.sh
+      #   language: system
+      #   types: [python]
       - id: brunette
         name: brunette
         description: Run Brunette on Python code (fork of Black).

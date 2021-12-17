@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.init.main_helpers &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.init.main_helpers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.init.main_helpers</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module defines helper functions to access common input needed to test many</span>
+<span class="sd">functions. These functions give a rich command line interface to specifically</span>
+<span class="sd">select subsets of annotations, pipeline configurations, and other filters.</span>
+
+<span class="sd">TODO: standardize function signatures</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="c1"># from wbia.init import old_main_helpers</span>
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[main_helpers]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># DEPRICATE</span>
+<span class="c1"># get_test_daids = old_main_helpers.get_test_daids</span>
+<span class="c1"># get_test_qaids = old_main_helpers.get_test_qaids</span>
+
+<span class="n">VERB_TESTDATA</span><span class="p">,</span> <span class="n">VERYVERB_TESTDATA</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_verbflag</span><span class="p">(</span><span class="s1">&#39;testdata&#39;</span><span class="p">,</span> <span class="s1">&#39;td&#39;</span><span class="p">)</span>
+<span class="n">VERYVERB_MAIN_HELPERS</span> <span class="o">=</span> <span class="n">VERYVERB_TESTDATA</span>
+<span class="n">VERB_MAIN_HELPERS</span> <span class="o">=</span> <span class="n">VERB_TESTDATA</span>
+
+
+<div class="viewcode-block" id="testdata_filtcfg"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.testdata_filtcfg">[docs]</a><span class="k">def</span> <span class="nf">testdata_filtcfg</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[main_helpers] testdata_filtcfg&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+    <span class="n">filt_cfg</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_argv_cfg</span><span class="p">((</span><span class="s1">&#39;--filt&#39;</span><span class="p">,</span> <span class="s1">&#39;-f&#39;</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">filt_cfg</span></div>
+
+
+<div class="viewcode-block" id="testdata_expts"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.testdata_expts">[docs]</a><span class="k">def</span> <span class="nf">testdata_expts</span><span class="p">(</span>
+    <span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span>
+    <span class="n">default_acfgstr_name_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default:qindex=0:10:4,dindex=0:20&#39;</span><span class="p">],</span>
+    <span class="n">default_test_cfg_name_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+    <span class="n">a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">qaid_override</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">daid_override</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">initial_aids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">dbdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use this if you want data from an experiment.</span>
+<span class="sd">    Command line interface to quickly get testdata for test_results.</span>
+
+<span class="sd">    Command line flags can be used to specify db, aidcfg, pipecfg, qaid</span>
+<span class="sd">    override, daid override (and maybe initial aids).</span>
+
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.init.main_helpers testdata_expts</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.other.dbinfo import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs, testres = wbia.testdata_expts(defaultdb=&#39;pz_mtest&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                     a=&#39;timectrl:qsize=2&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                     t=&#39;invar:ai=[false],ri=false&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                     use_cache=false)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;testres = %r&#39; % (testres,))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[main_helpers] testdata_expts&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">harness</span>
+
+    <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default_acfgstr_name_list</span> <span class="o">=</span> <span class="n">a</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default_test_cfg_name_list</span> <span class="o">=</span> <span class="n">p</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default_acfgstr_name_list</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">default_acfgstr_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">default_acfgstr_name_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default_test_cfg_name_list</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">default_test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">default_test_cfg_name_list</span><span class="p">]</span>
+
+    <span class="c1"># from wbia.expt import experiment_helpers</span>
+    <span class="k">if</span> <span class="n">dbdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dbdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">)</span>
+    <span class="n">acfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s1">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s1">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_acfgstr_name_list</span>
+    <span class="p">)</span>
+    <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;-t&#39;</span><span class="p">,</span> <span class="s1">&#39;-p&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_test_cfg_name_list</span>
+    <span class="p">)</span>
+    <span class="n">daid_override</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;--daid-override&#39;</span><span class="p">,</span> <span class="s1">&#39;--daids-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">daid_override</span>
+    <span class="p">)</span>
+    <span class="n">qaid_override</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;--qaid&#39;</span><span class="p">,</span> <span class="s1">&#39;--qaids-override&#39;</span><span class="p">,</span> <span class="s1">&#39;--qaid-override&#39;</span><span class="p">),</span>
+        <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Hack a cache here</span>
+    <span class="n">use_bulk_cache</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--nocache&#39;</span><span class="p">,</span> <span class="s1">&#39;--nocache-hs&#39;</span><span class="p">))</span>
+    <span class="n">use_bulk_cache</span> <span class="o">&amp;=</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">use_bulk_cache</span> <span class="o">&amp;=</span> <span class="n">use_cache</span>
+    <span class="n">use_bulk_cache</span> <span class="o">&amp;=</span> <span class="kc">False</span>
+    <span class="c1"># use_bulk_cache = True</span>
+    <span class="k">if</span> <span class="n">use_bulk_cache</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span>
+
+        <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">((</span><span class="n">dirname</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">wbia</span><span class="p">)),</span> <span class="s1">&#39;BULK_TESTRES&#39;</span><span class="p">))</span>
+        <span class="n">_cache_wrp</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">cached_func</span><span class="p">(</span><span class="s1">&#39;testreslist&#39;</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">)</span>
+        <span class="n">_load_testres</span> <span class="o">=</span> <span class="n">_cache_wrp</span><span class="p">(</span><span class="n">harness</span><span class="o">.</span><span class="n">run_expt</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_load_testres</span> <span class="o">=</span> <span class="n">harness</span><span class="o">.</span><span class="n">run_expt</span>
+
+    <span class="n">testres</span> <span class="o">=</span> <span class="n">_load_testres</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">acfg_name_list</span><span class="p">,</span>
+        <span class="n">test_cfg_name_list</span><span class="p">,</span>
+        <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">,</span>
+        <span class="n">daid_override</span><span class="o">=</span><span class="n">daid_override</span><span class="p">,</span>
+        <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">,</span>
+        <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># testres = test_result.combine_testres_list(ibs, testres_list)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">testres</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span></div>
+
+
+<div class="viewcode-block" id="testdata_aids"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.testdata_aids">[docs]</a><span class="k">def</span> <span class="nf">testdata_aids</span><span class="p">(</span>
+    <span class="n">defaultdb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">adefault</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span>
+    <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">return_acfg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_aids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_set</span><span class="o">=</span><span class="s1">&#39;qcfg&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Grabs default testdata for functions, but is command line overrideable</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia testdata_aids --verbtd --db PZ_ViewPoints</span>
+<span class="sd">        python -m wbia testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername=&#39;#primary&gt;0&amp;#primary1&gt;=1&#39;</span>
+<span class="sd">        python -m wbia testdata_aids --verbtd --db PZ_Master1 -a default:is_known=True,view_pername=&#39;#primary&gt;0&amp;#primary1&gt;=1&#39;</span>
+<span class="sd">        python -m wbia testdata_aids --verbtd --db PZ_Master1 -a default:species=primary,minqual=ok --verbtd</span>
+<span class="sd">        python -m wbia.other.dbinfo --test-latex_dbstats --dblist</span>
+<span class="sd">        python -m wbia testdata_aids --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.init.main_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.expt import annotation_configs</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = wbia.opendb(defaultdb=&#39;PZ_ViewPoints&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; a = None</span>
+<span class="sd">        &gt;&gt;&gt; adefault = &#39;default:is_known=True&#39;</span>
+<span class="sd">        &gt;&gt;&gt; aids, aidcfg = testdata_aids(ibs=ibs, a=a, adefault=adefault, return_acfg=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;\n RESULT:&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">filter_annots</span>
+    <span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+    <span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
+
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[main_helpers] testdata_aids&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">adefault</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">_specified_a</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s1">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s1">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">return_was_specified</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">return_ibs</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">return_ibs</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">defaultdb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">defaultdb</span> <span class="o">=</span> <span class="s1">&#39;testdb1&#39;</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
+    <span class="n">named_defaults_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span>
+        <span class="n">annotation_configs</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span>
+    <span class="p">)</span>
+
+    <span class="n">named_acfg_defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">,</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="n">default_set</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># Allow command line override</span>
+    <span class="n">aids</span><span class="p">,</span> <span class="n">_specified_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;--aid&#39;</span><span class="p">,</span> <span class="s1">&#39;--aids&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_aids</span><span class="p">,</span> <span class="n">return_was_specified</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="n">aidcfg</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">have_aids</span> <span class="o">=</span> <span class="n">aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">need_expand</span> <span class="o">=</span> <span class="p">(</span><span class="ow">not</span> <span class="n">have_aids</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">_specified_a</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_specified_aids</span><span class="p">)</span>
+    <span class="c1"># (not aid) or (sa and (not said))</span>
+    <span class="k">if</span> <span class="n">need_expand</span><span class="p">:</span>
+        <span class="c1"># base_cfg = annotation_configs.single_default</span>
+        <span class="n">aidcfg_combo_list</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_cfgstr_list2</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">a</span><span class="p">],</span>
+            <span class="n">named_acfg_defaults</span><span class="p">,</span>
+            <span class="s1">&#39;acfg&#39;</span><span class="p">,</span>
+            <span class="n">annotation_configs</span><span class="o">.</span><span class="n">ALIAS_KEYS</span><span class="p">,</span>
+            <span class="n">expand_nested</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">is_nestedcfgtype</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">aidcfg_combo</span> <span class="o">=</span> <span class="n">aidcfg_combo_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidcfg_combo_list</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;Error: combinations not handled for single cfg setting&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidcfg_combo</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;Error: combinations not handled for single cfg setting&#39;</span><span class="p">)</span>
+        <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">aidcfg_combo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">filter_annots</span><span class="o">.</span><span class="n">expand_single_acfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_ibs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span>
+    <span class="k">if</span> <span class="n">return_acfg</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">aids</span><span class="p">,</span> <span class="n">aidcfg</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">aids</span></div>
+
+
+<div class="viewcode-block" id="testdata_pipecfg"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.testdata_pipecfg">[docs]</a><span class="k">def</span> <span class="nf">testdata_pipecfg</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: pcfgdict</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia testdata_pipecfg</span>
+<span class="sd">        python -m wbia testdata_pipecfg -t default:AI=False</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        from jedi.evaluate import docstrings</span>
+<span class="sd">        script = jedi.Script(ut.readfrom(main_helpers.__file__))</span>
+<span class="sd">        mod = script._get_module()</span>
+<span class="sd">        func = mod.names_dict[&#39;testdata_pipecfg&#39;][0].parent</span>
+<span class="sd">        docstrings.find_return_types(script._evaluator, func)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.init.main_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; pcfgdict = testdata_pipecfg()</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;pcfgdict = %s&#39; % (ut.repr2(pcfgdict),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[main_helpers] testdata_pipecfg&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">t</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WARNING DO NOT USE t. Use p instead&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]</span>
+
+    <span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
+
+    <span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">_spec</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;-t&#39;</span><span class="p">,</span> <span class="s1">&#39;-p&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">return_was_specified</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_spec</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># allow explict default spec</span>
+        <span class="k">return</span> <span class="n">p</span>
+    <span class="n">pcfgdict_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_pipecfg_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">pcfgdict_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;can only specify one pipeline config here&#39;</span>
+    <span class="n">pcfgdict</span> <span class="o">=</span> <span class="n">pcfgdict_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">pcfgdict</span></div>
+
+
+<div class="viewcode-block" id="testdata_expanded_aids"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.testdata_expanded_aids">[docs]</a><span class="k">def</span> <span class="nf">testdata_expanded_aids</span><span class="p">(</span>
+    <span class="n">defaultdb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">qaid_override</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">daid_override</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">return_annot_info</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        default_qaids (list): (default = [1])</span>
+<span class="sd">        default_daids (str): (default = &#39;all&#39;)</span>
+<span class="sd">        defaultdb (str): (default = &#39;testdb1&#39;)</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object(default = None)</span>
+<span class="sd">        verbose (bool):  verbosity flag(default = False)</span>
+<span class="sd">        return_annot_info (bool): (default = False)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ibs, qaid_list, daid_list, annot_info:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.init.main_helpers testdata_expanded_aids</span>
+<span class="sd">        python -m wbia.init.main_helpers testdata_expanded_aids --db PZ_MTEST --acfg default:index=0:25 --verbose-testdata</span>
+<span class="sd">        python -m wbia.init.main_helpers testdata_expanded_aids --db PZ_MTEST --qaid 3</span>
+<span class="sd">        python -m wbia.init.main_helpers testdata_expanded_aids --db GZ_ALL --acfg ctrl --verbose-testdata</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.init.main_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.expt import annotation_configs</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qaid_list, daid_list, aidcfg = testdata_expanded_aids(return_annot_info=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Printing annot config&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; annotation_configs.print_acfg(aidcfg)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Printing annotconfig stats&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_annotconfig_stats(qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Combined annotconfig stats&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_annot_stats(qaid_list + daid_list, viewcode_isect=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;qaid_list = %r&#39; % (qaid_list,))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[main_helpers] testdata_expanded_aids&#39;</span><span class="p">)</span>
+
+    <span class="n">default_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;--qaid&#39;</span><span class="p">,</span> <span class="s1">&#39;--qaid-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_qaids</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">default_qaids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default_qaids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">defaultdb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">defaultdb</span> <span class="o">=</span> <span class="s1">&#39;testdb1&#39;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
+
+    <span class="c1"># TODO: rectify command line with function arguments</span>
+    <span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
+
+    <span class="n">_specified2</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_specified2</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span>
+    <span class="n">aidcfg_name_list</span><span class="p">,</span> <span class="n">_specified</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s1">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s1">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">return_specified</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_specified</span><span class="p">:</span>
+        <span class="c1"># Allow a to be specified an explicit default</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">daids</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">return_annot_info</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span>
+
+    <span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">aidcfg_name_list</span><span class="p">,</span>
+        <span class="n">qaid_override</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">,</span>
+        <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+        <span class="n">daid_override</span><span class="o">=</span><span class="n">daid_override</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># aidcfg = old_main_helpers.get_commandline_aidcfg()</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
+        <span class="s1">&#39;multiple acfgs specified, but this function&#39;</span>
+        <span class="s1">&#39;is built to return only 1. len(acfg_list)=</span><span class="si">%r</span><span class="s1">&#39;</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">),)</span>
+    <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">acfg_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span> <span class="o">=</span> <span class="n">expanded_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">_specified</span> <span class="ow">or</span> <span class="n">_specified2</span><span class="p">):</span>
+        <span class="c1"># hack</span>
+        <span class="k">if</span> <span class="n">default_qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">qaid_override</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">default_qaids</span>
+        <span class="k">if</span> <span class="n">default_daids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">daid_override</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">default_daids</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">print_annotconfig_stats</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="c1"># wbia.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=True)</span>
+    <span class="k">if</span> <span class="n">return_annot_info</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">aidcfg</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span></div>
+
+
+<div class="viewcode-block" id="testdata_qreq_"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.testdata_qreq_">[docs]</a><span class="k">def</span> <span class="nf">testdata_qreq_</span><span class="p">(</span>
+    <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        p (None): (default = None)</span>
+<span class="sd">        a (None): (default = None)</span>
+<span class="sd">        t (None): (default = None)</span>
+<span class="sd">        default_qaids (None): (default = None)</span>
+<span class="sd">        default_daids (None): (default = None)</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        defaultdb, ibs, qaid_override, daid_override, return_annot_info,</span>
+<span class="sd">        verbose, use_cache</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        wbia.QueryRequest: qreq_ -  query request object with hyper-parameters</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia testdata_qreq_ --show --qaid 3</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.init.main_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
+<span class="sd">        &gt;&gt;&gt; p = None</span>
+<span class="sd">        &gt;&gt;&gt; a = None</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = testdata_qreq_(p)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;qreq_ = %s&#39; % (str(qreq_),))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[main_helpers] testdata_qreq_&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]</span>
+
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">acfg</span> <span class="o">=</span> <span class="n">testdata_expanded_aids</span><span class="p">(</span>
+        <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span>
+        <span class="n">return_annot_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaids</span><span class="p">,</span>
+        <span class="n">default_daids</span><span class="o">=</span><span class="n">default_daids</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">pcfgdict</span> <span class="o">=</span> <span class="n">testdata_pipecfg</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span>
+        <span class="n">qaids</span><span class="p">,</span>
+        <span class="n">daids</span><span class="p">,</span>
+        <span class="n">cfgdict</span><span class="o">=</span><span class="n">pcfgdict</span><span class="p">,</span>
+        <span class="n">custom_nid_lookup</span><span class="o">=</span><span class="n">custom_nid_lookup</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Maintain regen command info: TODO: generalize and integrate</span>
+    <span class="k">if</span> <span class="n">acfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">_regen_info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;_acfgstr&#39;</span><span class="p">:</span> <span class="n">acfg</span><span class="p">[</span><span class="s1">&#39;qcfg&#39;</span><span class="p">][</span><span class="s1">&#39;_cfgstr&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;_pcfgstr&#39;</span><span class="p">:</span> <span class="n">pcfgdict</span><span class="p">[</span><span class="s1">&#39;_cfgstr&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;dbname&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span>
+        <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">_regen_info</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">qreq_</span></div>
+
+
+<div class="viewcode-block" id="testdata_cmlist"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.testdata_cmlist">[docs]</a><span class="k">def</span> <span class="nf">testdata_cmlist</span><span class="p">(</span>
+    <span class="n">defaultdb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list, wbia.QueryRequest: cm_list, qreq_</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[main_helpers] testdata_cmlist&#39;</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_qreq_</span><span class="p">(</span>
+        <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span>
+        <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaids</span><span class="p">,</span>
+        <span class="n">default_daids</span><span class="o">=</span><span class="n">default_daids</span><span class="p">,</span>
+        <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+        <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+        <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span></div>
+
+
+<div class="viewcode-block" id="testdata_cm"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.testdata_cm">[docs]</a><span class="k">def</span> <span class="nf">testdata_cm</span><span class="p">(</span>
+    <span class="n">defaultdb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.init.main_helpers --test-testdata_cm</span>
+<span class="sd">        python -m wbia.init.main_helpers --test-testdata_cm --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.init.main_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cm, qreq_ = testdata_cm()</span>
+<span class="sd">        &gt;&gt;&gt; cm.print_csv(ibs=qreq_.ibs)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_, 2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[main_helpers] testdata_cm&#39;</span><span class="p">)</span>
+    <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_cmlist</span><span class="p">(</span>
+        <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span>
+        <span class="n">default_daids</span><span class="o">=</span><span class="n">default_daids</span><span class="p">,</span>
+        <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaids</span><span class="p">,</span>
+        <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+        <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+        <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;qaids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;only one qaid for this tests, qaids=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,)</span>
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span></div>
+
+
+<div class="viewcode-block" id="monkeypatch_encounters"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.monkeypatch_encounters">[docs]</a><span class="k">def</span> <span class="nf">monkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hacks in a temporary custom definition of encounters for this controller</span>
+
+<span class="sd">    50 days for PZ_MTEST</span>
+<span class="sd">    kwargs = dict(days=50)</span>
+
+<span class="sd">    if False:</span>
+<span class="sd">        name_mindeltas = []</span>
+<span class="sd">        for name in annots.group_items(annots.nids).values():</span>
+<span class="sd">            times = name.image_unixtimes_asfloat</span>
+<span class="sd">            deltas = [ut.unixtime_to_timedelta(np.abs(t1 - t2))</span>
+<span class="sd">                      for t1, t2 in ut.combinations(times, 2)]</span>
+<span class="sd">            if deltas:</span>
+<span class="sd">                name_mindeltas.append(min(deltas))</span>
+<span class="sd">        logger.info(ut.repr3(ut.lmap(ut.get_timedelta_str,</span>
+<span class="sd">                               sorted(name_mindeltas))))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="n">cluster_timespace_sec</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">datetime</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
+    <span class="n">thresh_sec</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+    <span class="c1"># thresh_sec = datetime.timedelta(minutes=30).seconds</span>
+
+    <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># cache = len(aids) &gt; 200</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">combine_uuids</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">visual_uuids</span><span class="p">))</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">thresh_sec</span><span class="p">)</span>
+    <span class="n">cacher</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">Cacher</span><span class="p">(</span><span class="s1">&#39;occurrence_labels&#39;</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">cache</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">cacher</span><span class="o">.</span><span class="n">tryload</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Computing occurrences for monkey patch for </span><span class="si">%d</span><span class="s1"> aids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
+        <span class="n">posixtimes</span> <span class="o">=</span> <span class="n">annots</span><span class="o">.</span><span class="n">image_unixtimes_asfloat</span>
+        <span class="n">latlons</span> <span class="o">=</span> <span class="n">annots</span><span class="o">.</span><span class="n">gps</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">cluster_timespace_sec</span><span class="p">(</span>
+            <span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="o">=</span><span class="n">thresh_sec</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="mf">0.002</span>
+        <span class="p">)</span>
+        <span class="n">cacher</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">occurrence_ids</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="k">if</span> <span class="n">occurrence_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># return</span>
+        <span class="c1"># each annot is its own occurrence</span>
+        <span class="n">occurrence_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">annots</span><span class="p">)))</span>
+
+    <span class="n">ndec</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">occurrence_ids</span><span class="p">))))</span>
+    <span class="n">suffmt</span> <span class="o">=</span> <span class="s1">&#39;-monkey-occur%0&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ndec</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;d&#39;</span>
+    <span class="n">encounter_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="n">suffmt</span> <span class="o">%</span> <span class="p">(</span><span class="n">o</span><span class="p">,)</span> <span class="k">for</span> <span class="n">o</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">occurrence_ids</span><span class="p">,</span> <span class="n">annots</span><span class="o">.</span><span class="n">names</span><span class="p">)]</span>
+    <span class="n">occurrence_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">suffmt</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">%</span> <span class="p">(</span><span class="n">o</span><span class="p">,)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">occurrence_ids</span><span class="p">]</span>
+    <span class="n">enc_lookup</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">encounter_labels</span><span class="p">)</span>
+    <span class="n">occur_lookup</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">occurrence_labels</span><span class="p">)</span>
+
+    <span class="c1"># annots_per_enc = ut.dict_hist(encounter_labels, ordered=True)</span>
+    <span class="c1"># ut.get_stats(list(annots_per_enc.values()))</span>
+
+    <span class="c1"># encounters = ibs._annot_groups(annots.group(encounter_labels)[1])</span>
+    <span class="c1"># enc_names = ut.take_column(encounters.nids, 0)</span>
+    <span class="c1"># name_to_encounters = ut.group_items(encounters, enc_names)</span>
+
+    <span class="c1"># logger.info(&#39;name_to_encounters = %s&#39; % (ut.repr3(name_to_encounters)),)</span>
+    <span class="c1"># logger.info(&#39;Names to num encounters&#39;)</span>
+    <span class="c1"># name_to_num_enc = ut.dict_hist(</span>
+    <span class="c1">#     ut.map_dict_vals(len, name_to_encounters).values())</span>
+
+    <span class="c1"># monkey patch to override encounter info</span>
+    <span class="k">def</span> <span class="nf">_monkey_get_annot_occurrence_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">occur_lookup</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_monkey_get_annot_encounter_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">enc_lookup</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">_monkey_get_annot_encounter_text</span><span class="p">,</span> <span class="s1">&#39;get_annot_encounter_text&#39;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">_monkey_get_annot_occurrence_text</span><span class="p">,</span> <span class="s1">&#39;get_annot_occurrence_text&#39;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="unmonkeypatch_encounters"><a class="viewcode-back" href="../../../wbia.init.html#wbia.init.main_helpers.unmonkeypatch_encounters">[docs]</a><span class="k">def</span> <span class="nf">unmonkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_annot_encounter_text</span><span class="p">,</span> <span class="s1">&#39;get_annot_encounter_text&#39;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">get_annot_occurrence_text</span><span class="p">,</span> <span class="s1">&#39;get_annot_occurrence_text&#39;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

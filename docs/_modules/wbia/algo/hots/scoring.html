@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.hots.scoring &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../hots.html">wbia.algo.hots</a> &raquo;</li>
+      <li>wbia.algo.hots.scoring</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.hots.scoring</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="score_chipmatch_list"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.scoring.score_chipmatch_list">[docs]</a><span class="k">def</span> <span class="nf">score_chipmatch_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">score_method</span><span class="p">,</span> <span class="n">progkw</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.scoring --test-score_chipmatch_list</span>
+<span class="sd">        python -m wbia.algo.hots.scoring --test-score_chipmatch_list:1</span>
+<span class="sd">        python -m wbia.algo.hots.scoring --test-score_chipmatch_list:0 --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; # (IMPORTANT)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_pre_sver()</span>
+<span class="sd">        &gt;&gt;&gt; score_method = qreq_.qparams.prescore_method</span>
+<span class="sd">        &gt;&gt;&gt; score_chipmatch_list(qreq_, cm_list, score_method)</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert cm.score_list.argmax() == 0</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # (IMPORTANT)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver()</span>
+<span class="sd">        &gt;&gt;&gt; qaid = qreq_.qaids[0]</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; score_method = qreq_.qparams.score_method</span>
+<span class="sd">        &gt;&gt;&gt; score_chipmatch_list(qreq_, cm_list, score_method)</span>
+<span class="sd">        &gt;&gt;&gt; assert cm.score_list.argmax() == 0</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">progkw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">progkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">lbl</span> <span class="o">=</span> <span class="s1">&#39;scoring </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score_method</span><span class="p">)</span>
+    <span class="c1"># Choose the appropriate scoring mechanism</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[scoring] score </span><span class="si">%d</span><span class="s1"> chipmatches with </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">),</span> <span class="n">score_method</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;sumamech&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="o">**</span><span class="n">progkw</span><span class="p">):</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">score_name_sumamech</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;csum&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="o">**</span><span class="n">progkw</span><span class="p">):</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">score_name_maxcsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;nsum&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="o">**</span><span class="n">progkw</span><span class="p">):</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">score_name_nsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;[hs] unknown scoring method:&#39;</span> <span class="o">+</span> <span class="n">score_method</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_name_shortlist_aids"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.scoring.get_name_shortlist_aids">[docs]</a><span class="k">def</span> <span class="nf">get_name_shortlist_aids</span><span class="p">(</span>
+    <span class="n">daid_list</span><span class="p">,</span>
+    <span class="n">dnid_list</span><span class="p">,</span>
+    <span class="n">annot_score_list</span><span class="p">,</span>
+    <span class="n">name_score_list</span><span class="p">,</span>
+    <span class="n">nid2_nidx</span><span class="p">,</span>
+    <span class="n">nNameShortList</span><span class="p">,</span>
+    <span class="n">nAnnotPerName</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.scoring --test-get_name_shortlist_aids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; daid_list        = np.array([11, 12, 13, 14, 15, 16, 17])</span>
+<span class="sd">        &gt;&gt;&gt; dnid_list        = np.array([21, 21, 21, 22, 22, 23, 24])</span>
+<span class="sd">        &gt;&gt;&gt; annot_score_list = np.array([ 6,  2,  3,  5,  6,  3,  2])</span>
+<span class="sd">        &gt;&gt;&gt; name_score_list  = np.array([ 8,  9,  5,  4])</span>
+<span class="sd">        &gt;&gt;&gt; nid2_nidx        = {21:0, 22:1, 23:2, 24:3}</span>
+<span class="sd">        &gt;&gt;&gt; nNameShortList, nAnnotPerName = 3, 2</span>
+<span class="sd">        &gt;&gt;&gt; args = (daid_list, dnid_list, annot_score_list, name_score_list,</span>
+<span class="sd">        ...         nid2_nidx, nNameShortList, nAnnotPerName)</span>
+<span class="sd">        &gt;&gt;&gt; top_daids = get_name_shortlist_aids(*args)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(top_daids)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [15, 14, 11, 13, 16]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dnid_list</span><span class="p">))</span>
+    <span class="n">grouped_annot_scores</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">annot_score_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">grouped_daids</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">daid_list</span><span class="p">),</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="c1"># Ensure name score list is aligned with the unique_nids</span>
+    <span class="n">aligned_name_score_list</span> <span class="o">=</span> <span class="n">name_score_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">nid2_nidx</span><span class="p">,</span> <span class="n">unique_nids</span><span class="p">))</span>
+    <span class="c1"># Sort each group by the name score</span>
+    <span class="n">group_sortx</span> <span class="o">=</span> <span class="n">aligned_name_score_list</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">_top_daid_groups</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">grouped_daids</span><span class="p">,</span> <span class="n">group_sortx</span><span class="p">)</span>
+    <span class="n">_top_annot_score_groups</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">grouped_annot_scores</span><span class="p">,</span> <span class="n">group_sortx</span><span class="p">)</span>
+    <span class="n">top_daid_groups</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listclip</span><span class="p">(</span><span class="n">_top_daid_groups</span><span class="p">,</span> <span class="n">nNameShortList</span><span class="p">)</span>
+    <span class="n">top_annot_score_groups</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listclip</span><span class="p">(</span><span class="n">_top_annot_score_groups</span><span class="p">,</span> <span class="n">nNameShortList</span><span class="p">)</span>
+    <span class="c1"># Sort within each group by the annotation score</span>
+    <span class="n">top_daid_sortx_groups</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">annot_score_group</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">annot_score_group</span> <span class="ow">in</span> <span class="n">top_annot_score_groups</span>
+    <span class="p">]</span>
+    <span class="n">top_sorted_daid_groups</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">top_daid_groups</span><span class="p">,</span> <span class="n">top_daid_sortx_groups</span><span class="p">)</span>
+    <span class="n">top_clipped_daids</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">listclip</span><span class="p">(</span><span class="n">sorted_daid_group</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sorted_daid_group</span> <span class="ow">in</span> <span class="n">top_sorted_daid_groups</span>
+    <span class="p">]</span>
+    <span class="n">top_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">top_clipped_daids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">top_daids</span></div>
+
+
+<div class="viewcode-block" id="make_chipmatch_shortlists"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.scoring.make_chipmatch_shortlists">[docs]</a><span class="k">def</span> <span class="nf">make_chipmatch_shortlists</span><span class="p">(</span>
+    <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">,</span> <span class="n">score_method</span><span class="o">=</span><span class="s1">&#39;nsum&#39;</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Makes shortlists for reranking</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.scoring --test-make_chipmatch_shortlists --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_pre_sver(&#39;PZ_MTEST&#39;, qaid_list=[18])</span>
+<span class="sd">        &gt;&gt;&gt; score_method    = &#39;nsum&#39;</span>
+<span class="sd">        &gt;&gt;&gt; nNameShortList  = 5</span>
+<span class="sd">        &gt;&gt;&gt; nAnnotPerName   = 6</span>
+<span class="sd">        &gt;&gt;&gt; # apply scores</span>
+<span class="sd">        &gt;&gt;&gt; score_chipmatch_list(qreq_, cm_list, score_method)</span>
+<span class="sd">        &gt;&gt;&gt; cm_input = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; #assert cm_input.dnid_list.take(cm_input.argsort())[0] == cm_input.qnid</span>
+<span class="sd">        &gt;&gt;&gt; cm_shortlist = make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName)</span>
+<span class="sd">        &gt;&gt;&gt; cm_input.print_rawinfostr()</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_shortlist[0]</span>
+<span class="sd">        &gt;&gt;&gt; cm.print_rawinfostr()</span>
+<span class="sd">        &gt;&gt;&gt; # should be sorted already from the shortlist take</span>
+<span class="sd">        &gt;&gt;&gt; top_nid_list = cm.dnid_list</span>
+<span class="sd">        &gt;&gt;&gt; top_aid_list = cm.daid_list</span>
+<span class="sd">        &gt;&gt;&gt; qnid = cm.qnid</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;top_aid_list = %r&#39; % (top_aid_list,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;top_nid_list = %r&#39; % (top_nid_list,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;qnid = %r&#39; % (qnid,))</span>
+<span class="sd">        &gt;&gt;&gt; rankx = top_nid_list.tolist().index(qnid)</span>
+<span class="sd">        &gt;&gt;&gt; assert rankx == 0, &#39;qnid=%r should be first rank, not rankx=%r&#39; % (qnid, rankx)</span>
+<span class="sd">        &gt;&gt;&gt; max_num_rerank = nNameShortList * nAnnotPerName</span>
+<span class="sd">        &gt;&gt;&gt; min_num_rerank = nNameShortList</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(len(top_nid_list), min_num_rerank, max_num_rerank, &#39;incorrect number in shortlist&#39;, eq=True)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_, daid=top_aid_list[0])</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[scoring] Making shortlist nNameShortList=</span><span class="si">%r</span><span class="s1">, nAnnotPerName=</span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">cm_shortlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">score_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;score list must be computed&#39;</span>
+        <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;annot_score_list must be computed&#39;</span>
+        <span class="c1"># FIXME: this should just always be name</span>
+        <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;nsum&#39;</span><span class="p">:</span>
+            <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_name_shortlist_aids</span><span class="p">(</span><span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;csum&#39;</span><span class="p">:</span>
+            <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_annot_shortlist_aids</span><span class="p">(</span><span class="n">nNameShortList</span> <span class="o">*</span> <span class="n">nAnnotPerName</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">score_method</span><span class="p">)</span>
+        <span class="n">cm_subset</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">shortlist_subset</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
+        <span class="n">cm_shortlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cm_subset</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cm_shortlist</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

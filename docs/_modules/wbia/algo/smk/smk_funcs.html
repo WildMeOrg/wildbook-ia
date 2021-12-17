@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.smk.smk_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../smk.html">wbia.algo.smk</a> &raquo;</li>
+      <li>wbia.algo.smk.smk_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.smk.smk_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">References:</span>
+<span class="sd">    Jegou&#39;s Source Code, Data, and Publications</span>
+<span class="sd">    http://people.rennes.inria.fr/Herve.Jegou/publications.html</span>
+
+<span class="sd">    To aggregate or not to aggregate: selective match kernels for image search</span>
+<span class="sd">    https://hal.inria.fr/hal-00864684/document</span>
+
+<span class="sd">    Image search with selective match kernels: aggregation across single and multiple images</span>
+<span class="sd">    http://image.ntua.gr/iva/files/Tolias_ijcv15_iasmk.pdf</span>
+
+<span class="sd">    Negative evidences and co-occurrences in image retrieval: the benefit of PCA and whitening</span>
+<span class="sd">    https://hal.inria.fr/file/index/docid/722626/filename/jegou_chum_eccv2012.pdf</span>
+
+<span class="sd">    Revisiting the VLAD image representation</span>
+<span class="sd">    https://hal.inria.fr/file/index/docid/850249/filename/nextvlad_hal.pdf</span>
+
+<span class="sd">    Aggregating local descriptors into a compact image representation</span>
+<span class="sd">    https://lear.inrialpes.fr/pubs/2010/JDSP10/jegou_compactimagerepresentation.pdf</span>
+
+<span class="sd">    Large-scale image retrieval with compressed Fisher vectors</span>
+<span class="sd">    http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.401.9140&amp;rep=rep1&amp;type=pdf</span>
+
+<span class="sd">    Improving Bag of Features</span>
+<span class="sd">    http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf</span>
+
+<span class="sd">    Lost in Quantization</span>
+<span class="sd">    http://www.robots.ox.ac.uk/~vgg/publications/papers/philbin08.ps.gz</span>
+
+<span class="sd">    A Context Dissimilarity Measure for Accurate and Efficient Image Search</span>
+<span class="sd">    https://lear.inrialpes.fr/pubs/2007/JHS07/jegou_cdm.pdf</span>
+
+<span class="sd">    Video Google: A text retrieval approach to object matching in videos</span>
+<span class="sd">    http://www.robots.ox.ac.uk/~vgg/publications/papers/sivic03.pdf</span>
+
+<span class="sd">    Hamming embedding and weak geometric consistency for large scale image search</span>
+<span class="sd">    https://lear.inrialpes.fr/pubs/2008/JDS08/jegou_hewgc08.pdf</span>
+
+<span class="sd">    Three things everyone should know to improve object retrieval</span>
+<span class="sd">    https://www.robots.ox.ac.uk/~vgg/publications/2012/Arandjelovic12/arandjelovic12.pdf</span>
+
+<span class="sd">    Object retrieval with large vocabularies and fast spatial matching</span>
+<span class="sd">    http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf</span>
+
+<span class="sd">    Aggregating Local Descriptors into Compact Codes</span>
+<span class="sd">    https://hal.inria.fr/file/index/docid/633013/filename/jegou_aggregate.pdf</span>
+
+<span class="sd">    Local visual query expansion</span>
+<span class="sd">    https://hal.inria.fr/hal-00840721/PDF/RR-8325.pdf</span>
+
+<span class="sd">    Root SIFT technique</span>
+<span class="sd">    https://hal.inria.fr/hal-00688169/document</span>
+
+<span class="sd">    Fisher Kernel For Large Scale Classification</span>
+<span class="sd">    https://www.robots.ox.ac.uk/~vgg/rg/papers/peronnin_etal_ECCV10.pdf</span>
+
+<span class="sd">    Orientation covariant aggregation of local descriptors with embeddings</span>
+<span class="sd">    https://arxiv.org/pdf/1407.2170.pdf</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="cast_residual_integer"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.cast_residual_integer">[docs]</a><span class="k">def</span> <span class="nf">cast_residual_integer</span><span class="p">(</span><span class="n">rvecs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    quantize residual vectors to 8-bits using the same trunctation hack as in</span>
+<span class="sd">    SIFT. values will typically not reach the maximum, so we can multiply by a</span>
+<span class="sd">    higher number for better fidelity.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        rvecs (ndarray[float64_t]):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray[uint8_t]:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.smk.smk_funcs cast_residual_integer --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; rvecs = testdata_rvecs(dim=128)[&#39;rvecs&#39;][4:]</span>
+<span class="sd">        &gt;&gt;&gt; rvecs_int8 = cast_residual_integer(rvecs)</span>
+<span class="sd">        &gt;&gt;&gt; rvecs_float = uncast_residual_integer(rvecs_int8)</span>
+<span class="sd">        &gt;&gt;&gt; # Casting from float to int8 will result in a max quantization error</span>
+<span class="sd">        &gt;&gt;&gt; measured_error = np.abs(rvecs_float - rvecs)</span>
+<span class="sd">        &gt;&gt;&gt; # But there are limits on what this error can be</span>
+<span class="sd">        &gt;&gt;&gt; cutoff = 127  # np.iinfo(np.int8).max</span>
+<span class="sd">        &gt;&gt;&gt; fidelity = 255.0</span>
+<span class="sd">        &gt;&gt;&gt; theory_error_in = 1 / fidelity</span>
+<span class="sd">        &gt;&gt;&gt; theory_error_out = (fidelity - cutoff) / fidelity</span>
+<span class="sd">        &gt;&gt;&gt; # Determine if any component values exceed the cutoff</span>
+<span class="sd">        &gt;&gt;&gt; is_inside = (np.abs(rvecs * fidelity) &lt; cutoff)</span>
+<span class="sd">        &gt;&gt;&gt; # Check theoretical maximum for values inside and outside cutoff</span>
+<span class="sd">        &gt;&gt;&gt; error_stats_in = ut.get_stats(measured_error[is_inside])</span>
+<span class="sd">        &gt;&gt;&gt; error_stats_out = ut.get_stats(measured_error[~is_inside])</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;inside cutoff error stats: &#39; + ut.repr4(error_stats_in, precision=8))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;outside cutoff error stats: &#39; + ut.repr4(error_stats_out, precision=8))</span>
+<span class="sd">        &gt;&gt;&gt; assert rvecs_int8.dtype == np.int8</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(measured_error[is_inside] &lt; theory_error_in)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(measured_error[~is_inside] &lt; theory_error_out)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># maybe don&#39;t round?</span>
+    <span class="c1"># return np.clip(rvecs * 255.0, -127, 127).astype(np.int8)</span>
+    <span class="c1"># TODO: -128, 127</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">rvecs</span> <span class="o">*</span> <span class="mf">255.0</span><span class="p">),</span> <span class="o">-</span><span class="mi">127</span><span class="p">,</span> <span class="mi">127</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="uncast_residual_integer"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.uncast_residual_integer">[docs]</a><span class="k">def</span> <span class="nf">uncast_residual_integer</span><span class="p">(</span><span class="n">rvecs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        rvecs (ndarray[uint8_t]):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray[float64_t]:</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span></div>
+
+
+<div class="viewcode-block" id="compute_stacked_agg_rvecs"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.compute_stacked_agg_rvecs">[docs]</a><span class="k">def</span> <span class="nf">compute_stacked_agg_rvecs</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">flat_wxs_assign</span><span class="p">,</span> <span class="n">flat_vecs</span><span class="p">,</span> <span class="n">flat_offsets</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    More efficient version of agg on a stacked structure</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        words (ndarray): entire vocabulary of words</span>
+<span class="sd">        flat_wxs_assign (ndarray): maps a stacked index to word index</span>
+<span class="sd">        flat_vecs (ndarray): stacked SIFT descriptors</span>
+<span class="sd">        flat_offsets (ndarray): offset positions per annotation</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; data = testdata_rvecs(dim=2, nvecs=1000, nannots=10)</span>
+<span class="sd">        &gt;&gt;&gt; words = data[&#39;words&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; flat_offsets = data[&#39;offset_list&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; flat_wxs_assign, flat_vecs = ut.take(data, [&#39;idx_to_wx&#39;, &#39;vecs&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; tup = compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets)</span>
+<span class="sd">        &gt;&gt;&gt; all_agg_vecs, all_error_flags, agg_offset_list = tup</span>
+<span class="sd">        &gt;&gt;&gt; agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]</span>
+<span class="sd">        &gt;&gt;&gt; agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]</span>
+<span class="sd">        &gt;&gt;&gt; assert len(agg_flags_list) == len(flat_offsets) - 1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; data = testdata_rvecs(dim=2, nvecs=100, nannots=5)</span>
+<span class="sd">        &gt;&gt;&gt; words = data[&#39;words&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; flat_offsets = data[&#39;offset_list&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; flat_wxs_assign, flat_vecs = ut.take(data, [&#39;idx_to_wx&#39;, &#39;vecs&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; tup = compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets)</span>
+<span class="sd">        &gt;&gt;&gt; all_agg_vecs, all_error_flags, agg_offset_list = tup</span>
+<span class="sd">        &gt;&gt;&gt; agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]</span>
+<span class="sd">        &gt;&gt;&gt; agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]</span>
+<span class="sd">        &gt;&gt;&gt; assert len(agg_flags_list) == len(flat_offsets) - 1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">grouped_wxs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">flat_wxs_assign</span><span class="p">[</span><span class="n">left</span><span class="p">:</span><span class="n">right</span><span class="p">]</span> <span class="k">for</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">flat_offsets</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Assume single assignment, aggregate everything</span>
+    <span class="c1"># across the entire database</span>
+    <span class="n">flat_offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flat_offsets</span><span class="p">)</span>
+
+    <span class="n">idx_to_dx</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">flat_offsets</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flat_wxs_assign</span><span class="p">)),</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flat_wxs_assign</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+        <span class="n">wx_list</span> <span class="o">=</span> <span class="n">flat_wxs_assign</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">wx_list</span> <span class="o">=</span> <span class="n">flat_wxs_assign</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">unique_wx</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">wx_list</span><span class="p">)</span>
+
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">flat_vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flat_wxs_assign</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+        <span class="n">dx_to_wxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">wxs</span><span class="o">.</span><span class="n">compressed</span><span class="p">())</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">grouped_wxs</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dx_to_wxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">wxs</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">grouped_wxs</span><span class="p">]</span>
+    <span class="n">dx_to_nagg</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">dx_to_wxs</span><span class="p">]</span>
+    <span class="n">num_agg_vecs</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">dx_to_nagg</span><span class="p">)</span>
+    <span class="c1"># all_agg_wxs = np.hstack(dx_to_wxs)</span>
+    <span class="n">agg_offset_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dx_to_nagg</span><span class="p">))</span>
+    <span class="c1"># Preallocate agg residuals for all dxs</span>
+    <span class="n">all_agg_vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">num_agg_vecs</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">all_agg_vecs</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="c1"># precompute agg residual stack</span>
+    <span class="n">i_to_dxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">idx_to_dx</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">subgroup</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">dxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">dxs</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">i_to_dxs</span><span class="p">)]</span>
+    <span class="n">i_to_unique_dxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">i_to_dx_groupxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">num_words</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_wx</span><span class="p">)</span>
+
+    <span class="c1"># Overall this takes 5 minutes and 21 seconds</span>
+    <span class="c1"># I think the other method takes about 12 minutes</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_words</span><span class="p">),</span> <span class="s1">&#39;agg&#39;</span><span class="p">):</span>
+        <span class="n">wx</span> <span class="o">=</span> <span class="n">unique_wx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">groupxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">dxs</span> <span class="o">=</span> <span class="n">i_to_unique_dxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">dx_groupxs</span> <span class="o">=</span> <span class="n">i_to_dx_groupxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="n">wx</span> <span class="p">:</span> <span class="n">wx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">offsets1</span> <span class="o">=</span> <span class="n">agg_offset_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">dxs</span><span class="p">)</span>
+        <span class="n">offsets2</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dx_to_wxs</span><span class="p">[</span><span class="n">dx</span><span class="p">]</span> <span class="o">==</span> <span class="n">wx</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">dx</span> <span class="ow">in</span> <span class="n">dxs</span><span class="p">]</span>
+        <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">offsets1</span><span class="p">,</span> <span class="n">offsets2</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">offsets1</span><span class="p">)</span>
+
+        <span class="c1"># if __debug__:</span>
+        <span class="c1">#     assert np.bincount(dxs).max() &lt; 2</span>
+        <span class="c1">#     offset = agg_offset_list[dxs[0]]</span>
+        <span class="c1">#     assert np.all(dx_to_wxs[dxs[0]] == all_agg_wxs[offset:offset +</span>
+        <span class="c1">#                                                    dx_to_nagg[dxs[0]]])</span>
+
+        <span class="c1"># Compute residuals</span>
+        <span class="n">rvecs</span> <span class="o">=</span> <span class="n">flat_vecs</span><span class="p">[</span><span class="n">xs</span><span class="p">]</span> <span class="o">-</span> <span class="n">word</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">rvecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">rvecs</span><span class="p">)</span>
+        <span class="n">rvecs</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">rvecs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Aggregate across same images</span>
+        <span class="n">grouped_rvecs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">rvecs</span><span class="p">,</span> <span class="n">dx_groupxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">agg_rvecs_</span> <span class="o">=</span> <span class="p">[</span><span class="n">rvec_group</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">rvec_group</span> <span class="ow">in</span> <span class="n">grouped_rvecs</span><span class="p">]</span>
+        <span class="c1"># agg_rvecs = np.vstack(agg_rvecs_)</span>
+        <span class="n">all_agg_vecs</span><span class="p">[</span><span class="n">offsets</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">agg_rvecs_</span>
+
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">all_agg_vecs</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Apply normalization&#39;</span><span class="p">)</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">all_agg_vecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">all_agg_vecs</span><span class="p">)</span>
+    <span class="n">all_error_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">all_agg_vecs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">all_agg_vecs</span><span class="p">[</span><span class="n">all_error_flags</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># ndocs_per_word1 = np.array(ut.lmap(len, wx_to_unique_dxs))</span>
+    <span class="c1"># ndocs_total1 = len(flat_offsets) - 1</span>
+    <span class="c1"># idf1 = smk_funcs.inv_doc_freq(ndocs_total1, ndocs_per_word1)</span>
+
+    <span class="n">tup</span> <span class="o">=</span> <span class="n">all_agg_vecs</span><span class="p">,</span> <span class="n">all_error_flags</span><span class="p">,</span> <span class="n">agg_offset_list</span>
+    <span class="k">return</span> <span class="n">tup</span></div>
+
+
+<div class="viewcode-block" id="compute_rvec"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.compute_rvec">[docs]</a><span class="k">def</span> <span class="nf">compute_rvec</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">word</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute residual vectors phi(x_c)</span>
+
+<span class="sd">    Subtract each vector from its quantized word to get the resiudal, then</span>
+<span class="sd">    normalize residuals to unit length.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.smk.smk_funcs compute_rvec --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vecs, words = ut.take(testdata_rvecs(), [&#39;vecs&#39;, &#39;words&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; word = words[-1]</span>
+<span class="sd">        &gt;&gt;&gt; rvecs, error_flags = compute_rvec(vecs, word)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.figure()</span>
+<span class="sd">        &gt;&gt;&gt; # recenter residuals for visualization</span>
+<span class="sd">        &gt;&gt;&gt; cvecs = (rvecs + word[None, :])</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(word[0], word[1], &#39;r*&#39;, markersize=12, label=&#39;word&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(vecs.T[0], vecs.T[1], &#39;go&#39;, label=&#39;original vecs&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(cvecs.T[0], cvecs.T[1], &#39;b.&#39;, label=&#39;re-centered rvec&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.draw_line_segments2(cvecs, [word] * len(cvecs), alpha=.5, color=&#39;black&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.gca().set_aspect(&#39;equal&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.legend()</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">vecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">word</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+    <span class="c1"># If a vec is a word then the residual is 0 and it cant be L2 noramlized.</span>
+    <span class="n">error_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">rvecs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">rvecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">rvecs</span><span class="p">)</span>
+    <span class="c1"># reset these values to zero</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">error_flags</span><span class="p">):</span>
+        <span class="n">rvecs</span><span class="p">[</span><span class="n">error_flags</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">rvecs</span><span class="p">,</span> <span class="n">error_flags</span></div>
+
+
+<div class="viewcode-block" id="aggregate_rvecs"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.aggregate_rvecs">[docs]</a><span class="k">def</span> <span class="nf">aggregate_rvecs</span><span class="p">(</span><span class="n">rvecs</span><span class="p">,</span> <span class="n">maws</span><span class="p">,</span> <span class="n">error_flags</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute aggregated residual vectors Phi(X_c)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.smk.smk_funcs aggregate_rvecs --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vecs, words = ut.take(testdata_rvecs(), [&#39;vecs&#39;, &#39;words&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; word = words[-1]</span>
+<span class="sd">        &gt;&gt;&gt; rvecs, error_flags = compute_rvec(vecs, word)</span>
+<span class="sd">        &gt;&gt;&gt; maws = [1.0] * len(rvecs)</span>
+<span class="sd">        &gt;&gt;&gt; agg_rvec, agg_flag = aggregate_rvecs(rvecs, maws, error_flags)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.qt4ensure()</span>
+<span class="sd">        &gt;&gt;&gt; pt.figure()</span>
+<span class="sd">        &gt;&gt;&gt; # recenter residuals for visualization</span>
+<span class="sd">        &gt;&gt;&gt; agg_cvec = agg_rvec + word</span>
+<span class="sd">        &gt;&gt;&gt; cvecs = (rvecs + word[None, :])</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(word[0], word[1], &#39;r*&#39;, markersize=12, label=&#39;word&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(agg_cvec[0], agg_cvec[1], &#39;ro&#39;, label=&#39;re-centered agg_rvec&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(vecs.T[0], vecs.T[1], &#39;go&#39;, label=&#39;original vecs&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(cvecs.T[0], cvecs.T[1], &#39;b.&#39;, label=&#39;re-centered rvec&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.draw_line_segments2([word] * len(cvecs), cvecs, alpha=.5, color=&#39;black&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.draw_line_segments2([word], [agg_cvec], alpha=.5, color=&#39;red&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.gca().set_aspect(&#39;equal&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.legend()</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Propogate errors from previous step</span>
+    <span class="n">agg_flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">error_flags</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot compute without rvecs&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Efficiency shortcut</span>
+        <span class="n">agg_rvec</span> <span class="o">=</span> <span class="n">rvecs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Prealloc residual vector, take the weighted sum and renormalize.</span>
+        <span class="n">agg_rvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">agg_rvec</span>
+
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># Take weighted average of multi-assigned vectors</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">maws</span><span class="p">,</span> <span class="n">maws</span><span class="o">.</span><span class="n">sum</span><span class="p">())[:,</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="n">agg_rvec</span> <span class="o">=</span> <span class="p">(</span><span class="n">coeff</span> <span class="o">*</span> <span class="n">rvecs</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Don&#39;t consider multiple assignment weights</span>
+            <span class="n">agg_rvec</span> <span class="o">=</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">is_zero</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">agg_rvec</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">vt</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">agg_rvec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">agg_rvec</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">is_zero</span><span class="p">:</span>
+            <span class="n">agg_flag</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="n">agg_rvec</span><span class="p">,</span> <span class="n">agg_flag</span></div>
+
+
+<div class="viewcode-block" id="weight_multi_assigns"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.weight_multi_assigns">[docs]</a><span class="k">def</span> <span class="nf">weight_multi_assigns</span><span class="p">(</span>
+    <span class="n">_idx_to_wx</span><span class="p">,</span>
+    <span class="n">_idx_to_wdist</span><span class="p">,</span>
+    <span class="n">massign_alpha</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+    <span class="n">massign_sigma</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span>
+    <span class="n">massign_equal_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Multi Assignment Weight Filtering from Improving Bag of Features</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        massign_equal_weights (): Turns off soft weighting. Gives all assigned</span>
+<span class="sd">            vectors weight 1</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (idx_to_wxs, idx_to_maws)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; _idx_to_wx = np.array([[0, 1], [2, 3], [4, 5], [2, 0]])</span>
+<span class="sd">        &gt;&gt;&gt; _idx_to_wdist = np.array([[.1, .11], [.2, .25], [.03, .25], [0, 1]])</span>
+<span class="sd">        &gt;&gt;&gt; massign_alpha = 1.2</span>
+<span class="sd">        &gt;&gt;&gt; massign_sigma = 80.0</span>
+<span class="sd">        &gt;&gt;&gt; massign_equal_weights = False</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_wxs, idx_to_maws = weight_multi_assigns(</span>
+<span class="sd">        &gt;&gt;&gt;     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,</span>
+<span class="sd">        &gt;&gt;&gt;     massign_equal_weights)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;idx_to_wxs = %s&#39; % (ut.repr2(idx_to_wxs.astype(np.float64)),)</span>
+<span class="sd">        &gt;&gt;&gt; result += &#39;\nidx_to_maws = %s&#39; % (ut.repr2(idx_to_maws, precision=2),)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        idx_to_wxs = np.ma.MaskedArray([[0., 1.],</span>
+<span class="sd">                           [2., inf],</span>
+<span class="sd">                           [4., inf],</span>
+<span class="sd">                           [2., 0.]])</span>
+<span class="sd">        idx_to_maws = np.ma.MaskedArray([[0.5, 0.5],</span>
+<span class="sd">                           [1. , inf],</span>
+<span class="sd">                           [1. , inf],</span>
+<span class="sd">                           [0.5, 0.5]])</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; _idx_to_wx = np.array([[0, 1], [2, 3], [4, 5], [2, 0]])</span>
+<span class="sd">        &gt;&gt;&gt; _idx_to_wdist = np.array([[.1, .11], [.2, .25], [.03, .25], [0, 1]])</span>
+<span class="sd">        &gt;&gt;&gt; _idx_to_wx = _idx_to_wx.astype(np.int32)</span>
+<span class="sd">        &gt;&gt;&gt; _idx_to_wdist = _idx_to_wdist.astype(np.float32)</span>
+<span class="sd">        &gt;&gt;&gt; massign_alpha = 1.2</span>
+<span class="sd">        &gt;&gt;&gt; massign_sigma = 80.0</span>
+<span class="sd">        &gt;&gt;&gt; massign_equal_weights = True</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_wxs, idx_to_maws = weight_multi_assigns(</span>
+<span class="sd">        &gt;&gt;&gt;     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,</span>
+<span class="sd">        &gt;&gt;&gt;     massign_equal_weights)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;idx_to_wxs = %s&#39; % (ut.repr2(idx_to_wxs.astype(np.float64)),)</span>
+<span class="sd">        &gt;&gt;&gt; result += &#39;\nidx_to_maws = %s&#39; % (ut.repr2(idx_to_maws, precision=2),)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        idx_to_wxs = np.ma.MaskedArray([[0., 1.],</span>
+<span class="sd">                           [2., inf],</span>
+<span class="sd">                           [4., inf],</span>
+<span class="sd">                           [2., 0.]])</span>
+<span class="sd">        idx_to_maws = np.ma.MaskedArray([[1., 1.],</span>
+<span class="sd">                           [1., inf],</span>
+<span class="sd">                           [1., inf],</span>
+<span class="sd">                           [1., 1.]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_idx_to_wx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">idx_to_wxs</span> <span class="o">=</span> <span class="n">_idx_to_wx</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">idx_to_maws</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx_to_wxs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Valid word assignments are beyond fraction of distance to the nearest word</span>
+        <span class="n">ma_thresh</span> <span class="o">=</span> <span class="n">_idx_to_wdist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># If the nearest word has distance 0 then this threshold is too hard so</span>
+        <span class="c1"># we should use the distance to the second nearest word.</span>
+        <span class="n">flag_too_close</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">ma_thresh</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">ma_thresh</span><span class="p">[</span><span class="n">flag_too_close</span><span class="p">]</span> <span class="o">=</span> <span class="n">_idx_to_wdist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">flag_too_close</span><span class="p">]</span>
+        <span class="c1"># Compute a threshold based on the nearest assignment.</span>
+        <span class="n">eps</span> <span class="o">=</span> <span class="mf">0.001</span>
+        <span class="n">ma_thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">eps</span><span class="p">,</span> <span class="n">ma_thresh</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">ma_thresh</span><span class="p">)</span>
+        <span class="n">ma_thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">massign_alpha</span><span class="p">,</span> <span class="n">ma_thresh</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">ma_thresh</span><span class="p">)</span>
+        <span class="c1"># Invalidate assignments that are too far away</span>
+        <span class="n">invalid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">(</span><span class="n">_idx_to_wdist</span><span class="p">,</span> <span class="n">ma_thresh</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="n">nInvalid</span> <span class="o">=</span> <span class="p">(</span><span class="n">invalid</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">invalid</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">invalid</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_alpha = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_alpha</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_sigma = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_sigma</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_equal_weights = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_equal_weights</span><span class="p">,))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[maw] * Marked </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> assignments as invalid&#39;</span> <span class="o">%</span> <span class="n">nInvalid</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">massign_equal_weights</span><span class="p">:</span>
+            <span class="c1"># Performance hack from jegou paper: just give everyone equal weight</span>
+            <span class="n">idx_to_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">_idx_to_wx</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">invalid</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># idx_to_wxs  = ut.lmap(ut.filter_Nones, masked_wxs.tolist())</span>
+            <span class="n">idx_to_maws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+                <span class="n">idx_to_wxs</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+            <span class="p">)</span>
+            <span class="n">idx_to_maws</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">idx_to_wxs</span><span class="o">.</span><span class="n">mask</span>
+            <span class="c1"># idx_to_maws = [np.ones(len(wxs), dtype=np.float32)</span>
+            <span class="c1">#                for wxs in idx_to_wxs]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># More natural weighting scheme</span>
+            <span class="c1"># Weighting as in Lost in Quantization</span>
+            <span class="n">gauss_numer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">negative</span><span class="p">(</span><span class="n">_idx_to_wdist</span><span class="p">)</span>
+            <span class="n">gauss_denom</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">massign_sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">gauss_exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">gauss_numer</span><span class="p">,</span> <span class="n">gauss_denom</span><span class="p">)</span>
+            <span class="n">unnorm_maw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">gauss_exp</span><span class="p">)</span>
+            <span class="c1"># Mask invalid multiassignment weights</span>
+            <span class="n">masked_unorm_maw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">unnorm_maw</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">invalid</span><span class="p">)</span>
+            <span class="c1"># Normalize multiassignment weights from 0 to 1</span>
+            <span class="n">masked_norm</span> <span class="o">=</span> <span class="n">masked_unorm_maw</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="n">masked_maw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">masked_unorm_maw</span><span class="p">,</span> <span class="n">masked_norm</span><span class="p">)</span>
+            <span class="n">masked_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">_idx_to_wx</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">invalid</span><span class="p">)</span>
+            <span class="c1"># Just keep masked arrays as they are</span>
+            <span class="c1"># (more efficient than python lists)</span>
+            <span class="n">idx_to_wxs</span> <span class="o">=</span> <span class="n">masked_wxs</span>
+            <span class="n">idx_to_maws</span> <span class="o">=</span> <span class="n">masked_maw</span>
+            <span class="c1"># # Remove masked weights and word indexes</span>
+            <span class="c1"># idx_to_wxs  = [np.array(ut.filter_Nones(wxs), dtype=np.int32)</span>
+            <span class="c1">#                for wxs in masked_wxs.tolist()]</span>
+            <span class="c1"># idx_to_maws = [np.array(ut.filter_Nones(maw), dtype=np.float32)</span>
+            <span class="c1">#                for maw in masked_maw.tolist()]</span>
+    <span class="k">return</span> <span class="n">idx_to_wxs</span><span class="p">,</span> <span class="n">idx_to_maws</span></div>
+
+
+<div class="viewcode-block" id="assign_to_words"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.assign_to_words">[docs]</a><span class="k">def</span> <span class="nf">assign_to_words</span><span class="p">(</span>
+    <span class="n">vocab</span><span class="p">,</span>
+    <span class="n">idx_to_vec</span><span class="p">,</span>
+    <span class="n">nAssign</span><span class="p">,</span>
+    <span class="n">massign_alpha</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+    <span class="n">massign_sigma</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span>
+    <span class="n">massign_equal_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assigns descriptor-vectors to nearest word.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        Maybe move out of this file? The usage of vocab is out of this file</span>
+<span class="sd">        scope.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        wordflann (FLANN): nearest neighbor index over words</span>
+<span class="sd">        words (ndarray): vocabulary words</span>
+<span class="sd">        idx_to_vec (ndarray): descriptors to assign</span>
+<span class="sd">        nAssign (int): number of words to assign each descriptor to</span>
+<span class="sd">        massign_alpha (float): multiple-assignment ratio threshold</span>
+<span class="sd">        massign_sigma (float): multiple-assignment gaussian variance</span>
+<span class="sd">        massign_equal_weights (bool): assign equal weight to all multiassigned words</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: inverted index, multi-assigned weights, and forward index</span>
+<span class="sd">        formated as:</span>
+<span class="sd">        * wx_to_idxs - word index   -&gt; vector indexes</span>
+<span class="sd">        * wx_to_maws - word index   -&gt; multi-assignment weights</span>
+<span class="sd">        * idx2_wxs - vector index -&gt; assigned word indexes</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_vec = depc.d.get_feat_vecs(aid_list)[0][0::300]</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_vec = np.vstack((idx_to_vec, vocab.wx_to_word[0]))</span>
+<span class="sd">        &gt;&gt;&gt; nAssign = 2</span>
+<span class="sd">        &gt;&gt;&gt; massign_equal_weights = False</span>
+<span class="sd">        &gt;&gt;&gt; massign_alpha = 1.2</span>
+<span class="sd">        &gt;&gt;&gt; massign_sigma = 80.0</span>
+<span class="sd">        &gt;&gt;&gt; nAssign = 2</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_wxs, idx_to_maws = assign_to_words(vocab, idx_to_vec, nAssign)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;idx_to_maws = %s&#39; % (ut.repr2(idx_to_wxs, precision=2),))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;idx_to_wxs = %s&#39; % (ut.repr2(idx_to_maws, precision=2),))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[vocab.assign] +--- Start Assign vecs to words.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[vocab.assign] * nAssign=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nAssign</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[vocab.assign] assign_to_words_. len(idx_to_vec) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx_to_vec</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">_idx_to_wx</span><span class="p">,</span> <span class="n">_idx_to_wdist</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span><span class="n">idx_to_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nAssign</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">idx_to_wxs</span><span class="p">,</span> <span class="n">idx_to_maws</span> <span class="o">=</span> <span class="n">weight_multi_assigns</span><span class="p">(</span>
+            <span class="n">_idx_to_wx</span><span class="p">,</span>
+            <span class="n">_idx_to_wdist</span><span class="p">,</span>
+            <span class="n">massign_alpha</span><span class="p">,</span>
+            <span class="n">massign_sigma</span><span class="p">,</span>
+            <span class="n">massign_equal_weights</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># idx_to_wxs = _idx_to_wx.tolist()</span>
+        <span class="c1"># idx_to_maws = [[1.0]] * len(idx_to_wxs)</span>
+        <span class="n">idx_to_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">_idx_to_wx</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">idx_to_maws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">idx_to_wxs</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">idx_to_maws</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">idx_to_wxs</span><span class="o">.</span><span class="n">mask</span>
+    <span class="k">return</span> <span class="n">idx_to_wxs</span><span class="p">,</span> <span class="n">idx_to_maws</span></div>
+
+
+<div class="viewcode-block" id="invert_assigns_old"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.invert_assigns_old">[docs]</a><span class="k">def</span> <span class="nf">invert_assigns_old</span><span class="p">(</span><span class="n">idx_to_wxs</span><span class="p">,</span> <span class="n">idx_to_maws</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inverts assignment of vectors to words into words to vectors.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_wxs = [</span>
+<span class="sd">        &gt;&gt;&gt;     np.array([0, 4], dtype=np.int32),</span>
+<span class="sd">        &gt;&gt;&gt;     np.array([2], dtype=np.int32),</span>
+<span class="sd">        &gt;&gt;&gt;     np.array([2, 0], dtype=np.int32),</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_maws = [</span>
+<span class="sd">        &gt;&gt;&gt;     np.array([ 0.5,  0.5], dtype=np.float32),</span>
+<span class="sd">        &gt;&gt;&gt;     np.array([ 1.], dtype=np.float32),</span>
+<span class="sd">        &gt;&gt;&gt;     np.array([ 0.5,  0.5], dtype=np.float32),</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; wx_to_idxs, wx_to_maws = invert_assigns_old(idx_to_wxs, idx_to_maws)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;wx_to_idxs = %s&#39; % (ut.repr4(wx_to_idxs, with_dtype=True),)</span>
+<span class="sd">        &gt;&gt;&gt; result += &#39;\nwx_to_maws = %s&#39; % (ut.repr4(wx_to_maws, with_dtype=True),)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        wx_to_idxs = {</span>
+<span class="sd">            0: np.array([0, 2], dtype=np.int32),</span>
+<span class="sd">            2: np.array([1, 2], dtype=np.int32),</span>
+<span class="sd">            4: np.array([0], dtype=np.int32),</span>
+<span class="sd">        }</span>
+<span class="sd">        wx_to_maws = {</span>
+<span class="sd">            0: np.array([0.5, 0.5], dtype=np.float32),</span>
+<span class="sd">            2: np.array([1. , 0.5], dtype=np.float32),</span>
+<span class="sd">            4: np.array([0.5], dtype=np.float32),</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Invert mapping -- Group by word indexes</span>
+    <span class="n">idx_to_nAssign</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">idx_to_wxs</span><span class="p">]</span>
+    <span class="n">jagged_idxs</span> <span class="o">=</span> <span class="p">[[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">idx_to_nAssign</span><span class="p">)]</span>
+    <span class="n">wx_keys</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">jagged_group</span><span class="p">(</span><span class="n">idx_to_wxs</span><span class="p">)</span>
+    <span class="n">idxs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_jagged_grouping</span><span class="p">(</span><span class="n">jagged_idxs</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">idxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">idxs_list</span><span class="p">]</span>
+    <span class="n">wx_to_idxs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">))</span>
+    <span class="n">maws_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_jagged_grouping</span><span class="p">(</span><span class="n">idx_to_maws</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">maws_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">maws</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">for</span> <span class="n">maws</span> <span class="ow">in</span> <span class="n">maws_list</span><span class="p">]</span>
+    <span class="n">wx_to_maws</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[vocab] L___ End Assign vecs to words.&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">wx_to_idxs</span><span class="p">,</span> <span class="n">wx_to_maws</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="invert_assigns"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.invert_assigns">[docs]</a><span class="k">def</span> <span class="nf">invert_assigns</span><span class="p">(</span><span class="n">idx_to_wxs</span><span class="p">,</span> <span class="n">idx_to_maws</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inverts assignment of</span>
+<span class="sd">    vectors-&gt;to-&gt;words into words-&gt;to-&gt;vectors.</span>
+<span class="sd">    Invert mapping -- Group by word indexes</span>
+
+<span class="sd">    This gives a HUGE speedup over the old invert_assigns</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_wxs = np.ma.array([</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 4),</span>
+<span class="sd">        &gt;&gt;&gt;     (2, -1),</span>
+<span class="sd">        &gt;&gt;&gt;     (2, 0)], dtype=np.int32)</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_wxs[1, 1] = np.ma.masked</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_maws = np.ma.array(</span>
+<span class="sd">        &gt;&gt;&gt;     [(.5, 1.), (1., np.nan), (.5, .5)], dtype=np.float32)</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_maws[1, 1] = np.ma.masked</span>
+<span class="sd">        &gt;&gt;&gt; tup = invert_assigns(idx_to_wxs, idx_to_maws)</span>
+<span class="sd">        &gt;&gt;&gt; wx_to_idxs, wx_to_maws = tup</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;wx_to_idxs = %s&#39; % (ut.repr4(wx_to_idxs, with_dtype=True),)</span>
+<span class="sd">        &gt;&gt;&gt; result += &#39;\nwx_to_maws = %s&#39; % (ut.repr4(wx_to_maws, with_dtype=True),)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        wx_to_idxs = {</span>
+<span class="sd">            0: np.array([0, 2], dtype=np.int32),</span>
+<span class="sd">            2: np.array([1, 2], dtype=np.int32),</span>
+<span class="sd">            4: np.array([0], dtype=np.int32),</span>
+<span class="sd">        }</span>
+<span class="sd">        wx_to_maws = {</span>
+<span class="sd">            0: np.array([0.5, 0.5], dtype=np.float32),</span>
+<span class="sd">            2: np.array([1. , 0.5], dtype=np.float32),</span>
+<span class="sd">            4: np.array([1.], dtype=np.float32),</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx_to_wxs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx_to_maws</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">)</span>
+
+    <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">idx_to_wxs</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx_to_wxs</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">valid_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">valid_mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">idx_to_maws</span><span class="o">.</span><span class="n">mask</span>
+        <span class="c1"># idx_to_nAssign = (valid_mask).sum(axis=1)</span>
+
+    <span class="n">_valid_x2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">valid_mask</span><span class="p">)</span>
+    <span class="n">flat_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor_divide</span><span class="p">(</span><span class="n">_valid_x2d</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">flat_wxs</span> <span class="o">=</span> <span class="n">idx_to_wxs</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+    <span class="n">flat_maws</span> <span class="o">=</span> <span class="n">idx_to_maws</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">flat_wxs</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="n">flat_wxs</span> <span class="o">=</span> <span class="n">flat_wxs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span>
+    <span class="n">flat_idxs</span> <span class="o">=</span> <span class="n">flat_idxs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span>
+    <span class="n">flat_maws</span> <span class="o">=</span> <span class="n">flat_maws</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span>
+
+    <span class="n">wx_keys</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">flat_wxs</span><span class="p">)</span>
+    <span class="n">idxs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">flat_idxs</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">maws_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">flat_maws</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+
+    <span class="n">wx_to_idxs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">))</span>
+    <span class="n">wx_to_maws</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[vocab] L___ End Assign vecs to words.&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">wx_to_idxs</span><span class="p">,</span> <span class="n">wx_to_maws</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="invert_lists"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.invert_lists">[docs]</a><span class="k">def</span> <span class="nf">invert_lists</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">wx_lists</span><span class="p">,</span> <span class="n">all_wxs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    takes corresponding lists of (aids, wxs) and maps wxs to aids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; aids = [1, 2, 3]</span>
+<span class="sd">        &gt;&gt;&gt; wx_lists = [[0, 1], [20, 0, 1], [3]]</span>
+<span class="sd">        &gt;&gt;&gt; wx_to_aids = invert_lists(aids, wx_lists)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;wx_to_aids = %s&#39; % (ut.repr2(wx_to_aids),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        wx_to_aids = {0: [1, 2], 1: [1, 2], 3: [3], 20: [2]}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">all_wxs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wx_to_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">wx_to_aids</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">all_wxs</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">wx_lists</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wxs</span><span class="p">:</span>
+            <span class="n">wx_to_aids</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wx_to_aids</span></div>
+
+
+<div class="viewcode-block" id="inv_doc_freq"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.inv_doc_freq">[docs]</a><span class="k">def</span> <span class="nf">inv_doc_freq</span><span class="p">(</span><span class="n">ndocs_total</span><span class="p">,</span> <span class="n">ndocs_per_word</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ndocs_total (int): numer of unique documents</span>
+<span class="sd">        ndocs_per_word (ndarray): ndocs_per_word[i] should correspond to the</span>
+<span class="sd">            number of unique documents containing word[i]</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarrary: idf_per_word</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ndocs_total = 21</span>
+<span class="sd">        &gt;&gt;&gt; ndocs_per_word = [0, 21, 20, 2, 15, 8, 12, 1, 2]</span>
+<span class="sd">        &gt;&gt;&gt; idf_per_word = inv_doc_freq(ndocs_total, ndocs_per_word)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;%s&#39; % (ut.repr2(idf_per_word, precision=2),)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        np.array([0.  , 0.  , 0.05, 2.35, 0.34, 0.97, 0.56, 3.04, 2.35])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># We add epsilon to numer and denom to ensure recep is a probability</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ndocs_per_word</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ndocs_per_word</span>
+    <span class="c1"># use jegou&#39;s version</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">ndocs_total</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">idf_per_word</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">idf_per_word</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">idf_per_word</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">idf_per_word</span></div>
+    <span class="c1"># if not adjust:</span>
+    <span class="c1">#     # Typically for IDF, 1 is added to the denom to prevent divide by 0</span>
+    <span class="c1">#     out[:] = ndocs_per_word</span>
+    <span class="c1">#     ndocs_total += 1</span>
+    <span class="c1"># else:</span>
+    <span class="c1">#     # We add the 1 to the denominator and 2 to the numberator</span>
+    <span class="c1">#     # to prevent words from receiving 0 weight</span>
+    <span class="c1">#     out = np.add(ndocs_per_word, 1, out=out)</span>
+    <span class="c1">#     ndocs_total += 2</span>
+    <span class="c1"># out = np.divide(ndocs_total, out, out=out)</span>
+    <span class="c1"># idf_per_word = np.log(out, out=out)</span>
+    <span class="c1"># return idf_per_word</span>
+
+
+<div class="viewcode-block" id="match_scores_agg"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.match_scores_agg">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">match_scores_agg</span><span class="p">(</span><span class="n">PhisX</span><span class="p">,</span> <span class="n">PhisY</span><span class="p">,</span> <span class="n">flagsX</span><span class="p">,</span> <span class="n">flagsY</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Scores matches to multiple words using aggregate residual vectors</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; PhisX = np.array([[ 0.        ,  0.        ],</span>
+<span class="sd">        &gt;&gt;&gt;                   [-1.        ,  0.        ],</span>
+<span class="sd">        &gt;&gt;&gt;                   [ 0.85085751,  0.52539652],</span>
+<span class="sd">        &gt;&gt;&gt;                   [-0.89795083, -0.4400958 ],</span>
+<span class="sd">        &gt;&gt;&gt;                   [-0.99934547,  0.03617512]])</span>
+<span class="sd">        &gt;&gt;&gt; PhisY = np.array([[ 0.88299408, -0.46938411],</span>
+<span class="sd">        &gt;&gt;&gt;                   [-0.12096522, -0.99265675],</span>
+<span class="sd">        &gt;&gt;&gt;                   [-0.99948266, -0.03216222],</span>
+<span class="sd">        &gt;&gt;&gt;                   [-0.08394916, -0.99647004],</span>
+<span class="sd">        &gt;&gt;&gt;                   [-0.96414952, -0.26535957]])</span>
+<span class="sd">        &gt;&gt;&gt; flagsX = np.array([True, False, False, True, False])[:, None]</span>
+<span class="sd">        &gt;&gt;&gt; flagsY = np.array([False, False, False, True, False])[:, None]</span>
+<span class="sd">        &gt;&gt;&gt; alpha = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; thresh = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; score_list = match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;score_list = &#39; + ut.repr2(score_list, precision=4)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        score_list = np.array([1.    , 0.0018, 0.    , 1.    , 0.868 ])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Can speedup aggregate with one vector per word assumption.</span>
+    <span class="c1"># Take dot product between correponding VLAD vectors</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="p">(</span><span class="n">PhisX</span> <span class="o">*</span> <span class="n">PhisY</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Propogate error flags</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">flagsX</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">flagsY</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="s1">&#39;mismatch&#39;</span>
+    <span class="n">u</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="n">selectivity</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">u</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">score_list</span></div>
+
+
+<div class="viewcode-block" id="match_scores_sep"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.match_scores_sep">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">match_scores_sep</span><span class="p">(</span><span class="n">phisX_list</span><span class="p">,</span> <span class="n">phisY_list</span><span class="p">,</span> <span class="n">flagsX_list</span><span class="p">,</span> <span class="n">flagsY_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Scores matches to multiple words using lists of separeated residual vectors</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">phisX_list</span><span class="p">,</span> <span class="n">phisY_list</span><span class="p">,</span> <span class="n">flagsX_list</span><span class="p">,</span> <span class="n">flagsY_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">phisX</span><span class="p">,</span> <span class="n">phisY</span><span class="p">,</span> <span class="n">flagsX</span><span class="p">,</span> <span class="n">flagsY</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">phisX</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">phisY</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">flagsX</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">flagsY</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">u</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">selectivity</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">u</span><span class="p">)</span>
+        <span class="n">scores_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scores_list</span></div>
+
+
+<div class="viewcode-block" id="build_matches_agg"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.build_matches_agg">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">build_matches_agg</span><span class="p">(</span><span class="n">X_fxs</span><span class="p">,</span> <span class="n">Y_fxs</span><span class="p">,</span> <span class="n">X_maws</span><span class="p">,</span> <span class="n">Y_maws</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Builds explicit features matches. Break and distribute up each aggregate</span>
+<span class="sd">    score amongst its contributing features.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (fm, fs)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.smk.smk_funcs build_matches_agg --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))</span>
+<span class="sd">        &gt;&gt;&gt; map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))</span>
+<span class="sd">        &gt;&gt;&gt; X_fxs = map_int([[0, 1], [2, 3, 4], [5]])</span>
+<span class="sd">        &gt;&gt;&gt; Y_fxs = map_int([[8], [0, 4], [99]])</span>
+<span class="sd">        &gt;&gt;&gt; X_maws = map_float([[1, 1], [1, 1, 1], [1]])</span>
+<span class="sd">        &gt;&gt;&gt; Y_maws = map_float([[1], [1, 1], [1]])</span>
+<span class="sd">        &gt;&gt;&gt; score_list = np.array([1, 2, 3], dtype=np.float32)</span>
+<span class="sd">        &gt;&gt;&gt; (fm, fs) = build_matches_agg(X_fxs, Y_fxs, X_maws, Y_maws, score_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;fm = &#39; + ut.repr2(fm))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;fs = &#39; + ut.repr2(fs))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(fm) == len(fs)</span>
+<span class="sd">        &gt;&gt;&gt; assert score_list.sum() == fs.sum()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Build feature matches</span>
+    <span class="c1"># Spread word score according to contriubtion (maw) weight</span>
+    <span class="n">unflat_contrib</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">maws1</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">maws2</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">maws1</span><span class="p">,</span> <span class="n">maws2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">X_maws</span><span class="p">,</span> <span class="n">Y_maws</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">unflat_factor</span> <span class="o">=</span> <span class="p">[</span><span class="n">contrib</span> <span class="o">/</span> <span class="n">contrib</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">contrib</span> <span class="ow">in</span> <span class="n">unflat_contrib</span><span class="p">]</span>
+    <span class="c1"># factor_list = np.divide(score_list, factor_list, out=factor_list)</span>
+    <span class="k">for</span> <span class="n">score</span><span class="p">,</span> <span class="n">factor</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">score_list</span><span class="p">,</span> <span class="n">unflat_factor</span><span class="p">):</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">factor</span><span class="p">)</span>
+    <span class="n">unflat_fs</span> <span class="o">=</span> <span class="n">unflat_factor</span>
+
+    <span class="c1"># itertools.product seems fastest for small arrays</span>
+    <span class="n">unflat_fm</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">fxs1</span><span class="p">,</span> <span class="n">fxs2</span><span class="p">)</span> <span class="k">for</span> <span class="n">fxs1</span><span class="p">,</span> <span class="n">fxs2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">X_fxs</span><span class="p">,</span> <span class="n">Y_fxs</span><span class="p">))</span>
+
+    <span class="n">fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">unflat_fm</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">unflat_fs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">isvalid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">fm</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isvalid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isvalid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span></div>
+
+
+<div class="viewcode-block" id="build_matches_sep"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.build_matches_sep">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">build_matches_sep</span><span class="p">(</span><span class="n">X_fxs</span><span class="p">,</span> <span class="n">Y_fxs</span><span class="p">,</span> <span class="n">scores_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Just build matches. Scores have already been broken up. No need to do that.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (fm, fs)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.smk.smk_funcs build_matches_agg --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))</span>
+<span class="sd">        &gt;&gt;&gt; map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))</span>
+<span class="sd">        &gt;&gt;&gt; X_fxs = map_int([[0, 1], [2, 3, 4], [5]])</span>
+<span class="sd">        &gt;&gt;&gt; Y_fxs = map_int([[8], [0, 4], [99]])</span>
+<span class="sd">        &gt;&gt;&gt; scores_list = map_float([</span>
+<span class="sd">        &gt;&gt;&gt;     [[.1], [.2],],</span>
+<span class="sd">        &gt;&gt;&gt;     [[.3, .4], [.4, .6], [.5, .9],],</span>
+<span class="sd">        &gt;&gt;&gt;     [[.4]],</span>
+<span class="sd">        &gt;&gt;&gt; ])</span>
+<span class="sd">        &gt;&gt;&gt; (fm, fs) = build_matches_sep(X_fxs, Y_fxs, scores_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;fm = &#39; + ut.repr2(fm))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;fs = &#39; + ut.repr2(fs))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(fm) == len(fs)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.isclose(np.sum(ut.total_flatten(scores_list)), fs.sum())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">total_flatten</span><span class="p">(</span><span class="n">scores_list</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">unflat_fm</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">fxs1</span><span class="p">,</span> <span class="n">fxs2</span><span class="p">)</span> <span class="k">for</span> <span class="n">fxs1</span><span class="p">,</span> <span class="n">fxs2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">X_fxs</span><span class="p">,</span> <span class="n">Y_fxs</span><span class="p">))</span>
+    <span class="n">fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">unflat_fm</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">isvalid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">fm</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isvalid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isvalid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span></div>
+
+
+<div class="viewcode-block" id="gamma_agg"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.gamma_agg">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">gamma_agg</span><span class="p">(</span><span class="n">phisX</span><span class="p">,</span> <span class="n">flagsX</span><span class="p">,</span> <span class="n">weight_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes gamma (self consistency criterion)</span>
+<span class="sd">    It is a scalar which ensures K(X, X) = 1</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: sccw self-consistency-criterion weight</span>
+
+<span class="sd">    Math:</span>
+<span class="sd">        gamma(X) = (sum_{c in C} w_c M(X_c, X_c))^{-.5}</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, smk, qreq_= testdata_smk()</span>
+<span class="sd">        &gt;&gt;&gt; X = qreq_.qinva.grouped_annots[0]</span>
+<span class="sd">        &gt;&gt;&gt; wx_to_weight = qreq_.wx_to_weight</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;X.gamma = %r&#39; % (gamma(X),))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">match_scores_agg</span><span class="p">(</span><span class="n">phisX</span><span class="p">,</span> <span class="n">phisX</span><span class="p">,</span> <span class="n">flagsX</span><span class="p">,</span> <span class="n">flagsX</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+    <span class="n">sccw</span> <span class="o">=</span> <span class="n">sccw_normalize</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">weight_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sccw</span></div>
+
+
+<div class="viewcode-block" id="gamma_sep"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.gamma_sep">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">gamma_sep</span><span class="p">(</span><span class="n">phisX_list</span><span class="p">,</span> <span class="n">flagsX_list</span><span class="p">,</span> <span class="n">weight_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="n">match_scores_sep</span><span class="p">(</span>
+        <span class="n">phisX_list</span><span class="p">,</span> <span class="n">phisX_list</span><span class="p">,</span> <span class="n">flagsX_list</span><span class="p">,</span> <span class="n">flagsX_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span>
+    <span class="p">)</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">scores</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">scores_list</span><span class="p">])</span>
+    <span class="n">sccw</span> <span class="o">=</span> <span class="n">sccw_normalize</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sccw</span></div>
+
+
+<div class="viewcode-block" id="sccw_normalize"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.sccw_normalize">[docs]</a><span class="k">def</span> <span class="nf">sccw_normalize</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">weight_list</span><span class="p">):</span>
+    <span class="n">scores</span> <span class="o">*=</span> <span class="n">weight_list</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">sccw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">score</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">sccw</span></div>
+
+
+<div class="viewcode-block" id="selective_match_score"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.selective_match_score">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">selective_match_score</span><span class="p">(</span><span class="n">phisX</span><span class="p">,</span> <span class="n">phisY</span><span class="p">,</span> <span class="n">flagsX</span><span class="p">,</span> <span class="n">flagsY</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    computes the score of each feature match</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">phisX</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">phisY</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="c1"># Give error flags full scores. These are typically distinctive and</span>
+    <span class="c1"># important cases without enough info to get residual data.</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">flagsX</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">flagsY</span><span class="p">)</span>
+    <span class="n">u</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">selectivity</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">u</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">score</span></div>
+
+
+<div class="viewcode-block" id="selectivity"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.selectivity">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">selectivity</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The selectivity function thresholds and applies a power law.</span>
+
+<span class="sd">    This downweights weak matches.</span>
+<span class="sd">    The following is the exact definition from SMK paper.</span>
+<span class="sd">    sigma_alpha(u) = (sign(u) * (u ** alpha) if u &gt; thresh else 0)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        u (ndarray): input score between (-1, +1)</span>
+<span class="sd">        alpha (float): power law (default = 3.0)</span>
+<span class="sd">        thresh (float): number between 0 and 1 (default = 0.0)</span>
+<span class="sd">        out (None): inplace output (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: score</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool plot_func --show --range=-1,1  \</span>
+<span class="sd">            --setup=&quot;import wbia&quot; \</span>
+<span class="sd">            --func wbia.algo.smk.smk_funcs.selectivity \</span>
+<span class="sd">            &quot;lambda u: sign(u) * abs(u)**3.0 * greater_equal(u, 0)&quot;</span>
+<span class="sd">        python -m wbia.algo.smk.smk_funcs selectivity --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; u = np.array([-1.0, -.5, -.1, 0, .1, .5, 1.0])</span>
+<span class="sd">        &gt;&gt;&gt; alpha = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; thresh = 0</span>
+<span class="sd">        &gt;&gt;&gt; score = selectivity(u, alpha, thresh)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(score.tolist(), precision=4)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [0.0000, 0.0000, 0.0000, 0.0000, 0.0010, 0.1250, 1.0000]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">u</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">less</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+    <span class="n">isign</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">isign</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">score</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#</span>
+    <span class="c1"># score = np.sign(u) * np.power(np.abs(u), alpha)</span>
+    <span class="c1"># score *= flags</span>
+    <span class="k">return</span> <span class="n">score</span></div>
+
+
+<div class="viewcode-block" id="testdata_rvecs"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_funcs.testdata_rvecs">[docs]</a><span class="k">def</span> <span class="nf">testdata_rvecs</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nvecs</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">nwords</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">nannots</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    two dimensional test data</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.smk.smk_funcs testdata_rvecs --show</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        dim = 2</span>
+<span class="sd">        nvecs = 13</span>
+<span class="sd">        nwords = 5</span>
+<span class="sd">        nannots = 5</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; data = testdata_rvecs()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; exec(ut.execstr_dict(data))</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; from scipy.spatial import Voronoi, voronoi_plot_2d</span>
+<span class="sd">        &gt;&gt;&gt; pt.qt4ensure()</span>
+<span class="sd">        &gt;&gt;&gt; fig = pt.figure()</span>
+<span class="sd">        &gt;&gt;&gt; vor = Voronoi(words)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(words.T[0], words.T[1], &#39;r*&#39;, label=&#39;words&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(vecs.T[0], vecs.T[1], &#39;b.&#39;, label=&#39;vecs&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # lines showing assignments (and residuals)</span>
+<span class="sd">        &gt;&gt;&gt; pts1 = vecs</span>
+<span class="sd">        &gt;&gt;&gt; pts2 = words[idx_to_wx.T[0]]</span>
+<span class="sd">        &gt;&gt;&gt; pt.draw_line_segments2(pts1, pts2)</span>
+<span class="sd">        &gt;&gt;&gt; pt.plot(vecs.T[0], vecs.T[1], &#39;g.&#39;, label=&#39;vecs&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; voronoi_plot_2d(vor, show_vertices=False, ax=pt.gca())</span>
+<span class="sd">        &gt;&gt;&gt; extents = vt.get_pointset_extents(np.vstack((vecs, words)))</span>
+<span class="sd">        &gt;&gt;&gt; extents = vt.scale_extents(extents, 1.1)</span>
+<span class="sd">        &gt;&gt;&gt; ax = pt.gca()</span>
+<span class="sd">        &gt;&gt;&gt; ax.set_aspect(&#39;equal&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ax.set_xlim(*extents[0:2])</span>
+<span class="sd">        &gt;&gt;&gt; ax.set_ylim(*extents[2:4])</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">sklearn.metrics.pairwise</span> <span class="kn">import</span> <span class="n">euclidean_distances</span>
+
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+    <span class="c1"># dim = dim</span>
+    <span class="c1"># nvecs = 13</span>
+    <span class="c1"># nwords = 5</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nwords</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+    <span class="n">vecs</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nvecs</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+    <span class="c1"># Create vector = word special case</span>
+    <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">vecs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="c1"># Create aggregate canceling special case</span>
+    <span class="c1"># TODO: ensure no other words are closer</span>
+    <span class="n">words</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">2.0</span>
+    <span class="n">vecs</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">2.0</span>
+    <span class="n">vecs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.2</span>
+    <span class="n">vecs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.2</span>
+    <span class="c1"># vt.normalize(words, axis=1, inplace=True)</span>
+    <span class="c1"># vt.normalize(vecs, axis=1, inplace=True)</span>
+    <span class="n">dist_mat</span> <span class="o">=</span> <span class="n">euclidean_distances</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">words</span><span class="p">)</span>
+    <span class="n">nAssign</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">sortx2d</span> <span class="o">=</span> <span class="n">dist_mat</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">row_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">sortx2d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">sortx1d</span> <span class="o">=</span> <span class="p">(</span><span class="n">row_offset</span> <span class="o">*</span> <span class="n">sortx2d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">sortx2d</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">idx_to_dist</span> <span class="o">=</span> <span class="n">dist_mat</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sortx1d</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">sortx2d</span><span class="o">.</span><span class="n">shape</span><span class="p">)[:,</span> <span class="p">:</span><span class="n">nAssign</span><span class="p">]</span>
+    <span class="n">idx_to_wx</span> <span class="o">=</span> <span class="n">sortx2d</span><span class="p">[:,</span> <span class="p">:</span><span class="n">nAssign</span><span class="p">]</span>
+    <span class="n">rvecs</span><span class="p">,</span> <span class="n">flags</span> <span class="o">=</span> <span class="n">compute_rvec</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">words</span><span class="p">[</span><span class="n">idx_to_wx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+
+    <span class="k">if</span> <span class="n">nannots</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nannots</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">nvecs</span><span class="p">)</span>
+    <span class="n">offset_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">nvecs</span><span class="p">,</span> <span class="n">nannots</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="p">[</span><span class="n">nvecs</span><span class="p">]</span>
+    <span class="c1"># nfeat_list = np.diff(offset_list)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;idx_to_dist&#39;</span><span class="p">:</span> <span class="n">idx_to_dist</span><span class="p">,</span>
+        <span class="s1">&#39;idx_to_wx&#39;</span><span class="p">:</span> <span class="n">idx_to_wx</span><span class="p">,</span>
+        <span class="s1">&#39;rvecs&#39;</span><span class="p">:</span> <span class="n">rvecs</span><span class="p">,</span>
+        <span class="s1">&#39;vecs&#39;</span><span class="p">:</span> <span class="n">vecs</span><span class="p">,</span>
+        <span class="s1">&#39;words&#39;</span><span class="p">:</span> <span class="n">words</span><span class="p">,</span>
+        <span class="s1">&#39;flags&#39;</span><span class="p">:</span> <span class="n">flags</span><span class="p">,</span>
+        <span class="s1">&#39;offset_list&#39;</span><span class="p">:</span> <span class="n">offset_list</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

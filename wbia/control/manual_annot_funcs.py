@@ -327,7 +327,7 @@ def add_annots(
         [UUID('58905a72-dd31-c42b-d5b5-2312adfc7cba'), UUID('dd58665a-2a8b-8e84-4919-038c80bd9be0')]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
-    Example2:
+    Example:
         >>> # Test with prevent_visual_duplicates on
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.IBEISControl import *  # NOQA
@@ -747,7 +747,7 @@ def get_valid_aids(
 
         [1, 4]
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> import wbia
@@ -1576,7 +1576,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid_lis
         >>> print(result)
         groundtruth_list = [[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> import wbia
@@ -1588,7 +1588,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid_lis
         >>> print(result)
         [[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> import wbia
@@ -2418,7 +2418,7 @@ def get_annot_num_groundtruth(
         python -m wbia.control.manual_annot_funcs --test-get_annot_num_groundtruth:0
         python -m wbia.control.manual_annot_funcs --test-get_annot_num_groundtruth:1
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> import wbia
@@ -2429,7 +2429,7 @@ def get_annot_num_groundtruth(
         >>> print(result)
         [0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0]
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> import wbia
@@ -2693,7 +2693,7 @@ def get_annot_species_texts(ibs, aid_list):
     CommandLine:
         python -m wbia.control.manual_annot_funcs --test-get_annot_species_texts
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> import wbia
@@ -2703,7 +2703,7 @@ def get_annot_species_texts(ibs, aid_list):
         >>> print(result)
         ['zebra_plains', 'zebra_plains', '____', 'bear_polar']
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_annot_funcs import *  # NOQA
         >>> import wbia

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.detect.fasterrcnn &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../detect.html">wbia.algo.detect</a> &raquo;</li>
+      <li>wbia.algo.detect.fasterrcnn</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.detect.fasterrcnn</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Interface to Faster R-CNN object proposals.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[faster r-cnn]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="c1"># SCRIPT_PATH = abspath(dirname(__file__))</span>
+<span class="n">SCRIPT_PATH</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;py-faster-rcnn&#39;</span><span class="p">)))</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-faster-rcnn&#39;</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">SCRIPT_PATH</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">add_path</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="c1"># if path not in sys.path:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+        <span class="c1"># Add pycaffe to PYTHONPATH</span>
+        <span class="n">pycaffe_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">SCRIPT_PATH</span><span class="p">,</span> <span class="s1">&#39;caffe-fast-rcnn&#39;</span><span class="p">,</span> <span class="s1">&#39;python&#39;</span><span class="p">)</span>
+        <span class="n">add_path</span><span class="p">(</span><span class="n">pycaffe_path</span><span class="p">)</span>
+
+        <span class="c1"># Add caffe lib path to PYTHONPATH</span>
+        <span class="n">lib_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">SCRIPT_PATH</span><span class="p">,</span> <span class="s1">&#39;lib&#39;</span><span class="p">)</span>
+        <span class="n">add_path</span><span class="p">(</span><span class="n">lib_path</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">caffe</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">reload_module</span><span class="p">(</span><span class="n">caffe</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">fast_rcnn.config</span> <span class="kn">import</span> <span class="n">cfg</span>
+        <span class="kn">from</span> <span class="nn">fast_rcnn.test</span> <span class="kn">import</span> <span class="n">im_detect</span>
+
+        <span class="c1"># from fast_rcnn.nms_wrapper import nms</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;WARNING Failed to find py-faster-rcnn. &#39;</span> <span class="s1">&#39;Faster R-CNN is unavailable&#39;</span>
+        <span class="p">)</span>
+        <span class="c1"># if ut.SUPER_STRICT:</span>
+        <span class="c1">#     raise</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WARNING Failed to import fast_rcnn. &#39;</span> <span class="s1">&#39;Faster R-CNN is unavailable&#39;</span><span class="p">)</span>
+        <span class="c1"># if ut.SUPER_STRICT:</span>
+        <span class="c1">#     raise</span>
+
+
+<span class="n">VERBOSE_SS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--verbdss&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
+
+
+<span class="n">CONFIG_URL_DICT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;pretrained-fast-vgg-pascal&#39; : &#39;https://wildbookiarepository.azureedge.net/models/pretrained.fastrcnn.vgg16.pascal.prototxt&#39;,  # Trained on PASCAL VOC 2007</span>
+    <span class="s1">&#39;pretrained-vgg-pascal&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt&#39;</span><span class="p">,</span>  <span class="c1"># Trained on PASCAL VOC 2007</span>
+    <span class="s1">&#39;pretrained-zf-pascal&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.zf.pascal.prototxt&#39;</span><span class="p">,</span>  <span class="c1"># Trained on PASCAL VOC 2007</span>
+    <span class="s1">&#39;pretrained-vgg-ilsvrc&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.ilsvrc.prototxt&#39;</span><span class="p">,</span>  <span class="c1"># Trained on ILSVRC 2014</span>
+    <span class="s1">&#39;pretrained-zf-ilsvrc&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.zf.ilsvrc.prototxt&#39;</span><span class="p">,</span>  <span class="c1"># Trained on ILSVRC 2014</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt&#39;</span><span class="p">,</span>  <span class="c1"># Trained on PASCAL VOC 2007</span>
+    <span class="kc">None</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.fasterrcnn.vgg16.pascal.prototxt&#39;</span><span class="p">,</span>  <span class="c1"># Trained on PASCAL VOC 2007</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_weight_from_cfg</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.prototxt&#39;</span><span class="p">,</span> <span class="s1">&#39;.caffemodel&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_classes_from_cfg</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.prototxt&#39;</span><span class="p">,</span> <span class="s1">&#39;.classes&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_class_list</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">):</span>
+    <span class="c1"># Load classes from file into the class list</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">)</span>
+    <span class="n">class_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">classes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">classes</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">class_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">class_list</span>
+
+
+<div class="viewcode-block" id="detect_gid_list"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.fasterrcnn.detect_gid_list">[docs]</a><span class="k">def</span> <span class="nf">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_SS</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list of int): the list of IBEIS image_rowids that need detection</span>
+<span class="sd">        downsample (bool, optional): a flag to indicate if the original image</span>
+<span class="sd">            sizes should be used; defaults to True</span>
+
+<span class="sd">            True:  ibs.get_image_detectpaths() is used</span>
+<span class="sd">            False: ibs.get_image_paths() is used</span>
+
+<span class="sd">    Kwargs (optional): refer to the Faster R-CNN documentation for configuration settings</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (wbia.IBEISController):  image analysis api</span>
+<span class="sd">        gid_list (list of int): the list of IBEIS image_rowids that need detection</span>
+<span class="sd">        downsample (bool, optional): a flag to indicate if the original image</span>
+<span class="sd">                sizes should be used; defaults to True</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        detector, config_filepath, weights_filepath, verbose</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        tuple: (gid, gpath, result_list)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.detect.fasterrcnn detect_gid_list --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.detect.fasterrcnn import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.core_images import LocalizerConfig</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;verbose&#39;: True}</span>
+<span class="sd">        &gt;&gt;&gt; downsample = False</span>
+<span class="sd">        &gt;&gt;&gt; results_list = detect_gid_list(ibs, gid_list, downsample, **config)</span>
+<span class="sd">        &gt;&gt;&gt; results_list = list(results_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;result lens = %r&#39; % (map(len, list(results_list))))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;result[0] = %r&#39; % (len(list(results_list[0][2]))))</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;verbose&#39;: True}</span>
+<span class="sd">        &gt;&gt;&gt; downsample = False</span>
+<span class="sd">        &gt;&gt;&gt; results_list = detect_gid_list(ibs, gid_list, downsample, **config)</span>
+<span class="sd">        &gt;&gt;&gt; results_list = list(results_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;result lens = %r&#39; % (map(len, list(results_list))))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;result[0] = %r&#39; % (len(list(results_list[0][2]))))</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        results (list of dict)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get new gpaths if downsampling</span>
+    <span class="k">if</span> <span class="n">downsample</span><span class="p">:</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_detectpaths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">neww_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">open_image_size</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">]</span>
+        <span class="n">oldw_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">oldw</span> <span class="k">for</span> <span class="p">(</span><span class="n">oldw</span><span class="p">,</span> <span class="n">oldh</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
+        <span class="n">downsample_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">oldw</span> <span class="o">/</span> <span class="n">neww</span> <span class="k">for</span> <span class="n">oldw</span><span class="p">,</span> <span class="n">neww</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">oldw_list</span><span class="p">,</span> <span class="n">neww_list</span><span class="p">)]</span>
+        <span class="n">orient_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">downsample_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+        <span class="n">orient_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="c1"># Run detection</span>
+    <span class="n">results_iter</span> <span class="o">=</span> <span class="n">detect</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># Upscale the results</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">downsample_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">orient_list</span><span class="p">,</span> <span class="n">results_iter</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">downsample</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
+        <span class="c1"># Upscale the results back up to the original image size</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">downsample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">downsample</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">,</span> <span class="s1">&#39;ytl&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">]:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">downsample</span><span class="p">)</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">],</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">],</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">]</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">bbox_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="detect"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.fasterrcnn.detect">[docs]</a><span class="k">def</span> <span class="nf">detect</span><span class="p">(</span>
+    <span class="n">gpath_list</span><span class="p">,</span>
+    <span class="n">config_filepath</span><span class="p">,</span>
+    <span class="n">weight_filepath</span><span class="p">,</span>
+    <span class="n">class_filepath</span><span class="p">,</span>
+    <span class="n">sensitivity</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_SS</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gpath_list (list of str): the list of image paths that need proposal candidates</span>
+
+<span class="sd">    Kwargs (optional): refer to the Faster R-CNN documentation for configuration settings</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        iter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">TEST</span><span class="o">.</span><span class="n">HAS_RPN</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Use RPN for proposals</span>
+
+    <span class="c1"># Get correct config if specified with shorthand</span>
+    <span class="n">config_url</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">config_filepath</span> <span class="ow">in</span> <span class="n">CONFIG_URL_DICT</span><span class="p">:</span>
+        <span class="n">config_url</span> <span class="o">=</span> <span class="n">CONFIG_URL_DICT</span><span class="p">[</span><span class="n">config_filepath</span><span class="p">]</span>
+        <span class="n">config_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">config_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Get correct weights if specified with shorthand</span>
+    <span class="k">if</span> <span class="n">weight_filepath</span> <span class="ow">in</span> <span class="n">CONFIG_URL_DICT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">weight_filepath</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">config_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config_url_</span> <span class="o">=</span> <span class="n">config_url</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config_url_</span> <span class="o">=</span> <span class="n">CONFIG_URL_DICT</span><span class="p">[</span><span class="n">weight_filepath</span><span class="p">]</span>
+        <span class="n">weight_url</span> <span class="o">=</span> <span class="n">_parse_weight_from_cfg</span><span class="p">(</span><span class="n">config_url_</span><span class="p">)</span>
+        <span class="n">weight_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">weight_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">class_filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">class_url</span> <span class="o">=</span> <span class="n">_parse_classes_from_cfg</span><span class="p">(</span><span class="n">config_url</span><span class="p">)</span>
+        <span class="n">class_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span>
+            <span class="n">class_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+        <span class="p">)</span>
+    <span class="n">class_list</span> <span class="o">=</span> <span class="n">_parse_class_list</span><span class="p">(</span><span class="n">class_filepath</span><span class="p">)</span>
+
+    <span class="c1"># Need to convert unicode strings to Python strings to support Boost Python</span>
+    <span class="c1"># call signatures in caffe</span>
+    <span class="n">prototxt_filepath</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config_filepath</span><span class="p">)</span>  <span class="c1"># alias to Caffe nomenclature</span>
+    <span class="n">caffemodel_filepath</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">weight_filepath</span><span class="p">)</span>  <span class="c1"># alias to Caffe nomenclature</span>
+
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">prototxt_filepath</span><span class="p">),</span> <span class="s1">&#39;Specified prototxt file not found&#39;</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">caffemodel_filepath</span><span class="p">),</span> <span class="s1">&#39;Specified caffemodel file not found&#39;</span>
+
+    <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
+        <span class="n">caffe</span><span class="o">.</span><span class="n">set_mode_gpu</span><span class="p">()</span>
+        <span class="n">caffe</span><span class="o">.</span><span class="n">set_device</span><span class="p">(</span><span class="n">use_gpu_id</span><span class="p">)</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">GPU_ID</span> <span class="o">=</span> <span class="n">use_gpu_id</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">caffe</span><span class="o">.</span><span class="n">set_mode_cpu</span><span class="p">()</span>
+
+    <span class="n">net</span> <span class="o">=</span> <span class="n">caffe</span><span class="o">.</span><span class="n">Net</span><span class="p">(</span><span class="n">prototxt_filepath</span><span class="p">,</span> <span class="n">caffemodel_filepath</span><span class="p">,</span> <span class="n">caffe</span><span class="o">.</span><span class="n">TEST</span><span class="p">)</span>
+
+    <span class="c1"># Warm-up network on a dummy image</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="mi">128</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">300</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">im_detect</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">im</span><span class="p">)</span>
+
+    <span class="n">results_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+        <span class="n">score_list</span><span class="p">,</span> <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">im_detect</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+
+        <span class="c1"># Compile results</span>
+        <span class="n">result_list_</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">class_index</span><span class="p">,</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">class_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="n">class_index</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># because we skipped background</span>
+            <span class="n">class_boxes</span> <span class="o">=</span> <span class="n">bbox_list</span><span class="p">[:,</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">class_index</span> <span class="p">:</span> <span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">class_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+            <span class="n">class_scores</span> <span class="o">=</span> <span class="n">score_list</span><span class="p">[:,</span> <span class="n">class_index</span><span class="p">]</span>
+            <span class="n">dets_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">class_boxes</span><span class="p">,</span> <span class="n">class_scores</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]))</span>
+            <span class="n">dets_list</span> <span class="o">=</span> <span class="n">dets_list</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="c1"># # Perform NMS</span>
+            <span class="c1"># keep_list = nms(dets_list, nms_sensitivity)</span>
+            <span class="c1"># dets_list = dets_list[keep_list, :]</span>
+            <span class="c1"># Perform sensitivity check</span>
+            <span class="n">keep_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dets_list</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">sensitivity</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">dets_list</span> <span class="o">=</span> <span class="n">dets_list</span><span class="p">[</span><span class="n">keep_list</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">xbr</span><span class="p">,</span> <span class="n">ybr</span><span class="p">,</span> <span class="n">conf</span><span class="p">)</span> <span class="ow">in</span> <span class="n">dets_list</span><span class="p">:</span>
+                <span class="n">xtl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">xtl</span><span class="p">))</span>
+                <span class="n">ytl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">ytl</span><span class="p">))</span>
+                <span class="n">xbr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">xbr</span><span class="p">))</span>
+                <span class="n">ybr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">ybr</span><span class="p">))</span>
+                <span class="n">confidence</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+                <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;xtl&#39;</span><span class="p">:</span> <span class="n">xtl</span><span class="p">,</span>
+                    <span class="s1">&#39;ytl&#39;</span><span class="p">:</span> <span class="n">ytl</span><span class="p">,</span>
+                    <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">xbr</span> <span class="o">-</span> <span class="n">xtl</span><span class="p">,</span>
+                    <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">ybr</span> <span class="o">-</span> <span class="n">ytl</span><span class="p">,</span>
+                    <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">class_name</span><span class="p">,</span>
+                    <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="n">confidence</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">result_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_dict</span><span class="p">)</span>
+        <span class="n">results_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_list_</span><span class="p">)</span>
+
+    <span class="n">results_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">results_list_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results_list</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

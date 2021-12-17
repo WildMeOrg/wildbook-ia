@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.preproc.occurrence_blackbox &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../preproc.html">wbia.algo.preproc</a> &raquo;</li>
+      <li>wbia.algo.preproc.occurrence_blackbox</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.preproc.occurrence_blackbox</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">animal_walking_speeds</span>
+
+<span class="sd">ZEBRA_SPEED_MAX  = 64  # km/h</span>
+<span class="sd">ZEBRA_SPEED_RUN  = 50  # km/h</span>
+<span class="sd">ZEBRA_SPEED_SLOW_RUN  = 20  # km/h</span>
+<span class="sd">ZEBRA_SPEED_FAST_WALK = 10  # km/h</span>
+<span class="sd">ZEBRA_SPEED_WALK = 7  # km/h</span>
+
+
+<span class="sd">km_per_sec = .02</span>
+<span class="sd">km_per_sec = .001</span>
+<span class="sd">mph = km_per_sec / ut.KM_PER_MILE * 60 * 60</span>
+<span class="sd">print(&#39;mph = %r&#39; % (mph,))</span>
+
+<span class="sd">1 / km_per_sec</span>
+
+<span class="sd">import datetime</span>
+<span class="sd">thresh_sec = datetime.timedelta(minutes=5).seconds</span>
+<span class="sd">thresh_km = thresh_sec * km_per_sec</span>
+<span class="sd">print(&#39;thresh_sec = %r&#39; % (thresh_sec,))</span>
+<span class="sd">print(&#39;thresh_km = %r&#39; % (thresh_km,))</span>
+<span class="sd">thresh_sec = thresh_km / km_per_sec</span>
+<span class="sd">print(&#39;thresh_sec = %r&#39; % (thresh_sec,))</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">scipy.cluster.hierarchy</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">distance</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">KM_PER_SEC</span> <span class="o">=</span> <span class="mf">0.002</span>
+
+
+<div class="viewcode-block" id="haversine"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.haversine">[docs]</a><span class="k">def</span> <span class="nf">haversine</span><span class="p">(</span><span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the great circle distance between two points</span>
+<span class="sd">    on the earth (specified in decimal degrees)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        latlon1 (tuple): (lat, lon)</span>
+<span class="sd">        latlon2 (tuple): (lat, lon)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float : distance in kilometers</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        en.wikipedia.org/wiki/Haversine_formula</span>
+<span class="sd">        gis.stackexchange.com/questions/81551/matching-gps-tracks</span>
+<span class="sd">        stackoverflow.com/questions/4913349/haversine-distance-gps-points</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.occurrence_blackbox import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import scipy.spatial.distance as spdist</span>
+<span class="sd">        &gt;&gt;&gt; import functools</span>
+<span class="sd">        &gt;&gt;&gt; latlon1 = [-80.21895315, -158.81099213]</span>
+<span class="sd">        &gt;&gt;&gt; latlon2 = [  9.77816711,  -17.27471498]</span>
+<span class="sd">        &gt;&gt;&gt; kilometers = haversine(latlon1, latlon2)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;kilometers = %s&#39; % (kilometers,))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        kilometers = 11930.909364189827</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># convert decimal degrees to radians</span>
+    <span class="n">lat1</span><span class="p">,</span> <span class="n">lon1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">latlon1</span><span class="p">)</span>
+    <span class="n">lat2</span><span class="p">,</span> <span class="n">lon2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">latlon2</span><span class="p">)</span>
+    <span class="c1"># haversine formula</span>
+    <span class="n">dlon</span> <span class="o">=</span> <span class="n">lon2</span> <span class="o">-</span> <span class="n">lon1</span>
+    <span class="n">dlat</span> <span class="o">=</span> <span class="n">lat2</span> <span class="o">-</span> <span class="n">lat1</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlat</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlon</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+    <span class="c1"># convert to kilometers</span>
+    <span class="n">EARTH_RADIUS_KM</span> <span class="o">=</span> <span class="mi">6367</span>
+    <span class="n">kilometers</span> <span class="o">=</span> <span class="n">EARTH_RADIUS_KM</span> <span class="o">*</span> <span class="n">c</span>
+    <span class="k">return</span> <span class="n">kilometers</span></div>
+
+
+<div class="viewcode-block" id="haversine_rad"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.haversine_rad">[docs]</a><span class="k">def</span> <span class="nf">haversine_rad</span><span class="p">(</span><span class="n">lat1</span><span class="p">,</span> <span class="n">lon1</span><span class="p">,</span> <span class="n">lat2</span><span class="p">,</span> <span class="n">lon2</span><span class="p">):</span>
+    <span class="c1"># haversine formula</span>
+    <span class="n">dlon</span> <span class="o">=</span> <span class="n">lon2</span> <span class="o">-</span> <span class="n">lon1</span>
+    <span class="n">dlat</span> <span class="o">=</span> <span class="n">lat2</span> <span class="o">-</span> <span class="n">lat1</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlat</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlon</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+    <span class="c1"># convert to kilometers</span>
+    <span class="n">EARTH_RADIUS_KM</span> <span class="o">=</span> <span class="mi">6367</span>
+    <span class="n">kilometers</span> <span class="o">=</span> <span class="n">EARTH_RADIUS_KM</span> <span class="o">*</span> <span class="n">c</span>
+    <span class="k">return</span> <span class="n">kilometers</span></div>
+
+
+<div class="viewcode-block" id="timespace_distance_km"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.timespace_distance_km">[docs]</a><span class="k">def</span> <span class="nf">timespace_distance_km</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">KM_PER_SEC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes distance between two points in space and time.</span>
+<span class="sd">    Time is converted into spatial units using km_per_sec</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pt1 (tuple) : (seconds, lat, lon)</span>
+<span class="sd">        pt2 (tuple) : (seconds, lat, lon)</span>
+<span class="sd">        km_per_sec (float): reasonable animal walking speed</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: distance in kilometers</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.occurrence_blackbox import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import scipy.spatial.distance as spdist</span>
+<span class="sd">        &gt;&gt;&gt; import functools</span>
+<span class="sd">        &gt;&gt;&gt; km_per_sec = .02</span>
+<span class="sd">        &gt;&gt;&gt; latlon1 = [40.779299,-73.9719498] # museum of natural history</span>
+<span class="sd">        &gt;&gt;&gt; latlon2 = [37.7336402,-122.5050342] # san fransisco zoo</span>
+<span class="sd">        &gt;&gt;&gt; pt1 = [0.0] + latlon1</span>
+<span class="sd">        &gt;&gt;&gt; pt2 = [0.0] + latlon2</span>
+<span class="sd">        &gt;&gt;&gt; # google measures about 4138.88 kilometers</span>
+<span class="sd">        &gt;&gt;&gt; dist_km1 = timespace_distance_km(pt1, pt2)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;dist_km1 = {!r}&#39;.format(dist_km1))</span>
+<span class="sd">        &gt;&gt;&gt; # Now add a time component</span>
+<span class="sd">        &gt;&gt;&gt; pt1 = [360.0] + latlon1</span>
+<span class="sd">        &gt;&gt;&gt; pt2 = [0.0] + latlon2</span>
+<span class="sd">        &gt;&gt;&gt; dist_km2 = timespace_distance_km(pt1, pt2)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;dist_km2 = {!r}&#39;.format(dist_km2))</span>
+<span class="sd">        &gt;&gt;&gt; assert np.isclose(dist_km1, 4136.4568647922624)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.isclose(dist_km2, 4137.1768647922627)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sec1</span><span class="p">,</span> <span class="n">latlon1</span> <span class="o">=</span> <span class="n">pt1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pt1</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">sec2</span><span class="p">,</span> <span class="n">latlon2</span> <span class="o">=</span> <span class="n">pt2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pt2</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="c1"># Get pure gps distance</span>
+    <span class="n">km_dist</span> <span class="o">=</span> <span class="n">haversine</span><span class="p">(</span><span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span><span class="p">)</span>
+    <span class="c1"># Get distance in seconds and convert to km</span>
+    <span class="n">sec_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sec1</span> <span class="o">-</span> <span class="n">sec2</span><span class="p">)</span> <span class="o">*</span> <span class="n">km_per_sec</span>
+    <span class="c1"># Add distances</span>
+    <span class="c1"># (return nan if points are not comparable, otherwise nansum)</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">km_dist</span><span class="p">,</span> <span class="n">sec_dist</span><span class="p">])</span>
+    <span class="n">timespace_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">parts</span><span class="p">))</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">timespace_dist</span></div>
+
+
+<div class="viewcode-block" id="timespace_distance_sec"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.timespace_distance_sec">[docs]</a><span class="k">def</span> <span class="nf">timespace_distance_sec</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">KM_PER_SEC</span><span class="p">):</span>
+    <span class="c1"># Return in seconds</span>
+    <span class="n">sec1</span><span class="p">,</span> <span class="n">latlon1</span> <span class="o">=</span> <span class="n">pt1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pt1</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">sec2</span><span class="p">,</span> <span class="n">latlon2</span> <span class="o">=</span> <span class="n">pt2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pt2</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="c1"># Get pure gps distance and convert to seconds</span>
+    <span class="n">km_dist</span> <span class="o">=</span> <span class="n">haversine</span><span class="p">(</span><span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span><span class="p">)</span>
+    <span class="n">km_dist</span> <span class="o">=</span> <span class="n">km_dist</span> <span class="o">/</span> <span class="n">km_per_sec</span>
+    <span class="c1"># Get distance in seconds</span>
+    <span class="n">sec_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sec1</span> <span class="o">-</span> <span class="n">sec2</span><span class="p">)</span>
+    <span class="c1"># Add distances</span>
+    <span class="c1"># (return nan if points are not comparable, otherwise nansum)</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">km_dist</span><span class="p">,</span> <span class="n">sec_dist</span><span class="p">])</span>
+    <span class="n">timespace_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">parts</span><span class="p">))</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">timespace_dist</span></div>
+
+
+<div class="viewcode-block" id="space_distance_sec"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.space_distance_sec">[docs]</a><span class="k">def</span> <span class="nf">space_distance_sec</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">KM_PER_SEC</span><span class="p">):</span>
+    <span class="c1"># Return in seconds</span>
+    <span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span> <span class="o">=</span> <span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span>
+    <span class="c1"># Get pure gps distance and convert to seconds</span>
+    <span class="n">km_dist</span> <span class="o">=</span> <span class="n">haversine</span><span class="p">(</span><span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span><span class="p">)</span>
+    <span class="n">space_dist</span> <span class="o">=</span> <span class="n">km_dist</span> <span class="o">/</span> <span class="n">km_per_sec</span>
+    <span class="k">return</span> <span class="n">space_dist</span></div>
+
+
+<div class="viewcode-block" id="space_distance_km"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.space_distance_km">[docs]</a><span class="k">def</span> <span class="nf">space_distance_km</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">):</span>
+    <span class="c1"># Return in seconds</span>
+    <span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span> <span class="o">=</span> <span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span>
+    <span class="c1"># Get pure gps distance and convert to seconds</span>
+    <span class="n">km_dist</span> <span class="o">=</span> <span class="n">haversine</span><span class="p">(</span><span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">km_dist</span></div>
+
+
+<div class="viewcode-block" id="time_dist_sec"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.time_dist_sec">[docs]</a><span class="k">def</span> <span class="nf">time_dist_sec</span><span class="p">(</span><span class="n">sec1</span><span class="p">,</span> <span class="n">sec2</span><span class="p">):</span>
+    <span class="n">sec_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sec1</span> <span class="o">-</span> <span class="n">sec2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sec_dist</span></div>
+
+
+<div class="viewcode-block" id="time_dist_km"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.time_dist_km">[docs]</a><span class="k">def</span> <span class="nf">time_dist_km</span><span class="p">(</span><span class="n">sec1</span><span class="p">,</span> <span class="n">sec2</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">KM_PER_SEC</span><span class="p">):</span>
+    <span class="n">sec_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sec1</span> <span class="o">-</span> <span class="n">sec2</span><span class="p">)</span>
+    <span class="n">sec_dist</span> <span class="o">*=</span> <span class="n">km_per_sec</span>
+    <span class="k">return</span> <span class="n">sec_dist</span></div>
+
+
+<div class="viewcode-block" id="prepare_data"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.prepare_data">[docs]</a><span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">KM_PER_SEC</span><span class="p">,</span> <span class="n">thresh_units</span><span class="o">=</span><span class="s1">&#39;seconds&#39;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Package datas and picks distance function</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        posixtimes (ndarray):</span>
+<span class="sd">        latlons (ndarray):</span>
+<span class="sd">        km_per_sec (float): (default = 0.002)</span>
+<span class="sd">        thresh_units (str): (default = &#39;seconds&#39;)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: arr_ -</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.preproc.occurrence_blackbox prepare_data</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.occurrence_blackbox import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; posixtimes = np.array([10, 50, np.nan, np.nan, 5, 80, np.nan, np.nan])</span>
+<span class="sd">        &gt;&gt;&gt; latlons = np.array([</span>
+<span class="sd">        &gt;&gt;&gt;     (42.727985, -73.683994),</span>
+<span class="sd">        &gt;&gt;&gt;     (np.nan, np.nan),</span>
+<span class="sd">        &gt;&gt;&gt;     (np.nan, np.nan),</span>
+<span class="sd">        &gt;&gt;&gt;     (42.658333, -73.770993),</span>
+<span class="sd">        &gt;&gt;&gt;     (42.227985, -73.083994),</span>
+<span class="sd">        &gt;&gt;&gt;     (np.nan, np.nan),</span>
+<span class="sd">        &gt;&gt;&gt;     (np.nan, np.nan),</span>
+<span class="sd">        &gt;&gt;&gt;     (42.258333, -73.470993),</span>
+<span class="sd">        &gt;&gt;&gt; ])</span>
+<span class="sd">        &gt;&gt;&gt; km_per_sec = 0.002</span>
+<span class="sd">        &gt;&gt;&gt; thresh_units = &#39;seconds&#39;</span>
+<span class="sd">        &gt;&gt;&gt; X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec, thresh_units)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;arr_ = %s&#39; % (ut.repr2(X_data),))</span>
+<span class="sd">        &gt;&gt;&gt; [dist_func(a, b) for a, b in ut.combinations(X_data, 2)]</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">atleast_nd</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">tofront</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;ut.static_func_source(vt.atleast_nd)&quot;&quot;&quot;</span>
+        <span class="n">arr_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+        <span class="n">ndims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ndims</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+            <span class="c1"># append the required number of dimensions to the end</span>
+            <span class="k">if</span> <span class="n">tofront</span><span class="p">:</span>
+                <span class="n">expander</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">ndims</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">Ellipsis</span><span class="p">,)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">expander</span> <span class="o">=</span> <span class="p">(</span><span class="bp">Ellipsis</span><span class="p">,)</span> <span class="o">+</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">ndims</span><span class="p">)</span>
+            <span class="n">arr_</span> <span class="o">=</span> <span class="n">arr_</span><span class="p">[</span><span class="n">expander</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">arr_</span>
+
+    <span class="k">def</span> <span class="nf">ensure_column_shape</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">num_cols</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;ut.static_func_source(vt.ensure_shape)&quot;&quot;&quot;</span>
+        <span class="n">arr_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">arr_</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr_</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">num_cols</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">arr_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">num_cols</span><span class="p">,</span> <span class="s1">&#39;bad number of cols&#39;</span>
+        <span class="k">return</span> <span class="n">arr_</span>
+
+    <span class="n">have_gps</span> <span class="o">=</span> <span class="n">latlons</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">latlons</span><span class="p">))</span>
+    <span class="n">have_times</span> <span class="o">=</span> <span class="n">posixtimes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">have_gps</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">have_times</span><span class="p">:</span>
+        <span class="c1"># There is no data, so there is nothing to do</span>
+        <span class="n">dist_func</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">have_gps</span> <span class="ow">and</span> <span class="n">have_times</span><span class="p">:</span>
+        <span class="c1"># We have gps but no timestamps</span>
+        <span class="n">X_data</span> <span class="o">=</span> <span class="n">atleast_nd</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">thresh_units</span> <span class="o">==</span> <span class="s1">&#39;seconds&#39;</span><span class="p">:</span>
+            <span class="n">dist_func</span> <span class="o">=</span> <span class="n">time_dist_sec</span>
+        <span class="k">elif</span> <span class="n">thresh_units</span> <span class="o">==</span> <span class="s1">&#39;km&#39;</span><span class="p">:</span>
+            <span class="n">dist_func</span> <span class="o">=</span> <span class="n">time_dist_km</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,)</span>
+    <span class="k">elif</span> <span class="n">have_gps</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">have_times</span><span class="p">:</span>
+        <span class="c1"># We have timesamps but no gps</span>
+        <span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">latlons</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">thresh_units</span> <span class="o">==</span> <span class="s1">&#39;seconds&#39;</span><span class="p">:</span>
+            <span class="n">dist_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">space_distance_sec</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">km_per_sec</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">thresh_units</span> <span class="o">==</span> <span class="s1">&#39;km&#39;</span><span class="p">:</span>
+            <span class="n">dist_func</span> <span class="o">=</span> <span class="n">space_distance_km</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">have_gps</span> <span class="ow">and</span> <span class="n">have_times</span><span class="p">:</span>
+        <span class="c1"># We have some combination of gps and timestamps</span>
+        <span class="n">posixtimes</span> <span class="o">=</span> <span class="n">atleast_nd</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">latlons</span> <span class="o">=</span> <span class="n">ensure_column_shape</span><span class="p">(</span><span class="n">latlons</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># latlons = np.array(latlons, ndmin=2)</span>
+        <span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">thresh_units</span> <span class="o">==</span> <span class="s1">&#39;seconds&#39;</span><span class="p">:</span>
+            <span class="n">dist_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">timespace_distance_sec</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">km_per_sec</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">thresh_units</span> <span class="o">==</span> <span class="s1">&#39;km&#39;</span><span class="p">:</span>
+            <span class="n">dist_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">timespace_distance_km</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">km_per_sec</span><span class="p">)</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;impossible state&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_data</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">columns</span></div>
+
+
+<div class="viewcode-block" id="cluster_timespace_km"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.cluster_timespace_km">[docs]</a><span class="k">def</span> <span class="nf">cluster_timespace_km</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">thresh_km</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">KM_PER_SEC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Agglometerative clustering of time/space data</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        X_data (ndarray) : Nx3 array where columns are (seconds, lat, lon)</span>
+<span class="sd">        thresh_km (float) : threshold in kilometers</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</span>
+<span class="sd">            scipy.cluster.hierarchy.linkage.html</span>
+<span class="sd">            scipy.cluster.hierarchy.fcluster.html</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        # Visualize spots</span>
+<span class="sd">        http://www.darrinward.com/lat-long/?id=2009879</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.preproc.occurrence_blackbox cluster_timespace_km</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.occurrence_blackbox import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # Nx1 matrix denoting groundtruth locations (for testing)</span>
+<span class="sd">        &gt;&gt;&gt; X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])</span>
+<span class="sd">        &gt;&gt;&gt; # Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="sd">        &gt;&gt;&gt; X_data = np.array([</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.727985, -73.683994),  # MRC</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.657414, -73.774448),  # Park1</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.658333, -73.770993),  # Park2</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.654384, -73.768919),  # Park3</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.655039, -73.769048),  # Park4</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.657872, -73.764148),  # Park5</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.876974, -73.819311),  # CP1</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.862946, -73.804977),  # CP2</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.849809, -73.758486),  # CP3</span>
+<span class="sd">        &gt;&gt;&gt; ])</span>
+<span class="sd">        &gt;&gt;&gt; thresh_km = 5.0  # kilometers</span>
+<span class="sd">        &gt;&gt;&gt; posixtimes = X_data.T[0]</span>
+<span class="sd">        &gt;&gt;&gt; latlons = X_data.T[1:3].T</span>
+<span class="sd">        &gt;&gt;&gt; km_per_sec = KM_PER_SEC</span>
+<span class="sd">        &gt;&gt;&gt; X_labels = cluster_timespace_km(posixtimes, latlons, thresh_km)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;X_labels = {}&#39;.format(ut.repr2(X_labels))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        X_labels = np.array([3, 2, 2, 2, 2, 2, 1, 1, 1])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X_data</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="p">,</span> <span class="s1">&#39;km&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">X_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Compute pairwise distances between all inputs</span>
+    <span class="n">dist_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">dist_func</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">km_per_sec</span><span class="p">)</span>
+    <span class="n">condenced_dist_mat</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">pdist</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">)</span>
+    <span class="c1"># Compute heirarchical linkages</span>
+    <span class="n">linkage_mat</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">linkage</span><span class="p">(</span><span class="n">condenced_dist_mat</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;single&#39;</span><span class="p">)</span>
+    <span class="c1"># Cluster linkages</span>
+    <span class="n">X_labels</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">fcluster</span><span class="p">(</span>
+        <span class="n">linkage_mat</span><span class="p">,</span> <span class="n">thresh_km</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_labels</span></div>
+
+
+<div class="viewcode-block" id="cluster_timespace_sec"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.cluster_timespace_sec">[docs]</a><span class="k">def</span> <span class="nf">cluster_timespace_sec</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">KM_PER_SEC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        X_data (ndarray) : Nx3 array where columns are (seconds, lat, lon)</span>
+<span class="sd">        thresh_sec (float) : threshold in seconds</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.occurrence_blackbox import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # Nx1 matrix denoting groundtruth locations (for testing)</span>
+<span class="sd">        &gt;&gt;&gt; X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])</span>
+<span class="sd">        &gt;&gt;&gt; # Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="sd">        &gt;&gt;&gt; X_data = np.array([</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.727985, -73.683994),  # MRC</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.657414, -73.774448),  # Park1</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.658333, -73.770993),  # Park2</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.654384, -73.768919),  # Park3</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.655039, -73.769048),  # Park4</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.657872, -73.764148),  # Park5</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.876974, -73.819311),  # CP1</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.862946, -73.804977),  # CP2</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.849809, -73.758486),  # CP3</span>
+<span class="sd">        &gt;&gt;&gt; ])</span>
+<span class="sd">        &gt;&gt;&gt; posixtimes = X_data.T[0]</span>
+<span class="sd">        &gt;&gt;&gt; latlons = X_data.T[1:3].T</span>
+<span class="sd">        &gt;&gt;&gt; thresh_sec = 250  # seconds</span>
+<span class="sd">        &gt;&gt;&gt; X_labels = cluster_timespace_sec(posixtimes, latlons, thresh_sec)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;X_labels = %r&#39; % (X_labels,))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        X_labels = array([6, 4, 4, 4, 4, 5, 1, 2, 3])</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.occurrence_blackbox import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # Nx1 matrix denoting groundtruth locations (for testing)</span>
+<span class="sd">        &gt;&gt;&gt; X_name = np.array([0, 1, 1, 1, 1, 1, 2, 2, 2])</span>
+<span class="sd">        &gt;&gt;&gt; # Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="sd">        &gt;&gt;&gt; X_data = np.array([</span>
+<span class="sd">        &gt;&gt;&gt;     (np.nan, 42.657414, -73.774448),  # Park1</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.658333, -73.770993),  # Park2</span>
+<span class="sd">        &gt;&gt;&gt;     (np.nan, np.nan, np.nan),  # Park3</span>
+<span class="sd">        &gt;&gt;&gt;     (np.nan, np.nan, np.nan),  # Park3.5</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.655039, -73.769048),  # Park4</span>
+<span class="sd">        &gt;&gt;&gt;     (0, 42.657872, -73.764148),  # Park5</span>
+<span class="sd">        &gt;&gt;&gt; ])</span>
+<span class="sd">        &gt;&gt;&gt; posixtimes = X_data.T[0]</span>
+<span class="sd">        &gt;&gt;&gt; latlons = X_data.T[1:3].T</span>
+<span class="sd">        &gt;&gt;&gt; thresh_sec = 250  # seconds</span>
+<span class="sd">        &gt;&gt;&gt; km_per_sec = KM_PER_SEC</span>
+<span class="sd">        &gt;&gt;&gt; X_labels = cluster_timespace_sec(posixtimes, latlons, thresh_sec)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;X_labels = {}&#39;.format(ut.repr2(X_labels))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        X_labels = np.array([3, 4, 1, 2, 4, 5])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X_data</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="p">,</span> <span class="s1">&#39;seconds&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">X_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Cluster nan distributions differently</span>
+    <span class="n">X_bools</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X_data</span><span class="p">)</span>
+    <span class="n">group_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">X_bools</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="n">unique_ids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">group_id</span><span class="p">)</span>
+    <span class="n">grouped_labels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">:</span>
+        <span class="n">X_part</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">_cluster_part</span><span class="p">(</span><span class="n">X_part</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="p">)</span>
+        <span class="n">grouped_labels</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">labels</span><span class="p">,</span> <span class="n">xs</span><span class="p">))</span>
+    <span class="c1"># Undo grouping and rectify overlaps</span>
+    <span class="n">X_labels</span> <span class="o">=</span> <span class="n">_recombine_labels</span><span class="p">(</span><span class="n">grouped_labels</span><span class="p">)</span>
+    <span class="c1"># Do clustering</span>
+    <span class="k">return</span> <span class="n">X_labels</span></div>
+
+
+<span class="k">def</span> <span class="nf">_recombine_labels</span><span class="p">(</span><span class="n">chunk_labels</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensure each group has different indices</span>
+
+<span class="sd">    chunk_labels = grouped_labels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">chunk_labels</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">chunk_labels</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># nunique_list = [len(np.unique(a)) for a in labels]</span>
+    <span class="n">chunksizes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+    <span class="n">cumsum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">chunksizes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">combined_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+    <span class="n">combined_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># Ensure each chunk has unique labels</span>
+    <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">cumsum</span><span class="p">,</span> <span class="n">cumsum</span><span class="p">):</span>
+        <span class="n">combined_labels</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span> <span class="o">+=</span> <span class="n">offset</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">combined_labels</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]))</span>
+    <span class="c1"># Ungroup</span>
+    <span class="n">X_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">combined_idxs</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="c1"># new_labels[:] = -1</span>
+    <span class="n">X_labels</span><span class="p">[</span><span class="n">combined_idxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">combined_labels</span>
+    <span class="k">return</span> <span class="n">X_labels</span>
+
+
+<span class="k">def</span> <span class="nf">_cluster_part</span><span class="p">(</span><span class="n">X_part</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_part</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">500</span> <span class="ow">and</span> <span class="s1">&#39;time&#39;</span> <span class="ow">in</span> <span class="n">columns</span> <span class="ow">and</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X_part</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]):</span>
+        <span class="c1"># Try and break problem up into smaller chunks by finding feasible</span>
+        <span class="c1"># one-dimensional breakpoints (is this a cutting plane?)</span>
+        <span class="n">chunk_labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">chunk_idxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_chunk_time</span><span class="p">(</span><span class="n">X_part</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">chunk_idxs</span><span class="p">:</span>
+            <span class="c1"># logger.info(&#39;Doing occurrence chunk {}&#39;.format(len(idxs)))</span>
+            <span class="n">X_chunk</span> <span class="o">=</span> <span class="n">X_part</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">_cluster_chunk</span><span class="p">(</span><span class="n">X_chunk</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">)</span>
+            <span class="n">chunk_labels</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">labels</span><span class="p">,</span> <span class="n">idxs</span><span class="p">))</span>
+        <span class="n">X_labels</span> <span class="o">=</span> <span class="n">_recombine_labels</span><span class="p">(</span><span class="n">chunk_labels</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Compute the whole problem</span>
+        <span class="n">X_labels</span> <span class="o">=</span> <span class="n">_cluster_chunk</span><span class="p">(</span><span class="n">X_part</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_labels</span>
+
+
+<span class="k">def</span> <span class="nf">_cluster_chunk</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">X_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_data</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">X_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_data</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X_data</span><span class="p">)):</span>
+        <span class="n">X_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_data</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Compute pairwise distances between all inputs</span>
+        <span class="n">condenced_dist_mat</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">pdist</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">)</span>
+        <span class="c1"># Compute heirarchical linkages</span>
+        <span class="n">linkage_mat</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">linkage</span><span class="p">(</span><span class="n">condenced_dist_mat</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;single&#39;</span><span class="p">)</span>
+        <span class="c1"># Cluster linkages</span>
+        <span class="n">X_labels</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">fcluster</span><span class="p">(</span>
+            <span class="n">linkage_mat</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_labels</span>
+
+
+<span class="k">def</span> <span class="nf">_chunk_time</span><span class="p">(</span><span class="n">X_part</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">):</span>
+    <span class="n">X_time</span> <span class="o">=</span> <span class="n">X_part</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">time_sortx</span> <span class="o">=</span> <span class="n">X_time</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="n">timedata</span> <span class="o">=</span> <span class="n">X_time</span><span class="p">[</span><span class="n">time_sortx</span><span class="p">]</span>
+    <span class="c1"># Look for points that are beyond the thresh in one dimension</span>
+    <span class="n">consec_delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">timedata</span><span class="p">)</span>
+    <span class="n">consec_delta</span><span class="p">[</span><span class="n">consec_delta</span> <span class="o">&gt;</span> <span class="n">thresh_sec</span><span class="p">]</span>
+    <span class="n">breakpoint</span> <span class="o">=</span> <span class="p">(</span><span class="n">consec_delta</span> <span class="o">&gt;</span> <span class="n">thresh_sec</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">consec_delta</span><span class="p">)</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">breakpoint</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">X_part</span><span class="p">)]])</span>
+    <span class="n">iter_window</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+    <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">iter_window</span><span class="p">:</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">time_sortx</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>
+        <span class="c1"># chunk = X_time[idxs]</span>
+        <span class="c1"># logger.info((np.diff(chunk[chunk.argsort()]) &gt; thresh_sec).sum())</span>
+        <span class="k">yield</span> <span class="n">idxs</span>
+
+
+<span class="c1"># def _chunk_lat(X_chunk, thresh_sec, km_per_sec):</span>
+<span class="c1">#     # X_time = X_chunk.T[0]</span>
+<span class="c1">#     X_lats = X_chunk.T[-2]</span>
+<span class="c1">#     X_lons = X_chunk.T[-1]</span>
+
+<span class="c1">#     # approximates 1 dimensional distance</span>
+<span class="c1">#     ave_lon = np.mean(X_lons)</span>
+<span class="c1">#     lat_sortx = X_lats.argsort()</span>
+<span class="c1">#     latdata = X_lats[lat_sortx]</span>
+
+<span class="c1">#     latdata_rad = np.radians(latdata)</span>
+<span class="c1">#     avelon_rad  = np.radians(ave_lon)</span>
+
+<span class="c1">#     lat1 = latdata_rad[:-1]</span>
+<span class="c1">#     lon1 = avelon_rad</span>
+
+<span class="c1">#     lat2 = latdata_rad[1:]</span>
+<span class="c1">#     lon2 = avelon_rad</span>
+
+<span class="c1">#     consec_kmdelta = haversine_rad(lat1, lon1, lat2, lon2)</span>
+<span class="c1">#     consec_delta = consec_kmdelta / km_per_sec</span>
+
+<span class="c1">#     consec_delta[consec_delta &gt; thresh_sec]</span>
+<span class="c1">#     breakpoint = (consec_delta &gt; thresh_sec) | np.isnan(consec_delta)</span>
+<span class="c1">#     idxs = np.hstack([[0], np.where(breakpoint)[0] + 1, [len(X_chunk)]])</span>
+<span class="c1">#     iter_window = list(zip(idxs, idxs[1:]))</span>
+<span class="c1">#     for start, stop in iter_window:</span>
+<span class="c1">#         idxs = lat_sortx[start:stop]</span>
+<span class="c1">#         # chunk = X_time[idxs]</span>
+<span class="c1">#         # logger.info((np.diff(chunk[chunk.argsort()]) &gt; thresh_sec).sum())</span>
+<span class="c1">#         yield idxs</span>
+
+
+<span class="c1"># def _chunk_lon(X_chunk, thresh_sec, km_per_sec):</span>
+<span class="c1">#     # X_time = X_chunk.T[0]</span>
+<span class="c1">#     X_lats = X_chunk.T[-2]</span>
+<span class="c1">#     X_lons = X_chunk.T[-1]</span>
+
+<span class="c1">#     # approximates 1 dimensional distance (assuming lons are not too different)</span>
+<span class="c1">#     ave_lat = np.mean(X_lats)</span>
+<span class="c1">#     lon_sortx = X_lons.argsort()</span>
+<span class="c1">#     londata = X_lons[lon_sortx]</span>
+
+<span class="c1">#     londata_rad = np.radians(londata)</span>
+<span class="c1">#     avelat_rad  = np.radians(ave_lat)</span>
+
+<span class="c1">#     lat1 = avelat_rad</span>
+<span class="c1">#     lon1 = londata_rad[:-1]</span>
+
+<span class="c1">#     lat2 = avelat_rad</span>
+<span class="c1">#     lon2 = londata_rad[1:]</span>
+
+<span class="c1">#     consec_kmdelta = haversine_rad(lat1, lon1, lat2, lon2)</span>
+<span class="c1">#     consec_delta = consec_kmdelta / km_per_sec</span>
+
+<span class="c1">#     consec_delta[consec_delta &gt; thresh_sec]</span>
+<span class="c1">#     breakpoint = (consec_delta &gt; thresh_sec) | np.isnan(consec_delta)</span>
+<span class="c1">#     idxs = np.hstack([[0], np.where(breakpoint)[0] + 1, [len(X_chunk)]])</span>
+<span class="c1">#     iter_window = list(zip(idxs, idxs[1:]))</span>
+<span class="c1">#     for start, stop in iter_window:</span>
+<span class="c1">#         idxs = lon_sortx[start:stop]</span>
+<span class="c1">#         # chunk = X_time[idxs]</span>
+<span class="c1">#         # logger.info((np.diff(chunk[chunk.argsort()]) &gt; thresh_sec).sum())</span>
+<span class="c1">#         yield idxs</span>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.occurrence_blackbox.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ib</span>
+<span class="sd">        cd ~/code/wbia/wbia/algo/preproc</span>
+<span class="sd">        python occurrence_blackbox.py --lat 42.727985 42.657414 42.658333 42.654384 --lon -73.683994 -73.774448 -73.770993 -73.768919 --sec 0 0 0 0</span>
+<span class="sd">        # Should return</span>
+<span class="sd">        X_labels = [2, 1, 1, 1]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">argparse</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Compute agglomerative cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--lat&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list of latitude coords&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--lon&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list of longitude coords&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--sec&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list of POSIX_TIMEs in seconds&#39;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--thresh&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;threshold in kilometers&#39;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--km_per_sec&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">KM_PER_SEC</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;reasonable animal speed in km/s&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">sec</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">lat</span><span class="p">)</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">sec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">args</span><span class="o">.</span><span class="n">sec</span>
+    <span class="n">latlons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">args</span><span class="o">.</span><span class="n">lat</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">lon</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace_km</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">thresh</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">km_per_sec</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;X_labels = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">X_labels</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),))</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.preproc.occurrence_blackbox</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

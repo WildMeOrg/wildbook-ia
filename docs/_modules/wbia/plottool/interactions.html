@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.interactions &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.interactions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.interactions</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">plottool</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">abstract_interaction</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
+
+
+<div class="viewcode-block" id="check_if_subinteract"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.check_if_subinteract">[docs]</a><span class="k">def</span> <span class="nf">check_if_subinteract</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Checking if subinteraction&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,))</span>
+        <span class="n">is_sub</span> <span class="o">=</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">abstract_interaction</span><span class="o">.</span><span class="n">AbstractInteraction</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="n">is_sub</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_sub</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... yup&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... nope&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">is_sub</span></div>
+
+
+<div class="viewcode-block" id="ExpandableInteraction"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.ExpandableInteraction">[docs]</a><span class="k">class</span> <span class="nc">ExpandableInteraction</span><span class="p">(</span><span class="n">abstract_interaction</span><span class="o">.</span><span class="n">AbstractInteraction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Append a list of functions that draw plots and this interaction will plot</span>
+<span class="sd">    them in appropriate subplots and let you click on them to zoom in.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fnum (int):  figure number(default = None)</span>
+<span class="sd">        _pnumiter (None): (default = None)</span>
+<span class="sd">        interactive (None): (default = None)</span>
+<span class="sd">        **kwargs: nRows, nCols</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.interactions --exec-ExpandableInteraction --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.interactions import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; inter = pt.interactions.ExpandableInteraction()</span>
+<span class="sd">        &gt;&gt;&gt; inter.append_plot(ut.partial(pt.plot_func, np.sin, stop=np.pi * 2))</span>
+<span class="sd">        &gt;&gt;&gt; inter.append_plot(ut.partial(pt.plot_func, np.cos, stop=np.pi * 2))</span>
+<span class="sd">        &gt;&gt;&gt; inter.append_plot(ut.partial(pt.plot_func, np.tan, stop=np.pi * 2))</span>
+<span class="sd">        &gt;&gt;&gt; inter.start()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_pnumiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nRows&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nCols&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pnumiter</span> <span class="o">=</span> <span class="n">_pnumiter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pnum_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interactive</span> <span class="o">=</span> <span class="n">interactive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ishow_func_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">autostart</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ExpandableInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">autostart</span><span class="o">=</span><span class="n">autostart</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;inplace apppend a plot function&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_plot</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="ExpandableInteraction.append_plot"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.ExpandableInteraction.append_plot">[docs]</a>    <span class="k">def</span> <span class="nf">append_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ishow_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">px</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a plotting function</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            func (callable): must take fnum and pnum as keyword arguments.</span>
+<span class="sd">            pnum (tuple): plot num / gridspec. Defaults based on append order</span>
+<span class="sd">            ishow_func (callable): an interactive version of func</span>
+<span class="sd">            px (int): None or a plot index into (nRows, nCols)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">px</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pnumiter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">pnum</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pnum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pnumiter</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="n">rx</span><span class="p">,</span> <span class="n">cx</span> <span class="o">=</span> <span class="n">px</span>
+                    <span class="n">px</span> <span class="o">=</span> <span class="p">(</span><span class="n">rx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">)</span> <span class="o">+</span> <span class="n">cx</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nRows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pnum_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pnum</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ishow_func_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ishow_func</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ExpandableInteraction.append_partial"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.ExpandableInteraction.append_partial">[docs]</a>    <span class="k">def</span> <span class="nf">append_partial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a plotting function with default arguments</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            func (callable): plotting function (does NOT need fnum/pnum).</span>
+<span class="sd">            *args: args to be passed to func</span>
+<span class="sd">            **kwargs: kwargs to be passed to func</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_partial</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_plot</span><span class="p">(</span><span class="n">_partial</span><span class="p">)</span></div>
+        <span class="c1"># pnum = None</span>
+        <span class="c1"># if pnum is None:</span>
+        <span class="c1">#     if self._pnumiter is None:</span>
+        <span class="c1">#         pnum = None</span>
+        <span class="c1">#     else:</span>
+        <span class="c1">#         pnum = self._pnumiter()</span>
+        <span class="c1"># self.pnum_list.append(pnum)</span>
+        <span class="c1"># self.func_list.append(_partial)</span>
+        <span class="c1"># self.ishow_func_list.append(None)</span>
+
+<div class="viewcode-block" id="ExpandableInteraction.show_page"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.ExpandableInteraction.show_page">[docs]</a>    <span class="k">def</span> <span class="nf">show_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;fig is None, did you run interction.start()?&#39;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s1">&#39;expandable&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pnum_list</span><span class="p">):</span>
+            <span class="c1"># If no pnum was given, find a set that agrees with constraints</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_num_rc</span><span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pnum_list</span><span class="p">),</span> <span class="n">nRows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nCols</span>
+            <span class="p">)</span>
+            <span class="n">nSubplots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func_list</span><span class="p">)</span>
+            <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nRows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">,</span> <span class="n">nSubplots</span><span class="o">=</span><span class="n">nSubplots</span><span class="p">)</span>
+            <span class="n">pnum_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pnum_</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pnum_list</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pnum_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pnum_list</span>
+
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">pnum</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pnum_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_list</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">check_if_subinteract</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+                <span class="c1"># Hack</span>
+                <span class="n">interclass</span> <span class="o">=</span> <span class="n">func</span>
+                <span class="n">interclass</span><span class="o">.</span><span class="n">static_plot</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s1">&#39;plot&#39;</span><span class="p">):</span>
+                <span class="n">inter</span> <span class="o">=</span> <span class="n">func</span>
+                <span class="n">inter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">func</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;failed plotting&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;func&#39;</span><span class="p">,</span> <span class="s1">&#39;fnum&#39;</span><span class="p">,</span> <span class="s1">&#39;pnum&#39;</span><span class="p">])</span>
+                    <span class="k">raise</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;plot_func&#39;</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;expandable_index&#39;</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="c1"># if self.interactive is None or self.interactive:</span>
+        <span class="c1">#    ih.connect_callback(fig, &#39;button_press_event&#39;, self.onclick)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_callbacks</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">fig</span>
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="ExpandableInteraction.on_click"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.ExpandableInteraction.on_click">[docs]</a>    <span class="k">def</span> <span class="nf">on_click</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inter] clicked in expandable interact&#39;</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
+        <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_inside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;plot_func&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,))</span>
+            <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;calling func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,))</span>
+                <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+                <span class="c1"># pt.figure(fnum=fnum)</span>
+                <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;expandable_index&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">ishow_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ishow_func_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ishow_func</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">ishow_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">inter</span> <span class="o">=</span> <span class="n">ishow_func</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">check_if_subinteract</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+                        <span class="n">inter</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+                        <span class="n">inter</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+                    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s1">&#39;plot&#39;</span><span class="p">):</span>
+                        <span class="n">inter</span> <span class="o">=</span> <span class="n">func</span>
+                        <span class="n">inter</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                        <span class="c1"># func.plot(fnum=self.fnum, pnum=pnum)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">func</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+                    <span class="c1"># inter.show_page()</span>
+                <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+                <span class="n">pt</span><span class="o">.</span><span class="n">show_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div></div>
+                <span class="c1"># extra</span>
+
+
+<div class="viewcode-block" id="zoom_factory"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.zoom_factory">[docs]</a><span class="k">def</span> <span class="nf">zoom_factory</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zoomable_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">base_scale</span><span class="o">=</span><span class="mf">1.1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        https://gist.github.com/tacaswell/3144287</span>
+<span class="sd">        http://stackoverflow.com/questions/11551049/matplotlib-plot-zooming-with-scroll-wheel</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">zoom_fun</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+        <span class="c1"># print(&#39;zooming&#39;)</span>
+        <span class="c1"># get the current x and y limits</span>
+        <span class="n">cur_xlim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+        <span class="n">cur_ylim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+        <span class="n">xdata</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span>  <span class="c1"># get event x location</span>
+        <span class="n">ydata</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>  <span class="c1"># get event y location</span>
+        <span class="k">if</span> <span class="n">xdata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ydata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="s1">&#39;up&#39;</span><span class="p">:</span>
+            <span class="c1"># deal with zoom in</span>
+            <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">base_scale</span>
+        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="s1">&#39;down&#39;</span><span class="p">:</span>
+            <span class="c1"># deal with zoom out</span>
+            <span class="n">scale_factor</span> <span class="o">=</span> <span class="n">base_scale</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;event.button=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">,))</span>
+            <span class="c1"># deal with something that should never happen</span>
+            <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">zoomable</span> <span class="ow">in</span> <span class="n">zoomable_list</span><span class="p">:</span>
+            <span class="n">zoom</span> <span class="o">=</span> <span class="n">zoomable</span><span class="o">.</span><span class="n">get_zoom</span><span class="p">()</span>
+            <span class="n">new_zoom</span> <span class="o">=</span> <span class="n">zoom</span> <span class="o">/</span> <span class="p">(</span><span class="n">scale_factor</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.2</span><span class="p">))</span>
+            <span class="n">zoomable</span><span class="o">.</span><span class="n">set_zoom</span><span class="p">(</span><span class="n">new_zoom</span><span class="p">)</span>
+        <span class="c1"># Get distance from the cursor to the edge of the figure frame</span>
+        <span class="n">x_left</span> <span class="o">=</span> <span class="n">xdata</span> <span class="o">-</span> <span class="n">cur_xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x_right</span> <span class="o">=</span> <span class="n">cur_xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">xdata</span>
+        <span class="n">y_top</span> <span class="o">=</span> <span class="n">ydata</span> <span class="o">-</span> <span class="n">cur_ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y_bottom</span> <span class="o">=</span> <span class="n">cur_ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ydata</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="n">xdata</span> <span class="o">-</span> <span class="n">x_left</span> <span class="o">*</span> <span class="n">scale_factor</span><span class="p">,</span> <span class="n">xdata</span> <span class="o">+</span> <span class="n">x_right</span> <span class="o">*</span> <span class="n">scale_factor</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">ydata</span> <span class="o">-</span> <span class="n">y_top</span> <span class="o">*</span> <span class="n">scale_factor</span><span class="p">,</span> <span class="n">ydata</span> <span class="o">+</span> <span class="n">y_bottom</span> <span class="o">*</span> <span class="n">scale_factor</span><span class="p">])</span>
+
+        <span class="c1"># ----</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>  <span class="c1"># force re-draw</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>  <span class="c1"># get the figure of interest</span>
+    <span class="c1"># attach the call back</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s1">&#39;scroll_event&#39;</span><span class="p">,</span> <span class="n">zoom_fun</span><span class="p">)</span>
+
+    <span class="c1"># return the function</span>
+    <span class="k">return</span> <span class="n">zoom_fun</span></div>
+
+
+<div class="viewcode-block" id="pan_factory"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.pan_factory">[docs]</a><span class="k">def</span> <span class="nf">pan_factory</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">PanEvents</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>  <span class="c1"># get the figure of interest</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cidBP</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s1">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pan_on_press</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cidBR</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s1">&#39;button_release_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pan_on_release</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cidBM</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s1">&#39;motion_notify_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pan_on_motion</span><span class="p">)</span>
+    <span class="c1"># attach the call back</span>
+    <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="PanEvents"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.PanEvents">[docs]</a><span class="k">class</span> <span class="nc">PanEvents</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">press</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_xlim</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_ylim</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xpress</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ypress</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xzoom</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yzoom</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidBP</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidBR</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidBM</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidKeyP</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidKeyR</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cidScroll</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span>
+        <span class="c1"># if ax is None:</span>
+        <span class="c1">#    import wbia.plottool as pt</span>
+        <span class="c1">#    ax = pt.gca()</span>
+        <span class="c1"># self.ax = ax</span>
+        <span class="c1"># self.connect()</span>
+
+<div class="viewcode-block" id="PanEvents.pan_on_press"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.PanEvents.pan_on_press">[docs]</a>    <span class="k">def</span> <span class="nf">pan_on_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span> <span class="o">!=</span> <span class="n">ax</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_xlim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_ylim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">press</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xpress</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ypress</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">press</span></div>
+
+<div class="viewcode-block" id="PanEvents.pan_on_release"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.PanEvents.pan_on_release">[docs]</a>    <span class="k">def</span> <span class="nf">pan_on_release</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">press</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PanEvents.pan_on_motion"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interactions.PanEvents.pan_on_motion">[docs]</a>    <span class="k">def</span> <span class="nf">pan_on_motion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">press</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span> <span class="o">!=</span> <span class="n">ax</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">xpress</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ypress</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_xlim</span> <span class="o">-=</span> <span class="n">dx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_ylim</span> <span class="o">-=</span> <span class="n">dy</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_xlim</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_ylim</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">flush_events</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

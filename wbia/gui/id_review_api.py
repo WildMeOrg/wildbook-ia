@@ -51,7 +51,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
     CommandLine:
         python -m wbia.gui.id_review_api get_review_edges:0
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.gui.id_review_api import *  # NOQA
         >>> import wbia
@@ -63,7 +63,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> review_edges = get_review_edges(cm_list, ibs=ibs, review_cfg=review_cfg)
         >>> print(review_edges)
 
-    Example1:
+    Example:
         >>> # UNSTABLE_DOCTEST
         >>> from wbia.gui.id_review_api import *  # NOQA
         >>> import wbia
@@ -73,7 +73,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(review_edges)
 
-    Example3:
+    Example:
         >>> # UNSTABLE_DOCTEST
         >>> from wbia.gui.id_review_api import *  # NOQA
         >>> import wbia
@@ -83,7 +83,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(review_edges)
 
-    Example4:
+    Example:
         >>> # UNSTABLE_DOCTEST
         >>> from wbia.gui.id_review_api import *  # NOQA
         >>> import wbia

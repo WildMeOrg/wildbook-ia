@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_feat_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_feat_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_feat_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tgen.sh&#39;, &#39;wbia.templates.template_generator&#39;)&quot;</span>
+<span class="sd">sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_feat_funcs</span>
+<span class="sd">sh Tgen.sh --key feat --Tcfg with_deleters=True --autogen_modname manual_feat_funcs</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.control.accessor_decors</span> <span class="kn">import</span> <span class="n">getter_1to1</span><span class="p">,</span> <span class="n">getter_1toM</span><span class="p">,</span> <span class="n">deleter</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+
+<span class="n">NEW_DEPC</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="n">ANNOT_ROWID</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid&#39;</span>
+<span class="n">CHIP_ROWID</span> <span class="o">=</span> <span class="s1">&#39;chip_rowid&#39;</span>
+<span class="n">FEAT_VECS</span> <span class="o">=</span> <span class="s1">&#39;feature_vecs&#39;</span>
+<span class="n">FEAT_KPTS</span> <span class="o">=</span> <span class="s1">&#39;feature_keypoints&#39;</span>
+<span class="n">FEAT_NUM_FEAT</span> <span class="o">=</span> <span class="s1">&#39;feature_num_feats&#39;</span>
+
+
+<span class="c1"># ----------------</span>
+<span class="c1"># ROOT LEAF FUNCTIONS</span>
+<span class="c1"># ----------------</span>
+
+
+<div class="viewcode-block" id="delete_annot_feats"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_feat_funcs.delete_annot_feats">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@deleter</span>
+<span class="k">def</span> <span class="nf">delete_annot_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;annot.feat.delete(aid_list)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        aid_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tdeleter_rl_depenant</span>
+<span class="sd">        root = annot</span>
+<span class="sd">        leaf = feat</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs --test-delete_annot_feats</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs --test-delete_annot_feats --verb-control</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_feat_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs._get_all_aids()[:1]</span>
+<span class="sd">        &gt;&gt;&gt; fids_list = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, ensure=True)</span>
+<span class="sd">        &gt;&gt;&gt; num_deleted1 = ibs.delete_annot_feats(aid_list, config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(num_deleted1, len(fids_list))</span>
+<span class="sd">        &gt;&gt;&gt; num_deleted2 = ibs.delete_annot_feats(aid_list, config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(num_deleted2, 0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> annots leaf nodes&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annot_feat_rowids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_feat_funcs.get_annot_feat_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_annot_feat_rowids</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_retries</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs get_annot_feat_rowids --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.query_request import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids = ibs.get_valid_aids()[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = {}</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_annot_feats(aids, config2_=config2_)  # Remove the chips</span>
+<span class="sd">        &gt;&gt;&gt; ut.remove_file_list(ibs.get_annot_chip_fpath(aids, config2_=config2_))</span>
+<span class="sd">        &gt;&gt;&gt; qfids = ibs.get_annot_feat_rowids(aids, ensure=True, config2_=config2_)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span>
+        <span class="s1">&#39;feat&#39;</span><span class="p">,</span>
+        <span class="n">aid_list</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span>
+        <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">num_retries</span><span class="o">=</span><span class="n">num_retries</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annot_kpts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_feat_funcs.get_annot_kpts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+<span class="nd">@getter_1toM</span>
+<span class="c1"># @cache_getter(const.ANNOTATION_TABLE, &#39;kpts&#39;)</span>
+<span class="k">def</span> <span class="nf">get_annot_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        aid_list (int):  list of annotation ids</span>
+<span class="sd">        ensure (bool):  eager evaluation if True</span>
+<span class="sd">        eager (bool):</span>
+<span class="sd">        nInput (None):</span>
+<span class="sd">        config2_ (QueryRequest):  query request object with hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        kpts_list (list): annotation descriptor keypoints</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance --scale_max=20</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs --test-get_annot_kpts --show --feat_type=hesaff+siam128</span>
+<span class="sd">        ipython -i -- --show --feat_type=hesaff+siam128</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_feat_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.viz.interact</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; qreq1_ = wbia.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[&#39;default:RI=True&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; qreq2_ = wbia.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[&#39;default:RI=False&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq1_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = qreq1_.get_external_qaids()</span>
+<span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[TEST_GET_ANNOT_KPTS]&#39;):</span>
+<span class="sd">        ...     print(&#39;qreq1 params: &#39; + qreq1_.qparams.feat_cfgstr)</span>
+<span class="sd">        ...     print(&#39;qreq2 params: &#39; + qreq2_.qparams.feat_cfgstr)</span>
+<span class="sd">        ...     print(&#39;id(qreq1): &#39; + str(id(qreq1_)))</span>
+<span class="sd">        ...     print(&#39;id(qreq2): &#39; + str(id(qreq2_)))</span>
+<span class="sd">        ...     #print(&#39;feat_config_rowid1 = %r&#39; % (ibs.get_feat_config_rowid(config2_=qreq1_.extern_query_config2),))</span>
+<span class="sd">        ...     #print(&#39;feat_config_rowid2 = %r&#39; % (ibs.get_feat_config_rowid(config2_=qreq2_.extern_query_config2),))</span>
+<span class="sd">        &gt;&gt;&gt; # Force recomputation of features</span>
+<span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[DELETE1]&#39;):</span>
+<span class="sd">        ...     ibs.delete_annot_feats(aid_list, config2_=qreq1_.extern_query_config2)</span>
+<span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[DELETE2]&#39;):</span>
+<span class="sd">        ...     ibs.delete_annot_feats(aid_list, config2_=qreq2_.extern_query_config2)</span>
+<span class="sd">        &gt;&gt;&gt; eager, ensure, nInput = True, True, None</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[GET1]&#39;):</span>
+<span class="sd">        ...     kpts1_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq1_.extern_query_config2)</span>
+<span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[GET2]&#39;):</span>
+<span class="sd">        ...     kpts2_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq2_.extern_query_config2)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; assert not np.all(vt.get_oris(kpts1_list[0]) == 0)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(vt.get_oris(kpts2_list[0]) == 0)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; #wbia.viz.viz_chip.show_chip(ibs, aid_list[0], config2_=qreq1_, ori=True)</span>
+<span class="sd">        &gt;&gt;&gt; wbia.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.extern_query_config2, ori=True, fnum=1)</span>
+<span class="sd">        &gt;&gt;&gt; wbia.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.extern_query_config2, ori=True, fnum=2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;kpts&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annot_vecs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_feat_funcs.get_annot_vecs">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1toM</span>
+<span class="k">def</span> <span class="nf">get_annot_vecs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        vecs_list (list): annotation descriptor vectors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;vecs&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annot_num_feats"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_feat_funcs.get_annot_num_feats">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_annot_num_feats</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_debug</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        aid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        nFeats_list (list): num descriptors per annotation</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_feat_funcs --test-get_annot_num_feats</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # this test might fail on different machines due to</span>
+<span class="sd">        &gt;&gt;&gt; # determenism bugs in hesaff maybe? or maybe jpeg...</span>
+<span class="sd">        &gt;&gt;&gt; # in which case its hopeless</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_feat_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = {&#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True, config2_=config2_, _debug=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;nFeats_list = %r&#39; % (nFeats_list,))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(nFeats_list) == 3</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nFeats_list[0], 1200, 1263)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nFeats_list[1],  900,  923)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nFeats_list[2], 1300, 1344)</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        depc = ibs.depc_annot</span>
+<span class="sd">        tablename = &#39;feat&#39;</span>
+<span class="sd">        input_rowids = aid_list</span>
+<span class="sd">        colnames = &#39;num_feats&#39;</span>
+<span class="sd">        config = config2_</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;feat&#39;</span><span class="p">,</span>
+        <span class="n">aid_list</span><span class="p">,</span>
+        <span class="s1">&#39;num_feats&#39;</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span>
+        <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">_debug</span><span class="o">=</span><span class="n">_debug</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_feat_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

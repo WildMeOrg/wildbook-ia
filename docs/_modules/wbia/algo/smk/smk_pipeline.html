@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.smk.smk_pipeline &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../smk.html">wbia.algo.smk</a> &raquo;</li>
+      <li>wbia.algo.smk.smk_pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.smk.smk_pipeline</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Oxford Experiment:</span>
+<span class="sd">    wbia TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True -a oxford</span>
+
+
+<span class="sd">Zebra Experiment:</span>
+<span class="sd">    python -m wbia draw_rank_cmc --db GZ_Master1 --show \</span>
+<span class="sd">        -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],SV=[False] \</span>
+<span class="sd">           :proot=vsmany,fg_on=False,SV=[False] \</span>
+<span class="sd">        -a ctrl:qmingt=2</span>
+
+<span class="sd">    python -m wbia draw_rank_cmc --db PZ_Master1 --show \</span>
+<span class="sd">        -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],SV=[False] \</span>
+<span class="sd">           :proot=vsmany,fg_on=False,SV=[False] \</span>
+<span class="sd">        -a ctrl:qmingt=2</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">match_chips5</span> <span class="k">as</span> <span class="n">mc5</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">vocab_indexer</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">inverted_index</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">smk_funcs</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
+<span class="kn">from</span> <span class="nn">wbia.algo</span> <span class="kn">import</span> <span class="n">Config</span> <span class="k">as</span> <span class="n">old_config</span>  <span class="c1"># NOQA</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="MatchHeuristicsConfig"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.MatchHeuristicsConfig">[docs]</a><span class="k">class</span> <span class="nc">MatchHeuristicsConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;can_match_self&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;can_match_samename&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;can_match_sameimg&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="SMKRequestConfig"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMKRequestConfig">[docs]</a><span class="k">class</span> <span class="nc">SMKRequestConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Figure out how to do this&quot;&quot;&quot;</span>
+
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;proot&#39;</span><span class="p">,</span> <span class="s1">&#39;smk&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;smk_alpha&#39;</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;smk_thresh&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+        <span class="c1"># ut.ParamInfo(&#39;smk_thresh&#39;, -1.0),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;data_ma&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>  <span class="c1"># hack for query only multiple assignment</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+            <span class="s1">&#39;word_weight_method&#39;</span><span class="p">,</span> <span class="s1">&#39;idf&#39;</span><span class="p">,</span> <span class="n">shortprefix</span><span class="o">=</span><span class="s1">&#39;wwm&#39;</span>
+        <span class="p">),</span>  <span class="c1"># hack for query only multiple assignment</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;smk_version&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">core_annots</span><span class="o">.</span><span class="n">ChipConfig</span><span class="p">,</span>
+        <span class="n">core_annots</span><span class="o">.</span><span class="n">FeatConfig</span><span class="p">,</span>
+        <span class="n">old_config</span><span class="o">.</span><span class="n">SpatialVerifyConfig</span><span class="p">,</span>
+        <span class="n">vocab_indexer</span><span class="o">.</span><span class="n">VocabConfig</span><span class="p">,</span>
+        <span class="n">inverted_index</span><span class="o">.</span><span class="n">InvertedIndexConfig</span><span class="p">,</span>
+        <span class="n">MatchHeuristicsConfig</span><span class="p">,</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="SMKRequest"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMKRequest">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">SMKRequest</span><span class="p">(</span><span class="n">mc5</span><span class="o">.</span><span class="n">EstimatorRequest</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    qreq_-like object. Trying to work on becoming more scikit-ish</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.smk.smk_pipeline SMKRequest --profile</span>
+<span class="sd">        python -m wbia.algo.smk.smk_pipeline SMKRequest --show</span>
+
+<span class="sd">        python -m wbia draw_rank_cmc --db GZ_ALL --show \</span>
+<span class="sd">            -p :proot=smk,num_words=[64000,4000],nAssign=[1,5],sv_on=[False,True] \</span>
+<span class="sd">            -a ctrl:qmingt=2</span>
+
+<span class="sd">        python -m wbia draw_rank_cmc --db PZ_MTEST --show \</span>
+<span class="sd">            -p :proot=smk,num_words=[64000,8000,4000],nAssign=[1,2,4],sv_on=[True,False] \</span>
+<span class="sd">                default:proot=vsmany,sv_on=[True,False] \</span>
+<span class="sd">            -a default:qmingt=2</span>
+
+<span class="sd">        python -m wbia draw_rank_cmc --db PZ_MTEST --show \</span>
+<span class="sd">            -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \</span>
+<span class="sd">                default:proot=vsmany,sv_on=[True] \</span>
+<span class="sd">            -a default:qmingt=2</span>
+
+<span class="sd">        python -m wbia draw_rank_cmc --db PZ_Master1 --show \</span>
+<span class="sd">            -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] \</span>
+<span class="sd">            -a ctrl:qmingt=2</span>
+
+<span class="sd">        python -m wbia draw_rank_cmc --db PZ_Master1 \</span>
+<span class="sd">            -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \</span>
+<span class="sd">            -a ctrl:qmingt=2,qindex=60:80 --profile</span>
+
+<span class="sd">        python -m wbia draw_rank_cmc --db GZ_ALL \</span>
+<span class="sd">            -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \</span>
+<span class="sd">            -a ctrl:qmingt=2,qindex=40:60 --profile</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = wbia.testdata_aids(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaids = aid_list[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; daids = aid_list[:]</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;nAssign&#39;: 2, &#39;num_words&#39;: 64000, &#39;sv_on&#39;: True}</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = SMKRequest(ibs, qaids, daids, config)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_.ensure_data()</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = qreq_.execute()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; ut.qtensure()</span>
+<span class="sd">        &gt;&gt;&gt; cm_list[0].ishow_analysis(qreq_, fnum=1, viz_name_score=False)</span>
+<span class="sd">        &gt;&gt;&gt; cm_list[1].ishow_analysis(qreq_, fnum=2, viz_name_score=False)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SMKRequest</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span> <span class="o">=</span> <span class="n">daids</span>
+
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+
+        <span class="c1"># qreq_.vocab = None</span>
+        <span class="c1"># qreq_.dinva = None</span>
+
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">qinva</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">smk</span> <span class="o">=</span> <span class="n">SMK</span><span class="p">()</span>
+
+        <span class="c1"># Hack to work with existing hs code</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">stack_config</span> <span class="o">=</span> <span class="n">SMKRequestConfig</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
+        <span class="c1"># Flat config</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span> <span class="o">=</span> <span class="n">dtool</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">StackedConfig</span><span class="p">([</span><span class="nb">dict</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">stack_config</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())])</span>
+        <span class="c1">#    # TODO: add vocab, inva, features</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">cachedir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">((</span><span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span><span class="p">,</span> <span class="s1">&#39;smk&#39;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="SMKRequest.dump_vectors"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMKRequest.dump_vectors">[docs]</a>    <span class="k">def</span> <span class="nf">dump_vectors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.smk.smk_pipeline import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import wbia</span>
+<span class="sd">            &gt;&gt;&gt; ibs, aid_list = wbia.testdata_aids(defaultdb=&#39;PZ_MTEST&#39;, a=&#39;default:mingt=2,pername=2&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; qaids = aid_list[0:2]</span>
+<span class="sd">            &gt;&gt;&gt; daids = aid_list[:]</span>
+<span class="sd">            &gt;&gt;&gt; config = {&#39;nAssign&#39;: 1, &#39;num_words&#39;: 8000,</span>
+<span class="sd">            &gt;&gt;&gt;           &#39;sv_on&#39;: True}</span>
+<span class="sd">            &gt;&gt;&gt; qreq_ = SMKRequest(ibs, qaids, daids, config)</span>
+<span class="sd">            &gt;&gt;&gt; qreq_.ensure_data()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inva</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span><span class="o">.</span><span class="n">get_annot</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">n_words</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">wx_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">n_dims</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">n_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">vlads</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_annots</span><span class="p">,</span> <span class="n">n_words</span><span class="p">,</span> <span class="n">n_dims</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">ids_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">dnids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">ids_</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;vlad&#39;</span><span class="p">)):</span>
+            <span class="c1"># X.rrr()</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span><span class="o">.</span><span class="n">get_annot</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">vlads</span><span class="p">[</span><span class="n">count</span><span class="p">]</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">wx_list</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span>
+            <span class="c1"># X.to_dense(out=out)</span>
+        <span class="c1"># Flatten out</span>
+        <span class="n">vlads</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_annots</span><span class="p">,</span> <span class="n">n_words</span> <span class="o">*</span> <span class="n">n_dims</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">print_object_size</span><span class="p">(</span><span class="n">vlads</span><span class="p">)</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;vlad_</span><span class="si">%d</span><span class="s1">_d</span><span class="si">%d</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_annots</span><span class="p">,</span> <span class="n">n_words</span> <span class="o">*</span> <span class="n">n_dims</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">())</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/&#39;</span> <span class="o">+</span> <span class="n">fname</span> <span class="o">+</span> <span class="s1">&#39;.mat&#39;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">scipy.io</span>
+
+        <span class="n">mdict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;vlads&#39;</span><span class="p">:</span> <span class="n">vlads</span><span class="p">,</span>
+            <span class="s1">&#39;nids&#39;</span><span class="p">:</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dnids</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">savemat</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">mdict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMKRequest.ensure_data"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMKRequest.ensure_data">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_data</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        qreq_ = wbia.testdata_qreq_(</span>
+<span class="sd">            defaultdb=&#39;Oxford&#39;, a=&#39;oxford&#39;,</span>
+<span class="sd">            p=&#39;default:proot=smk,nAssign=1,num_words=64000,SV=False,can_match_sameimg=True,dim_size=None&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Ensure data for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="p">,))</span>
+
+        <span class="c1"># qreq_.cachedir = ut.ensuredir((ibs.cachedir, &#39;smk&#39;))</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">ensure_nids</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">make_cacher</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+            <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">Cacher</span><span class="p">(</span>
+                    <span class="n">fname</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span>
+                    <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">,</span>
+                    <span class="n">cache_dir</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/Desktop/smkcache&#39;</span><span class="p">)),</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">wrp</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>
+
+                <span class="k">def</span> <span class="nf">ensure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">func</span><span class="p">()</span>
+
+                <span class="n">wrp</span><span class="o">.</span><span class="n">ensure</span> <span class="o">=</span> <span class="n">ensure</span>
+                <span class="k">return</span> <span class="n">wrp</span>
+
+        <span class="kn">import</span> <span class="nn">copy</span>
+
+        <span class="n">dconfig</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">)</span>
+        <span class="n">qconfig</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">[</span><span class="s1">&#39;data_ma&#39;</span><span class="p">]:</span>
+            <span class="c1"># Disable database-dise multi-assignment</span>
+            <span class="n">dconfig</span><span class="p">[</span><span class="s1">&#39;nAssign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">wwm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">[</span><span class="s1">&#39;word_weight_method&#39;</span><span class="p">]</span>
+
+        <span class="n">depc</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">depc</span>
+        <span class="n">vocab_aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span>
+
+        <span class="n">cheat</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">cheat</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">wbia</span>
+
+            <span class="n">ut</span><span class="o">.</span><span class="n">cprint</span><span class="p">(</span><span class="s1">&#39;CHEATING&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
+            <span class="n">vocab_aids</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">filter_annots</span><span class="o">.</span><span class="n">sample_annots_wrt_ref</span><span class="p">(</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">,</span>
+                <span class="p">{</span><span class="s1">&#39;exclude_ref_contact&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">vocab_rowid</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span>
+                <span class="s1">&#39;vocab&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">vocab_aids</span><span class="p">,),</span> <span class="n">config</span><span class="o">=</span><span class="n">dconfig</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">vocab_rowid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="n">depc</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">depc</span>
+        <span class="n">dinva_pcfgstr</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">stacked_config</span><span class="p">(</span>
+            <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;inverted_agg_assign&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">dconfig</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">qinva_pcfgstr</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">stacked_config</span><span class="p">(</span>
+            <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;inverted_agg_assign&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">qconfig</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">dannot_vuuid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">qannot_vuuid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">tannot_vuuid</span> <span class="o">=</span> <span class="n">dannot_vuuid</span>
+        <span class="n">dannot_suuid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">qannot_suuid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+
+        <span class="n">dinva_phashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">dinva_pcfgstr</span> <span class="o">+</span> <span class="n">tannot_vuuid</span><span class="p">)</span>
+        <span class="n">qinva_phashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">qinva_pcfgstr</span> <span class="o">+</span> <span class="n">tannot_vuuid</span><span class="p">)</span>
+        <span class="n">dinva_cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">dannot_vuuid</span><span class="p">,</span> <span class="n">dinva_phashid</span><span class="p">])</span>
+        <span class="n">qinva_cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">qannot_vuuid</span><span class="p">,</span> <span class="n">qinva_phashid</span><span class="p">])</span>
+
+        <span class="c1"># vocab = inverted_index.new_load_vocab(ibs, qreq_.daids, config)</span>
+        <span class="n">dinva_cacher</span> <span class="o">=</span> <span class="n">make_cacher</span><span class="p">(</span><span class="s1">&#39;inva&#39;</span><span class="p">,</span> <span class="n">dinva_cfgstr</span><span class="p">)</span>
+        <span class="n">qinva_cacher</span> <span class="o">=</span> <span class="n">make_cacher</span><span class="p">(</span><span class="s1">&#39;inva&#39;</span><span class="p">,</span> <span class="n">qinva_cfgstr</span><span class="p">)</span>
+        <span class="n">dwwm_cacher</span> <span class="o">=</span> <span class="n">make_cacher</span><span class="p">(</span><span class="s1">&#39;word_weight&#39;</span><span class="p">,</span> <span class="n">wwm</span> <span class="o">+</span> <span class="n">dinva_cfgstr</span><span class="p">)</span>
+
+        <span class="n">gamma_phashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_pipe_cfgstr</span><span class="p">()</span> <span class="o">+</span> <span class="n">tannot_vuuid</span><span class="p">)</span>
+        <span class="n">dgamma_cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">dannot_suuid</span><span class="p">,</span> <span class="n">gamma_phashid</span><span class="p">])</span>
+        <span class="n">qgamma_cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">qannot_suuid</span><span class="p">,</span> <span class="n">gamma_phashid</span><span class="p">])</span>
+        <span class="n">dgamma_cacher</span> <span class="o">=</span> <span class="n">make_cacher</span><span class="p">(</span><span class="s1">&#39;dgamma&#39;</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">dgamma_cfgstr</span><span class="p">)</span>
+        <span class="n">qgamma_cacher</span> <span class="o">=</span> <span class="n">make_cacher</span><span class="p">(</span><span class="s1">&#39;qgamma&#39;</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">qgamma_cfgstr</span><span class="p">)</span>
+
+        <span class="n">dinva</span> <span class="o">=</span> <span class="n">dinva_cacher</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">inverted_index</span><span class="o">.</span><span class="n">InvertedAnnots</span><span class="o">.</span><span class="n">from_depc</span><span class="p">(</span>
+                <span class="n">depc</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">,</span> <span class="n">vocab_aids</span><span class="p">,</span> <span class="n">dconfig</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">qinva</span> <span class="o">=</span> <span class="n">qinva_cacher</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">inverted_index</span><span class="o">.</span><span class="n">InvertedAnnots</span><span class="o">.</span><span class="n">from_depc</span><span class="p">(</span>
+                <span class="n">depc</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">vocab_aids</span><span class="p">,</span> <span class="n">qconfig</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">dinva</span><span class="o">.</span><span class="n">wx_to_aids</span> <span class="o">=</span> <span class="n">dinva</span><span class="o">.</span><span class="n">compute_inverted_list</span><span class="p">()</span>
+
+        <span class="n">wx_to_weight</span> <span class="o">=</span> <span class="n">dwwm_cacher</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">dinva</span><span class="o">.</span><span class="n">compute_word_weights</span><span class="p">(</span><span class="n">wwm</span><span class="p">))</span>
+        <span class="n">dinva</span><span class="o">.</span><span class="n">wx_to_weight</span> <span class="o">=</span> <span class="n">wx_to_weight</span>
+        <span class="n">qinva</span><span class="o">.</span><span class="n">wx_to_weight</span> <span class="o">=</span> <span class="n">wx_to_weight</span>
+
+        <span class="n">thresh</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">[</span><span class="s1">&#39;smk_thresh&#39;</span><span class="p">]</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">[</span><span class="s1">&#39;smk_alpha&#39;</span><span class="p">]</span>
+
+        <span class="n">dinva</span><span class="o">.</span><span class="n">gamma_list</span> <span class="o">=</span> <span class="n">dgamma_cacher</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">dinva</span><span class="o">.</span><span class="n">compute_gammas</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">qinva</span><span class="o">.</span><span class="n">gamma_list</span> <span class="o">=</span> <span class="n">qgamma_cacher</span><span class="o">.</span><span class="n">ensure</span><span class="p">(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">qinva</span><span class="o">.</span><span class="n">compute_gammas</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">qinva</span> <span class="o">=</span> <span class="n">qinva</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span> <span class="o">=</span> <span class="n">dinva</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;loading keypoints&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_on</span><span class="p">:</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">data_kpts</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span>
+                <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_data_config2</span>
+            <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;building aid index&#39;</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">daid_to_didx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMKRequest.execute_pipeline"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMKRequest.execute_pipeline">[docs]</a>    <span class="k">def</span> <span class="nf">execute_pipeline</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, smk, qreq_ = testdata_smk()</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = qreq_.execute()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">smk</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">smk</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">smk</span><span class="o">.</span><span class="n">predict_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm_list</span></div>
+
+<div class="viewcode-block" id="SMKRequest.get_qreq_qannot_kpts"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMKRequest.get_qreq_qannot_kpts">[docs]</a>    <span class="k">def</span> <span class="nf">get_qreq_qannot_kpts</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">extern_query_config2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMKRequest.get_qreq_dannot_kpts"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMKRequest.get_qreq_dannot_kpts">[docs]</a>    <span class="k">def</span> <span class="nf">get_qreq_dannot_kpts</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
+        <span class="n">didx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daid_to_didx</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">data_kpts</span><span class="p">,</span> <span class="n">didx_list</span><span class="p">)</span></div></div>
+        <span class="c1"># return qreq_.ibs.get_annot_kpts(</span>
+        <span class="c1">#    daids, config2_=qreq_.extern_data_config2)</span>
+
+
+<div class="viewcode-block" id="SMK"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMK">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">SMK</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Harness class that controls the execution of the SMK algorithm</span>
+
+<span class="sd">    K(X, Y) = gamma(X) * gamma(Y) * sum([Mc(Xc, Yc) for c in words])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SMK.predict_matches"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMK.predict_matches">[docs]</a>    <span class="k">def</span> <span class="nf">predict_matches</span><span class="p">(</span><span class="n">smk</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.smk_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, smk, qreq_ = testdata_smk()</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Predicting matches&#39;</span><span class="p">)</span>
+        <span class="c1"># assert qreq_.qinva.vocab is qreq_.dinva.vocab</span>
+        <span class="c1"># X_list = qreq_.qinva.inverted_annots(qreq_.qaids)</span>
+        <span class="c1"># Y_list = qreq_.dinva.inverted_annots(qreq_.daids)</span>
+        <span class="c1"># verbose = 2</span>
+        <span class="n">_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;smk query&#39;</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="n">verbose</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">smk</span><span class="o">.</span><span class="n">match_single</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">cm_list</span></div>
+
+<div class="viewcode-block" id="SMK.match_single"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.SMK.match_single">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">match_single</span><span class="p">(</span><span class="n">smk</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.smk.smk_pipeline SMK.match_single --profile</span>
+<span class="sd">            python -m wbia.algo.smk.smk_pipeline SMK.match_single --show</span>
+
+<span class="sd">            python -m wbia SMK.match_single -a ctrl:qmingt=2 --profile --db PZ_Master1</span>
+<span class="sd">            python -m wbia SMK.match_single -a ctrl --profile --db GZ_ALL</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # xdoctest: +REQUIRES(--slow)</span>
+<span class="sd">            &gt;&gt;&gt; # FUTURE_ENABLE</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.smk.smk_pipeline import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import wbia</span>
+<span class="sd">            &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">            &gt;&gt;&gt; daids = qreq_.daids</span>
+<span class="sd">            &gt;&gt;&gt; #ibs, daids = wbia.testdata_aids(defaultdb=&#39;PZ_MTEST&#39;, default_set=&#39;dcfg&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; qreq_ = SMKRequest(ibs, daids[0:1], daids, {&#39;agg&#39;: True,</span>
+<span class="sd">            &gt;&gt;&gt;                                             &#39;num_words&#39;: 1000,</span>
+<span class="sd">            &gt;&gt;&gt;                                             &#39;sv_on&#39;: True})</span>
+<span class="sd">            &gt;&gt;&gt; qreq_.ensure_data()</span>
+<span class="sd">            &gt;&gt;&gt; qaid = qreq_.qaids[0]</span>
+<span class="sd">            &gt;&gt;&gt; daids = qreq_.daids</span>
+<span class="sd">            &gt;&gt;&gt; daid = daids[1]</span>
+<span class="sd">            &gt;&gt;&gt; verbose = True</span>
+<span class="sd">            &gt;&gt;&gt; cm = qreq_.smk.match_single(qaid, daids, qreq_)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; ut.qtensure()</span>
+<span class="sd">            &gt;&gt;&gt; cm.ishow_analysis(qreq_)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+        <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">[</span><span class="s1">&#39;smk_alpha&#39;</span><span class="p">]</span>
+        <span class="n">thresh</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">[</span><span class="s1">&#39;smk_thresh&#39;</span><span class="p">]</span>
+        <span class="n">agg</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">[</span><span class="s1">&#39;agg&#39;</span><span class="p">]</span>
+        <span class="c1"># nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER</span>
+
+        <span class="n">sv_on</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_on</span>
+        <span class="k">if</span> <span class="n">sv_on</span><span class="p">:</span>
+            <span class="n">nNameShortList</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nNameShortlistSVER</span>
+            <span class="n">shortsize</span> <span class="o">=</span> <span class="n">nNameShortList</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shortsize</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">X</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qinva</span><span class="o">.</span><span class="n">get_annot</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+
+        <span class="c1"># Determine which database annotations need to be checked</span>
+        <span class="c1"># with ut.Timer(&#39;searching qaid=%r&#39; % (qaid,), verbose=verbose):</span>
+        <span class="n">hit_inva_wxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span><span class="o">.</span><span class="n">wx_to_aids</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">wx_list</span><span class="p">)</span>
+        <span class="n">hit_daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">hit_inva_wxs</span><span class="p">))))</span>
+
+        <span class="c1"># Mark impossible daids</span>
+        <span class="c1"># with ut.Timer(&#39;checking impossible daids=%r&#39; % (qaid,), verbose=verbose):</span>
+        <span class="n">valid_flags</span> <span class="o">=</span> <span class="n">check_can_match</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">hit_daids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">valid_daids</span> <span class="o">=</span> <span class="n">hit_daids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">valid_flags</span><span class="p">)</span>
+
+        <span class="n">shortlist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">Shortlist</span><span class="p">(</span><span class="n">shortsize</span><span class="p">)</span>
+        <span class="c1"># gammaX = smk.gamma(X, wx_to_weight, agg, alpha, thresh)</span>
+        <span class="n">_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span>
+            <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;smk scoring qaid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,),</span> <span class="n">enabled</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="n">wx_to_weight</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span><span class="o">.</span><span class="n">wx_to_weight</span>
+
+        <span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">qnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">([</span><span class="n">qaid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
+            <span class="n">dnids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
+            <span class="n">correct_aids</span> <span class="o">=</span> <span class="n">daids</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dnids</span> <span class="o">==</span> <span class="n">qnid</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">daid</span> <span class="o">=</span> <span class="n">correct_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">agg</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span><span class="n">valid_daids</span><span class="p">):</span>
+                <span class="n">Y</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span><span class="o">.</span><span class="n">get_annot</span><span class="p">(</span><span class="n">daid</span><span class="p">)</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">match_kernel_agg</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+                <span class="n">shortlist</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span><span class="n">valid_daids</span><span class="p">):</span>
+                <span class="n">Y</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dinva</span><span class="o">.</span><span class="n">get_annot</span><span class="p">(</span><span class="n">daid</span><span class="p">)</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">match_kernel_sep</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+                <span class="n">shortlist</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+        <span class="c1"># Build chipmatches for the shortlist results</span>
+
+        <span class="c1"># with ut.Timer(&#39;build cms&#39;, verbose=verbose):</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="p">(</span><span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span> <span class="n">fsv_col_lbls</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;smk&#39;</span><span class="p">])</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span>
+            <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;smk build cm qaid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,),</span> <span class="n">enabled</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span><span class="n">shortlist</span><span class="p">):</span>
+            <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">score_list</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">X_idx</span><span class="p">,</span> <span class="n">Y_idx</span><span class="p">)</span> <span class="o">=</span> <span class="n">item</span>
+            <span class="n">X_fxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">fxs_list</span><span class="p">,</span> <span class="n">X_idx</span><span class="p">)</span>
+            <span class="n">Y_fxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">fxs_list</span><span class="p">,</span> <span class="n">Y_idx</span><span class="p">)</span>
+            <span class="c1"># Only build matches for those that sver will use</span>
+            <span class="k">if</span> <span class="n">agg</span><span class="p">:</span>
+                <span class="n">X_maws</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">maws_list</span><span class="p">,</span> <span class="n">X_idx</span><span class="p">)</span>
+                <span class="n">Y_maws</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">maws_list</span><span class="p">,</span> <span class="n">Y_idx</span><span class="p">)</span>
+                <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">build_matches_agg</span><span class="p">(</span>
+                    <span class="n">X_fxs</span><span class="p">,</span> <span class="n">Y_fxs</span><span class="p">,</span> <span class="n">X_maws</span><span class="p">,</span> <span class="n">Y_maws</span><span class="p">,</span> <span class="n">score_list</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">build_matches_sep</span><span class="p">(</span><span class="n">X_fxs</span><span class="p">,</span> <span class="n">Y_fxs</span><span class="p">,</span> <span class="n">score_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># assert not np.any(np.isnan(fs))</span>
+                <span class="n">daid</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">aid</span>
+                <span class="n">fsv</span> <span class="o">=</span> <span class="n">fs</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">daid</span><span class="p">)</span>
+                <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span>
+                <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fsv</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">_update_daid_index</span><span class="p">()</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">arraycast_self</span><span class="p">()</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">score_name_maxcsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+
+        <span class="c1"># if False:</span>
+        <span class="c1">#    cm.assert_self(qreq_=qreq_, verbose=True)</span>
+
+        <span class="k">if</span> <span class="n">sv_on</span><span class="p">:</span>
+            <span class="n">cm</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">sver_single_chipmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">score_name_maxcsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cm</span></div></div>
+
+
+<div class="viewcode-block" id="word_isect"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.word_isect">[docs]</a><span class="k">def</span> <span class="nf">word_isect</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">):</span>
+    <span class="n">isect_words</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">words</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">words</span><span class="p">))</span>
+    <span class="n">X_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">wx_to_idx</span><span class="p">,</span> <span class="n">isect_words</span><span class="p">)</span>
+    <span class="n">Y_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">wx_to_idx</span><span class="p">,</span> <span class="n">isect_words</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">wx_to_weight</span><span class="p">,</span> <span class="n">isect_words</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">X_idx</span><span class="p">,</span> <span class="n">Y_idx</span><span class="p">,</span> <span class="n">weights</span></div>
+
+
+<div class="viewcode-block" id="match_kernel_agg"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.match_kernel_agg">[docs]</a><span class="k">def</span> <span class="nf">match_kernel_agg</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+
+    <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
+        <span class="n">gammaXY</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">Y</span><span class="o">.</span><span class="n">gamma</span>
+        <span class="c1"># Words in common define matches</span>
+        <span class="n">X_idx</span><span class="p">,</span> <span class="n">Y_idx</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">word_isect</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">)</span>
+
+        <span class="n">PhisX</span><span class="p">,</span> <span class="n">flagsX</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">Phis_flags</span><span class="p">(</span><span class="n">X_idx</span><span class="p">)</span>
+        <span class="n">PhisY</span><span class="p">,</span> <span class="n">flagsY</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">Phis_flags</span><span class="p">(</span><span class="n">Y_idx</span><span class="p">)</span>
+        <span class="n">score_list</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">match_scores_agg</span><span class="p">(</span>
+            <span class="n">PhisX</span><span class="p">,</span> <span class="n">PhisY</span><span class="p">,</span> <span class="n">flagsX</span><span class="p">,</span> <span class="n">flagsY</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span>
+        <span class="p">)</span>
+
+        <span class="n">norm_weights</span> <span class="o">=</span> <span class="n">weights</span> <span class="o">*</span> <span class="n">gammaXY</span>
+        <span class="n">score_list</span> <span class="o">*=</span> <span class="n">norm_weights</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">score_list</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">score_list</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">X_idx</span><span class="p">,</span> <span class="n">Y_idx</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">item</span></div>
+
+
+<div class="viewcode-block" id="match_kernel_sep"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.match_kernel_sep">[docs]</a><span class="k">def</span> <span class="nf">match_kernel_sep</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="n">gammaXY</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">Y</span><span class="o">.</span><span class="n">gamma</span>
+    <span class="c1"># Words in common define matches</span>
+    <span class="n">X_idx</span><span class="p">,</span> <span class="n">Y_idx</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">word_isect</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">)</span>
+
+    <span class="n">phisX_list</span><span class="p">,</span> <span class="n">flagsY_list</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">phis_flags_list</span><span class="p">(</span><span class="n">X_idx</span><span class="p">)</span>
+    <span class="n">phisY_list</span><span class="p">,</span> <span class="n">flagsX_list</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">phis_flags_list</span><span class="p">(</span><span class="n">Y_idx</span><span class="p">)</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">match_scores_sep</span><span class="p">(</span>
+        <span class="n">phisX_list</span><span class="p">,</span> <span class="n">phisY_list</span><span class="p">,</span> <span class="n">flagsX_list</span><span class="p">,</span> <span class="n">flagsY_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span>
+    <span class="p">)</span>
+
+    <span class="n">norm_weights</span> <span class="o">=</span> <span class="n">weights</span> <span class="o">*</span> <span class="n">gammaXY</span>
+    <span class="k">for</span> <span class="n">scores</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scores_list</span><span class="p">,</span> <span class="n">norm_weights</span><span class="p">):</span>
+        <span class="n">scores</span> <span class="o">*=</span> <span class="n">w</span>
+
+    <span class="n">score</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scores_list</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">scores_list</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">X_idx</span><span class="p">,</span> <span class="n">Y_idx</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">item</span></div>
+
+
+<div class="viewcode-block" id="check_can_match"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.check_can_match">[docs]</a><span class="k">def</span> <span class="nf">check_can_match</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">hit_daids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="n">can_match_samename</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_samename</span>
+    <span class="n">can_match_sameimg</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_sameimg</span>
+    <span class="n">can_match_self</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">valid_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hit_daids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="c1"># Check that the two annots meet the conditions</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_match_self</span><span class="p">:</span>
+        <span class="n">valid_flags</span><span class="p">[</span><span class="n">hit_daids</span> <span class="o">==</span> <span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_match_samename</span><span class="p">:</span>
+        <span class="n">qnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">([</span><span class="n">qaid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">hit_dnids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">hit_daids</span><span class="p">)</span>
+        <span class="n">valid_flags</span><span class="p">[</span><span class="n">hit_dnids</span> <span class="o">==</span> <span class="n">qnid</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_match_sameimg</span><span class="p">:</span>
+        <span class="n">qgid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_gids</span><span class="p">([</span><span class="n">qaid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">hit_dgids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_gids</span><span class="p">(</span><span class="n">hit_daids</span><span class="p">)</span>
+        <span class="n">valid_flags</span><span class="p">[</span><span class="n">hit_dgids</span> <span class="o">==</span> <span class="n">qgid</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">valid_flags</span></div>
+
+
+<div class="viewcode-block" id="testdata_smk"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.smk_pipeline.testdata_smk">[docs]</a><span class="k">def</span> <span class="nf">testdata_smk</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; from wbia.algo.smk.smk_pipeline import *  # NOQA</span>
+<span class="sd">    &gt;&gt;&gt; kwargs = {}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="kn">import</span> <span class="nn">sklearn</span>
+    <span class="kn">import</span> <span class="nn">sklearn.model_selection</span>
+
+    <span class="c1"># import sklearn.model_selection</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span><span class="o">.</span><span class="n">nids</span><span class="p">)</span>
+    <span class="n">xvalkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">skf</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">model_selection</span><span class="o">.</span><span class="n">StratifiedKFold</span><span class="p">(</span><span class="o">**</span><span class="n">xvalkw</span><span class="p">)</span>
+    <span class="n">train_idx</span><span class="p">,</span> <span class="n">test_idx</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">skf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">train_idx</span><span class="p">)</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">test_idx</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;num_words&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">SMKRequest</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="n">smk</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">smk</span>
+    <span class="c1"># qreq_ = ibs.new_query_request(qaids, daids, cfgdict={&#39;pipeline_root&#39;: &#39;smk&#39;, &#39;proot&#39;: &#39;smk&#39;})</span>
+    <span class="c1"># qreq_ = ibs.new_query_request(qaids, daids, cfgdict={})</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">smk</span><span class="p">,</span> <span class="n">qreq_</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

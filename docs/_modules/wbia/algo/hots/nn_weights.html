@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.hots.nn_weights &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../hots.html">wbia.algo.hots</a> &raquo;</li>
+      <li>wbia.algo.hots.nn_weights</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.hots.nn_weights</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">FIXME: qfx2_ no longer applies due to fgw_thresh. Need to change names in this file</span>
+
+<span class="sd">TODO: replace testdata_pre_weight_neighbors with</span>
+
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;weight_neighbors&#39;, defaultdb=&#39;testdb1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                a=[&#39;default:qindex=0:1,dindex=0:5,hackerrors=False&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;                                p=[&#39;default:codename=vsmany,bar_l2_on=True,fg_on=False&#39;], verbose=True)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="n">NN_WEIGHT_FUNC_DICT</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">MISC_WEIGHT_FUNC_DICT</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">EPS</span> <span class="o">=</span> <span class="mf">1e-8</span>
+
+
+<span class="k">def</span> <span class="nf">_register_nn_normalized_weight_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator for weighting functions</span>
+
+<span class="sd">    Registers a nearest neighbor normalized weighting</span>
+<span class="sd">    Used for LNBNN</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">NN_WEIGHT_FUNC_DICT</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_fn&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nn_weights] registering norm func: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
+    <span class="n">filtfunc</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">nn_normalized_weight</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">filtfunc</span>
+    <span class="k">return</span> <span class="n">func</span>
+
+
+<span class="k">def</span> <span class="nf">_register_nn_simple_weight_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Used for things that dont require a normalizer like const</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
+    <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+    <span class="k">return</span> <span class="n">func</span>
+
+
+<span class="k">def</span> <span class="nf">_register_misc_weight_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
+    <span class="n">MISC_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+    <span class="k">return</span> <span class="n">func</span>
+
+
+<div class="viewcode-block" id="const_match_weighter"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.const_match_weighter">[docs]</a><span class="nd">@_register_nn_simple_weight_func</span>
+<span class="k">def</span> <span class="nf">const_match_weighter</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #tup = plh.testdata_pre_weight_neighbors(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;weight_neighbors&#39;, defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = args</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, nns_list, nnvalid0_list = tup</span>
+<span class="sd">        &gt;&gt;&gt; constvote_weight_list = const_match_weighter(nns_list, nnvalid0_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;constvote_weight_list = %s&#39; % (str(constvote_weight_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">constvote_weight_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># K = qreq_.qparams.K  # Dont use K because K is dynamic per query</span>
+    <span class="c1"># Subtract Knorm from size instead</span>
+    <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+
+    <span class="k">for</span> <span class="n">nns</span> <span class="ow">in</span> <span class="n">nns_list</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">neighb_idx</span><span class="p">,</span> <span class="n">neighb_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">nns</span>
+        <span class="n">neighb_constvote</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">neighb_idx</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighb_idx</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="n">Knorm</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span>
+        <span class="p">)</span>
+        <span class="n">constvote_weight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">neighb_constvote</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">constvote_weight_list</span></div>
+
+
+<div class="viewcode-block" id="fg_match_weighter"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.fg_match_weighter">[docs]</a><span class="nd">@_register_nn_simple_weight_func</span>
+<span class="k">def</span> <span class="nf">fg_match_weighter</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    foreground feature match weighting</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.nn_weights --exec-fg_match_weighter</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia_cnn)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #tup = plh.testdata_pre_weight_neighbors(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs, qreq_, nns_list, nnvalid0_list = tup</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;weight_neighbors&#39;, defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = args</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(qreq_.qparams.__dict__, sorted_=True))</span>
+<span class="sd">        &gt;&gt;&gt; assert qreq_.qparams.fg_on == True, &#39;bug setting custom params fg_on&#39;</span>
+<span class="sd">        &gt;&gt;&gt; fgvotes_list = fg_match_weighter(nns_list, nnvalid0_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;fgvotes_list = %r&#39; % (fgvotes_list,))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">()</span>
+    <span class="c1"># Database feature index to chip index</span>
+    <span class="n">fgvotes_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">nn</span> <span class="ow">in</span> <span class="n">nns_list</span><span class="p">:</span>
+        <span class="c1"># database forground weights</span>
+        <span class="n">neighb_dfgws</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_fgws</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">neighb_idxs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="n">Knorm</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="c1"># query forground weights</span>
+        <span class="n">qfx2_qfgw</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">qaid</span><span class="p">],</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">qfgws</span> <span class="o">=</span> <span class="n">qfx2_qfgw</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">qfx_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># feature match forground weight is geometric mean</span>
+        <span class="n">neighb_fgvote_weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qfgws</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">neighb_dfgws</span><span class="p">)</span>
+        <span class="n">fgvotes_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">neighb_fgvote_weight</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fgvotes_list</span></div>
+
+
+<div class="viewcode-block" id="nn_normalized_weight"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.nn_normalized_weight">[docs]</a><span class="k">def</span> <span class="nf">nn_normalized_weight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generic function to weight nearest neighbors</span>
+
+<span class="sd">    ratio, lnbnn, and other nearest neighbor based functions use this</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        normweight_fn (func): chosen weight function e.g. lnbnn</span>
+<span class="sd">        nns_list (dict): query descriptor nearest neighbors and distances.</span>
+<span class="sd">        nnvalid0_list (list): list of neighbors preflagged as valid</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: weights_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.nn_weights nn_normalized_weight --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #tup = plh.testdata_pre_weight_neighbors(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs, qreq_, nns_list, nnvalid0_list = tup</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;weight_neighbors&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = args</span>
+<span class="sd">        &gt;&gt;&gt; normweight_fn = lnbnn_fn</span>
+<span class="sd">        &gt;&gt;&gt; weights_list1, normk_list1 = nn_normalized_weight(</span>
+<span class="sd">        &gt;&gt;&gt;     normweight_fn, nns_list, nnvalid0_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; weights1 = weights_list1[0]</span>
+<span class="sd">        &gt;&gt;&gt; nn_normonly_weight = NN_WEIGHT_FUNC_DICT[&#39;lnbnn&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; weights2 = weights_list2[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(weights1 == weights2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(weights1.sum(), 100, 510)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #tup = plh.testdata_pre_weight_neighbors(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;weight_neighbors&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = args</span>
+<span class="sd">        &gt;&gt;&gt; normweight_fn = ratio_fn</span>
+<span class="sd">        &gt;&gt;&gt; weights_list1, normk_list1 = nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; weights1 = weights_list1[0]</span>
+<span class="sd">        &gt;&gt;&gt; nn_normonly_weight = NN_WEIGHT_FUNC_DICT[&#39;ratio&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; weights2 = weights_list2[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(weights1 == weights2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(weights1.sum(), 1500, 4500)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="n">normalizer_rule</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normalizer_rule</span>
+    <span class="c1"># Database feature index to chip index</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+    <span class="n">normk_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">get_normk</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">normalizer_rule</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="p">(</span><span class="n">neighb_idx</span><span class="p">,</span> <span class="n">neighb_dist</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">weight_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">apply_normweight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">neighb_normk</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="p">,</span> <span class="n">neighb_dist</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">neighb_normk</span><span class="p">,</span> <span class="p">(</span><span class="n">neighb_idx</span><span class="p">,</span> <span class="n">neighb_dist</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">normk_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">weight_list</span><span class="p">,</span> <span class="n">normk_list</span></div>
+
+
+<div class="viewcode-block" id="get_normk"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.get_normk">[docs]</a><span class="k">def</span> <span class="nf">get_normk</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">normalizer_rule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get positions of the LNBNN/ratio tests normalizers</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = {&#39;K&#39;:10, &#39;Knorm&#39;: 10, &#39;normalizer_rule&#39;: &#39;name&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;            &#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; #tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;weight_neighbors&#39;, defaultdb=&#39;testdb1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                p=[&#39;default:K=10,Knorm=10,normalizer_rule=name,dim_size=450,resize_dim=area&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = args</span>
+<span class="sd">        &gt;&gt;&gt; (neighb_idx, neighb_dist) = nns_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; qaid = qreq_.qaids[0]</span>
+<span class="sd">        &gt;&gt;&gt; K = qreq_.qparams.K</span>
+<span class="sd">        &gt;&gt;&gt; Knorm = qreq_.qparams.Knorm</span>
+<span class="sd">        &gt;&gt;&gt; neighb_normk1 = get_normk(qreq_, qaid, neighb_idx, Knorm, &#39;last&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; neighb_normk2 = get_normk(qreq_, qaid, neighb_idx, Knorm, &#39;name&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(neighb_normk1 == Knorm + K)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(neighb_normk2 &lt;= Knorm + K) and np.all(neighb_normk2 &gt; K)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighb_idx</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="n">Knorm</span>
+    <span class="k">assert</span> <span class="n">K</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;K=</span><span class="si">%r</span><span class="s1"> cannot be 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">K</span><span class="p">,)</span>
+    <span class="c1"># neighb_nndist = neighb_dist.T[0:K].T</span>
+    <span class="k">if</span> <span class="n">normalizer_rule</span> <span class="o">==</span> <span class="s1">&#39;last&#39;</span><span class="p">:</span>
+        <span class="n">neighb_normk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">neighb_idx</span><span class="p">),</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FK_DTYPE</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">normalizer_rule</span> <span class="o">==</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span>
+        <span class="n">neighb_normk</span> <span class="o">=</span> <span class="n">get_name_normalizers</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">normalizer_rule</span> <span class="o">==</span> <span class="s1">&#39;external&#39;</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;[nn_weights] no normalizer_rule=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">normalizer_rule</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">neighb_normk</span></div>
+
+
+<div class="viewcode-block" id="apply_normweight"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.apply_normweight">[docs]</a><span class="k">def</span> <span class="nf">apply_normweight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">neighb_normk</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="p">,</span> <span class="n">neighb_dist</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    helper applies the normalized weight function to one query annotation</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        normweight_fn (func):  chosen weight function e.g. lnbnn</span>
+<span class="sd">        qaid (int):  query annotation id</span>
+<span class="sd">        neighb_idx (ndarray[int32_t, ndims=2]):  mapping from query feature</span>
+<span class="sd">            index to db neighbor index</span>
+<span class="sd">        neighb_dist (ndarray):  mapping from query feature index to dist</span>
+<span class="sd">        Knorm (int):</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: neighb_normweight</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.nn_weights --test-apply_normweight</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots import nn_weights</span>
+<span class="sd">        &gt;&gt;&gt; #cfgdict = {&#39;K&#39;:10, &#39;Knorm&#39;: 10, &#39;normalizer_rule&#39;: &#39;name&#39;,</span>
+<span class="sd">        &gt;&gt;&gt; #           &#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; #tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;weight_neighbors&#39;, defaultdb=&#39;testdb1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                p=[&#39;default:K=10,Knorm=10,normalizer_rule=name,dim_size=450,resize_dim=area&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = args</span>
+<span class="sd">        &gt;&gt;&gt; qaid = qreq_.qaids[0]</span>
+<span class="sd">        &gt;&gt;&gt; Knorm = qreq_.qparams.Knorm</span>
+<span class="sd">        &gt;&gt;&gt; normweight_fn = lnbnn_fn</span>
+<span class="sd">        &gt;&gt;&gt; normalizer_rule  = qreq_.qparams.normalizer_rule</span>
+<span class="sd">        &gt;&gt;&gt; (neighb_idx, neighb_dist) = nns_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; neighb_normk = get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)</span>
+<span class="sd">        &gt;&gt;&gt; neighb_normweight = nn_weights.apply_normweight(</span>
+<span class="sd">        &gt;&gt;&gt;   normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(neighb_normweight.sum(), 600, 950)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighb_idx</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="n">Knorm</span>
+    <span class="c1"># neighb_normdist = np.array(</span>
+    <span class="c1">#     [dists[normk] for (dists, normk) in zip(neighb_dist, neighb_normk)])</span>
+    <span class="n">neighb_normdist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">take_col_per_row</span><span class="p">(</span><span class="n">neighb_dist</span><span class="p">,</span> <span class="n">neighb_normk</span><span class="p">)</span>
+    <span class="n">neighb_normdist</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">neighb_idx</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">neighb_nndist</span> <span class="o">=</span> <span class="n">neighb_dist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">vdist</span> <span class="o">=</span> <span class="n">neighb_nndist</span>  <span class="c1"># voting distance</span>
+    <span class="n">ndist</span> <span class="o">=</span> <span class="n">neighb_normdist</span>  <span class="c1"># normalizer distance</span>
+    <span class="n">neighb_normweight</span> <span class="o">=</span> <span class="n">normweight_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">neighb_normweight</span></div>
+
+
+<div class="viewcode-block" id="get_name_normalizers"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.get_name_normalizers">[docs]</a><span class="k">def</span> <span class="nf">get_name_normalizers</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">neighb_idx</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    helper normalizers for &#39;name&#39; normalizer_rule</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qaid (int): query annotation id</span>
+<span class="sd">        qreq_ (wbia.QueryRequest): hyper-parameters</span>
+<span class="sd">        Knorm (int):</span>
+<span class="sd">        neighb_idx (ndarray):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray : neighb_normk</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots import nn_weights</span>
+<span class="sd">        &gt;&gt;&gt; #cfgdict = {&#39;K&#39;:10, &#39;Knorm&#39;: 10, &#39;normalizer_rule&#39;: &#39;name&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; #tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = plh.testdata_pre(&#39;weight_neighbors&#39;, defaultdb=&#39;testdb1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                p=[&#39;default:K=10,Knorm=10,normalizer_rule=name&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = args</span>
+<span class="sd">        &gt;&gt;&gt; Knorm = qreq_.qparams.Knorm</span>
+<span class="sd">        &gt;&gt;&gt; (neighb_idx, neighb_dist) = nns_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; qaid = qreq_.qaids[0]</span>
+<span class="sd">        &gt;&gt;&gt; neighb_normk = get_name_normalizers(qaid, qreq_, Knorm, neighb_idx)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">Knorm</span> <span class="o">==</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span><span class="p">,</span> <span class="s1">&#39;inconsistency in qparams&#39;</span>
+    <span class="c1"># Get the top names you do not want your normalizer to be from</span>
+    <span class="c1"># qnid = qreq_.internal_qannots.loc([qaid]).nids[0]</span>
+    <span class="n">qnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighb_idx</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="n">Knorm</span>
+    <span class="k">assert</span> <span class="n">K</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;K cannot be 0&#39;</span>
+    <span class="c1"># Get the 0th - Kth matching neighbors</span>
+    <span class="n">neighb_topidx</span> <span class="o">=</span> <span class="n">neighb_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+    <span class="c1"># Get tke Kth - KNth normalizing neighbors</span>
+    <span class="n">neighb_normidx</span> <span class="o">=</span> <span class="n">neighb_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="o">-</span><span class="n">Knorm</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+    <span class="c1"># Apply temporary uniquish name</span>
+    <span class="n">neighb_topaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">neighb_topidx</span><span class="p">)</span>
+    <span class="n">neighb_normaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">neighb_normidx</span><span class="p">)</span>
+    <span class="n">neighb_topnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">neighb_topaid</span><span class="p">)</span>
+    <span class="n">neighb_normnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">neighb_normaid</span><span class="p">)</span>
+    <span class="c1"># Inspect the potential normalizers</span>
+    <span class="n">neighb_selnorm</span> <span class="o">=</span> <span class="n">mark_name_valid_normalizers</span><span class="p">(</span><span class="n">qnid</span><span class="p">,</span> <span class="n">neighb_topnid</span><span class="p">,</span> <span class="n">neighb_normnid</span><span class="p">)</span>
+    <span class="n">neighb_normk</span> <span class="o">=</span> <span class="n">neighb_selnorm</span> <span class="o">+</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">)</span>  <span class="c1"># convert form negative to pos indexes</span>
+    <span class="k">return</span> <span class="n">neighb_normk</span></div>
+
+
+<div class="viewcode-block" id="mark_name_valid_normalizers"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.mark_name_valid_normalizers">[docs]</a><span class="k">def</span> <span class="nf">mark_name_valid_normalizers</span><span class="p">(</span><span class="n">qnid</span><span class="p">,</span> <span class="n">neighb_topnid</span><span class="p">,</span> <span class="n">neighb_normnid</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper func that allows matches only to the first result for a name</span>
+
+<span class="sd">    Each query feature finds its K matches and Kn normalizing matches. These</span>
+<span class="sd">    are the candidates from which it can choose a set of matches and a single</span>
+<span class="sd">    normalizer.</span>
+
+<span class="sd">    A normalizer is marked as invalid if it belongs to a name that was also in</span>
+<span class="sd">    its feature&#39;s candidate matching set.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        neighb_topnid (ndarray): marks the names a feature matches</span>
+<span class="sd">        neighb_normnid (ndarray): marks the names of the feature normalizers</span>
+<span class="sd">        qnid (int): query name id</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        neighb_selnorm - index of the selected normalizer for each query feature</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.nn_weights --exec-mark_name_valid_normalizers</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; qnid = 1</span>
+<span class="sd">        &gt;&gt;&gt; neighb_topnid = np.array([[1, 1, 1, 1, 1],</span>
+<span class="sd">        ...                         [1, 2, 1, 1, 1],</span>
+<span class="sd">        ...                         [1, 2, 2, 3, 1],</span>
+<span class="sd">        ...                         [5, 8, 9, 8, 8],</span>
+<span class="sd">        ...                         [5, 8, 9, 8, 8],</span>
+<span class="sd">        ...                         [6, 6, 9, 6, 8],</span>
+<span class="sd">        ...                         [5, 8, 6, 6, 6],</span>
+<span class="sd">        ...                         [1, 2, 8, 6, 6]], dtype=np.int32)</span>
+<span class="sd">        &gt;&gt;&gt; neighb_normnid = np.array([[ 1, 1, 1],</span>
+<span class="sd">        ...                          [ 2, 3, 1],</span>
+<span class="sd">        ...                          [ 2, 3, 1],</span>
+<span class="sd">        ...                          [ 6, 6, 6],</span>
+<span class="sd">        ...                          [ 6, 6, 8],</span>
+<span class="sd">        ...                          [ 2, 6, 6],</span>
+<span class="sd">        ...                          [ 6, 6, 1],</span>
+<span class="sd">        ...                          [ 4, 4, 9]], dtype=np.int32)</span>
+<span class="sd">        &gt;&gt;&gt; neighb_selnorm = mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid)</span>
+<span class="sd">        &gt;&gt;&gt; K = len(neighb_topnid.T)</span>
+<span class="sd">        &gt;&gt;&gt; Knorm = len(neighb_normnid.T)</span>
+<span class="sd">        &gt;&gt;&gt; neighb_normk_ = neighb_selnorm + (Knorm)  # convert form negative to pos indexes</span>
+<span class="sd">        &gt;&gt;&gt; result = str(neighb_normk_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [2 1 2 0 0 0 2 0]</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        logger.info(ut.doctest_repr(neighb_normnid, &#39;neighb_normnid&#39;, verbose=False))</span>
+<span class="sd">        logger.info(ut.doctest_repr(neighb_topnid, &#39;neighb_topnid&#39;, verbose=False))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO?: warn if any([np.any(flags) for flags in neighb_invalid]), (</span>
+    <span class="c1">#    &#39;Normalizers are potential matches. Increase Knorm&#39;)</span>
+    <span class="n">neighb_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">col1</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">!=</span> <span class="n">neighb_normnid</span> <span class="k">for</span> <span class="n">col1</span> <span class="ow">in</span> <span class="n">neighb_topnid</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="c1"># Mark self as invalid, if given that information</span>
+    <span class="n">neighb_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">neighb_normnid</span> <span class="o">!=</span> <span class="n">qnid</span><span class="p">,</span> <span class="n">neighb_valid</span><span class="p">)</span>
+    <span class="c1"># For each query feature find its best normalizer (using negative indices)</span>
+    <span class="n">Knorm</span> <span class="o">=</span> <span class="n">neighb_normnid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">neighb_validxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">normrow</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">normrow</span> <span class="ow">in</span> <span class="n">neighb_valid</span><span class="p">]</span>
+    <span class="n">neighb_selnorm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">validxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">Knorm</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">validxs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">validxs</span> <span class="ow">in</span> <span class="n">neighb_validxs</span><span class="p">],</span>
+        <span class="n">hstypes</span><span class="o">.</span><span class="n">FK_DTYPE</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">neighb_selnorm</span></div>
+
+
+<div class="viewcode-block" id="lnbnn_fn"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.lnbnn_fn">[docs]</a><span class="nd">@_register_nn_normalized_weight_func</span>
+<span class="k">def</span> <span class="nf">lnbnn_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Locale Naive Bayes Nearest Neighbor weighting</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://www.cs.ubc.ca/~lowe/papers/12mccannCVPR.pdf</span>
+<span class="sd">        http://www.cs.ubc.ca/~sanchom/local-naive-bayes-nearest-neighbor</span>
+
+<span class="sd">    Sympy:</span>
+<span class="sd">        &gt;&gt;&gt; import sympy</span>
+<span class="sd">        &gt;&gt;&gt; #https://github.com/sympy/sympy/pull/10247</span>
+<span class="sd">        &gt;&gt;&gt; from sympy import log</span>
+<span class="sd">        &gt;&gt;&gt; from sympy.stats import P, E, variance, Die, Normal, FiniteRV</span>
+<span class="sd">        &gt;&gt;&gt; C, Cbar = sympy.symbols(&#39;C Cbar&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; d_i = Die(sympy.symbols(&#39;di&#39;), 6)</span>
+<span class="sd">        &gt;&gt;&gt; log(P(di, C) / P(di, Cbar))</span>
+<span class="sd">        &gt;&gt;&gt; #</span>
+<span class="sd">        &gt;&gt;&gt; PdiC, PdiCbar = sympy.symbols(&#39;PdiC, PdiCbar&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; oddsC = log(PdiC / PdiCbar)</span>
+<span class="sd">        &gt;&gt;&gt; sympy.simplify(oddsC)</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; vt.check_expr_eq(oddsC, log(PdiC) - log(PdiCbar))</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = lnbnn_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hz_str(&#39;lnbnn  = &#39;, ut.repr2(out, precision=2))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        lnbnn  = np.array([[0.62, 0.22, 0.03],</span>
+<span class="sd">                           [0.35, 0.22, 0.01],</span>
+<span class="sd">                           [0.87, 0.58, 0.27],</span>
+<span class="sd">                           [0.67, 0.42, 0.25],</span>
+<span class="sd">                           [0.59, 0.3 , 0.27]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ndist</span> <span class="o">-</span> <span class="n">vdist</span></div>
+
+
+<div class="viewcode-block" id="ratio_fn"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.ratio_fn">[docs]</a><span class="nd">@_register_nn_normalized_weight_func</span>
+<span class="k">def</span> <span class="nf">ratio_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        vdist (ndarray): voting array</span>
+<span class="sd">        ndist (ndarray): normalizing array</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: out</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = ratio_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hz_str(&#39;ratio = &#39;, ut.repr2(out, precision=2))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        ratio = np.array([[0.  , 0.65, 0.95],</span>
+<span class="sd">                          [0.33, 0.58, 0.98],</span>
+<span class="sd">                          [0.13, 0.42, 0.73],</span>
+<span class="sd">                          [0.15, 0.47, 0.68],</span>
+<span class="sd">                          [0.23, 0.61, 0.65]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="bar_l2_fn"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.bar_l2_fn">[docs]</a><span class="nd">@_register_nn_normalized_weight_func</span>
+<span class="k">def</span> <span class="nf">bar_l2_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The feature weight is (1 - the euclidian distance</span>
+<span class="sd">    between the features). The normalizers are unused.</span>
+
+<span class="sd">    (not really a normaalized function)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = bar_l2_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hz_str(&#39;barl2  = &#39;, ut.repr2(out, precision=2))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        barl2  = np.array([[1.  , 0.6 , 0.41],</span>
+<span class="sd">                           [0.83, 0.7 , 0.49],</span>
+<span class="sd">                           [0.87, 0.58, 0.27],</span>
+<span class="sd">                           [0.88, 0.63, 0.46],</span>
+<span class="sd">                           [0.82, 0.53, 0.5 ]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">vdist</span></div>
+
+
+<div class="viewcode-block" id="loglnbnn_fn"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.loglnbnn_fn">[docs]</a><span class="nd">@_register_nn_normalized_weight_func</span>
+<span class="k">def</span> <span class="nf">loglnbnn_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ignore:</span>
+<span class="sd">        import vtool as vt</span>
+<span class="sd">        vt.check_expr_eq(&#39;log(d) - log(n)&#39;, &#39;log(d / n)&#39;)   # True</span>
+<span class="sd">        vt.check_expr_eq(&#39;log(d) / log(n)&#39;, &#39;log(d - n)&#39;)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = loglnbnn_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.hz_str(&#39;loglnbnn  = &#39;, ut.repr2(out, precision=2))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        loglnbnn  = np.array([[0.48, 0.2 , 0.03],</span>
+<span class="sd">                              [0.3 , 0.2 , 0.01],</span>
+<span class="sd">                              [0.63, 0.46, 0.24],</span>
+<span class="sd">                              [0.51, 0.35, 0.22],</span>
+<span class="sd">                              [0.46, 0.26, 0.24]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ndist</span> <span class="o">-</span> <span class="n">vdist</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="logratio_fn"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.logratio_fn">[docs]</a><span class="nd">@_register_nn_normalized_weight_func</span>
+<span class="k">def</span> <span class="nf">logratio_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = normonly_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(out)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        np.array([[0.62, 0.62, 0.62],</span>
+<span class="sd">                  [0.52, 0.52, 0.52],</span>
+<span class="sd">                  [1.  , 1.  , 1.  ],</span>
+<span class="sd">                  [0.79, 0.79, 0.79],</span>
+<span class="sd">                  [0.77, 0.77, 0.77]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">ndist</span><span class="p">,</span> <span class="n">vdist</span> <span class="o">+</span> <span class="n">EPS</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="normonly_fn"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.normonly_fn">[docs]</a><span class="nd">@_register_nn_normalized_weight_func</span>
+<span class="k">def</span> <span class="nf">normonly_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; out = normonly_fn(vdist, ndist)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(out)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        np.array([[0.62, 0.62, 0.62],</span>
+<span class="sd">                  [0.52, 0.52, 0.52],</span>
+<span class="sd">                  [1.  , 1.  , 1.  ],</span>
+<span class="sd">                  [0.79, 0.79, 0.79],</span>
+<span class="sd">                  [0.77, 0.77, 0.77]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">ndist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">vdist</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span></div>
+    <span class="c1"># return ndist[None, 0:1]</span>
+
+
+<div class="viewcode-block" id="testdata_vn_dists"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.testdata_vn_dists">[docs]</a><span class="k">def</span> <span class="nf">testdata_vn_dists</span><span class="p">(</span><span class="n">nfeats</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test voting and normalizing distances</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (vdist, ndist) - test voting distances and normalizer distances</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; vdist, ndist = testdata_vn_dists()</span>
+<span class="sd">        &gt;&gt;&gt; result = (ut.hz_str(&#39;vdist = &#39;, ut.repr2(vdist))) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print(result + (ut.hz_str(&#39;ndist = &#39;, ut.repr2(ndist))))</span>
+<span class="sd">        vdist = np.array([[0.  , 0.4 , 0.59],</span>
+<span class="sd">                          [0.17, 0.3 , 0.51],</span>
+<span class="sd">                          [0.13, 0.42, 0.73],</span>
+<span class="sd">                          [0.12, 0.37, 0.54],</span>
+<span class="sd">                          [0.18, 0.47, 0.5 ]])</span>
+<span class="sd">        ndist = np.array([[0.62],</span>
+<span class="sd">                          [0.52],</span>
+<span class="sd">                          [1.  ],</span>
+<span class="sd">                          [0.79],</span>
+<span class="sd">                          [0.77]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">make_precise</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
+        <span class="n">prec</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="p">(</span><span class="n">prec</span> <span class="o">*</span> <span class="n">dist</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span> <span class="o">/</span> <span class="n">prec</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dist</span>
+
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">vdist</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nfeats</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+    <span class="n">ndist</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nfeats</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Ensure distance increases</span>
+    <span class="n">vdist</span> <span class="o">=</span> <span class="n">vdist</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ndist</span> <span class="o">=</span> <span class="p">(</span><span class="n">ndist</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">vdist</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">ndist</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">vdist</span> <span class="o">=</span> <span class="n">make_precise</span><span class="p">(</span><span class="n">vdist</span> <span class="o">/</span> <span class="n">Z</span><span class="p">)</span>
+    <span class="n">ndist</span> <span class="o">=</span> <span class="n">make_precise</span><span class="p">(</span><span class="n">ndist</span> <span class="o">/</span> <span class="n">Z</span><span class="p">)</span>
+    <span class="n">vdist</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span></div>
+
+
+<span class="c1"># @_register_nn_normalized_weight_func</span>
+<span class="c1"># def dist_fn(vdist, ndist):</span>
+<span class="c1">#    &quot;&quot;&quot; the euclidian distance between the features &quot;&quot;&quot;</span>
+<span class="c1">#    return vdist</span>
+
+
+<span class="c1"># @_register_nn_simple_weight_func</span>
+<div class="viewcode-block" id="gravity_match_weighter"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.gravity_match_weighter">[docs]</a><span class="k">def</span> <span class="nf">gravity_match_weighter</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;have not finished gv weighting&#39;</span><span class="p">)</span></div>
+    <span class="c1"># qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)</span>
+    <span class="c1"># qfx2_nnori = ktool.get_oris(qfx2_nnkpts)</span>
+    <span class="c1"># qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_internal_query_config2())  # FIXME: Highly inefficient</span>
+    <span class="c1"># qfx2_oris  = ktool.get_oris(qfx2_kpts)</span>
+    <span class="c1"># # Get the orientation distance</span>
+    <span class="c1"># qfx2_oridist = vt.rowwise_oridist(qfx2_nnori, qfx2_oris)</span>
+    <span class="c1"># # Normalize into a weight (close orientations are 1, far are 0)</span>
+    <span class="c1"># qfx2_gvweight = (TAU - qfx2_oridist) / TAU</span>
+    <span class="c1"># # Apply gravity vector weight to the score</span>
+    <span class="c1"># qfx2_score *= qfx2_gvweight</span>
+
+
+<div class="viewcode-block" id="all_normalized_weights_test"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.nn_weights.all_normalized_weights_test">[docs]</a><span class="k">def</span> <span class="nf">all_normalized_weights_test</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.nn_weights --exec-all_normalized_weights_test</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; all_normalized_weights_test()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
+
+    <span class="c1"># ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()</span>
+
+    <span class="n">qreq_</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_pre</span><span class="p">(</span>
+        <span class="s1">&#39;weight_neighbors&#39;</span><span class="p">,</span>
+        <span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span>
+        <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default:qindex=0:1,dindex=0:5,hackerrors=False&#39;</span><span class="p">],</span>
+        <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default:codename=vsmany,bar_l2_on=True,fg_on=False&#39;</span><span class="p">],</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">nns_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nns_list</span>
+    <span class="n">nnvalid0_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nnvalid0_list</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">tst_weight_fn</span><span class="p">(</span><span class="n">nn_weight</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">):</span>
+        <span class="n">normweight_fn</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">nn_weight</span> <span class="o">+</span> <span class="s1">&#39;_fn&#39;</span><span class="p">]</span>
+        <span class="n">weight_list1</span><span class="p">,</span> <span class="n">nomx_list1</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">nn_normalized_weight</span><span class="p">(</span>
+            <span class="n">normweight_fn</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span>
+        <span class="p">)</span>
+        <span class="n">weights1</span> <span class="o">=</span> <span class="n">weight_list1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># ---</span>
+        <span class="c1"># test NN_WEIGHT_FUNC_DICT</span>
+        <span class="c1"># ---</span>
+        <span class="n">nn_normonly_weight</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">nn_weight</span><span class="p">]</span>
+        <span class="n">weight_list2</span><span class="p">,</span> <span class="n">nomx_list2</span> <span class="o">=</span> <span class="n">nn_normonly_weight</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">weights2</span> <span class="o">=</span> <span class="n">weight_list2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">weights1</span> <span class="o">==</span> <span class="n">weights2</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">nn_weight</span> <span class="o">+</span> <span class="s1">&#39; passed&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">nn_weight</span> <span class="ow">in</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">normweight_key</span> <span class="o">=</span> <span class="n">nn_weight</span> <span class="o">+</span> <span class="s1">&#39;_fn&#39;</span>
+        <span class="k">if</span> <span class="n">normweight_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nn_weights</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">tst_weight_fn</span><span class="p">(</span><span class="n">nn_weight</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

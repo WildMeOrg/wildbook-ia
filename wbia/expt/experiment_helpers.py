@@ -71,7 +71,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
         >>> print(result)
         pipecfg_lbls = ['default:', 'default:sv_on=False']
 
-    Example1:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> import wbia_flukematch.plugin
         >>> from wbia.expt.experiment_helpers import *  # NOQA
@@ -398,7 +398,7 @@ def get_annotcfg_list(
         wbia get_annotcfg_list:0 --db Oxford -a :qhas_any=query --ainfo --nocache-aid
         wbia get_annotcfg_list:0 --db Oxford -a :qhas_any=query,dhas_any=distractor --ainfo --nocache-aid
 
-    Example0:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.expt.experiment_helpers import *  # NOQA
         >>> import wbia

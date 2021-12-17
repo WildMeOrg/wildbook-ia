@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.draw_sv &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.draw_sv</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.draw_sv</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">custom_constants</span>
+
+<span class="c1"># from vtool import keypoint as ktool</span>
+<span class="c1"># (print, print_, printDBG, rrr, profile) = ut.inject(__name__, &#39;[viz_sv]&#39;, DEBUG=False)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[viz_sv]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_blended_chip"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.draw_sv.get_blended_chip">[docs]</a><span class="k">def</span> <span class="nf">get_blended_chip</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">M</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    warps chip1 into chip2 space</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="n">wh2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">chip2</span><span class="p">)</span>
+    <span class="n">chip1_Mt</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">warpHomog</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">wh2</span><span class="p">)</span>
+    <span class="n">chip2_blendM</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">blend_images</span><span class="p">(</span><span class="n">chip1_Mt</span><span class="p">,</span> <span class="n">chip2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">chip2_blendM</span></div>
+
+
+<span class="c1"># @ut.indent_func</span>
+<div class="viewcode-block" id="show_sv"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.draw_sv.show_sv">[docs]</a><span class="k">def</span> <span class="nf">show_sv</span><span class="p">(</span>
+    <span class="n">chip1</span><span class="p">,</span>
+    <span class="n">chip2</span><span class="p">,</span>
+    <span class="n">kpts1</span><span class="p">,</span>
+    <span class="n">kpts2</span><span class="p">,</span>
+    <span class="n">fm</span><span class="p">,</span>
+    <span class="n">homog_tup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">aff_tup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">mx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">show_assign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_lines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_kpts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">show_aff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">refine_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Visualizes spatial verification</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m vtool.spatial_verification --test-spatially_verify_kpts --show</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="c1"># import wbia.plottool as pt</span>
+    <span class="c1"># GEt Matching chips</span>
+    <span class="n">kpts1_m</span> <span class="o">=</span> <span class="n">kpts1</span><span class="p">[</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">kpts2_m</span> <span class="o">=</span> <span class="n">kpts2</span><span class="p">[</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">wh2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">chip2</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="c1"># Get Affine Chips, Keypoints, Inliers</span>
+    <span class="k">if</span> <span class="n">show_aff</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">show_aff_</span> <span class="o">=</span> <span class="n">aff_tup</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">show_aff_</span> <span class="o">=</span> <span class="n">show_aff</span>
+    <span class="k">if</span> <span class="n">show_aff_</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">aff_inliers</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span> <span class="o">=</span> <span class="n">aff_tup</span>
+        <span class="n">chip1_At</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">Aff</span><span class="p">,</span> <span class="n">wh2</span><span class="p">)</span>
+        <span class="c1"># kpts1_mAt = ktool.transform_kpts(kpts1_m, Aff)</span>
+        <span class="n">chip2_blendA</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">blend_images</span><span class="p">(</span><span class="n">chip1_At</span><span class="p">,</span> <span class="n">chip2</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="c1"># Get Homog Chips, Keypoints, Inliers</span>
+    <span class="n">show_homog</span> <span class="o">=</span> <span class="n">homog_tup</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">show_homog</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">hom_inliers</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span> <span class="o">=</span> <span class="n">homog_tup</span>
+        <span class="c1"># kpts1_mHt = ktool.transform_kpts(kpts1_m, H)</span>
+        <span class="n">chip1_Ht</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">warpHomog</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">wh2</span><span class="p">)</span>
+        <span class="n">chip2_blendH</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">blend_images</span><span class="p">(</span><span class="n">chip1_Ht</span><span class="p">,</span> <span class="n">chip2</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="c1"># Drawing settings</span>
+    <span class="n">nRows</span> <span class="o">=</span> <span class="p">(</span><span class="n">show_assign</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">show_aff_</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">show_homog</span><span class="p">)</span>
+    <span class="n">nCols1</span> <span class="o">=</span> <span class="p">(</span><span class="n">show_assign</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">show_aff_</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">show_homog</span><span class="p">)</span>
+    <span class="n">nCols2</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">pnum1_</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">get_pnum_func</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols1</span><span class="p">)</span>
+    <span class="n">pnum2_</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">get_pnum_func</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols2</span><span class="p">)</span>
+    <span class="c1"># in_kwargs  = dict(rect=True,  ell_alpha=.7, eig=False, ori=True, pts=True)</span>
+    <span class="c1"># out_kwargs = dict(rect=False, ell_alpha=.3, eig=False)</span>
+    <span class="n">in_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">eig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ori</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pts</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">out_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">eig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ori</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_draw_kpts</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">show_kpts</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">df2</span><span class="o">.</span><span class="n">draw_kpts2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw_inlier_kpts</span><span class="p">(</span><span class="n">kpts_m</span><span class="p">,</span> <span class="n">inliers</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">_draw_kpts</span><span class="p">(</span><span class="n">kpts_m</span><span class="p">[</span><span class="n">inliers</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">,</span> <span class="o">**</span><span class="n">in_kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_draw_kpts</span><span class="p">(</span>
+                <span class="n">kpts_m</span><span class="p">[</span><span class="n">mx</span> <span class="p">:</span> <span class="p">(</span><span class="n">mx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)],</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">ell_linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">,</span> <span class="o">**</span><span class="n">in_kwargs</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_draw_matches</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">inliers</span><span class="p">):</span>
+        <span class="n">dmkwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">fs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+            <span class="n">all_kpts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">draw_lines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">draw_border</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
+            <span class="n">pnum</span><span class="o">=</span><span class="n">pnum1_</span><span class="p">(</span><span class="n">px</span><span class="p">),</span>
+            <span class="n">colors</span><span class="o">=</span><span class="n">df2</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">__fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">inliers</span><span class="p">,</span> <span class="n">inliers</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">df2</span><span class="o">.</span><span class="n">show_chipmatch2</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1_m</span><span class="p">,</span> <span class="n">kpts2_m</span><span class="p">,</span> <span class="n">__fm</span><span class="p">,</span> <span class="o">**</span><span class="n">dmkwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">px</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">color_funcs</span>
+
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">brightness</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+    <span class="n">color1</span><span class="p">,</span> <span class="n">color2</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">color1_dark</span> <span class="o">=</span> <span class="n">color_funcs</span><span class="o">.</span><span class="n">darken_rgb</span><span class="p">(</span><span class="n">color1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+    <span class="n">color2_dark</span> <span class="o">=</span> <span class="n">color_funcs</span><span class="o">.</span><span class="n">darken_rgb</span><span class="p">(</span><span class="n">color2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_draw_chip</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">chip</span><span class="p">,</span> <span class="n">inliers</span><span class="p">,</span> <span class="n">kpts1_m</span><span class="p">,</span> <span class="n">kpts2_m</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">pnum</span> <span class="o">=</span> <span class="n">px</span>
+            <span class="n">df2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="n">px</span> <span class="o">=</span> <span class="n">pnum</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum2_</span><span class="p">(</span><span class="n">px</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">kpts1_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_draw_kpts</span><span class="p">(</span><span class="n">kpts1_m</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color1_dark</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">H1</span><span class="p">,</span> <span class="o">**</span><span class="n">out_kwargs</span><span class="p">)</span>
+            <span class="n">draw_inlier_kpts</span><span class="p">(</span><span class="n">kpts1_m</span><span class="p">,</span> <span class="n">inliers</span><span class="p">,</span> <span class="n">color1</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">H1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kpts2_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_draw_kpts</span><span class="p">(</span><span class="n">kpts2_m</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color2_dark</span><span class="p">,</span> <span class="o">**</span><span class="n">out_kwargs</span><span class="p">)</span>
+            <span class="n">draw_inlier_kpts</span><span class="p">(</span><span class="n">kpts2_m</span><span class="p">,</span> <span class="n">inliers</span><span class="p">,</span> <span class="n">color2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kpts2_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kpts1_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">show_lines</span><span class="p">:</span>
+            <span class="n">__fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">inliers</span><span class="p">,</span> <span class="n">inliers</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">df2</span><span class="o">.</span><span class="n">draw_lines2</span><span class="p">(</span>
+                <span class="n">kpts1_m</span><span class="p">,</span>
+                <span class="n">kpts2_m</span><span class="p">,</span>
+                <span class="n">__fm</span><span class="p">,</span>
+                <span class="n">color_list</span><span class="o">=</span><span class="p">[</span><span class="n">custom_constants</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">],</span>
+                <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">line_alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">H1</span><span class="o">=</span><span class="n">H1</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">px</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Begin the drawing</span>
+    <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">px</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">show_assign</span><span class="p">:</span>
+        <span class="c1"># Draw the Assigned -&gt; Affine -&gt; Homography matches</span>
+        <span class="n">px</span> <span class="o">=</span> <span class="n">_draw_matches</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> Assigned matches  &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">show_aff_</span><span class="p">:</span>
+            <span class="n">px</span> <span class="o">=</span> <span class="n">_draw_matches</span><span class="p">(</span>
+                <span class="n">px</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> Initial inliers    &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">aff_inliers</span><span class="p">),</span> <span class="n">aff_inliers</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">show_homog</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">refine_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">refine_method</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">refine_method</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">refine_method_</span> <span class="o">=</span> <span class="s1">&#39;(</span><span class="si">%s</span><span class="s1">) &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refine_method</span><span class="p">,)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">refine_method_</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">px</span> <span class="o">=</span> <span class="n">_draw_matches</span><span class="p">(</span>
+                <span class="n">px</span><span class="p">,</span>
+                <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> Refined </span><span class="si">%s</span><span class="s1">inliers&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hom_inliers</span><span class="p">),</span> <span class="n">refine_method_</span><span class="p">),</span>
+                <span class="n">hom_inliers</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="c1"># Draw the Affine Transformations</span>
+    <span class="n">px</span> <span class="o">=</span> <span class="n">nCols2</span> <span class="o">*</span> <span class="n">show_assign</span>
+    <span class="c1"># if show_aff_ or show_homog:</span>
+
+    <span class="k">if</span> <span class="n">show_aff_</span><span class="p">:</span>
+        <span class="c1"># px = _draw_chip(px, &#39;Source&#39;,    chip1,        aff_inliers,   kpts1_m, None)</span>
+        <span class="c1"># px = _draw_chip(px, &#39;Dest&#39;,      chip2,        aff_inliers,   None, kpts2_m)</span>
+        <span class="n">px</span> <span class="o">=</span> <span class="n">_draw_chip</span><span class="p">(</span>
+            <span class="n">px</span><span class="p">,</span> <span class="s1">&#39;Initial Warped&#39;</span><span class="p">,</span> <span class="n">chip1_At</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">kpts1_m</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="n">Aff</span>
+        <span class="p">)</span>
+        <span class="n">px</span> <span class="o">=</span> <span class="n">_draw_chip</span><span class="p">(</span>
+            <span class="n">px</span><span class="p">,</span> <span class="s1">&#39;Initial Blend&#39;</span><span class="p">,</span> <span class="n">chip2_blendA</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">kpts1_m</span><span class="p">,</span> <span class="n">kpts2_m</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="n">Aff</span>
+        <span class="p">)</span>
+        <span class="c1"># px = _draw_chip(px, &#39;Affine&#39;,    chip1_At,     aff_inliers, kpts1_mAt, None)</span>
+        <span class="c1"># px = _draw_chip(px, &#39;Aff Blend&#39;, chip2_blendA, aff_inliers, kpts1_mAt, kpts2_m)</span>
+        <span class="k">pass</span>
+    <span class="c1">#</span>
+    <span class="c1"># Draw the Homography Transformation</span>
+    <span class="k">if</span> <span class="n">show_homog</span><span class="p">:</span>
+        <span class="c1"># px = _draw_chip(px, &#39;Source&#39;,      chip1,        hom_inliers,   kpts1_m, None)</span>
+        <span class="c1"># px = _draw_chip(px, &#39;Dest&#39;,        chip2,        hom_inliers,   None, kpts2_m)</span>
+        <span class="c1"># px = _draw_chip(px, &#39;Homog&#39;,       chip1_Ht,     hom_inliers, kpts1_mHt, None)</span>
+        <span class="c1"># px = _draw_chip(px, &#39;Homog Blend&#39;, chip2_blendH, hom_inliers, kpts1_mHt, kpts2_m)</span>
+        <span class="n">px</span> <span class="o">=</span> <span class="n">_draw_chip</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="s1">&#39;Refined Warped&#39;</span><span class="p">,</span> <span class="n">chip1_Ht</span><span class="p">,</span> <span class="n">hom_inliers</span><span class="p">,</span> <span class="n">kpts1_m</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="n">H</span><span class="p">)</span>
+        <span class="n">px</span> <span class="o">=</span> <span class="n">_draw_chip</span><span class="p">(</span>
+            <span class="n">px</span><span class="p">,</span> <span class="s1">&#39;Refined Blend&#39;</span><span class="p">,</span> <span class="n">chip2_blendH</span><span class="p">,</span> <span class="n">hom_inliers</span><span class="p">,</span> <span class="n">kpts1_m</span><span class="p">,</span> <span class="n">kpts2_m</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="n">H</span>
+        <span class="p">)</span></div>
+    <span class="c1">#</span>
+    <span class="c1"># Adjust subplots</span>
+
+
+<div class="viewcode-block" id="show_sv_simple"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.draw_sv.show_sv_simple">[docs]</a><span class="k">def</span> <span class="nf">show_sv_simple</span><span class="p">(</span>
+    <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">inliers</span><span class="p">,</span> <span class="n">mx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">vert</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.draw_sv --test-show_sv_simple --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.draw_sv import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; kpts1, kpts2, fm, aff_inliers, chip1, chip2, xy_thresh_sqrd = vt.testdata_matching_affine_inliers()</span>
+<span class="sd">        &gt;&gt;&gt; inliers = aff_inliers</span>
+<span class="sd">        &gt;&gt;&gt; mx = None</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 1</span>
+<span class="sd">        &gt;&gt;&gt; vert = None  # ut.get_argval(&#39;--vert&#39;, type_=bool, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; result = show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx, fnum, vert=vert)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">brightness</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+    <span class="n">color1</span><span class="p">,</span> <span class="n">color2</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="c1"># Begin the drawing</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># dmkwargs = dict(fs=None, title=&#39;Inconsistent Matches&#39;, all_kpts=False, draw_lines=True,</span>
+    <span class="c1">#                docla=True, draw_border=True, fnum=fnum, pnum=(1, 1, 1), colors=pt.ORANGE)</span>
+    <span class="n">inlier_mask</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">index_to_boolmask</span><span class="p">(</span><span class="n">inliers</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">))</span>
+    <span class="n">fm_inliers</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">inlier_mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fm_outliers</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">inlier_mask</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span><span class="p">,</span> <span class="n">sf_tup</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">show_chipmatch2</span><span class="p">(</span>
+        <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">vert</span><span class="o">=</span><span class="n">vert</span><span class="p">,</span> <span class="n">modifysize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_return</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">sf1</span><span class="p">,</span> <span class="n">sf2</span> <span class="o">=</span> <span class="n">sf_tup</span>
+    <span class="n">fmatch_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ell_linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">line_alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plot_fmatch</span><span class="p">(</span>
+        <span class="n">xywh1</span><span class="p">,</span>
+        <span class="n">xywh2</span><span class="p">,</span>
+        <span class="n">kpts1</span><span class="p">,</span>
+        <span class="n">kpts2</span><span class="p">,</span>
+        <span class="n">fm_inliers</span><span class="p">,</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">color1</span><span class="p">,</span>
+        <span class="n">scale_factor1</span><span class="o">=</span><span class="n">sf1</span><span class="p">,</span>
+        <span class="n">scale_factor2</span><span class="o">=</span><span class="n">sf2</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">fmatch_kw</span>
+    <span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">plot_fmatch</span><span class="p">(</span>
+        <span class="n">xywh1</span><span class="p">,</span>
+        <span class="n">xywh2</span><span class="p">,</span>
+        <span class="n">kpts1</span><span class="p">,</span>
+        <span class="n">kpts2</span><span class="p">,</span>
+        <span class="n">fm_outliers</span><span class="p">,</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">color2</span><span class="p">,</span>
+        <span class="n">scale_factor1</span><span class="o">=</span><span class="n">sf1</span><span class="p">,</span>
+        <span class="n">scale_factor2</span><span class="o">=</span><span class="n">sf2</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">fmatch_kw</span>
+    <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

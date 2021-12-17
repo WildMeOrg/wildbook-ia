@@ -728,7 +728,7 @@ class NeighborIndex(object):
             >>> assert np.allclose(targetdist, qfx2_dist), (
             >>>    'inconsistant distance calculations')
 
-        Example2:
+        Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.algo.hots.neighbor_index import *  # NOQA
             >>> indexer, qreq_, ibs = testdata_nnindexer()

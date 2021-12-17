@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.detect.darknet &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../detect.html">wbia.algo.detect</a> &raquo;</li>
+      <li>wbia.algo.detect.darknet</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.detect.darknet</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Interface to Darknet object proposals.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">shlex</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[darknet]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="c1"># SCRIPT_PATH = abspath(dirname(__file__))</span>
+<span class="n">SCRIPT_PATH</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;darknet&#39;</span><span class="p">)))</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-darknet&#39;</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">SCRIPT_PATH</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WARNING Failed to find darknet. &#39;</span> <span class="s1">&#39;Darknet is unavailable&#39;</span><span class="p">)</span>
+        <span class="c1"># if ut.SUPER_STRICT:</span>
+        <span class="c1">#     raise</span>
+
+
+<span class="n">VERBOSE_SS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--verbdss&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
+
+
+<span class="n">CONFIG_URL_DICT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;pretrained-v1-pascal&#39;       : &#39;https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v1.pascal.cfg&#39;,</span>
+    <span class="s1">&#39;pretrained-v2-pascal&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.pascal.cfg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pretrained-v2-large-pascal&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.pascal.cfg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pretrained-tiny-pascal&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.darknet.tiny.pascal.cfg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pretrained-v2-large-coco&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.coco.cfg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pretrained-tiny-coco&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.darknet.tiny.coco.cfg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.coco.cfg&#39;</span><span class="p">,</span>
+    <span class="kc">None</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/pretrained.darknet.v2.large.coco.cfg&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_weight_from_cfg</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.cfg&#39;</span><span class="p">,</span> <span class="s1">&#39;.weights&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_data_from_cfg</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.cfg&#39;</span><span class="p">,</span> <span class="s1">&#39;.data&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_classes_from_cfg</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.cfg&#39;</span><span class="p">,</span> <span class="s1">&#39;.classes&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_class_list</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">):</span>
+    <span class="c1"># Load classes from file into the class list</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">)</span>
+    <span class="n">class_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">classes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">classes</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">class_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">class_list</span>
+
+
+<div class="viewcode-block" id="detect_gid_list"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.darknet.detect_gid_list">[docs]</a><span class="k">def</span> <span class="nf">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_SS</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list of int): the list of IBEIS image_rowids that need detection</span>
+<span class="sd">        downsample (bool, optional): a flag to indicate if the original image</span>
+<span class="sd">            sizes should be used; defaults to True</span>
+
+<span class="sd">            True:  ibs.get_image_detectpaths() is used</span>
+<span class="sd">            False: ibs.get_image_paths() is used</span>
+
+<span class="sd">    Kwargs (optional): refer to the Darknet documentation for configuration settings</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (wbia.IBEISController):  image analysis api</span>
+<span class="sd">        gid_list (list of int): the list of IBEIS image_rowids that need detection</span>
+<span class="sd">        downsample (bool, optional): a flag to indicate if the original image</span>
+<span class="sd">                sizes should be used; defaults to True</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        detector, config_filepath, weights_filepath, verbose</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        tuple: (gid, gpath, result_list)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.detect.darknet detect_gid_list --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.detect.darknet import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.core_images import LocalizerConfig</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;verbose&#39;: True}</span>
+<span class="sd">        &gt;&gt;&gt; downsample = False</span>
+<span class="sd">        &gt;&gt;&gt; results_list = detect_gid_list(ibs, gid_list, downsample, **config)</span>
+<span class="sd">        &gt;&gt;&gt; results_list = list(results_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;result lens = %r&#39; % (map(len, list(results_list))))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;result[0] = %r&#39; % (len(list(results_list[0][2]))))</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;verbose&#39;: True}</span>
+<span class="sd">        &gt;&gt;&gt; downsample = False</span>
+<span class="sd">        &gt;&gt;&gt; results_list = detect_gid_list(ibs, gid_list, downsample, **config)</span>
+<span class="sd">        &gt;&gt;&gt; results_list = list(results_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;result lens = %r&#39; % (map(len, list(results_list))))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;result[0] = %r&#39; % (len(list(results_list[0][2]))))</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        results (list of dict)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get new gpaths if downsampling</span>
+    <span class="k">if</span> <span class="n">downsample</span><span class="p">:</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_detectpaths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">neww_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">open_image_size</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">]</span>
+        <span class="n">oldw_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">oldw</span> <span class="k">for</span> <span class="p">(</span><span class="n">oldw</span><span class="p">,</span> <span class="n">oldh</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
+        <span class="n">downsample_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">oldw</span> <span class="o">/</span> <span class="n">neww</span> <span class="k">for</span> <span class="n">oldw</span><span class="p">,</span> <span class="n">neww</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">oldw_list</span><span class="p">,</span> <span class="n">neww_list</span><span class="p">)]</span>
+        <span class="n">orient_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">downsample_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+        <span class="n">orient_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="c1"># Run detection</span>
+    <span class="n">results_iter</span> <span class="o">=</span> <span class="n">detect</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># Upscale the results</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">downsample_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">orient_list</span><span class="p">,</span> <span class="n">results_iter</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">downsample</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
+        <span class="c1"># Upscale the results back up to the original image size</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">downsample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">downsample</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">,</span> <span class="s1">&#39;ytl&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">]:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">downsample</span><span class="p">)</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">],</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">],</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">]</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">bbox_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="detect"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.darknet.detect">[docs]</a><span class="k">def</span> <span class="nf">detect</span><span class="p">(</span>
+    <span class="n">gpath_list</span><span class="p">,</span>
+    <span class="n">config_filepath</span><span class="p">,</span>
+    <span class="n">weight_filepath</span><span class="p">,</span>
+    <span class="n">class_filepath</span><span class="p">,</span>
+    <span class="n">sensitivity</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_SS</span><span class="p">,</span>
+    <span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gpath_list (list of str): the list of image paths that need proposal candidates</span>
+
+<span class="sd">    Kwargs (optional): refer to the Darknet documentation for configuration settings</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        iter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get correct config if specified with shorthand</span>
+    <span class="n">config_url</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">config_filepath</span> <span class="ow">in</span> <span class="n">CONFIG_URL_DICT</span><span class="p">:</span>
+        <span class="n">config_url</span> <span class="o">=</span> <span class="n">CONFIG_URL_DICT</span><span class="p">[</span><span class="n">config_filepath</span><span class="p">]</span>
+        <span class="n">config_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">config_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Get correct weights if specified with shorthand</span>
+    <span class="k">if</span> <span class="n">weight_filepath</span> <span class="ow">in</span> <span class="n">CONFIG_URL_DICT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">weight_filepath</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">config_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config_url_</span> <span class="o">=</span> <span class="n">config_url</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config_url_</span> <span class="o">=</span> <span class="n">CONFIG_URL_DICT</span><span class="p">[</span><span class="n">weight_filepath</span><span class="p">]</span>
+        <span class="n">weight_url</span> <span class="o">=</span> <span class="n">_parse_weight_from_cfg</span><span class="p">(</span><span class="n">config_url_</span><span class="p">)</span>
+        <span class="n">weight_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">weight_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">data_url</span> <span class="o">=</span> <span class="n">_parse_data_from_cfg</span><span class="p">(</span><span class="n">config_url</span><span class="p">)</span>
+    <span class="n">data_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span>
+        <span class="n">data_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">data_file</span><span class="p">:</span>
+        <span class="n">data_str</span> <span class="o">=</span> <span class="n">data_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">names_tag</span> <span class="o">=</span> <span class="s1">&#39;_^_NAMES_^_&#39;</span>
+    <span class="k">if</span> <span class="n">names_tag</span> <span class="ow">in</span> <span class="n">data_str</span><span class="p">:</span>
+        <span class="n">class_url</span> <span class="o">=</span> <span class="n">_parse_classes_from_cfg</span><span class="p">(</span><span class="n">config_url</span><span class="p">)</span>
+        <span class="n">class_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span>
+            <span class="n">class_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+        <span class="p">)</span>
+        <span class="n">data_str</span> <span class="o">=</span> <span class="n">data_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">names_tag</span><span class="p">,</span> <span class="n">class_filepath</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">data_file</span><span class="p">:</span>
+            <span class="n">data_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data_str</span><span class="p">)</span>
+
+    <span class="c1"># Form the temporary results file that the code will write to</span>
+    <span class="n">temp_file</span><span class="p">,</span> <span class="n">temp_filepath</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.txt&#39;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">temp_file</span><span class="p">)</span>
+
+    <span class="c1"># Execute command for each image</span>
+    <span class="n">results_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">:</span>
+        <span class="c1"># # Clear the contents of the file (C code should do this instead)</span>
+        <span class="c1"># with open(temp_filepath, &#39;w&#39;):</span>
+        <span class="c1">#     pass</span>
+
+        <span class="c1"># Run darknet on image</span>
+        <span class="n">bash_args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">data_filepath</span><span class="p">,</span>
+            <span class="n">config_filepath</span><span class="p">,</span>
+            <span class="n">weight_filepath</span><span class="p">,</span>
+            <span class="n">gpath</span><span class="p">,</span>
+            <span class="n">temp_filepath</span><span class="p">,</span>
+            <span class="n">sensitivity</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">bash_str</span> <span class="o">=</span> <span class="s1">&#39;./darknet detector test </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> -thresh </span><span class="si">%0.5f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">bash_args</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Calling: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bash_str</span><span class="p">,))</span>
+        <span class="n">bash_list</span> <span class="o">=</span> <span class="n">shlex</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">bash_str</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/dev/null&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">null</span><span class="p">:</span>
+            <span class="n">process_id</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">bash_list</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">null</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">SCRIPT_PATH</span><span class="p">)</span>
+            <span class="n">process_return_code</span> <span class="o">=</span> <span class="n">process_id</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">process_return_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Darknet did not exit successfully&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Load the temporary file and load it&#39;s contents</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">temp_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp_file</span><span class="p">:</span>
+            <span class="n">temps_str</span> <span class="o">=</span> <span class="n">temp_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="n">temps_list</span> <span class="o">=</span> <span class="n">temps_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="c1"># Parse results from output file</span>
+        <span class="n">result_list_</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">temp_str</span> <span class="ow">in</span> <span class="n">temps_list</span><span class="p">:</span>
+            <span class="n">temp_str</span> <span class="o">=</span> <span class="n">temp_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">temp_str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">temp_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">gpath_</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">gpath</span> <span class="o">==</span> <span class="n">gpath_</span>
+            <span class="n">xtl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+            <span class="n">ytl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">])))</span>
+            <span class="n">xbr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">])))</span>
+            <span class="n">ybr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">4</span><span class="p">])))</span>
+            <span class="n">class_</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span>
+            <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;xtl&#39;</span><span class="p">:</span> <span class="n">xtl</span><span class="p">,</span>
+                <span class="s1">&#39;ytl&#39;</span><span class="p">:</span> <span class="n">ytl</span><span class="p">,</span>
+                <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">xbr</span> <span class="o">-</span> <span class="n">xtl</span><span class="p">,</span>
+                <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">ybr</span> <span class="o">-</span> <span class="n">ytl</span><span class="p">,</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">class_</span><span class="p">,</span>
+                <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="n">conf</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="n">result_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_dict</span><span class="p">)</span>
+        <span class="n">results_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_list_</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_list_</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Darknet did not return valid data&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Remove temporary file, and return.</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">temp_filepath</span><span class="p">)</span>
+
+    <span class="n">results_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">results_list_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results_list</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

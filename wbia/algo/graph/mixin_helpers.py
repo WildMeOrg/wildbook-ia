@@ -237,7 +237,7 @@ class Convenience(object):
         """
         Helps debugging when ibs.nids has info that annotmatch/staging do not
 
-        Examples:
+        Example:
             >>> # # FIXME failing-test (22-Jul-2020) GZ_Master1 doesn't exist
             >>> # xdoctest: +SKIP
             >>> from wbia.algo.graph.mixin_helpers import *  # NOQA

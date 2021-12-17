@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.other.detecttrain &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.other.detecttrain</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.other.detecttrain</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Developer convenience functions for ibs (detections).</span>
+
+<span class="sd">TODO: need to split up into sub modules:</span>
+<span class="sd">    consistency_checks</span>
+<span class="sd">    feasibility_fixes</span>
+<span class="sd">    move the export stuff to dbio</span>
+
+<span class="sd">    then there are also convineience functions that need to be ordered at least</span>
+<span class="sd">    within this file</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="c1"># Inject utool functions</span>
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[other.detecttrain]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="classifier_cameratrap_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.classifier_cameratrap_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">classifier_cameratrap_train</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">positive_imageset_id</span><span class="p">,</span> <span class="n">negative_imageset_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.ingest_wbia</span> <span class="kn">import</span> <span class="n">get_cnn_classifier_cameratrap_binary_training_images</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.process</span> <span class="kn">import</span> <span class="n">numpy_processed_directory2</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.models.classifier</span> <span class="kn">import</span> <span class="n">train_classifier</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted&#39;</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_classifier_cameratrap_binary_training_images</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">positive_imageset_id</span><span class="p">,</span> <span class="n">negative_imageset_id</span><span class="p">,</span> <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+    <span class="n">id_file</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span> <span class="o">=</span> <span class="n">numpy_processed_directory2</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier-cameratrap&#39;</span><span class="p">)</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">train_classifier</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span><span class="p">)</span>
+    <span class="c1"># Return model path</span>
+    <span class="k">return</span> <span class="n">model_path</span></div>
+
+
+<div class="viewcode-block" id="classifier_cameratrap_densenet_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.classifier_cameratrap_densenet_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">classifier_cameratrap_densenet_train</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">positive_imageset_id</span><span class="p">,</span> <span class="n">negative_imageset_id</span><span class="p">,</span> <span class="n">ensembles</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia.other.detectexport</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">get_cnn_classifier_cameratrap_binary_training_images_pytorch</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">densenet</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted-classifier-cameratrap&#39;</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_classifier_cameratrap_binary_training_images_pytorch</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">positive_imageset_id</span><span class="p">,</span>
+        <span class="n">negative_imageset_id</span><span class="p">,</span>
+        <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
+        <span class="n">image_size</span><span class="o">=</span><span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ensemble_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ensembles</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">ensemble_num</span><span class="p">,)</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier-cameratrap-ensemble-</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+        <span class="p">)</span>
+        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">densenet</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">blur</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+
+    <span class="n">archive_name</span> <span class="o">=</span> <span class="s1">&#39;classifier.cameratrap.zip&#39;</span>
+    <span class="n">archive_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="n">archive_name</span><span class="p">)</span>
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">weights_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">weights_path_list</span><span class="p">)):</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path</span> <span class="o">=</span> <span class="s1">&#39;classifier.cameratrap.</span><span class="si">%d</span><span class="s1">.weights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">weights_path</span><span class="p">,</span> <span class="n">ensemble_weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ensemble_weights_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span>
+        <span class="n">archive_path</span><span class="p">,</span> <span class="n">ensemble_weights_path_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">archive_path</span></div>
+
+
+<div class="viewcode-block" id="classifier_multiclass_densenet_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.classifier_multiclass_densenet_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">classifier_multiclass_densenet_train</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">label_list</span><span class="p">,</span> <span class="n">ensembles</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; import uuid</span>
+<span class="sd">    &gt;&gt;&gt; manifest_filepath = join(ibs.dbdir, &#39;flukebook_groundtruth.csv&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; with open(manifest_filepath, &#39;r&#39;) as manifest_file:</span>
+<span class="sd">    &gt;&gt;&gt;     line_list = manifest_file.readlines()</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; label_dict = {</span>
+<span class="sd">    &gt;&gt;&gt;     &#39;Left Dorsal Fin&#39;  : &#39;left_dorsal_fin&#39;,</span>
+<span class="sd">    &gt;&gt;&gt;     &#39;Right Dorsal Fin&#39; : &#39;right_dorsal_fin&#39;,</span>
+<span class="sd">    &gt;&gt;&gt;     &#39;Tail Fluke&#39;       : &#39;tail_fluke&#39;,</span>
+<span class="sd">    &gt;&gt;&gt; }</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; uuid_list = []</span>
+<span class="sd">    &gt;&gt;&gt; label_list = []</span>
+<span class="sd">    &gt;&gt;&gt; for line in line_list:</span>
+<span class="sd">    &gt;&gt;&gt;     line = line.strip().split(&#39;,&#39;)</span>
+<span class="sd">    &gt;&gt;&gt;     assert len(line) == 2</span>
+<span class="sd">    &gt;&gt;&gt;     uuid_, label_ = line</span>
+<span class="sd">    &gt;&gt;&gt;     uuid_ = uuid.UUID(uuid_)</span>
+<span class="sd">    &gt;&gt;&gt;     label_ = label_.strip()</span>
+<span class="sd">    &gt;&gt;&gt;     print(uuid_, label_)</span>
+<span class="sd">    &gt;&gt;&gt;     uuid_list.append(uuid_)</span>
+<span class="sd">    &gt;&gt;&gt;     label_ = label_dict.get(label_, None)</span>
+<span class="sd">    &gt;&gt;&gt;     assert label_ is not None</span>
+<span class="sd">    &gt;&gt;&gt;     label_list.append(label_)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; gid_list = ibs.get_image_gids_from_uuid(uuid_list)</span>
+<span class="sd">    &gt;&gt;&gt; assert None not in gid_list</span>
+<span class="sd">    &gt;&gt;&gt; # archive_path = ibs.classifier_multiclass_densenet_train(gid_list, label_list)</span>
+<span class="sd">    &gt;&gt;&gt; ibs.classifier2_precision_recall_algo_display(test_gid_list=gid_list, test_label_list=label_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.other.detectexport</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">get_cnn_classifier_multiclass_training_images_pytorch</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">densenet</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted-classifier-multiclass&#39;</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_classifier_multiclass_training_images_pytorch</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">gid_list</span><span class="p">,</span>
+        <span class="n">label_list</span><span class="p">,</span>
+        <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
+        <span class="n">image_size</span><span class="o">=</span><span class="n">densenet</span><span class="o">.</span><span class="n">INPUT_SIZE</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ensemble_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ensembles</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">ensemble_num</span><span class="p">,)</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier-multiclass-ensemble-</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+        <span class="p">)</span>
+        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">densenet</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">blur</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+
+    <span class="n">archive_name</span> <span class="o">=</span> <span class="s1">&#39;classifier.multiclass.zip&#39;</span>
+    <span class="n">archive_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="n">archive_name</span><span class="p">)</span>
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">weights_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">weights_path_list</span><span class="p">)):</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path</span> <span class="o">=</span> <span class="s1">&#39;classifier.multiclass.</span><span class="si">%d</span><span class="s1">.weights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">weights_path</span><span class="p">,</span> <span class="n">ensemble_weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ensemble_weights_path</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span>
+        <span class="n">archive_path</span><span class="p">,</span> <span class="n">ensemble_weights_path_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">archive_path</span></div>
+
+
+<div class="viewcode-block" id="classifier_binary_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.classifier_binary_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">classifier_binary_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.ingest_wbia</span> <span class="kn">import</span> <span class="n">get_cnn_classifier_binary_training_images</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.process</span> <span class="kn">import</span> <span class="n">numpy_processed_directory2</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.models.classifier</span> <span class="kn">import</span> <span class="n">train_classifier</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.utils</span> <span class="kn">import</span> <span class="n">save_model</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted&#39;</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_classifier_binary_training_images</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+    <span class="n">id_file</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span> <span class="o">=</span> <span class="n">numpy_processed_directory2</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier-binary&#39;</span><span class="p">)</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">train_classifier</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span><span class="p">)</span>
+    <span class="c1"># Add the species_list to the model</span>
+    <span class="n">model_state</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s1">&#39;species_list&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_state</span>
+    <span class="n">model_state</span><span class="p">[</span><span class="s1">&#39;species_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">species_list</span>
+    <span class="n">save_model</span><span class="p">(</span><span class="n">model_state</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+    <span class="c1"># Return model path</span>
+    <span class="k">return</span> <span class="n">model_path</span></div>
+
+
+<div class="viewcode-block" id="classifier2_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.classifier2_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">classifier2_train</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">species_mapping</span><span class="o">=</span><span class="p">{},</span> <span class="n">train_gid_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.ingest_wbia</span> <span class="kn">import</span> <span class="n">get_cnn_classifier2_training_images</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.process</span> <span class="kn">import</span> <span class="n">numpy_processed_directory3</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.models.classifier2</span> <span class="kn">import</span> <span class="n">train_classifier2</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.utils</span> <span class="kn">import</span> <span class="n">save_model</span>
+
+    <span class="k">if</span> <span class="n">species_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted&#39;</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">get_cnn_classifier2_training_images</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">species_list</span><span class="p">,</span>
+        <span class="n">category_mapping</span><span class="o">=</span><span class="n">species_mapping</span><span class="p">,</span>
+        <span class="n">train_gid_set</span><span class="o">=</span><span class="n">train_gid_set</span><span class="p">,</span>
+        <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">extracted_path</span><span class="p">,</span> <span class="n">category_list</span> <span class="o">=</span> <span class="n">values</span>
+    <span class="n">id_file</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span> <span class="o">=</span> <span class="n">numpy_processed_directory3</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier2&#39;</span><span class="p">)</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">train_classifier2</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span><span class="p">,</span> <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Add the species_list to the model</span>
+    <span class="n">model_state</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s1">&#39;category_list&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_state</span>
+    <span class="n">model_state</span><span class="p">[</span><span class="s1">&#39;category_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">category_list</span>
+    <span class="n">save_model</span><span class="p">(</span><span class="n">model_state</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+    <span class="c1"># Return model path</span>
+    <span class="k">return</span> <span class="n">model_path</span></div>
+
+
+<div class="viewcode-block" id="classifier_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.classifier_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">classifier_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">classifier2_train</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="canonical_classifier_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.canonical_classifier_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">canonical_classifier_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">ensembles</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">extracted_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia.other.detectexport</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">get_cnn_classifier_canonical_training_images_pytorch</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">densenet</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,)</span>
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted-classifier-canonical-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">extracted_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_classifier_canonical_training_images_pytorch</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span>
+        <span class="p">)</span>
+
+    <span class="n">weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ensemble_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ensembles</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">ensemble_num</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier-canonical-</span><span class="si">%s</span><span class="s1">-ensemble-</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">densenet</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">blur</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,)</span>
+    <span class="n">output_name</span> <span class="o">=</span> <span class="s1">&#39;classifier.canonical.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+    <span class="n">ensemble_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">)</span>
+
+    <span class="n">archive_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.zip&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ensemble_path</span><span class="p">)</span>
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">weights_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">weights_path_list</span><span class="p">)):</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+            <span class="n">ensemble_path</span><span class="p">,</span> <span class="s1">&#39;classifier.canonical.</span><span class="si">%d</span><span class="s1">.weights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">weights_path</span><span class="p">,</span> <span class="n">ensemble_weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ensemble_weights_path</span><span class="p">)</span>
+
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ensemble_path</span><span class="p">]</span> <span class="o">+</span> <span class="n">ensemble_weights_path_list</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span>
+        <span class="n">archive_path</span><span class="p">,</span> <span class="n">ensemble_weights_path_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">archive_path</span></div>
+
+
+<div class="viewcode-block" id="canonical_localizer_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.canonical_localizer_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">canonical_localizer_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">ensembles</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia.other.detectexport</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">get_cnn_localizer_canonical_training_images_pytorch</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">canonical</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,)</span>
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted-localizer-canonical-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_localizer_canonical_training_images_pytorch</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span>
+    <span class="p">)</span>
+
+    <span class="n">weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ensemble_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ensembles</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">ensemble_num</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;localizer-canonical-</span><span class="si">%s</span><span class="s1">-ensemble-</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+        <span class="p">)</span>
+        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">canonical</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+        <span class="n">weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,)</span>
+    <span class="n">output_name</span> <span class="o">=</span> <span class="s1">&#39;localizer.canonical.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+    <span class="n">ensemble_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">)</span>
+
+    <span class="n">archive_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.zip&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ensemble_path</span><span class="p">)</span>
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">weights_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">weights_path_list</span><span class="p">)):</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+            <span class="n">ensemble_path</span><span class="p">,</span> <span class="s1">&#39;localizer.canonical.</span><span class="si">%d</span><span class="s1">.weights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">weights_path</span><span class="p">,</span> <span class="n">ensemble_weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ensemble_weights_path</span><span class="p">)</span>
+
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ensemble_path</span><span class="p">]</span> <span class="o">+</span> <span class="n">ensemble_weights_path_list</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span>
+        <span class="n">archive_path</span><span class="p">,</span> <span class="n">ensemble_weights_path_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">archive_path</span></div>
+
+
+<div class="viewcode-block" id="localizer_yolo_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.localizer_yolo_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">localizer_yolo_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">pydarknet</span> <span class="kn">import</span> <span class="n">Darknet_YOLO_Detector</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">export_to_xml</span><span class="p">(</span><span class="n">species_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;localizer&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="n">dark</span> <span class="o">=</span> <span class="n">Darknet_YOLO_Detector</span><span class="p">()</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">dark</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">dark</span>
+    <span class="k">return</span> <span class="n">model_path</span></div>
+
+
+<span class="k">def</span> <span class="nf">_localizer_lightnet_validate_training_kit</span><span class="p">(</span><span class="n">lightnet_training_kit_url</span><span class="p">):</span>
+    <span class="c1"># Remove bad files</span>
+    <span class="n">delete_path_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">join</span><span class="p">(</span><span class="n">lightnet_training_kit_url</span><span class="p">,</span> <span class="s1">&#39;__MACOSX&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">delete_path</span> <span class="ow">in</span> <span class="n">delete_path_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">delete_path</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">delete_path</span><span class="p">)</span>
+
+    <span class="c1"># Ensure first-level structure</span>
+    <span class="n">bin_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">lightnet_training_kit_url</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">)</span>
+    <span class="n">cfg_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">lightnet_training_kit_url</span><span class="p">,</span> <span class="s1">&#39;cfg&#39;</span><span class="p">)</span>
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">lightnet_training_kit_url</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+    <span class="n">weights_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">lightnet_training_kit_url</span><span class="p">,</span> <span class="s1">&#39;darknet19_448.conv.23.pt&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">bin_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+
+    <span class="c1"># Ensure second-level structure</span>
+    <span class="n">dataset_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">bin_path</span><span class="p">,</span> <span class="s1">&#39;dataset.template.py&#39;</span><span class="p">)</span>
+    <span class="n">labels_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">bin_path</span><span class="p">,</span> <span class="s1">&#39;labels.template.py&#39;</span><span class="p">)</span>
+    <span class="n">test_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">bin_path</span><span class="p">,</span> <span class="s1">&#39;test.template.py&#39;</span><span class="p">)</span>
+    <span class="n">train_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">bin_path</span><span class="p">,</span> <span class="s1">&#39;train.template.py&#39;</span><span class="p">)</span>
+    <span class="n">config_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">,</span> <span class="s1">&#39;yolo.template.py&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">dataset_py_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">labels_py_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">test_py_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">train_py_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">config_py_path</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_localizer_lightnet_template_replace</span><span class="p">(</span>
+    <span class="n">template_filepath</span><span class="p">,</span> <span class="n">replace_dict</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">output_filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_filepath</span> <span class="o">=</span> <span class="n">template_filepath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.template.&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">template_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">template_file</span><span class="p">:</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">search_str</span><span class="p">,</span> <span class="n">replace_str</span> <span class="ow">in</span> <span class="n">replace_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">search_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">search_str</span><span class="p">)</span>
+        <span class="n">replace_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">replace_str</span><span class="p">)</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">search_str</span><span class="p">,</span> <span class="n">replace_str</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
+        <span class="n">output_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output_filepath</span>
+
+
+<div class="viewcode-block" id="localizer_lightnet_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.localizer_lightnet_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">localizer_lightnet_train</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">species_list</span><span class="p">,</span>
+    <span class="n">cuda_device</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">,</span>
+    <span class="n">batches</span><span class="o">=</span><span class="mi">60000</span><span class="p">,</span>
+    <span class="n">validate_with_accuracy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">deploy_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cleanup</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">cleanup_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">deploy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">cache_species_str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">lightnet</span>
+    <span class="kn">import</span> <span class="nn">subprocess</span>
+    <span class="kn">import</span> <span class="nn">datetime</span>
+    <span class="kn">import</span> <span class="nn">math</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+
+    <span class="k">assert</span> <span class="n">species_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+
+    <span class="n">lightnet_training_kit_url</span> <span class="o">=</span> <span class="n">lightnet</span><span class="o">.</span><span class="n">_download_training_kit</span><span class="p">()</span>
+    <span class="n">_localizer_lightnet_validate_training_kit</span><span class="p">(</span><span class="n">lightnet_training_kit_url</span><span class="p">)</span>
+
+    <span class="n">hashstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_nonce</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">cache_species_str</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cache_species_str</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+
+    <span class="n">cache_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cachedir</span><span class="p">,</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cache_path</span><span class="p">)</span>
+    <span class="n">training_instance_folder</span> <span class="o">=</span> <span class="s1">&#39;lightnet-training-</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cache_species_str</span><span class="p">,</span> <span class="n">hashstr</span><span class="p">)</span>
+    <span class="n">training_instance_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache_path</span><span class="p">,</span> <span class="n">training_instance_folder</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">lightnet_training_kit_url</span><span class="p">,</span> <span class="n">training_instance_path</span><span class="p">)</span>
+
+    <span class="n">backup_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">training_instance_path</span><span class="p">,</span> <span class="s1">&#39;backup&#39;</span><span class="p">)</span>
+    <span class="n">bin_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">training_instance_path</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">)</span>
+    <span class="n">cfg_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">training_instance_path</span><span class="p">,</span> <span class="s1">&#39;cfg&#39;</span><span class="p">)</span>
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">training_instance_path</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+    <span class="n">deploy_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">training_instance_path</span><span class="p">,</span> <span class="s1">&#39;deploy&#39;</span><span class="p">)</span>
+    <span class="n">weights_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">training_instance_path</span><span class="p">,</span> <span class="s1">&#39;darknet19_448.conv.23.pt&#39;</span><span class="p">)</span>
+    <span class="n">results_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">training_instance_path</span><span class="p">,</span> <span class="s1">&#39;results.txt&#39;</span><span class="p">)</span>
+    <span class="n">dataset_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">bin_path</span><span class="p">,</span> <span class="s1">&#39;dataset.template.py&#39;</span><span class="p">)</span>
+    <span class="n">labels_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">bin_path</span><span class="p">,</span> <span class="s1">&#39;labels.template.py&#39;</span><span class="p">)</span>
+    <span class="n">test_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">bin_path</span><span class="p">,</span> <span class="s1">&#39;test.template.py&#39;</span><span class="p">)</span>
+    <span class="n">train_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">bin_path</span><span class="p">,</span> <span class="s1">&#39;train.template.py&#39;</span><span class="p">)</span>
+    <span class="n">config_py_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">,</span> <span class="s1">&#39;yolo.template.py&#39;</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">export_to_xml</span><span class="p">(</span><span class="n">species_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">species_str_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,)</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">species_list</span><span class="p">]</span>
+    <span class="n">species_str</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species_str_list</span><span class="p">)</span>
+    <span class="n">replace_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;_^_YEAR_^_&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">),</span>
+        <span class="s1">&#39;_^_DATA_ROOT_^_&#39;</span><span class="p">:</span> <span class="n">data_path</span><span class="p">,</span>
+        <span class="s1">&#39;_^_SPECIES_MAPPING_^_&#39;</span><span class="p">:</span> <span class="n">species_str</span><span class="p">,</span>
+        <span class="s1">&#39;_^_NUM_BATCHES_^_&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">batches</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="n">dataset_py_path</span> <span class="o">=</span> <span class="n">_localizer_lightnet_template_replace</span><span class="p">(</span><span class="n">dataset_py_path</span><span class="p">,</span> <span class="n">replace_dict</span><span class="p">)</span>
+    <span class="n">labels_py_path</span> <span class="o">=</span> <span class="n">_localizer_lightnet_template_replace</span><span class="p">(</span><span class="n">labels_py_path</span><span class="p">,</span> <span class="n">replace_dict</span><span class="p">)</span>
+    <span class="n">test_py_path</span> <span class="o">=</span> <span class="n">_localizer_lightnet_template_replace</span><span class="p">(</span><span class="n">test_py_path</span><span class="p">,</span> <span class="n">replace_dict</span><span class="p">)</span>
+    <span class="n">train_py_path</span> <span class="o">=</span> <span class="n">_localizer_lightnet_template_replace</span><span class="p">(</span><span class="n">train_py_path</span><span class="p">,</span> <span class="n">replace_dict</span><span class="p">)</span>
+    <span class="n">config_py_path</span> <span class="o">=</span> <span class="n">_localizer_lightnet_template_replace</span><span class="p">(</span><span class="n">config_py_path</span><span class="p">,</span> <span class="n">replace_dict</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">dataset_py_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">labels_py_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">test_py_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">train_py_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">config_py_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">backup_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">results_path</span><span class="p">)</span>
+
+    <span class="n">python_exe</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span>
+    <span class="n">cuda_str</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">cuda_device</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">cuda_device</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">else</span> <span class="s1">&#39;CUDA_VISIBLE_DEVICES=</span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cuda_device</span><span class="p">,)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Call labels</span>
+    <span class="n">call_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">python_exe</span><span class="p">,</span> <span class="n">labels_py_path</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">call_str</span><span class="p">)</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">call_str</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Call training</span>
+    <span class="c1"># Example: CUDA_VISIBLE_DEVICES=X python bin/train.py -c -n cfg/yolo.py -c darknet19_448.conv.23.pt</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">cuda_str</span><span class="p">,</span>
+        <span class="n">python_exe</span><span class="p">,</span>
+        <span class="n">train_py_path</span><span class="p">,</span>
+        <span class="n">config_py_path</span><span class="p">,</span>
+        <span class="n">backup_path</span><span class="p">,</span>
+        <span class="n">weights_path</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">call_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> -c -n </span><span class="si">%s</span><span class="s1"> -b </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">call_str</span><span class="p">)</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">call_str</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">backup_path</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    x = (</span>
+<span class="sd">        &#39;CUDA_VISIBLE_DEVICES=0 &#39;,</span>
+<span class="sd">        &#39;/virtualenv/env3/bin/python&#39;,</span>
+<span class="sd">        &#39;/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/bin/test.py&#39;,</span>
+<span class="sd">        &#39;/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/cfg/yolo.py&#39;,</span>
+<span class="sd">        &#39;/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/results.txt&#39;,</span>
+<span class="sd">        &#39;/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/backup&#39;,</span>
+<span class="sd">        True,</span>
+<span class="sd">        &#39;/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/deploy&#39;,</span>
+<span class="sd">        True,</span>
+<span class="sd">        None,</span>
+<span class="sd">        False,</span>
+<span class="sd">        True,</span>
+<span class="sd">        &#39;/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/bin&#39;,</span>
+<span class="sd">        &#39;/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/cfg&#39;,</span>
+<span class="sd">        &#39;/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/data&#39;,</span>
+<span class="sd">        &#39;/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/darknet19_448.conv.23.pt&#39;,</span>
+<span class="sd">        &#39;wilddog&#39;</span>
+<span class="sd">    )</span>
+
+<span class="sd">    cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, validate_with_accuracy, deploy_path, deploy, deploy_tag, cleanup, cleanup_all, bin_path, cfg_path, data_path, weights_path, cache_species_str = x</span>
+
+<span class="sd">    call_str = &#39;CUDA_VISIBLE_DEVICES=3 /home/jason.parham/virtualenv/wildme3.6/bin/python /data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/bin/test.py -c -n /data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/cfg/yolo.py --results /data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/results.txt /data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/backup/*&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Call testing</span>
+    <span class="c1"># Example: CUDA_VISIBLE_DEVICE=X python bin/test.py -c -n cfg/yolo.py</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">cuda_str</span><span class="p">,</span>
+        <span class="n">python_exe</span><span class="p">,</span>
+        <span class="n">test_py_path</span><span class="p">,</span>
+        <span class="n">config_py_path</span><span class="p">,</span>
+        <span class="n">results_path</span><span class="p">,</span>
+        <span class="n">backup_path</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">call_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> -c -n </span><span class="si">%s</span><span class="s1"> --results </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">/*&#39;</span> <span class="o">%</span> <span class="n">args</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">call_str</span><span class="p">)</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">call_str</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">results_path</span><span class="p">)</span>
+
+    <span class="c1"># Validate results</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">results_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">results_file</span><span class="p">:</span>
+        <span class="n">line_list</span> <span class="o">=</span> <span class="n">results_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;VALIDATION ERROR!&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">line_list</span><span class="p">:</span>
+        <span class="c1"># logger.info(line)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">model_path</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">accuracy</span> <span class="o">=</span> <span class="n">line</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">accuracy</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">accuracy</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">miss_rate</span> <span class="o">=</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">-</span> <span class="n">accuracy</span><span class="p">)</span> <span class="o">/</span> <span class="mf">100.0</span>
+        <span class="k">if</span> <span class="n">validate_with_accuracy</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">miss_rate</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">miss_rate</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">miss_rate</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,))</span>
+        <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_list</span><span class="p">)</span>
+
+    <span class="n">best_result</span> <span class="o">=</span> <span class="n">result_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">best_model_filepath</span> <span class="o">=</span> <span class="n">best_result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Copy best model, delete the rest</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">deploy_path</span><span class="p">)</span>
+    <span class="n">deploy_model_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">deploy_path</span><span class="p">,</span> <span class="s1">&#39;detect.lightnet.weights&#39;</span><span class="p">)</span>
+    <span class="n">deploy_config_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">deploy_path</span><span class="p">,</span> <span class="s1">&#39;detect.lightnet.py&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">best_model_filepath</span><span class="p">,</span> <span class="n">deploy_model_filepath</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">config_py_path</span><span class="p">,</span> <span class="n">deploy_config_filepath</span><span class="p">)</span>
+
+    <span class="c1"># Cleanup</span>
+    <span class="k">if</span> <span class="n">cleanup</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">backup_path</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">results_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cleanup_all</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">bin_path</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+
+    <span class="c1"># Deploy</span>
+    <span class="n">final_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;public&#39;</span><span class="p">,</span> <span class="s1">&#39;models&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">deploy</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_path</span><span class="p">),</span> <span class="s1">&#39;Cannot deploy the model on this machine&#39;</span>
+        <span class="k">if</span> <span class="n">deploy_tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">deploy_tag</span> <span class="o">=</span> <span class="n">cache_species_str</span>
+
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">final_config_prefix</span> <span class="o">=</span> <span class="s1">&#39;detect.lightnet.</span><span class="si">%s</span><span class="s1">.v</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">deploy_tag</span><span class="p">,</span> <span class="n">counter</span><span class="p">)</span>
+            <span class="n">final_config_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.py&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">final_config_prefix</span><span class="p">,)</span>
+            <span class="n">final_config_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">final_path</span><span class="p">,</span> <span class="n">final_config_filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_config_filepath</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">final_model_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.weights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">final_config_prefix</span><span class="p">,)</span>
+        <span class="n">final_model_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">final_path</span><span class="p">,</span> <span class="n">final_model_filename</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_model_filepath</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_config_filepath</span><span class="p">)</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deploy_model_filepath</span><span class="p">,</span> <span class="n">final_model_filepath</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deploy_config_filepath</span><span class="p">,</span> <span class="n">final_config_filepath</span><span class="p">)</span>
+
+        <span class="n">retval</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">final_model_filepath</span><span class="p">,</span>
+            <span class="n">final_config_filepath</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">deploy_model_filepath</span><span class="p">,</span>
+            <span class="n">deploy_config_filepath</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">retval</span></div>
+
+
+<div class="viewcode-block" id="validate_model"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.validate_model">[docs]</a><span class="k">def</span> <span class="nf">validate_model</span><span class="p">(</span>
+    <span class="n">cuda_str</span><span class="p">,</span>
+    <span class="n">python_exe</span><span class="p">,</span>
+    <span class="n">test_py_path</span><span class="p">,</span>
+    <span class="n">config_py_path</span><span class="p">,</span>
+    <span class="n">results_path</span><span class="p">,</span>
+    <span class="n">backup_path</span><span class="p">,</span>
+    <span class="n">validate_with_accuracy</span><span class="p">,</span>
+    <span class="n">deploy_path</span><span class="p">,</span>
+    <span class="n">deploy</span><span class="p">,</span>
+    <span class="n">deploy_tag</span><span class="p">,</span>
+    <span class="n">cleanup</span><span class="p">,</span>
+    <span class="n">cleanup_all</span><span class="p">,</span>
+    <span class="n">bin_path</span><span class="p">,</span>
+    <span class="n">cfg_path</span><span class="p">,</span>
+    <span class="n">data_path</span><span class="p">,</span>
+    <span class="n">weights_path</span><span class="p">,</span>
+    <span class="n">cache_species_str</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">subprocess</span>
+
+    <span class="c1"># Call testing</span>
+    <span class="c1"># Example: CUDA_VISIBLE_DEVICE=X python bin/test.py -c -n cfg/yolo.py</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">cuda_str</span><span class="p">,</span>
+        <span class="n">python_exe</span><span class="p">,</span>
+        <span class="n">test_py_path</span><span class="p">,</span>
+        <span class="n">config_py_path</span><span class="p">,</span>
+        <span class="n">results_path</span><span class="p">,</span>
+        <span class="n">backup_path</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">call_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> -c -n </span><span class="si">%s</span><span class="s1"> --results </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">/*&#39;</span> <span class="o">%</span> <span class="n">args</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">call_str</span><span class="p">)</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">call_str</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">results_path</span><span class="p">)</span>
+
+    <span class="c1"># Validate results</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">results_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">results_file</span><span class="p">:</span>
+        <span class="n">line_list</span> <span class="o">=</span> <span class="n">results_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;VALIDATION ERROR!&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">line_list</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">model_path</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">accuracy</span> <span class="o">=</span> <span class="n">line</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">accuracy</span><span class="p">)</span>
+        <span class="n">miss_rate</span> <span class="o">=</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">-</span> <span class="n">accuracy</span><span class="p">)</span> <span class="o">/</span> <span class="mf">100.0</span>
+        <span class="k">if</span> <span class="n">validate_with_accuracy</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">miss_rate</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">miss_rate</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,))</span>
+        <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_list</span><span class="p">)</span>
+
+    <span class="n">best_result</span> <span class="o">=</span> <span class="n">result_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">best_model_filepath</span> <span class="o">=</span> <span class="n">best_result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Copy best model, delete the rest</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">deploy_path</span><span class="p">)</span>
+    <span class="n">deploy_model_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">deploy_path</span><span class="p">,</span> <span class="s1">&#39;detect.lightnet.weights&#39;</span><span class="p">)</span>
+    <span class="n">deploy_config_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">deploy_path</span><span class="p">,</span> <span class="s1">&#39;detect.lightnet.py&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">best_model_filepath</span><span class="p">,</span> <span class="n">deploy_model_filepath</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">config_py_path</span><span class="p">,</span> <span class="n">deploy_config_filepath</span><span class="p">)</span>
+
+    <span class="c1"># Cleanup</span>
+    <span class="k">if</span> <span class="n">cleanup</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">backup_path</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">results_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cleanup_all</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">bin_path</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">cfg_path</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+
+    <span class="c1"># Deploy</span>
+    <span class="n">final_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;public&#39;</span><span class="p">,</span> <span class="s1">&#39;models&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">deploy</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_path</span><span class="p">),</span> <span class="s1">&#39;Cannot deploy the model on this machine&#39;</span>
+        <span class="k">if</span> <span class="n">deploy_tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">deploy_tag</span> <span class="o">=</span> <span class="n">cache_species_str</span>
+
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">final_config_prefix</span> <span class="o">=</span> <span class="s1">&#39;detect.lightnet.</span><span class="si">%s</span><span class="s1">.v</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">deploy_tag</span><span class="p">,</span> <span class="n">counter</span><span class="p">)</span>
+            <span class="n">final_config_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.py&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">final_config_prefix</span><span class="p">,)</span>
+            <span class="n">final_config_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">final_path</span><span class="p">,</span> <span class="n">final_config_filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_config_filepath</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">final_model_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.weights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">final_config_prefix</span><span class="p">,)</span>
+        <span class="n">final_model_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">final_path</span><span class="p">,</span> <span class="n">final_model_filename</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_model_filepath</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">final_config_filepath</span><span class="p">)</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deploy_model_filepath</span><span class="p">,</span> <span class="n">final_model_filepath</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deploy_config_filepath</span><span class="p">,</span> <span class="n">final_config_filepath</span><span class="p">)</span>
+
+        <span class="n">retval</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">final_model_filepath</span><span class="p">,</span>
+            <span class="n">final_config_filepath</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">deploy_model_filepath</span><span class="p">,</span>
+            <span class="n">deploy_config_filepath</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">retval</span></div>
+
+
+<div class="viewcode-block" id="labeler_train_wbia_cnn"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.labeler_train_wbia_cnn">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">labeler_train_wbia_cnn</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">species_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.ingest_wbia</span> <span class="kn">import</span> <span class="n">get_cnn_labeler_training_images</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.process</span> <span class="kn">import</span> <span class="n">numpy_processed_directory2</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.models.labeler</span> <span class="kn">import</span> <span class="n">train_labeler</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.utils</span> <span class="kn">import</span> <span class="n">save_model</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted&#39;</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_labeler_training_images</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">data_path</span><span class="p">,</span>
+        <span class="n">category_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">,</span>
+        <span class="n">category_mapping</span><span class="o">=</span><span class="n">species_mapping</span><span class="p">,</span>
+        <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="n">viewpoint_mapping</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">id_file</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span> <span class="o">=</span> <span class="n">numpy_processed_directory2</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;labeler&#39;</span><span class="p">)</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">train_labeler</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span><span class="p">)</span>
+    <span class="c1"># Add the species_list to the model</span>
+    <span class="n">model_state</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s1">&#39;category_list&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_state</span>
+    <span class="n">model_state</span><span class="p">[</span><span class="s1">&#39;category_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">species_list</span>
+    <span class="k">assert</span> <span class="s1">&#39;viewpoint_mapping&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_state</span>
+    <span class="n">model_state</span><span class="p">[</span><span class="s1">&#39;viewpoint_mapping&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewpoint_mapping</span>
+    <span class="n">save_model</span><span class="p">(</span><span class="n">model_state</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_path</span></div>
+
+
+<div class="viewcode-block" id="labeler_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.labeler_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">labeler_train</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">species_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ensembles</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia.other.detectexport</span> <span class="kn">import</span> <span class="n">get_cnn_labeler_training_images_pytorch</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">densenet</span>
+
+    <span class="n">species</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,)</span>
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted-labeler-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_cnn_labeler_training_images_pytorch</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">category_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">,</span>
+        <span class="n">category_mapping</span><span class="o">=</span><span class="n">species_mapping</span><span class="p">,</span>
+        <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="n">viewpoint_mapping</span><span class="p">,</span>
+        <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ensemble_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ensembles</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">ensemble_num</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;labeler-</span><span class="si">%s</span><span class="s1">-ensemble-</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">densenet</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">blur</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,)</span>
+    <span class="n">output_name</span> <span class="o">=</span> <span class="s1">&#39;labeler.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+    <span class="n">ensemble_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">)</span>
+
+    <span class="n">archive_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.zip&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ensemble_path</span><span class="p">)</span>
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">weights_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">weights_path_list</span><span class="p">)):</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">,</span> <span class="s1">&#39;labeler.</span><span class="si">%d</span><span class="s1">.weights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">weights_path</span><span class="p">,</span> <span class="n">ensemble_weights_path</span><span class="p">)</span>
+        <span class="n">ensemble_weights_path_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ensemble_weights_path</span><span class="p">)</span>
+
+    <span class="n">ensemble_weights_path_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ensemble_path</span><span class="p">]</span> <span class="o">+</span> <span class="n">ensemble_weights_path_list</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span>
+        <span class="n">archive_path</span><span class="p">,</span> <span class="n">ensemble_weights_path_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">archive_path</span></div>
+
+
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># def qualifier_train(ibs, **kwargs):</span>
+<span class="c1">#     from wbia_cnn.ingest_wbia import get_cnn_qualifier_training_images</span>
+<span class="c1">#     from wbia_cnn.process import numpy_processed_directory2</span>
+<span class="c1">#     from wbia_cnn.models.qualifier import train_qualifier</span>
+<span class="c1">#     data_path = join(ibs.get_cachedir(), &#39;extracted&#39;)</span>
+<span class="c1">#     extracted_path = get_cnn_qualifier_training_images(ibs, data_path, **kwargs)</span>
+<span class="c1">#     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)</span>
+<span class="c1">#     output_path = join(ibs.get_cachedir(), &#39;training&#39;, &#39;qualifier&#39;)</span>
+<span class="c1">#     model_path = train_qualifier(output_path, X_file, y_file)</span>
+<span class="c1">#     return model_path</span>
+
+
+<div class="viewcode-block" id="detector_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.detector_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">detector_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">localizer_yolo_train</span><span class="p">()</span>
+    <span class="n">localizer_weight_path</span><span class="p">,</span> <span class="n">localizer_config_path</span><span class="p">,</span> <span class="n">localizer_class_path</span> <span class="o">=</span> <span class="n">results</span>
+    <span class="n">classifier_model_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">classifier_binary_train</span><span class="p">()</span>
+    <span class="n">labeler_model_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">labeler_train</span><span class="p">()</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;detector&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">localizer_weight_path</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;localizer.weights&#39;</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">localizer_config_path</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;localizer.config&#39;</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">localizer_class_path</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;localizer.classes&#39;</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">classifier_model_path</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;classifier.npy&#39;</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">labeler_model_path</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;labeler.npy&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="background_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.background_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">background_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">train_gid_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">global_limit</span><span class="o">=</span><span class="mi">500000</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">    &gt;&gt;&gt; values = output_path, X_file, y_file</span>
+<span class="sd">    &gt;&gt;&gt; print(values)</span>
+<span class="sd">    &gt;&gt;&gt; output_path, X_file, y_file = values</span>
+<span class="sd">    &gt;&gt;&gt; from wbia_cnn.models.background import train_background</span>
+<span class="sd">    &gt;&gt;&gt; values = (</span>
+<span class="sd">    &gt;&gt;&gt;     &#39;/data/ibeis/IMS_Master/_ibsdb/_ibeis_cache/training/background&#39;,</span>
+<span class="sd">    &gt;&gt;&gt;     &#39;/data/ibeis/IMS_Master/_ibsdb/_ibeis_cache/extracted/background/raw/X.npy&#39;,</span>
+<span class="sd">    &gt;&gt;&gt;     &#39;/data/ibeis/IMS_Master/_ibsdb/_ibeis_cache/extracted/background/labels/y.npy&#39;</span>
+<span class="sd">    &gt;&gt;&gt; )</span>
+<span class="sd">    &gt;&gt;&gt; output_path, X_file, y_file = values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.ingest_wbia</span> <span class="kn">import</span> <span class="n">get_background_training_patches2</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.process</span> <span class="kn">import</span> <span class="n">numpy_processed_directory2</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.models.background</span> <span class="kn">import</span> <span class="n">train_background</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.utils</span> <span class="kn">import</span> <span class="n">save_model</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted&#39;</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_background_training_patches2</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">species</span><span class="p">,</span>
+        <span class="n">data_path</span><span class="p">,</span>
+        <span class="n">patch_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">train_gid_set</span><span class="o">=</span><span class="n">train_gid_set</span><span class="p">,</span>
+        <span class="n">global_limit</span><span class="o">=</span><span class="n">global_limit</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">id_file</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span> <span class="o">=</span> <span class="n">numpy_processed_directory2</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;background&#39;</span><span class="p">)</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">train_background</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span><span class="p">)</span>
+    <span class="n">model_state</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s1">&#39;species&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_state</span>
+    <span class="n">model_state</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">species</span>
+    <span class="n">save_model</span><span class="p">(</span><span class="n">model_state</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_path</span></div>
+
+
+<div class="viewcode-block" id="aoi_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.aoi_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">aoi_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.ingest_wbia</span> <span class="kn">import</span> <span class="n">get_aoi_training_data</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.process</span> <span class="kn">import</span> <span class="n">numpy_processed_directory4</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.models.aoi</span> <span class="kn">import</span> <span class="n">train_aoi</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.utils</span> <span class="kn">import</span> <span class="n">save_model</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted&#39;</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_aoi_training_data</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span> <span class="n">target_species_list</span><span class="o">=</span><span class="n">species_list</span>
+    <span class="p">)</span>
+    <span class="n">id_file</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span> <span class="o">=</span> <span class="n">numpy_processed_directory4</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;aoi&#39;</span><span class="p">)</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">train_aoi</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span><span class="p">)</span>
+    <span class="n">model_state</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s1">&#39;species_list&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_state</span>
+    <span class="n">model_state</span><span class="p">[</span><span class="s1">&#39;species_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">species_list</span>
+    <span class="n">save_model</span><span class="p">(</span><span class="n">model_state</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_path</span></div>
+
+
+<div class="viewcode-block" id="aoi2_train"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detecttrain.aoi2_train">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">aoi2_train</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">train_gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.ingest_wbia</span> <span class="kn">import</span> <span class="n">get_aoi2_training_data</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.process</span> <span class="kn">import</span> <span class="n">numpy_processed_directory5</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.models.aoi2</span> <span class="kn">import</span> <span class="n">train_aoi2</span>
+    <span class="kn">from</span> <span class="nn">wbia_cnn.utils</span> <span class="kn">import</span> <span class="n">save_model</span>
+
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;extracted&#39;</span><span class="p">)</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">get_aoi2_training_data</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">dest_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
+        <span class="n">target_species_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">,</span>
+        <span class="n">train_gid_list</span><span class="o">=</span><span class="n">train_gid_list</span><span class="p">,</span>
+        <span class="n">purge</span><span class="o">=</span><span class="n">purge</span><span class="p">,</span>
+        <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">id_file</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span> <span class="o">=</span> <span class="n">numpy_processed_directory5</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="s1">&#39;aoi2&#39;</span><span class="p">)</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">train_aoi2</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">X_file</span><span class="p">,</span> <span class="n">y_file</span><span class="p">)</span>
+    <span class="n">model_state</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s1">&#39;species_list&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_state</span>
+    <span class="n">model_state</span><span class="p">[</span><span class="s1">&#39;species_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">species_list</span>
+    <span class="n">save_model</span><span class="p">(</span><span class="n">model_state</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_path</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

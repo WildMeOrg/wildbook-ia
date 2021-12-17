@@ -484,7 +484,7 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
         >>> show_toy_distributions(toy_data['toy_params'])
         >>> ut.show_if_requested()
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.unstable.demobayes import *  # NOQA
         >>> toy_data = get_toy_data_1v1()

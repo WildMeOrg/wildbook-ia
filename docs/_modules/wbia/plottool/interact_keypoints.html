@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.interact_keypoints &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.interact_keypoints</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.interact_keypoints</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool.viz_featrow</span> <span class="kn">import</span> <span class="n">draw_feat_row</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool.viz_keypoints</span> <span class="kn">import</span> <span class="n">show_keypoints</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">abstract_interaction</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="KeypointInteraction"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_keypoints.KeypointInteraction">[docs]</a><span class="k">class</span> <span class="nc">KeypointInteraction</span><span class="p">(</span><span class="n">abstract_interaction</span><span class="o">.</span><span class="n">AbstractInteraction</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.interact_keypoints --exec-KeypointInteraction --show</span>
+<span class="sd">        python -m wbia.plottool.interact_keypoints --exec-KeypointInteraction --show --fname=lena.png</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.interact_keypoints import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; import pyhesaff</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; #pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color=&#39;distinct&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.interact_keypoints.KeypointInteraction(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, autostart=True)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chip</span> <span class="o">=</span> <span class="n">chip</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kpts</span> <span class="o">=</span> <span class="n">kpts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vecs</span> <span class="o">=</span> <span class="n">vecs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figtitle</span> <span class="o">=</span> <span class="n">figtitle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">KeypointInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="KeypointInteraction.plot"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_keypoints.KeypointInteraction.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">show_keypoints</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chip</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">figtitle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figtitle</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_select_ith_kpt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fx</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[interact] viewing ith=</span><span class="si">%r</span><span class="s1"> keypoint&#39;</span> <span class="o">%</span> <span class="n">fx</span><span class="p">)</span>
+        <span class="c1"># Get the fx-th keypiont</span>
+        <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts</span><span class="p">[</span><span class="n">fx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vecs</span><span class="p">[</span><span class="n">fx</span><span class="p">]</span>
+        <span class="c1"># Draw the image with keypoint fx highlighted</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">sel_fx</span><span class="o">=</span><span class="n">fx</span><span class="p">)</span>
+        <span class="c1"># Draw the selected feature</span>
+        <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">draw_feat_row</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chip</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="KeypointInteraction.on_click_outside"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_keypoints.KeypointInteraction.on_click_outside">[docs]</a>    <span class="k">def</span> <span class="nf">on_click_outside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>
+        <span class="n">ell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... default kpts view mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">ell</span><span class="o">=</span><span class="n">ell</span><span class="p">,</span> <span class="n">pts</span><span class="o">=</span><span class="n">pts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KeypointInteraction.on_click_inside"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_keypoints.KeypointInteraction.on_click_inside">[docs]</a>    <span class="k">def</span> <span class="nf">on_click_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ik] viztype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">viztype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;keypoints&#39;</span><span class="p">:</span>
+            <span class="n">kpts</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;kpts&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nokpts&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nearest&#39;</span><span class="p">)</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>
+                <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+                <span class="n">fx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">nearest_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_select_ith_kpt</span><span class="p">(</span><span class="n">fx</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;warped&#39;</span><span class="p">:</span>
+            <span class="n">hs_fx</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;fx&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">hs_fx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">kp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts</span><span class="p">[</span><span class="n">hs_fx</span><span class="p">]</span>  <span class="c1"># FIXME</span>
+                <span class="n">sift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vecs</span><span class="p">[</span><span class="n">hs_fx</span><span class="p">]</span>
+                <span class="n">df2</span><span class="o">.</span><span class="n">draw_keypoint_gradient_orientations</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">chip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="o">=</span><span class="n">sift</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;vec&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+                <span class="p">)</span>
+                <span class="n">pt</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;colorbar&#39;</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...unhandled&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="ishow_keypoints"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_keypoints.ishow_keypoints">[docs]</a><span class="k">def</span> <span class="nf">ishow_keypoints</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nodraw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: Depricate in favor of the class</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.interact_keypoints --test-ishow_keypoints --show</span>
+<span class="sd">        python -m wbia.plottool.interact_keypoints --test-ishow_keypoints --show --fname zebra.png</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.interact_keypoints import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; import pyhesaff</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; #pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color=&#39;distinct&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+        <span class="n">chip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">chip</span><span class="p">)</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s1">&#39;keypoint&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
+    <span class="n">annote_ptr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>  <span class="c1"># MOVE TO A CLASS INTERACTION</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">kpts</span> <span class="o">=</span> <span class="n">kpts</span>
+    <span class="n">vecs</span> <span class="o">=</span> <span class="n">desc</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">vecs</span> <span class="o">=</span> <span class="n">vecs</span>
+
+    <span class="k">def</span> <span class="nf">_select_ith_kpt</span><span class="p">(</span><span class="n">fx</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[interact] viewing ith=</span><span class="si">%r</span><span class="s1"> keypoint&#39;</span> <span class="o">%</span> <span class="n">fx</span><span class="p">)</span>
+        <span class="c1"># Get the fx-th keypiont</span>
+        <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span> <span class="o">=</span> <span class="n">kpts</span><span class="p">[</span><span class="n">fx</span><span class="p">],</span> <span class="n">vecs</span><span class="p">[</span><span class="n">fx</span><span class="p">]</span>
+        <span class="c1"># Draw the image with keypoint fx highlighted</span>
+        <span class="n">_viz_keypoints</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">sel_fx</span><span class="o">=</span><span class="n">fx</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># MAYBE: remove kwargs</span>
+        <span class="c1"># Draw the selected feature</span>
+        <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">draw_feat_row</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_viz_keypoints</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">show_keypoints</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">figtitle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_keypoints_click</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[viz] clicked keypoint view&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">event</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">annote_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">annote_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="n">annote_ptr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ell</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... default kpts view mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+            <span class="n">_viz_keypoints</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="n">ell</span><span class="o">=</span><span class="n">ell</span><span class="p">,</span> <span class="n">pts</span><span class="o">=</span><span class="n">pts</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># MAYBE: remove kwargs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
+            <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ik] viztype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;keypoints&#39;</span><span class="p">:</span>
+                <span class="n">kpts</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;kpts&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nokpts&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nearest&#39;</span><span class="p">)</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>
+                    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+                    <span class="n">fx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">nearest_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">_select_ith_kpt</span><span class="p">(</span><span class="n">fx</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;warped&#39;</span><span class="p">:</span>
+                <span class="n">hs_fx</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;fx&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="c1"># kpts = ph.get_plotdat(ax, &#39;kpts&#39;, [])</span>
+                <span class="k">if</span> <span class="n">hs_fx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Ugly. Interactions should be changed to classes.</span>
+                    <span class="n">kp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts</span><span class="p">[</span><span class="n">hs_fx</span><span class="p">]</span>  <span class="c1"># FIXME</span>
+                    <span class="n">sift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vecs</span><span class="p">[</span><span class="n">hs_fx</span><span class="p">]</span>
+                    <span class="n">df2</span><span class="o">.</span><span class="n">draw_keypoint_gradient_orientations</span><span class="p">(</span>
+                        <span class="n">chip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="o">=</span><span class="n">sift</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;vec&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+                    <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;colorbar&#39;</span><span class="p">):</span>
+                <span class="k">pass</span>
+                <span class="c1"># Hack to get a specific scoring feature</span>
+                <span class="c1"># sortx = self.fs.argsort()</span>
+                <span class="c1"># idx = np.clip(int(np.round(y * len(sortx))), 0, len(sortx) - 1)</span>
+                <span class="c1"># mx = sortx[idx]</span>
+                <span class="c1"># (fx1, fx2) = self.fm[mx]</span>
+                <span class="c1"># (fx1, fx2) = self.fm[mx]</span>
+                <span class="c1"># logger.info(&#39;... selected score at rank idx=%r&#39; % (idx,))</span>
+                <span class="c1"># logger.info(&#39;... selected score with fs=%r&#39; % (self.fs[mx],))</span>
+                <span class="c1"># logger.info(&#39;... resolved to mx=%r&#39; % mx)</span>
+                <span class="c1"># logger.info(&#39;... fx1, fx2 = %r, %r&#39; % (fx1, fx2,))</span>
+                <span class="c1"># self.select_ith_match(mx)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...unhandled&#39;</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+    <span class="c1"># Draw without keypoints the first time</span>
+    <span class="n">_viz_keypoints</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># MAYBE: remove kwargs</span>
+    <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="n">_on_keypoints_click</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">nodraw</span><span class="p">:</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

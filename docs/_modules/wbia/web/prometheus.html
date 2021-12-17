@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.web.prometheus &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.web.prometheus</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.web.prometheus</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">prometheus_client</span> <span class="kn">import</span> <span class="n">Info</span><span class="p">,</span> <span class="n">Gauge</span><span class="p">,</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">Histogram</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.web.apis_query</span> <span class="kn">import</span> <span class="n">RENDER_STATUS</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">wbia.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">PROMETHEUS_COUNTER</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">PROMETHEUS_LIMIT</span> <span class="o">=</span> <span class="mi">1</span>
+
+
+<span class="n">PROMETHEUS_DATA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="n">Info</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_db&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Description of WBIA database&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;update&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_update_seconds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of seconds for the most recent Prometheus update&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;imagesets&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_assets_imagesets&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of imagesets in WBIA database&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;images&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_assets_images&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of images in WBIA database&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;annotations&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_assets_annotations&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of annotations in WBIA database&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;parts&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_assets_parts&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of parts in WBIA database&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;names&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_assets_names&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of names in WBIA database&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_assets_species&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of species in WBIA database&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;renders&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_assets_renders&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of rendered images in WBIA database&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;engine&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_engine_jobs&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Job engine status&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;process&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_engine_dead_process&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Job engine status&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;process&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;elapsed&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_elapsed_seconds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of elapsed seconds for the current working job&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;runtime&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_runtime_seconds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of runtime seconds for the current working job&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;turnaround&#39;</span><span class="p">:</span> <span class="n">Gauge</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_turnaround_seconds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of turnaround seconds for the current working job&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;api&#39;</span><span class="p">:</span> <span class="n">Counter</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_api_counter&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of calls per WBIA API&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;tag&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;route&#39;</span><span class="p">:</span> <span class="n">Counter</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_route_counter&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of calls per WBIA route endpoint&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;tag&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;exception&#39;</span><span class="p">:</span> <span class="n">Counter</span><span class="p">(</span>
+        <span class="s1">&#39;wbia_exception_counter&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Number of web exceptions&#39;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;tag&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="n">PROMETHUS_JOB_CACHE_DICT</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="prometheus_increment_api"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.prometheus.prometheus_increment_api">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">prometheus_increment_api</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">:</span>
+            <span class="n">container_name</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">CONTAINER_NAME</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">container_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+
+        <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;api&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span><span class="o">.</span><span class="n">inc</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="prometheus_increment_route"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.prometheus.prometheus_increment_route">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">prometheus_increment_route</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">:</span>
+            <span class="n">container_name</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">CONTAINER_NAME</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">container_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+
+        <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;route&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span><span class="o">.</span><span class="n">inc</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="prometheus_increment_exception"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.prometheus.prometheus_increment_exception">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">prometheus_increment_exception</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">:</span>
+            <span class="n">container_name</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">CONTAINER_NAME</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">container_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+
+        <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;exception&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span><span class="o">.</span><span class="n">inc</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="prometheus_update"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.prometheus.prometheus_update">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/api/test/prometheus/&#39;</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s1">&#39;PUT&#39;</span><span class="p">],</span>
+    <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">prometheus_update</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">timer</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">:</span>
+                <span class="n">container_name</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">CONTAINER_NAME</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">container_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span>
+
+            <span class="k">global</span> <span class="n">PROMETHEUS_COUNTER</span>
+
+            <span class="k">global</span> <span class="n">RENDER_STATUS</span>
+
+            <span class="k">if</span> <span class="n">RENDER_STATUS</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">RENDER_STATUS</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_init_render_status</span><span class="p">()</span>
+
+            <span class="n">PROMETHEUS_COUNTER</span> <span class="o">=</span> <span class="n">PROMETHEUS_COUNTER</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># NOQA</span>
+            <span class="c1"># logger.info(&#39;PROMETHEUS LIMIT %d / %d&#39; % (PROMETHEUS_COUNTER, PROMETHEUS_LIMIT, ))</span>
+
+            <span class="k">if</span> <span class="n">PROMETHEUS_COUNTER</span> <span class="o">&gt;=</span> <span class="n">PROMETHEUS_LIMIT</span><span class="p">:</span>
+                <span class="n">PROMETHEUS_COUNTER</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()),</span>
+                            <span class="s1">&#39;dbname&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">,</span>
+                            <span class="s1">&#39;hostname&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">(),</span>
+                            <span class="s1">&#39;container&#39;</span><span class="p">:</span> <span class="n">container_name</span><span class="p">,</span>
+                            <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">(),</span>
+                            <span class="s1">&#39;containerized&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">)),</span>
+                            <span class="s1">&#39;production&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">production</span><span class="p">)),</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">production</span><span class="p">:</span>
+                        <span class="n">num_imageset_rowids</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="n">num_gids</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="n">num_aids</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="n">num_pids</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="n">num_nids</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="n">num_species</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">num_imageset_rowids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_imageset_rowids</span><span class="p">())</span>
+                        <span class="n">num_gids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_gids</span><span class="p">())</span>
+                        <span class="n">num_aids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">())</span>
+                        <span class="n">num_pids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_part_rowids</span><span class="p">())</span>
+                        <span class="n">num_nids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_name_rowids</span><span class="p">())</span>
+                        <span class="n">num_species</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">())</span>
+
+                    <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;imagesets&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                        <span class="n">num_imageset_rowids</span>
+                    <span class="p">)</span>
+                    <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;images&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">num_gids</span><span class="p">)</span>
+                    <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;annotations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                        <span class="n">num_aids</span>
+                    <span class="p">)</span>
+                    <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;parts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">num_pids</span><span class="p">)</span>
+                    <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;names&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">num_nids</span><span class="p">)</span>
+                    <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                        <span class="n">num_species</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">job_status_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_job_status</span><span class="p">()[</span><span class="s1">&#39;json_result&#39;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">job_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">job_status_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                    <span class="n">status_dict_template</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;received&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;accepted&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;queued&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;working&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;publishing&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;completed&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;exception&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;suppressed&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;corrupted&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="p">}</span>
+                    <span class="n">status_dict</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;*&#39;</span><span class="p">:</span> <span class="n">status_dict_template</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                        <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">status_dict_template</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                    <span class="p">}</span>
+
+                    <span class="n">endpoints</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+                    <span class="n">working_endpoint</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="k">for</span> <span class="n">job_uuid</span> <span class="ow">in</span> <span class="n">job_uuid_list</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">job_status</span> <span class="o">=</span> <span class="n">job_status_dict</span><span class="p">[</span><span class="n">job_uuid</span><span class="p">]</span>
+
+                        <span class="n">status</span> <span class="o">=</span> <span class="n">job_status</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span>
+                        <span class="n">endpoint</span> <span class="o">=</span> <span class="n">job_status</span><span class="p">[</span><span class="s1">&#39;endpoint&#39;</span><span class="p">]</span>
+                        <span class="n">jobcounter</span> <span class="o">=</span> <span class="n">job_status</span><span class="p">[</span><span class="s1">&#39;jobcounter&#39;</span><span class="p">]</span>
+
+                        <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,)</span>
+                        <span class="n">endpoint</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">endpoint</span><span class="p">,)</span>
+
+                        <span class="k">if</span> <span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">status_dict_template</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                            <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;_error&#39;</span>
+
+                        <span class="k">if</span> <span class="n">endpoint</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">status_dict</span><span class="p">:</span>
+                            <span class="n">status_dict</span><span class="p">[</span><span class="n">endpoint</span><span class="p">]</span> <span class="o">=</span> <span class="n">status_dict_template</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+                        <span class="n">endpoints</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;working&#39;</span><span class="p">]:</span>
+                            <span class="kn">from</span> <span class="nn">wbia.web.job_engine</span> <span class="kn">import</span> <span class="p">(</span>
+                                <span class="n">calculate_timedelta</span><span class="p">,</span>
+                                <span class="n">_timestamp</span><span class="p">,</span>
+                            <span class="p">)</span>
+
+                            <span class="n">started</span> <span class="o">=</span> <span class="n">job_status</span><span class="p">[</span><span class="s1">&#39;time_started&#39;</span><span class="p">]</span>
+                            <span class="n">now</span> <span class="o">=</span> <span class="n">_timestamp</span><span class="p">()</span>
+                            <span class="p">(</span>
+                                <span class="n">hours</span><span class="p">,</span>
+                                <span class="n">minutes</span><span class="p">,</span>
+                                <span class="n">seconds</span><span class="p">,</span>
+                                <span class="n">total_seconds</span><span class="p">,</span>
+                            <span class="p">)</span> <span class="o">=</span> <span class="n">calculate_timedelta</span><span class="p">(</span><span class="n">started</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                                <span class="s1">&#39;ELAPSED (</span><span class="si">%s</span><span class="s1">): </span><span class="si">%d</span><span class="s1"> seconds...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">job_uuid</span><span class="p">,</span> <span class="n">total_seconds</span><span class="p">)</span>
+                            <span class="p">)</span>
+                            <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;elapsed&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                                <span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">total_seconds</span><span class="p">)</span>
+                            <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;elapsed&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                                <span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="s1">&#39;*&#39;</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">total_seconds</span><span class="p">)</span>
+                            <span class="n">working_endpoint</span> <span class="o">=</span> <span class="n">endpoint</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">status_dict_template</span><span class="p">:</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;UNRECOGNIZED STATUS </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,))</span>
+                        <span class="n">status_dict</span><span class="p">[</span><span class="n">endpoint</span><span class="p">][</span><span class="n">status</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">status_dict</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">][</span><span class="n">status</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                        <span class="n">current_max</span> <span class="o">=</span> <span class="n">status_dict</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">][</span><span class="n">status</span><span class="p">]</span>
+                        <span class="n">status_dict</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">][</span><span class="n">status</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">current_max</span><span class="p">,</span> <span class="n">jobcounter</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">job_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROMETHUS_JOB_CACHE_DICT</span><span class="p">:</span>
+                            <span class="n">PROMETHUS_JOB_CACHE_DICT</span><span class="p">[</span><span class="n">job_uuid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">runtime_sec</span> <span class="o">=</span> <span class="n">job_status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time_runtime_sec&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="p">(</span>
+                            <span class="n">runtime_sec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                            <span class="ow">and</span> <span class="s1">&#39;runtime&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROMETHUS_JOB_CACHE_DICT</span><span class="p">[</span><span class="n">job_uuid</span><span class="p">]</span>
+                        <span class="p">):</span>
+                            <span class="n">PROMETHUS_JOB_CACHE_DICT</span><span class="p">[</span><span class="n">job_uuid</span><span class="p">][</span><span class="s1">&#39;runtime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">runtime_sec</span>
+                            <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;runtime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                                <span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">runtime_sec</span><span class="p">)</span>
+                            <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;runtime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                                <span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="s1">&#39;*&#39;</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">runtime_sec</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">turnaround_sec</span> <span class="o">=</span> <span class="n">job_status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time_turnaround_sec&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="p">(</span>
+                            <span class="n">turnaround_sec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                            <span class="ow">and</span> <span class="s1">&#39;turnaround&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROMETHUS_JOB_CACHE_DICT</span><span class="p">[</span><span class="n">job_uuid</span><span class="p">]</span>
+                        <span class="p">):</span>
+                            <span class="n">PROMETHUS_JOB_CACHE_DICT</span><span class="p">[</span><span class="n">job_uuid</span><span class="p">][</span>
+                                <span class="s1">&#39;turnaround&#39;</span>
+                            <span class="p">]</span> <span class="o">=</span> <span class="n">turnaround_sec</span>
+                            <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;turnaround&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                                <span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">turnaround_sec</span><span class="p">)</span>
+                            <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;turnaround&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                                <span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="s1">&#39;*&#39;</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">turnaround_sec</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">working_endpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;elapsed&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                            <span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="s1">&#39;*&#39;</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">endpoint</span> <span class="ow">in</span> <span class="n">endpoints</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">endpoint</span> <span class="o">==</span> <span class="n">working_endpoint</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                        <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;elapsed&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                            <span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># logger.info(ut.repr3(status_dict))</span>
+                    <span class="k">for</span> <span class="n">endpoint</span> <span class="ow">in</span> <span class="n">status_dict</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">status_dict</span><span class="p">[</span><span class="n">endpoint</span><span class="p">]:</span>
+                            <span class="n">number</span> <span class="o">=</span> <span class="n">status_dict</span><span class="p">[</span><span class="n">endpoint</span><span class="p">][</span><span class="n">status</span><span class="p">]</span>
+                            <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;engine&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">RENDER_STATUS</span><span class="p">:</span>
+                        <span class="n">number</span> <span class="o">=</span> <span class="n">RENDER_STATUS</span><span class="p">[</span><span class="n">status</span><span class="p">]</span>
+                        <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;renders&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                            <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">container_name</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># logger.info(ut.repr3(status_dict))</span>
+                    <span class="n">process_status_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_process_alive_status</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">process</span> <span class="ow">in</span> <span class="n">process_status_dict</span><span class="p">:</span>
+                        <span class="n">number</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">process_status_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+                        <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;process&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span>
+                            <span class="n">process</span><span class="o">=</span><span class="n">process</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">container_name</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">PROMETHEUS_DATA</span><span class="p">[</span><span class="s1">&#39;update&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">container_name</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">timer</span><span class="o">.</span><span class="n">ellapsed</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

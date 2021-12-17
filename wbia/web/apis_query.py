@@ -382,7 +382,7 @@ def review_graph_match_html(
         >>> ut.render_html(html_str)
         >>> ut.show_if_requested()
 
-    Example2:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> # xdoctest: +REQUIRES(--job-engine-tests)
         >>> # This starts off using web to get information, but finishes the rest in python
@@ -1380,7 +1380,7 @@ def query_chips(
         use_cache (bool): turns on/off chip match cache (default: True)
         use_bigcache (bool): turns one/off chunked chip match cache (default:
             True)
-        qreq_ (QueryRequest): optional, a QueryRequest object that
+        qreq\_ (QueryRequest): optional, a QueryRequest object that
             overrides all previous settings
         return_request (bool): returns the request which will be created if
             one is not already specified
@@ -1391,7 +1391,7 @@ def query_chips(
             annotations, scores, and feature matches
 
     Returns(2):
-        tuple: (cm_list, qreq_) - a list of query results and optionally the
+        tuple: (cm_list, qreq\_) - a list of query results and optionally the
             QueryRequest object used
 
     RESTful:
@@ -1403,10 +1403,10 @@ def query_chips(
 
         # Test speed of single query
         python -m wbia --tf IBEISController.query_chips --db PZ_Master1 \
-            -a default:qindex=0:1,dindex=0:500 --nocache-hs
+        -a default:qindex=0:1,dindex=0:500 --nocache-hs
 
         python -m wbia --tf IBEISController.query_chips --db PZ_Master1 \
-            -a default:qindex=0:1,dindex=0:3000 --nocache-hs
+        -a default:qindex=0:1,dindex=0:3000 --nocache-hs
 
         python -m wbia.web.apis_query --test-query_chips:1 --show
         python -m wbia.web.apis_query --test-query_chips:2 --show
@@ -1438,7 +1438,7 @@ def query_chips(
         >>> cm.ishow_analysis(qreq_)
         >>> ut.show_if_requested()
 
-    Example1:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> import wbia

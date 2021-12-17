@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wbia.plottool</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># flake8: noqa</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Wrappers around matplotlib</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;2.1.2&#39;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[plottool.__init__]&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># Hopefully this was imported sooner. TODO remove dependency</span>
+<span class="c1"># from wbia.guitool import __PYQT__</span>
+<span class="c1"># import wbia.guitool.__PYQT__ as __PYQT__</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">__MPL_INIT__</span>
+
+<span class="n">__MPL_INIT__</span><span class="o">.</span><span class="n">init_matplotlib</span><span class="p">()</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
+<span class="c1"># mpl.use(&#39;Qt4Agg&#39;)</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">plot_helpers</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">mpl_keypoint</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">mpl_keypoint</span> <span class="k">as</span> <span class="n">mpl_kp</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">mpl_sift</span> <span class="k">as</span> <span class="n">mpl_sift</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">draw_func2</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">custom_constants</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">custom_figure</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">draw_sv</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz_featrow</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz_keypoints</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz_image2</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">plots</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interact_annotations</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interact_keypoints</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interact_multi_image</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interactions</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interact_impaint</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">color_funcs</span>
+
+<span class="c1"># from . import abstract_iteraction</span>
+
+
+<span class="c1"># TODO utoolify this</span>
+<span class="n">IMPORT_TUPLES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s1">&#39;plot_helpers&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;fig_presenter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;custom_constants&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;custom_figure&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;plots&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;draw_func2&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_impaint&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interactions&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_multi_image&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_keypoints&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_matches&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="c1"># (&#39;abstract_iteraction&#39;, None),</span>
+    <span class="p">(</span><span class="s1">&#39;nx_helpers&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="c1"># The other module shouldn&#39;t exist.</span>
+<span class="c1"># Functions in it need to be organized</span>
+<span class="kn">from</span> <span class="nn">.plots</span> <span class="kn">import</span> <span class="n">draw_hist_subbin_maxima</span>
+
+<span class="c1"># from .draw_func2 import *  # NOQA</span>
+<span class="kn">from</span> <span class="nn">.mpl_keypoint</span> <span class="kn">import</span> <span class="n">draw_keypoints</span>
+<span class="kn">from</span> <span class="nn">.mpl_sift</span> <span class="kn">import</span> <span class="n">draw_sifts</span><span class="p">,</span> <span class="n">render_sift_on_patch</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
+
+<span class="kn">import</span> <span class="nn">utool</span>
+
+<span class="c1"># def reload_subs():</span>
+<span class="c1">#    rrr()</span>
+<span class="c1">#    df2.rrr()</span>
+<span class="c1">#    plot_helpers.rrr()</span>
+<span class="c1">#    draw_sv.rrr()</span>
+<span class="c1">#    viz_keypoints.rrr()</span>
+<span class="c1">#    viz_image2.rrr()</span>
+<span class="c1">#    rrr()</span>
+
+<span class="c1"># rrrr = reload_subs</span>
+
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="n">__DYNAMIC__</span> <span class="o">=</span> <span class="s1">&#39;--nodyn&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+
+<span class="c1"># __DYNAMIC__ = &#39;--dyn&#39; in sys.argv</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">python -c &quot;import wbia.plottool&quot; --dump-plottool-init</span>
+<span class="sd">python -c &quot;import wbia.plottool&quot; --update-plottool-init</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="n">DOELSE</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">if</span> <span class="n">__DYNAMIC__</span><span class="p">:</span>
+    <span class="c1"># TODO: import all utool external prereqs. Then the imports will not import</span>
+    <span class="c1"># anything that has already in a toplevel namespace</span>
+    <span class="c1"># COMMENTED OUT FOR FROZEN __INIT__</span>
+    <span class="c1"># Dynamically import listed util libraries and their members.</span>
+    <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">util_importer</span>
+
+    <span class="c1"># FIXME: this might actually work with rrrr, but things arent being</span>
+    <span class="c1"># reimported because they are already in the modules list</span>
+    <span class="n">ignore_endswith</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_cyth&#39;</span><span class="p">]</span>
+    <span class="n">import_execstr</span> <span class="o">=</span> <span class="n">util_importer</span><span class="o">.</span><span class="n">dynamic_import</span><span class="p">(</span>
+        <span class="vm">__name__</span><span class="p">,</span> <span class="n">IMPORT_TUPLES</span><span class="p">,</span> <span class="n">ignore_endswith</span><span class="o">=</span><span class="n">ignore_endswith</span>
+    <span class="p">)</span>
+    <span class="n">exec</span><span class="p">(</span><span class="n">import_execstr</span><span class="p">)</span>
+    <span class="n">DOELSE</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># Do the nonexec import (can force it to happen no matter what if alwyas set</span>
+    <span class="c1"># to True)</span>
+    <span class="n">DOELSE</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="k">if</span> <span class="n">DOELSE</span><span class="p">:</span>
+    <span class="k">pass</span>
+    <span class="c1"># &lt;AUTOGEN_INIT&gt;</span>
+
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">plot_helpers</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">custom_constants</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">custom_figure</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">plots</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">draw_func2</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interact_impaint</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interactions</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interact_multi_image</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interact_keypoints</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interact_matches</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">nx_helpers</span>
+    <span class="kn">from</span> <span class="nn">.plot_helpers</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">SIFT_OR_VECFIELD</span><span class="p">,</span>
+        <span class="n">del_plotdat</span><span class="p">,</span>
+        <span class="n">draw</span><span class="p">,</span>
+        <span class="n">ensureqt</span><span class="p">,</span>
+        <span class="n">get_bbox_centers</span><span class="p">,</span>
+        <span class="n">get_plotdat</span><span class="p">,</span>
+        <span class="n">get_plotdat_dict</span><span class="p">,</span>
+        <span class="n">get_square_row_cols</span><span class="p">,</span>
+        <span class="n">kp_info</span><span class="p">,</span>
+        <span class="n">qt4ensure</span><span class="p">,</span>
+        <span class="n">set_plotdat</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.fig_presenter</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">SLEEP_TIME</span><span class="p">,</span>
+        <span class="n">VERBOSE</span><span class="p">,</span>
+        <span class="n">all_figures_bring_to_front</span><span class="p">,</span>
+        <span class="n">all_figures_show</span><span class="p">,</span>
+        <span class="n">all_figures_tight_layout</span><span class="p">,</span>
+        <span class="n">all_figures_tile</span><span class="p">,</span>
+        <span class="n">bring_to_front</span><span class="p">,</span>
+        <span class="n">close_all_figures</span><span class="p">,</span>
+        <span class="n">close_figure</span><span class="p">,</span>
+        <span class="n">get_all_figures</span><span class="p">,</span>
+        <span class="n">get_all_qt4_wins</span><span class="p">,</span>
+        <span class="n">get_all_windows</span><span class="p">,</span>
+        <span class="n">get_fig</span><span class="p">,</span>
+        <span class="n">get_figure_window</span><span class="p">,</span>
+        <span class="n">get_geometry</span><span class="p">,</span>
+        <span class="n">get_main_win_base</span><span class="p">,</span>
+        <span class="n">iup</span><span class="p">,</span>
+        <span class="n">iupdate</span><span class="p">,</span>
+        <span class="n">present</span><span class="p">,</span>
+        <span class="n">register_qt4_win</span><span class="p">,</span>
+        <span class="n">reset</span><span class="p">,</span>
+        <span class="n">set_geometry</span><span class="p">,</span>
+        <span class="n">show</span><span class="p">,</span>
+        <span class="n">show_figure</span><span class="p">,</span>
+        <span class="n">unregister_qt4_win</span><span class="p">,</span>
+        <span class="n">update</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.custom_constants</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">BLACK</span><span class="p">,</span>
+        <span class="n">BLUE</span><span class="p">,</span>
+        <span class="n">BRIGHT_GREEN</span><span class="p">,</span>
+        <span class="n">BRIGHT_PURPLE</span><span class="p">,</span>
+        <span class="n">DARK_BLUE</span><span class="p">,</span>
+        <span class="n">DARK_GREEN</span><span class="p">,</span>
+        <span class="n">DARK_ORANGE</span><span class="p">,</span>
+        <span class="n">DARK_RED</span><span class="p">,</span>
+        <span class="n">DARK_YELLOW</span><span class="p">,</span>
+        <span class="n">DEEP_PINK</span><span class="p">,</span>
+        <span class="n">DPI</span><span class="p">,</span>
+        <span class="n">FALSE_RED</span><span class="p">,</span>
+        <span class="n">FIGSIZE</span><span class="p">,</span>
+        <span class="n">FIGSIZE_BIGGER</span><span class="p">,</span>
+        <span class="n">FIGSIZE_GOLD</span><span class="p">,</span>
+        <span class="n">FIGSIZE_HUGE</span><span class="p">,</span>
+        <span class="n">FIGSIZE_MED</span><span class="p">,</span>
+        <span class="n">FIGSIZE_SQUARE</span><span class="p">,</span>
+        <span class="n">FONTS</span><span class="p">,</span>
+        <span class="n">FontProp</span><span class="p">,</span>
+        <span class="n">GRAY</span><span class="p">,</span>
+        <span class="n">GREEN</span><span class="p">,</span>
+        <span class="n">LARGE</span><span class="p">,</span>
+        <span class="n">LARGER</span><span class="p">,</span>
+        <span class="n">LIGHTGRAY</span><span class="p">,</span>
+        <span class="n">LIGHT_BLUE</span><span class="p">,</span>
+        <span class="n">LIGHT_GREEN</span><span class="p">,</span>
+        <span class="n">LIGHT_PINK</span><span class="p">,</span>
+        <span class="n">LIGHT_PURPLE</span><span class="p">,</span>
+        <span class="n">MED</span><span class="p">,</span>
+        <span class="n">NEUTRAL</span><span class="p">,</span>
+        <span class="n">NEUTRAL_BLUE</span><span class="p">,</span>
+        <span class="n">ORANGE</span><span class="p">,</span>
+        <span class="n">PHI</span><span class="p">,</span>
+        <span class="n">PHI_denom</span><span class="p">,</span>
+        <span class="n">PHI_numer</span><span class="p">,</span>
+        <span class="n">PINK</span><span class="p">,</span>
+        <span class="n">PURPLE</span><span class="p">,</span>
+        <span class="n">PURPLE2</span><span class="p">,</span>
+        <span class="n">RED</span><span class="p">,</span>
+        <span class="n">SMALL</span><span class="p">,</span>
+        <span class="n">SMALLER</span><span class="p">,</span>
+        <span class="n">SMALLEST</span><span class="p">,</span>
+        <span class="n">TRUE_BLUE</span><span class="p">,</span>
+        <span class="n">TRUE_GREEN</span><span class="p">,</span>
+        <span class="n">UNKNOWN_PURP</span><span class="p">,</span>
+        <span class="n">WHITE</span><span class="p">,</span>
+        <span class="n">YELLOW</span><span class="p">,</span>
+        <span class="n">golden_wh</span><span class="p">,</span>
+        <span class="n">golden_wh2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.custom_figure</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">FIGTITLE_SIZE</span><span class="p">,</span>
+        <span class="n">LABEL_SIZE</span><span class="p">,</span>
+        <span class="n">LEGEND_SIZE</span><span class="p">,</span>
+        <span class="n">TITLE_SIZE</span><span class="p">,</span>
+        <span class="n">cla</span><span class="p">,</span>
+        <span class="n">clf</span><span class="p">,</span>
+        <span class="n">customize_figure</span><span class="p">,</span>
+        <span class="n">customize_fontprop</span><span class="p">,</span>
+        <span class="n">figure</span><span class="p">,</span>
+        <span class="n">gca</span><span class="p">,</span>
+        <span class="n">gcf</span><span class="p">,</span>
+        <span class="n">get_ax</span><span class="p">,</span>
+        <span class="n">get_image_from_figure</span><span class="p">,</span>
+        <span class="n">prepare_figure_for_save</span><span class="p">,</span>
+        <span class="n">prepare_figure_fpath</span><span class="p">,</span>
+        <span class="n">sanitize_img_ext</span><span class="p">,</span>
+        <span class="n">sanitize_img_fname</span><span class="p">,</span>
+        <span class="n">save_figure</span><span class="p">,</span>
+        <span class="n">set_figtitle</span><span class="p">,</span>
+        <span class="n">set_ticks</span><span class="p">,</span>
+        <span class="n">set_title</span><span class="p">,</span>
+        <span class="n">set_xlabel</span><span class="p">,</span>
+        <span class="n">set_xticks</span><span class="p">,</span>
+        <span class="n">set_ylabel</span><span class="p">,</span>
+        <span class="n">set_yticks</span><span class="p">,</span>
+        <span class="n">split</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.plots</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">colorline</span><span class="p">,</span>
+        <span class="n">draw_histogram</span><span class="p">,</span>
+        <span class="n">draw_time_distribution</span><span class="p">,</span>
+        <span class="n">draw_time_histogram</span><span class="p">,</span>
+        <span class="n">draw_timedelta_pie</span><span class="p">,</span>
+        <span class="n">estimate_pdf</span><span class="p">,</span>
+        <span class="n">get_good_logyscale_kwargs</span><span class="p">,</span>
+        <span class="n">interval_line_plot</span><span class="p">,</span>
+        <span class="n">interval_stats_plot</span><span class="p">,</span>
+        <span class="n">is_default_dark_bg</span><span class="p">,</span>
+        <span class="n">multi_plot</span><span class="p">,</span>
+        <span class="n">plot_densities</span><span class="p">,</span>
+        <span class="n">plot_multiple_scores</span><span class="p">,</span>
+        <span class="n">plot_pdf</span><span class="p">,</span>
+        <span class="n">plot_probabilities</span><span class="p">,</span>
+        <span class="n">plot_probs</span><span class="p">,</span>
+        <span class="n">plot_rank_cumhist</span><span class="p">,</span>
+        <span class="n">plot_score_histograms</span><span class="p">,</span>
+        <span class="n">plot_search_surface</span><span class="p">,</span>
+        <span class="n">plot_sorted_scores</span><span class="p">,</span>
+        <span class="n">plot_stems</span><span class="p">,</span>
+        <span class="n">set_logyscale_from_data</span><span class="p">,</span>
+        <span class="n">unicode_literals</span><span class="p">,</span>
+        <span class="n">word_histogram2</span><span class="p">,</span>
+        <span class="n">wordcloud</span><span class="p">,</span>
+        <span class="n">zoom_effect01</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.draw_func2</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">BASE_FNUM</span><span class="p">,</span>
+        <span class="n">DARKEN</span><span class="p">,</span>
+        <span class="n">DEBUG</span><span class="p">,</span>
+        <span class="n">DF2_DIVIDER_KEY</span><span class="p">,</span>
+        <span class="n">FALSE</span><span class="p">,</span>
+        <span class="n">LEGEND_LOCATION</span><span class="p">,</span>
+        <span class="n">OffsetImage2</span><span class="p">,</span>
+        <span class="n">RenderingContext</span><span class="p">,</span>
+        <span class="n">SAFE_POS</span><span class="p">,</span>
+        <span class="n">TAU</span><span class="p">,</span>
+        <span class="n">TMP_mevent</span><span class="p">,</span>
+        <span class="n">TRUE</span><span class="p">,</span>
+        <span class="n">absolute_lbl</span><span class="p">,</span>
+        <span class="n">add_alpha</span><span class="p">,</span>
+        <span class="n">adjust_subplots</span><span class="p">,</span>
+        <span class="n">adjust_subplots</span><span class="p">,</span>
+        <span class="n">adjust_subplots_safe</span><span class="p">,</span>
+        <span class="n">append_phantom_legend_label</span><span class="p">,</span>
+        <span class="n">ax_absolute_text</span><span class="p">,</span>
+        <span class="n">ax_relative_text</span><span class="p">,</span>
+        <span class="n">axes_bottom_button_bar</span><span class="p">,</span>
+        <span class="n">cartoon_stacked_rects</span><span class="p">,</span>
+        <span class="n">color_orimag</span><span class="p">,</span>
+        <span class="n">color_orimag_colorbar</span><span class="p">,</span>
+        <span class="n">colorbar</span><span class="p">,</span>
+        <span class="n">customize_colormap</span><span class="p">,</span>
+        <span class="n">dark_background</span><span class="p">,</span>
+        <span class="n">distinct_colors</span><span class="p">,</span>
+        <span class="n">distinct_markers</span><span class="p">,</span>
+        <span class="n">draw_bbox</span><span class="p">,</span>
+        <span class="n">draw_border</span><span class="p">,</span>
+        <span class="n">draw_boxedX</span><span class="p">,</span>
+        <span class="n">draw_keypoint_gradient_orientations</span><span class="p">,</span>
+        <span class="n">draw_keypoint_patch</span><span class="p">,</span>
+        <span class="n">draw_kpts2</span><span class="p">,</span>
+        <span class="n">draw_line_segments</span><span class="p">,</span>
+        <span class="n">draw_line_segments2</span><span class="p">,</span>
+        <span class="n">draw_lines2</span><span class="p">,</span>
+        <span class="n">draw_patches_and_sifts</span><span class="p">,</span>
+        <span class="n">draw_stems</span><span class="p">,</span>
+        <span class="n">draw_text</span><span class="p">,</span>
+        <span class="n">draw_text_annotations</span><span class="p">,</span>
+        <span class="n">draw_vector_field</span><span class="p">,</span>
+        <span class="n">ensure_divider</span><span class="p">,</span>
+        <span class="n">ensure_fnum</span><span class="p">,</span>
+        <span class="n">execstr_global</span><span class="p">,</span>
+        <span class="n">extract_axes_extents</span><span class="p">,</span>
+        <span class="n">fig_relative_text</span><span class="p">,</span>
+        <span class="n">fnum_generator</span><span class="p">,</span>
+        <span class="n">get_all_markers</span><span class="p">,</span>
+        <span class="n">get_axis_bbox</span><span class="p">,</span>
+        <span class="n">get_axis_xy_width_height</span><span class="p">,</span>
+        <span class="n">get_binary_svm_cmap</span><span class="p">,</span>
+        <span class="n">get_num_rc</span><span class="p">,</span>
+        <span class="n">get_orientation_color</span><span class="p">,</span>
+        <span class="n">get_pnum_func</span><span class="p">,</span>
+        <span class="n">get_save_directions</span><span class="p">,</span>
+        <span class="n">imshow</span><span class="p">,</span>
+        <span class="n">imshow_null</span><span class="p">,</span>
+        <span class="n">is_texmode</span><span class="p">,</span>
+        <span class="n">label_to_colors</span><span class="p">,</span>
+        <span class="n">legend</span><span class="p">,</span>
+        <span class="n">lighten_rgb</span><span class="p">,</span>
+        <span class="n">lowerright_text</span><span class="p">,</span>
+        <span class="n">make_axes_locatable</span><span class="p">,</span>
+        <span class="n">make_bbox</span><span class="p">,</span>
+        <span class="n">make_bbox_positioners</span><span class="p">,</span>
+        <span class="n">make_fnum_nextgen</span><span class="p">,</span>
+        <span class="n">make_ori_legend_img</span><span class="p">,</span>
+        <span class="n">make_pnum_nextgen</span><span class="p">,</span>
+        <span class="n">next_fnum</span><span class="p">,</span>
+        <span class="n">overlay_icon</span><span class="p">,</span>
+        <span class="n">pad_axes</span><span class="p">,</span>
+        <span class="n">param_plot_iterator</span><span class="p">,</span>
+        <span class="n">parse_fontkw</span><span class="p">,</span>
+        <span class="n">plot</span><span class="p">,</span>
+        <span class="n">plot2</span><span class="p">,</span>
+        <span class="n">plotWidget</span><span class="p">,</span>
+        <span class="n">plot_bars</span><span class="p">,</span>
+        <span class="n">plot_descriptor_signature</span><span class="p">,</span>
+        <span class="n">plot_fmatch</span><span class="p">,</span>
+        <span class="n">plot_func</span><span class="p">,</span>
+        <span class="n">plot_hist</span><span class="p">,</span>
+        <span class="n">plot_histpdf</span><span class="p">,</span>
+        <span class="n">plot_sift_signature</span><span class="p">,</span>
+        <span class="n">plot_surface3d</span><span class="p">,</span>
+        <span class="n">pnum_generator</span><span class="p">,</span>
+        <span class="n">postsetup_axes</span><span class="p">,</span>
+        <span class="n">presetup_axes</span><span class="p">,</span>
+        <span class="n">print_valid_cmaps</span><span class="p">,</span>
+        <span class="n">remove_patches</span><span class="p">,</span>
+        <span class="n">render_figure_to_image</span><span class="p">,</span>
+        <span class="n">reverse_colormap</span><span class="p">,</span>
+        <span class="n">rotate_plot</span><span class="p">,</span>
+        <span class="n">scores_to_cmap</span><span class="p">,</span>
+        <span class="n">scores_to_color</span><span class="p">,</span>
+        <span class="n">set_axis_extent</span><span class="p">,</span>
+        <span class="n">set_axis_limit</span><span class="p">,</span>
+        <span class="n">set_figsize</span><span class="p">,</span>
+        <span class="n">show_chipmatch2</span><span class="p">,</span>
+        <span class="n">show_histogram</span><span class="p">,</span>
+        <span class="n">show_if_requested</span><span class="p">,</span>
+        <span class="n">show_kpts</span><span class="p">,</span>
+        <span class="n">show_phantom_legend_labels</span><span class="p">,</span>
+        <span class="n">show_signature</span><span class="p">,</span>
+        <span class="n">show_was_requested</span><span class="p">,</span>
+        <span class="n">small_xticks</span><span class="p">,</span>
+        <span class="n">small_yticks</span><span class="p">,</span>
+        <span class="n">space_xticks</span><span class="p">,</span>
+        <span class="n">space_yticks</span><span class="p">,</span>
+        <span class="n">to_base255</span><span class="p">,</span>
+        <span class="n">udpate_adjust_subplots</span><span class="p">,</span>
+        <span class="n">unique_rows</span><span class="p">,</span>
+        <span class="n">update_figsize</span><span class="p">,</span>
+        <span class="n">upperleft_text</span><span class="p">,</span>
+        <span class="n">upperright_text</span><span class="p">,</span>
+        <span class="n">variation_trunctate</span><span class="p">,</span>
+        <span class="n">width_from</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.interact_impaint</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">PAINTER_BASE</span><span class="p">,</span>
+        <span class="n">PaintInteraction</span><span class="p">,</span>
+        <span class="n">draw_demo</span><span class="p">,</span>
+        <span class="n">impaint_mask2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.interactions</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">ExpandableInteraction</span><span class="p">,</span>
+        <span class="n">PanEvents</span><span class="p">,</span>
+        <span class="n">check_if_subinteract</span><span class="p">,</span>
+        <span class="n">pan_factory</span><span class="p">,</span>
+        <span class="n">zoom_factory</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.interact_multi_image</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">BASE_CLASS</span><span class="p">,</span>
+        <span class="n">Button</span><span class="p">,</span>
+        <span class="n">MultiImageInteraction</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.interact_keypoints</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">KeypointInteraction</span><span class="p">,</span>
+        <span class="n">draw_feat_row</span><span class="p">,</span>
+        <span class="n">ishow_keypoints</span><span class="p">,</span>
+        <span class="n">show_keypoints</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.interact_matches</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">MatchInteraction2</span><span class="p">,</span>
+        <span class="n">show_keypoint_gradient_orientations</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.nx_helpers</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">GraphVizLayoutConfig</span><span class="p">,</span>
+        <span class="n">LARGE_GRAPH</span><span class="p">,</span>
+        <span class="n">apply_graph_layout_attrs</span><span class="p">,</span>
+        <span class="n">draw_network2</span><span class="p">,</span>
+        <span class="n">dump_nx_ondisk</span><span class="p">,</span>
+        <span class="n">ensure_nonhex_color</span><span class="p">,</span>
+        <span class="n">format_anode_pos</span><span class="p">,</span>
+        <span class="n">get_explicit_graph</span><span class="p">,</span>
+        <span class="n">get_nx_layout</span><span class="p">,</span>
+        <span class="n">make_agraph</span><span class="p">,</span>
+        <span class="n">make_agraph_args</span><span class="p">,</span>
+        <span class="n">netx_draw_images_at_positions</span><span class="p">,</span>
+        <span class="n">nx_agraph_layout</span><span class="p">,</span>
+        <span class="n">parse_aedge_layout_attrs</span><span class="p">,</span>
+        <span class="n">parse_anode_layout_attrs</span><span class="p">,</span>
+        <span class="n">parse_point</span><span class="p">,</span>
+        <span class="n">show_nx</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+
+    <span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[plottool]&#39;</span><span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="reassign_submodule_attributes"><a class="viewcode-back" href="../../wbia.plottool.html#wbia.plottool.reassign_submodule_attributes">[docs]</a>    <span class="k">def</span> <span class="nf">reassign_submodule_attributes</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        why reloading all the modules doesnt do this I don&#39;t know</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">sys</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="s1">&#39;--quiet&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dev reimport&#39;</span><span class="p">)</span>
+        <span class="c1"># Self import</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span>
+
+        <span class="c1"># Implicit reassignment.</span>
+        <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">IMPORT_TUPLES</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                <span class="k">continue</span>  <span class="c1"># dont import package names</span>
+            <span class="n">submodname</span><span class="p">,</span> <span class="n">fromimports</span> <span class="o">=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">submod</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">plottool</span><span class="p">,</span> <span class="n">submodname</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">submod</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+                    <span class="c1"># This just holds off bad behavior</span>
+                    <span class="c1"># but it does mimic normal util_import behavior</span>
+                    <span class="c1"># which is good</span>
+                    <span class="k">continue</span>
+                <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">plottool</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">submod</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../../wbia.plottool.html#wbia.plottool.reload_subs">[docs]</a>    <span class="k">def</span> <span class="nf">reload_subs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reloads plottool and submodules&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reloading submodules&#39;</span><span class="p">)</span>
+        <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">wrap_fbrrr</span><span class="p">(</span><span class="n">mod</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">fbrrr</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;fallback reload&quot;&quot;&quot;</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No fallback relaod for mod=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mod</span><span class="p">,))</span>
+                <span class="c1"># Breaks ut.Pref (which should be depricated anyway)</span>
+                <span class="c1"># import imp</span>
+                <span class="c1"># imp.reload(mod)</span>
+
+            <span class="k">return</span> <span class="n">fbrrr</span>
+
+        <span class="k">def</span> <span class="nf">get_rrr</span><span class="p">(</span><span class="n">mod</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">mod</span><span class="o">.</span><span class="n">rrr</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">wrap_fbrrr</span><span class="p">(</span><span class="n">mod</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">get_reload_subs</span><span class="p">(</span><span class="n">mod</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="n">wrap_fbrrr</span><span class="p">(</span><span class="n">mod</span><span class="p">))</span>
+
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">plot_helpers</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">fig_presenter</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">custom_constants</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">custom_figure</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">plots</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">draw_func2</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">interact_impaint</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">interactions</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">interact_multi_image</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">interact_keypoints</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">interact_matches</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">get_rrr</span><span class="p">(</span><span class="n">nx_helpers</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># hackish way of propogating up the new reloaded submodule attributes</span>
+            <span class="n">reassign_submodule_attributes</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span></div>
+
+    <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
+    <span class="c1"># &lt;/AUTOGEN_INIT&gt;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

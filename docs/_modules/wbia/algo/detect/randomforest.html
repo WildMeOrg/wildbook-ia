@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.detect.randomforest &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../detect.html">wbia.algo.detect</a> &raquo;</li>
+      <li>wbia.algo.detect.randomforest</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.detect.randomforest</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Interface to pyrf random forest object detection.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">grabmodels</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[randomforest]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-pyrf&#39;</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">pyrf</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;WARNING Failed to import pyrf. &#39;</span> <span class="s1">&#39;Randomforest detection is unavailable&#39;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
+            <span class="k">raise</span>
+
+<span class="n">VERBOSE_RF</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--verbrf&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
+
+
+<div class="viewcode-block" id="train_gid_list"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.randomforest.train_gid_list">[docs]</a><span class="k">def</span> <span class="nf">train_gid_list</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">trees_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setup</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">teardown</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list of int): the list of IBEIS image_rowids that need detection</span>
+<span class="sd">        trees_path (str): the path that the trees will be saved into (along</span>
+<span class="sd">            with temporary training inventory folders that are deleted once</span>
+<span class="sd">            training is finished)</span>
+<span class="sd">        species (str): the species that should be used to assign to the newly</span>
+<span class="sd">            trained trees</span>
+
+<span class="sd">    Kwargs (optional): refer to the PyRF documentation for configuration settings</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[randomforest.train()] training with </span><span class="si">%d</span><span class="s1"> gids and species=</span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="n">species</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">trees_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">trees_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;trees&#39;</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+
+    <span class="c1"># Get positive chip paths</span>
+    <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids_of_species</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+
+    <span class="c1"># ##### TEMP #####</span>
+    <span class="c1"># gid_list_ = []</span>
+    <span class="c1"># aids_list_ = []</span>
+    <span class="c1"># for gid, aid_list in zip(gid_list, aids_list):</span>
+    <span class="c1">#     if len(aid_list) &gt; 1:</span>
+    <span class="c1">#         gid_list_.append(gid)</span>
+    <span class="c1">#         aids_list_.append(aid_list)</span>
+    <span class="c1">#     elif len(aid_list) == 1:</span>
+    <span class="c1">#         (xtl, ytl, width, height) = ibs.get_annot_bboxes(aid_list)[0]</span>
+    <span class="c1">#         if xtl &gt; 5 and ytl &gt; 5:</span>
+    <span class="c1">#             gid_list_.append(gid)</span>
+    <span class="c1">#             aids_list_.append(aid_list)</span>
+    <span class="c1"># gid_list = gid_list_</span>
+    <span class="c1"># aids_list = aids_list_</span>
+    <span class="c1"># kwargs[&#39;trees_max_patches&#39;] = 100000</span>
+    <span class="c1"># ##### TEMP #####</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">train_pos_cpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="c1"># Ensure directories for negatives</span>
+    <span class="n">negatives_cache</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;pyrf_train_negatives&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">setup</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">negatives_cache</span><span class="p">))</span> <span class="ow">or</span> <span class="n">setup</span> <span class="o">==</span> <span class="s1">&#39;force&#39;</span><span class="p">:</span>
+        <span class="c1"># Force Check</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">negatives_cache</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">remove_dirs</span><span class="p">(</span><span class="n">negatives_cache</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">negatives_cache</span><span class="p">)</span>
+        <span class="c1"># Get negative chip paths</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[randomforest.train()] Mining </span><span class="si">%d</span><span class="s1"> negative patches&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_pos_cpath_list</span><span class="p">),)</span>
+        <span class="p">)</span>
+        <span class="n">train_neg_cpath_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_neg_cpath_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_pos_cpath_list</span><span class="p">):</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">gid</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[</span><span class="n">sample</span><span class="p">]</span>
+            <span class="n">img_width</span><span class="p">,</span> <span class="n">img_height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">img_width</span><span class="p">,</span> <span class="n">img_height</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids_of_species</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+            <span class="n">annot_bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="c1"># Find square patches</span>
+            <span class="n">square</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">size</span> <span class="o">/</span> <span class="mi">4</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">xmin</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">img_width</span> <span class="o">-</span> <span class="n">square</span><span class="p">)</span>
+            <span class="n">xmax</span> <span class="o">=</span> <span class="n">xmin</span> <span class="o">+</span> <span class="n">square</span>
+            <span class="n">ymin</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">img_height</span> <span class="o">-</span> <span class="n">square</span><span class="p">)</span>
+            <span class="n">ymax</span> <span class="o">=</span> <span class="n">ymin</span> <span class="o">+</span> <span class="n">square</span>
+            <span class="k">if</span> <span class="n">_valid_candidate</span><span class="p">((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span> <span class="n">annot_bbox_list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">VERBOSE_RF</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;[</span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">] MINING NEGATIVE PATCH (</span><span class="si">%04d</span><span class="s1">, </span><span class="si">%04d</span><span class="s1">, </span><span class="si">%04d</span><span class="s1">, </span><span class="si">%04d</span><span class="s1">) FROM GID </span><span class="si">%d</span><span class="s1">&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">train_neg_cpath_list</span><span class="p">),</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="n">train_pos_cpath_list</span><span class="p">),</span>
+                            <span class="n">xmin</span><span class="p">,</span>
+                            <span class="n">xmax</span><span class="p">,</span>
+                            <span class="n">ymin</span><span class="p">,</span>
+                            <span class="n">ymax</span><span class="p">,</span>
+                            <span class="n">gid</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+                <span class="n">img_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+                    <span class="n">negatives_cache</span><span class="p">,</span> <span class="s1">&#39;neg_</span><span class="si">%07d</span><span class="s1">.JPEG&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_neg_cpath_list</span><span class="p">),)</span>
+                <span class="p">)</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">ymin</span><span class="p">:</span><span class="n">ymax</span><span class="p">,</span> <span class="n">xmin</span><span class="p">:</span><span class="n">xmax</span><span class="p">]</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">img_path</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span>
+                <span class="n">train_neg_cpath_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">train_neg_cpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">negatives_cache</span><span class="p">,</span> <span class="s1">&#39;*.JPEG&#39;</span><span class="p">)</span>
+        <span class="c1"># direct = Directory(negatives_cache, include_file_extensions=[&#39;JPEG&#39;])</span>
+        <span class="c1"># train_neg_cpath_list = direct.files()</span>
+
+    <span class="c1"># Train trees</span>
+    <span class="n">train_gpath_list</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span>
+        <span class="n">train_pos_cpath_list</span><span class="p">,</span>
+        <span class="n">train_neg_cpath_list</span><span class="p">,</span>
+        <span class="n">trees_path</span><span class="o">=</span><span class="n">trees_path</span><span class="p">,</span>
+        <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Remove cached negatives directory</span>
+    <span class="k">if</span> <span class="n">teardown</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">remove_dirs</span><span class="p">(</span><span class="n">negatives_cache</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="train_gpath_list"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.randomforest.train_gpath_list">[docs]</a><span class="k">def</span> <span class="nf">train_gpath_list</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">train_pos_cpath_list</span><span class="p">,</span> <span class="n">train_neg_cpath_list</span><span class="p">,</span> <span class="n">trees_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        train_pos_cpath_list (list of str): the list of positive image paths</span>
+<span class="sd">            for training</span>
+<span class="sd">        train_neg_cpath_list (list of str): the list of negative image paths</span>
+<span class="sd">            for training</span>
+<span class="sd">        trees_path (str): the path that the trees will be saved into (along</span>
+<span class="sd">            with temporary training inventory folders that are deleted once</span>
+<span class="sd">            training is finished)</span>
+<span class="sd">        species (str, optional): the species that should be used to assign to</span>
+<span class="sd">            the newly trained trees</span>
+
+<span class="sd">    Kwargs (optional): refer to the PyRF documentation for configuration settings</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">trees_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">trees_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_treesdir</span><span class="p">(),</span> <span class="s1">&#39;generic&#39;</span><span class="p">)</span>
+    <span class="c1"># Train trees</span>
+    <span class="n">detector</span> <span class="o">=</span> <span class="n">pyrf</span><span class="o">.</span><span class="n">Random_Forest_Detector</span><span class="p">()</span>
+    <span class="n">detector</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_pos_cpath_list</span><span class="p">,</span> <span class="n">train_neg_cpath_list</span><span class="p">,</span> <span class="n">trees_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="detect_gpath_list_with_species"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.randomforest.detect_gpath_list_with_species">[docs]</a><span class="k">def</span> <span class="nf">detect_gpath_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gpath_list (list of str): the list of image paths that need detection</span>
+<span class="sd">        species (str): the species that should be used to select the pre-trained</span>
+<span class="sd">            random forest model</span>
+<span class="sd">        downsample (bool, optional): a flag to indicate if the original image</span>
+<span class="sd">            sizes should be used; defaults to True</span>
+
+<span class="sd">            True:  ibs.get_image_detectpaths() is used</span>
+<span class="sd">            False: ibs.get_image_paths() is used</span>
+
+<span class="sd">    Kwargs (optional): refer to the PyRF documentation for configuration settings</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        iter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tree_path_list</span> <span class="o">=</span> <span class="n">_get_models</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+    <span class="n">results_iter</span> <span class="o">=</span> <span class="n">detect</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">tree_path_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results_iter</span></div>
+
+
+<div class="viewcode-block" id="detect_gid_list_with_species"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.randomforest.detect_gid_list_with_species">[docs]</a><span class="k">def</span> <span class="nf">detect_gid_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list of int): the list of IBEIS image_rowids that need detection</span>
+<span class="sd">        species (str): the species that should be used to select the pre-trained</span>
+<span class="sd">            random forest model</span>
+<span class="sd">        downsample (bool, optional): a flag to indicate if the original image</span>
+<span class="sd">            sizes should be used; defaults to True</span>
+
+<span class="sd">            True:  ibs.get_image_detectpaths() is used</span>
+<span class="sd">            False: ibs.get_image_paths() is used</span>
+
+<span class="sd">    Kwargs (optional): refer to the PyRF documentation for configuration settings</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        iter</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.detect.randomforest --test-detect_gid_list_with_species</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.detect.randomforest import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.detect.randomforest import _get_models  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; species = wbia.const.TEST_SPECIES.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; downsample = True</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = detect_gid_list_with_species(ibs, gid_list, species, downsample)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tree_path_list</span> <span class="o">=</span> <span class="n">_get_models</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+    <span class="n">results_iter</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">tree_path_list</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="n">downsample</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">results_iter</span></div>
+
+
+<div class="viewcode-block" id="detect_gid_list"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.randomforest.detect_gid_list">[docs]</a><span class="k">def</span> <span class="nf">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">tree_path_list</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list of int): the list of IBEIS image_rowids that need detection</span>
+<span class="sd">        tree_path_list (list of str): the list of trees to load for detection</span>
+<span class="sd">        downsample (bool, optional): a flag to indicate if the original image</span>
+<span class="sd">            sizes should be used; defaults to True</span>
+
+<span class="sd">            True:  ibs.get_image_detectpaths() is used</span>
+<span class="sd">            False: ibs.get_image_paths() is used</span>
+
+<span class="sd">    Kwargs (optional): refer to the PyRF documentation for configuration settings</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        results (list of dict)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get new gpaths if downsampling</span>
+    <span class="k">if</span> <span class="n">downsample</span><span class="p">:</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_detectpaths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">neww_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">open_image_size</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">]</span>
+        <span class="n">oldw_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">oldw</span> <span class="k">for</span> <span class="p">(</span><span class="n">oldw</span><span class="p">,</span> <span class="n">oldh</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
+        <span class="n">downsample_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">oldw</span> <span class="o">/</span> <span class="n">neww</span> <span class="k">for</span> <span class="n">oldw</span><span class="p">,</span> <span class="n">neww</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">oldw_list</span><span class="p">,</span> <span class="n">neww_list</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">downsample_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+    <span class="c1"># Run detection</span>
+    <span class="n">results_iter</span> <span class="o">=</span> <span class="n">detect</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">tree_path_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># Upscale the results</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample_list</span><span class="p">,</span> <span class="n">results_iter</span>
+    <span class="p">):</span>
+        <span class="c1"># Upscale the results back up to the original image size</span>
+        <span class="k">if</span> <span class="n">downsample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">downsample</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;centerx&#39;</span><span class="p">,</span> <span class="s1">&#39;centery&#39;</span><span class="p">,</span> <span class="s1">&#39;xtl&#39;</span><span class="p">,</span> <span class="s1">&#39;ytl&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">]:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">downsample</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span></div>
+
+
+<div class="viewcode-block" id="detect"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.randomforest.detect">[docs]</a><span class="k">def</span> <span class="nf">detect</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">tree_path_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gpath_list (list of str): the list of image paths that need detection</span>
+<span class="sd">        tree_path_list (list of str): the list of trees to load for detection</span>
+
+<span class="sd">    Kwargs (optional): refer to the PyRF documentation for configuration settings</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        iter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get scales from detect config, if not specified</span>
+    <span class="k">if</span> <span class="s1">&#39;scale_list&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;scale_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">scale_list</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)))</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;scale_list&#39;</span><span class="p">]])</span>
+
+    <span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[randomforest.detect()] Detecting with </span><span class="si">%d</span><span class="s1"> trees with scale_list=</span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tree_path_list</span><span class="p">),</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;scale_list&#39;</span><span class="p">])</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Run detection</span>
+    <span class="n">detector</span> <span class="o">=</span> <span class="n">pyrf</span><span class="o">.</span><span class="n">Random_Forest_Detector</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">forest</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">forest</span><span class="p">(</span><span class="n">tree_path_list</span><span class="p">)</span>
+    <span class="n">results_iter</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">forest</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results_iter</span></div>
+
+
+<span class="c1">########################</span>
+
+
+<span class="k">def</span> <span class="nf">_overlap_percentage</span><span class="p">(</span><span class="n">minmax_tup1</span><span class="p">,</span> <span class="n">minmax_tup2</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">xmin1</span><span class="p">,</span> <span class="n">xmax1</span><span class="p">,</span> <span class="n">ymin1</span><span class="p">,</span> <span class="n">ymax1</span><span class="p">)</span> <span class="o">=</span> <span class="n">minmax_tup1</span>
+    <span class="p">(</span><span class="n">xmin2</span><span class="p">,</span> <span class="n">xmax2</span><span class="p">,</span> <span class="n">ymin2</span><span class="p">,</span> <span class="n">ymax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">minmax_tup2</span>
+    <span class="n">width1</span><span class="p">,</span> <span class="n">height1</span> <span class="o">=</span> <span class="n">xmax1</span> <span class="o">-</span> <span class="n">xmin1</span><span class="p">,</span> <span class="n">ymax1</span> <span class="o">-</span> <span class="n">ymin1</span>
+    <span class="n">width2</span><span class="p">,</span> <span class="n">height2</span> <span class="o">=</span> <span class="n">xmax2</span> <span class="o">-</span> <span class="n">xmin2</span><span class="p">,</span> <span class="n">ymax2</span> <span class="o">-</span> <span class="n">ymin2</span>
+    <span class="n">x_overlap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">xmax1</span><span class="p">,</span> <span class="n">xmax2</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">xmin1</span><span class="p">,</span> <span class="n">xmin2</span><span class="p">))</span>
+    <span class="n">y_overlap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ymax1</span><span class="p">,</span> <span class="n">ymax2</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">ymin1</span><span class="p">,</span> <span class="n">ymin2</span><span class="p">))</span>
+    <span class="n">area_overlap</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x_overlap</span> <span class="o">*</span> <span class="n">y_overlap</span><span class="p">)</span>
+    <span class="n">area_total</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">width1</span> <span class="o">*</span> <span class="n">height1</span><span class="p">,</span> <span class="n">width2</span> <span class="o">*</span> <span class="n">height2</span><span class="p">)</span>
+    <span class="n">percentage</span> <span class="o">=</span> <span class="n">area_overlap</span> <span class="o">/</span> <span class="n">area_total</span>
+    <span class="k">return</span> <span class="n">percentage</span>
+
+
+<span class="k">def</span> <span class="nf">_valid_candidate</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">annot_bbox_list</span><span class="p">,</span> <span class="n">overlap</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tries</span><span class="p">):</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">annot_bbox</span> <span class="ow">in</span> <span class="n">annot_bbox_list</span><span class="p">:</span>
+            <span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">annot_bbox</span>
+            <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">xtl</span><span class="p">,</span> <span class="n">xtl</span> <span class="o">+</span> <span class="n">width</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">ytl</span> <span class="o">+</span> <span class="n">height</span>
+            <span class="k">if</span> <span class="n">_overlap_percentage</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">overlap</span><span class="p">:</span>
+                <span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">break</span>  <span class="c1"># break inner loop</span>
+        <span class="k">if</span> <span class="n">valid</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">_get_models</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">modeldir</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">cfg_override</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_RF</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        species (?):</span>
+<span class="sd">        modeldir (str): (default = &#39;default&#39;)</span>
+<span class="sd">        cfg_override (bool): (default = True)</span>
+<span class="sd">        verbose (bool):  verbosity flag(default = False)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: fpath_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.detect.randomforest --test-_get_models</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.detect.randomforest import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; species = wbia.const.TEST_SPECIES.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; modeldir = &#39;default&#39;</span>
+<span class="sd">        &gt;&gt;&gt; cfg_override = True</span>
+<span class="sd">        &gt;&gt;&gt; verbose = False</span>
+<span class="sd">        &gt;&gt;&gt; fpath_list = _get_models(ibs, species, modeldir, cfg_override, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;fpath_list = %s&#39; % (str(fpath_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># with ut.embed_on_exception_context:</span>
+    <span class="k">if</span> <span class="n">cfg_override</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">trees_path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">trees_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">trees_path</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Ensure all models downloaded and accounted for</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">),</span> <span class="s1">&#39;[_get_models] Cannot detect without specifying a species&#39;</span>
+        <span class="n">grabmodels</span><span class="o">.</span><span class="n">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="o">=</span><span class="n">modeldir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">trees_path</span> <span class="o">=</span> <span class="n">grabmodels</span><span class="o">.</span><span class="n">get_species_trees_paths</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">modeldir</span><span class="o">=</span><span class="n">modeldir</span><span class="p">)</span>
+    <span class="c1"># Load tree paths</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">trees_path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">):</span>
+        <span class="n">fpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">trees_path</span><span class="p">,</span> <span class="s1">&#39;*.txt&#39;</span><span class="p">)</span>
+        <span class="c1"># direct = Directory(trees_path, include_file_extensions=[&#39;txt&#39;])</span>
+        <span class="c1"># files = direct.files()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># If the models do not exist, return None</span>
+        <span class="n">fpath_list</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">fpath_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            [_get_models] Error loading trees, either directory or fpath_list not found</span>
+<span class="sd">              * trees_path = %r</span>
+<span class="sd">              * fpath_list = %r</span>
+<span class="sd">              * species = %r</span>
+<span class="sd">              * model_dir = %r</span>
+<span class="sd">              * cfg_override = %r</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">trees_path</span><span class="p">,</span> <span class="n">fpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">modeldir</span><span class="p">,</span> <span class="n">cfg_override</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fpath_list</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -97,7 +97,7 @@ def compute_annot_coverage_score(qreq_, cm, config={}):
     CommandLine:
         python -m wbia.algo.hots.scoring --test-compute_annot_coverage_score:0
 
-    Example0:
+    Example:
         >>> # SLOW_DOCTEST
         >>> from wbia.algo.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring()
@@ -121,7 +121,7 @@ def compute_name_coverage_score(qreq_, cm, config={}):
     CommandLine:
         python -m wbia.algo.hots.scoring --test-compute_name_coverage_score:0
 
-    Example0:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
         >>> from wbia.algo.hots.scoring import *  # NOQA
@@ -173,7 +173,7 @@ def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov
     Note:
         Evaluate output one at a time or it will get clobbered
 
-    Example0:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
         >>> from wbia.algo.hots.scoring import *  # NOQA
@@ -219,7 +219,7 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
     Note:
         Evaluate output one at a time or it will get clobbered
 
-    Example0:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
         >>> from wbia.algo.hots.scoring import *  # NOQA

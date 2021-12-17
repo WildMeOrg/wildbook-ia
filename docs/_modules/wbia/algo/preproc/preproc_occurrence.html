@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.preproc.preproc_occurrence &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../preproc.html">wbia.algo.preproc</a> &raquo;</li>
+      <li>wbia.algo.preproc.preproc_occurrence</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.preproc.preproc_occurrence</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">distance</span>
+<span class="kn">import</span> <span class="nn">scipy.cluster.hierarchy</span>
+<span class="kn">import</span> <span class="nn">sklearn.cluster</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[preproc_occurrence]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="wbia_compute_occurrences"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.wbia_compute_occurrences">[docs]</a><span class="k">def</span> <span class="nf">wbia_compute_occurrences</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    clusters occurrences togethers (by time, not yet space)</span>
+<span class="sd">    An occurrence is a meeting, localized in time and space between a camera</span>
+<span class="sd">    and a group of animals.</span>
+<span class="sd">    Animals are identified within each occurrence.</span>
+
+<span class="sd">    Does not modify database state, just returns cluster ids</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        gid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (None, None)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia --tf wbia_compute_occurrences:0 --show</span>
+<span class="sd">        TODO: FIXME: good example of autogen doctest return failure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;use_gps&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;seconds_thresh&#39;</span><span class="p">:</span> <span class="mi">600</span><span class="p">}</span>
+        <span class="c1"># from wbia.algo import Config</span>
+        <span class="c1"># config = Config.OccurrenceConfig().asdict()</span>
+    <span class="n">occur_labels</span><span class="p">,</span> <span class="n">occur_gids</span> <span class="o">=</span> <span class="n">compute_occurrence_groups</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">gid2_label</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">gid</span><span class="p">:</span> <span class="n">label</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">gids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">occur_labels</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gids</span>
+        <span class="p">}</span>
+        <span class="c1"># Assert that each gid only belongs to one occurrence</span>
+        <span class="n">flat_imgsetids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">gid2_label</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">flat_gids</span> <span class="o">=</span> <span class="n">gid_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Flatten gids list by enounter</span>
+        <span class="n">flat_imgsetids</span><span class="p">,</span> <span class="n">flat_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten_membership_mapping</span><span class="p">(</span>
+            <span class="n">occur_labels</span><span class="p">,</span> <span class="n">occur_gids</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">flat_imgsetids</span><span class="p">,</span> <span class="n">flat_gids</span></div>
+
+
+<div class="viewcode-block" id="compute_occurrence_groups"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.compute_occurrence_groups">[docs]</a><span class="k">def</span> <span class="nf">compute_occurrence_groups</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="n">use_gps</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        gid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (None, None)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia compute_occurrence_groups</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.preproc_occurrence import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; images = ibs.images()</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = images.gids</span>
+<span class="sd">        &gt;&gt;&gt; config = {}  # wbia.algo.Config.OccurrenceConfig().asdict()</span>
+<span class="sd">        &gt;&gt;&gt; tup = wbia_compute_occurrences(ibs, gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; (flat_imgsetids, flat_gids)</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = list(ut.group_items(aid_list_, flat_imgsetids).values())</span>
+<span class="sd">        &gt;&gt;&gt; metric = list(map(len, aids_list))</span>
+<span class="sd">        &gt;&gt;&gt; sortx = ut.list_argsort(metric)[::-1]</span>
+<span class="sd">        &gt;&gt;&gt; index = sortx[1]</span>
+<span class="sd">        &gt;&gt;&gt; aids = aids_list[index]</span>
+<span class="sd">        &gt;&gt;&gt; gids = list(set(ibs.get_annot_gids(aids)))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span>
+    <span class="c1"># Config info</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[occur] Computing occurrences on </span><span class="si">%r</span><span class="s1"> images.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[occur] config = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+
+    <span class="n">use_gps</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;use_gps&#39;</span><span class="p">]</span>
+    <span class="n">datas</span> <span class="o">=</span> <span class="n">prepare_X_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">use_gps</span><span class="o">=</span><span class="n">use_gps</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="kn">import</span> <span class="n">occurrence_blackbox</span>
+
+    <span class="n">cluster_algo</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cluster_algo&#39;</span><span class="p">,</span> <span class="s1">&#39;agglomerative&#39;</span><span class="p">)</span>
+    <span class="n">km_per_sec</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;km_per_sec&#39;</span><span class="p">,</span> <span class="n">occurrence_blackbox</span><span class="o">.</span><span class="n">KM_PER_SEC</span><span class="p">)</span>
+    <span class="n">thresh_sec</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;seconds_thresh&#39;</span><span class="p">,</span> <span class="mi">30</span> <span class="o">*</span> <span class="mf">60.0</span><span class="p">)</span>
+    <span class="n">min_imgs_per_occurence</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_imgs_per_occurence&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># 30 minutes = 3.6 kilometers</span>
+    <span class="c1"># 5 minutes = 0.6 kilometers</span>
+
+    <span class="k">assert</span> <span class="n">cluster_algo</span> <span class="o">==</span> <span class="s1">&#39;agglomerative&#39;</span><span class="p">,</span> <span class="s1">&#39;only agglomerative is supported&#39;</span>
+
+    <span class="c1"># Group datas with different values separately</span>
+    <span class="n">all_gids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_labels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">datas</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">datas</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">gids</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">posixtimes</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">occurrence_blackbox</span><span class="o">.</span><span class="n">cluster_timespace_sec</span><span class="p">(</span>
+            <span class="n">latlons</span><span class="p">,</span> <span class="n">posixtimes</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="o">=</span><span class="n">km_per_sec</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="n">all_gids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span>
+        <span class="n">all_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+    <span class="c1"># Combine labels across different groups</span>
+    <span class="n">pads</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">safe_max</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">ys</span> <span class="ow">in</span> <span class="n">all_labels</span><span class="p">]</span>
+    <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">pads</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+    <span class="n">all_labels_</span> <span class="o">=</span> <span class="p">[</span><span class="n">ys</span> <span class="o">+</span> <span class="n">offset</span> <span class="k">for</span> <span class="n">ys</span><span class="p">,</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">all_labels</span><span class="p">,</span> <span class="n">offsets</span><span class="p">)]</span>
+    <span class="n">label_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">all_labels_</span><span class="p">))</span>
+    <span class="n">gid_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">all_gids</span><span class="p">))</span>
+
+    <span class="c1"># Group images by unique label</span>
+    <span class="n">labels</span><span class="p">,</span> <span class="n">label_gids</span> <span class="o">=</span> <span class="n">group_images_by_label</span><span class="p">(</span><span class="n">label_arr</span><span class="p">,</span> <span class="n">gid_arr</span><span class="p">)</span>
+    <span class="c1"># Remove occurrences less than the threshold</span>
+    <span class="n">occur_labels</span> <span class="o">=</span> <span class="n">labels</span>
+    <span class="n">occur_gids</span> <span class="o">=</span> <span class="n">label_gids</span>
+    <span class="n">occur_unixtimes</span> <span class="o">=</span> <span class="n">compute_occurrence_unixtime</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span>
+    <span class="n">occur_labels</span><span class="p">,</span> <span class="n">occur_gids</span> <span class="o">=</span> <span class="n">filter_and_relabel</span><span class="p">(</span>
+        <span class="n">labels</span><span class="p">,</span> <span class="n">label_gids</span><span class="p">,</span> <span class="n">min_imgs_per_occurence</span><span class="p">,</span> <span class="n">occur_unixtimes</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[occur] Found </span><span class="si">%d</span><span class="s1"> clusters.&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">occur_labels</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_gids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[occur] Cluster image size stats:&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">print_dict</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)),</span> <span class="n">use_median</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_sum</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="s1">&#39;occur image stats&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">occur_labels</span><span class="p">,</span> <span class="n">occur_gids</span></div>
+
+
+<div class="viewcode-block" id="compute_occurrence_unixtime"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.compute_occurrence_unixtime">[docs]</a><span class="k">def</span> <span class="nf">compute_occurrence_unixtime</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">):</span>
+    <span class="c1"># assert isinstance(ibs, IBEISController)</span>
+    <span class="c1"># TODO: account for -1</span>
+    <span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+
+    <span class="n">unixtimes</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span>
+    <span class="n">time_arrs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">unixtimes</span><span class="p">))</span>
+    <span class="n">occur_unixtimes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">time_arrs</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">occur_unixtimes</span></div>
+
+
+<span class="k">def</span> <span class="nf">_compute_occurrence_datetime</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">):</span>
+    <span class="c1"># assert isinstance(ibs, IBEISController)</span>
+    <span class="c1"># from wbia.other import ibsfuncs</span>
+    <span class="n">occur_unixtimes</span> <span class="o">=</span> <span class="n">compute_occurrence_unixtime</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span>
+    <span class="n">occur_datetimes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unixtime_to_datetimestr</span><span class="p">,</span> <span class="n">occur_unixtimes</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">occur_datetimes</span>
+
+
+<div class="viewcode-block" id="prepare_X_data"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.prepare_X_data">[docs]</a><span class="k">def</span> <span class="nf">prepare_X_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">use_gps</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Splits data into groups with/without gps and time</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.preproc_occurrence import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; images = ibs.images()</span>
+<span class="sd">        &gt;&gt;&gt; # wbia.control.accessor_decors.DEBUG_GETTERS = True</span>
+<span class="sd">        &gt;&gt;&gt; use_gps = True</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = images.gids</span>
+<span class="sd">        &gt;&gt;&gt; datas = prepare_X_data(ibs, gid_list, use_gps)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(datas, nl=2, precision=2))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(datas[&#39;both&#39;][0]) == 12</span>
+<span class="sd">        &gt;&gt;&gt; assert len(datas[&#39;neither&#39;][0]) == 0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">caching</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">gps_list_</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">gps2</span>
+    <span class="n">unixtime_list_</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">unixtime2</span>
+    <span class="n">gps_list_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ensure_shape</span><span class="p">(</span><span class="n">gps_list_</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">has_gps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">gps_list_</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">has_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">unixtime_list_</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_gps</span><span class="p">:</span>
+        <span class="n">has_gps</span><span class="p">[:]</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">has_both</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">has_time</span><span class="p">,</span> <span class="n">has_gps</span><span class="p">)</span>
+    <span class="n">has_either</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">has_time</span><span class="p">,</span> <span class="n">has_gps</span><span class="p">)</span>
+    <span class="n">has_gps_only</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">has_gps</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">has_both</span><span class="p">))</span>
+    <span class="n">has_time_only</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">has_time</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">has_both</span><span class="p">))</span>
+    <span class="n">has_neither</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">has_either</span><span class="p">)</span>
+
+    <span class="n">both</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">has_both</span><span class="p">)</span>
+    <span class="n">xgps</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">has_gps_only</span><span class="p">)</span>
+    <span class="n">xtime</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">has_time_only</span><span class="p">)</span>
+    <span class="n">neither</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">has_neither</span><span class="p">)</span>
+
+    <span class="c1"># Group imagse with different attributes separately</span>
+    <span class="n">datas</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;both&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">both</span><span class="o">.</span><span class="n">gids</span><span class="p">,</span> <span class="n">both</span><span class="o">.</span><span class="n">unixtime2</span><span class="p">,</span> <span class="n">both</span><span class="o">.</span><span class="n">gps2</span><span class="p">),</span>
+        <span class="s1">&#39;gps_only&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">xgps</span><span class="o">.</span><span class="n">gids</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">xgps</span><span class="o">.</span><span class="n">gps2</span><span class="p">),</span>
+        <span class="s1">&#39;time_only&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">xtime</span><span class="o">.</span><span class="n">gids</span><span class="p">,</span> <span class="n">xtime</span><span class="o">.</span><span class="n">unixtime2</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s1">&#39;neither&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">neither</span><span class="o">.</span><span class="n">gids</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">datas</span></div>
+
+
+<div class="viewcode-block" id="agglomerative_cluster_occurrences"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.agglomerative_cluster_occurrences">[docs]</a><span class="k">def</span> <span class="nf">agglomerative_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Agglomerative occurrence clustering algorithm</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        X_data (ndarray):  Length N array of data to cluster</span>
+<span class="sd">        thresh_sec (float):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: (label_arr) - Length N array of cluster indexes</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.preproc.preproc_occurrence --exec-agglomerative_cluster_occurrences</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata</span>
+<span class="sd">        http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.preproc_occurrence import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; X_data = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; thresh_sec = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; (occur_ids, occur_gids) = agglomerative_cluster_occurrences(X_data, thresh_sec)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;(occur_ids, occur_gids) = %s&#39; % (str((occur_ids, occur_gids)),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">label_arr</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">fclusterdata</span><span class="p">(</span>
+        <span class="n">X_data</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">label_arr</span></div>
+
+
+<div class="viewcode-block" id="meanshift_cluster_occurrences"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.meanshift_cluster_occurrences">[docs]</a><span class="k">def</span> <span class="nf">meanshift_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">quantile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Meanshift occurrence clustering algorithm</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        X_data (ndarray):  Length N array of data to cluster</span>
+<span class="sd">        quantile (float): quantile should be between [0, 1].</span>
+<span class="sd">            eg: quantile=.5 represents the median of all pairwise distances</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray : Length N array of labels</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.preproc.preproc_occurrence --exec-meanshift_cluster_occurrences</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.preproc_occurrence import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; X_data = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; quantile = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result = meanshift_cluster_occurrences(X_data, quantile)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">bandwidth</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">estimate_bandwidth</span><span class="p">(</span>
+            <span class="n">X_data</span><span class="p">,</span> <span class="n">quantile</span><span class="o">=</span><span class="n">quantile</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">500</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">bandwidth</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;[occur] bandwidth is 0. Cannot cluster&#39;</span>
+        <span class="c1"># bandwidth is with respect to the RBF used in clustering</span>
+        <span class="c1"># ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)</span>
+        <span class="n">ms</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">MeanShift</span><span class="p">(</span>
+            <span class="n">bandwidth</span><span class="o">=</span><span class="n">bandwidth</span><span class="p">,</span> <span class="n">bin_seeding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cluster_all</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_data</span><span class="p">)</span>
+        <span class="n">label_arr</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">labels_</span>
+
+        <span class="n">unique_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">label_arr</span><span class="p">)</span>
+        <span class="n">max_label</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">unique_labels</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="n">num_orphans</span> <span class="o">=</span> <span class="p">(</span><span class="n">label_arr</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">label_arr</span><span class="p">[</span><span class="n">label_arr</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_label</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_label</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">num_orphans</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+            <span class="n">ex</span><span class="p">,</span>
+            <span class="s1">&#39;error computing meanshift&#39;</span><span class="p">,</span>
+            <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;X_data&#39;</span><span class="p">,</span> <span class="s1">&#39;quantile&#39;</span><span class="p">],</span>
+            <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Fallback to all from same occurrence</span>
+        <span class="n">label_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">X_data</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">label_arr</span></div>
+
+
+<div class="viewcode-block" id="group_images_by_label"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.group_images_by_label">[docs]</a><span class="k">def</span> <span class="nf">group_images_by_label</span><span class="p">(</span><span class="n">label_arr</span><span class="p">,</span> <span class="n">gid_arr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Input: Length N list of labels and ids</span>
+<span class="sd">    Output: Length M list of unique labels, and lenth M list of lists of ids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Reverse the image to cluster index mapping</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="n">labels_</span><span class="p">,</span> <span class="n">groupxs_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">label_arr</span><span class="p">)</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">groupxs_</span><span class="p">)))</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">labels_</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sortx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">groupxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">groupxs_</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="n">label_gids</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">gid_arr</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">labels</span><span class="p">,</span> <span class="n">label_gids</span></div>
+
+
+<div class="viewcode-block" id="filter_and_relabel"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.filter_and_relabel">[docs]</a><span class="k">def</span> <span class="nf">filter_and_relabel</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">label_gids</span><span class="p">,</span> <span class="n">min_imgs_per_occurence</span><span class="p">,</span> <span class="n">occur_unixtimes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Removes clusters with too few members.</span>
+<span class="sd">    Relabels clusters-labels such that label 0 has the most members</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">label_nGids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">label_gids</span><span class="p">)))</span>
+    <span class="n">label_isvalid</span> <span class="o">=</span> <span class="n">label_nGids</span> <span class="o">&gt;=</span> <span class="n">min_imgs_per_occurence</span>
+    <span class="n">occur_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">label_gids</span><span class="p">,</span> <span class="n">label_isvalid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">occur_unixtimes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">occur_unixtimes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">occur_unixtimes</span><span class="p">,</span> <span class="n">label_isvalid</span><span class="p">)</span>
+        <span class="c1"># Rebase ids so occurrence0 has the most images</span>
+        <span class="c1"># occur_ids  = list(range(label_isvalid.sum()))</span>
+        <span class="c1"># else:</span>
+        <span class="c1"># sort by time instead</span>
+        <span class="n">unixtime_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">occur_unixtimes</span><span class="p">)</span>
+        <span class="c1"># Reorder occurrences so the oldest has the lowest number</span>
+        <span class="n">occur_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">label_gids</span><span class="p">,</span> <span class="n">unixtime_arr</span><span class="o">.</span><span class="n">argsort</span><span class="p">())</span>
+    <span class="n">occur_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">occur_gids</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span></div>
+
+
+<div class="viewcode-block" id="timespace_distance"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.timespace_distance">[docs]</a><span class="k">def</span> <span class="nf">timespace_distance</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">sec1</span><span class="p">,</span> <span class="n">lat1</span><span class="p">,</span> <span class="n">lon1</span><span class="p">)</span> <span class="o">=</span> <span class="n">pt1</span>
+    <span class="p">(</span><span class="n">sec2</span><span class="p">,</span> <span class="n">lat2</span><span class="p">,</span> <span class="n">lon2</span><span class="p">)</span> <span class="o">=</span> <span class="n">pt2</span>
+    <span class="n">km_dist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">haversine</span><span class="p">((</span><span class="n">lat1</span><span class="p">,</span> <span class="n">lon1</span><span class="p">),</span> <span class="p">(</span><span class="n">lat2</span><span class="p">,</span> <span class="n">lon2</span><span class="p">))</span>
+    <span class="n">km_per_sec</span> <span class="o">=</span> <span class="mf">0.002</span>  <span class="c1"># conversion ratio for reasonable animal walking speed</span>
+    <span class="c1"># sec_dist = (((sec1 - sec2) * km_per_sec) ** 2)</span>
+    <span class="n">sec_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sec1</span> <span class="o">-</span> <span class="n">sec2</span><span class="p">)</span> <span class="o">*</span> <span class="n">km_per_sec</span>
+    <span class="n">timespace_dist</span> <span class="o">=</span> <span class="n">km_dist</span> <span class="o">+</span> <span class="n">sec_dist</span>
+    <span class="k">return</span> <span class="n">timespace_dist</span></div>
+
+
+<div class="viewcode-block" id="timespace_pdist"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.timespace_pdist">[docs]</a><span class="k">def</span> <span class="nf">timespace_pdist</span><span class="p">(</span><span class="n">X_data</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">X_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">distance</span><span class="o">.</span><span class="n">pdist</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">timespace_distance</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">X_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">distance</span><span class="o">.</span><span class="n">pdist</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="s1">&#39;euclidian&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cluster_timespace"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.cluster_timespace">[docs]</a><span class="k">def</span> <span class="nf">cluster_timespace</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</span>
+<span class="sd">            scipy.cluster.hierarchy.linkage.html</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.preproc.preproc_occurrence cluster_timespace --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.preproc_occurrence import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; X_data = testdata_gps()</span>
+<span class="sd">        &gt;&gt;&gt; thresh = 10</span>
+<span class="sd">        &gt;&gt;&gt; X_labels = cluster_timespace(X_data, thresh)</span>
+<span class="sd">        &gt;&gt;&gt; fnum = pt.ensure_fnum(None)</span>
+<span class="sd">        &gt;&gt;&gt; fig = pt.figure(fnum=fnum, doclf=True, docla=True)</span>
+<span class="sd">        &gt;&gt;&gt; hier.dendrogram(linkage_mat, orientation=&#39;top&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; plot_annotaiton_gps(X_data)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">condenced_dist_mat</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">pdist</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">timespace_distance</span><span class="p">)</span>
+    <span class="c1"># Compute heirarchical linkages</span>
+    <span class="n">linkage_mat</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">linkage</span><span class="p">(</span><span class="n">condenced_dist_mat</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;centroid&#39;</span><span class="p">)</span>
+    <span class="c1"># Cluster linkages</span>
+    <span class="n">X_labels</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">fcluster</span><span class="p">(</span>
+        <span class="n">linkage_mat</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;inconsistent&#39;</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">R</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monocrit</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_labels</span></div>
+
+
+<div class="viewcode-block" id="testdata_gps"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.testdata_gps">[docs]</a><span class="k">def</span> <span class="nf">testdata_gps</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple data to test GPS algorithm.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        X_name (ndarray): Nx1 matrix denoting groundtruth locations</span>
+<span class="sd">        X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="mf">4.54</span><span class="p">,</span>
+            <span class="mf">104.0</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">14.9</span><span class="p">,</span>
+            <span class="mf">56.26</span><span class="p">,</span>
+            <span class="mf">103.46</span><span class="p">,</span>
+            <span class="mf">103.37</span><span class="p">,</span>
+            <span class="mf">54.22</span><span class="p">,</span>
+            <span class="mf">23.3</span><span class="p">,</span>
+            <span class="mf">25.53</span><span class="p">,</span>
+            <span class="mf">23.31</span><span class="p">,</span>
+            <span class="mf">118.0</span><span class="p">,</span>
+            <span class="mf">103.53</span><span class="p">,</span>
+            <span class="mf">54.40</span><span class="p">,</span>
+            <span class="mf">103.48</span><span class="p">,</span>
+            <span class="mf">6.14</span><span class="p">,</span>
+            <span class="mf">7.25</span><span class="p">,</span>
+            <span class="mf">2.38</span><span class="p">,</span>
+            <span class="mf">18.18</span><span class="p">,</span>
+            <span class="mf">103.54</span><span class="p">,</span>
+            <span class="mf">103.40</span><span class="p">,</span>
+            <span class="mf">28.59</span><span class="p">,</span>
+            <span class="mf">25.21</span><span class="p">,</span>
+            <span class="mf">29.35</span><span class="p">,</span>
+            <span class="mf">25.20</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="mf">52.22</span><span class="p">,</span>
+            <span class="mf">1.14</span><span class="p">,</span>
+            <span class="mf">27.34</span><span class="p">,</span>
+            <span class="mf">25.16</span><span class="p">,</span>
+            <span class="mf">1.16</span><span class="p">,</span>
+            <span class="mf">1.11</span><span class="p">,</span>
+            <span class="mf">24.30</span><span class="p">,</span>
+            <span class="mf">37.54</span><span class="p">,</span>
+            <span class="mf">37.26</span><span class="p">,</span>
+            <span class="mf">38.1</span><span class="p">,</span>
+            <span class="mf">24.25</span><span class="p">,</span>
+            <span class="mf">1.13</span><span class="p">,</span>
+            <span class="mf">24.49</span><span class="p">,</span>
+            <span class="mf">1.13</span><span class="p">,</span>
+            <span class="mf">42.33</span><span class="p">,</span>
+            <span class="mf">43.44</span><span class="p">,</span>
+            <span class="mf">39.34</span><span class="p">,</span>
+            <span class="mf">70.30</span><span class="p">,</span>
+            <span class="mf">1.16</span><span class="p">,</span>
+            <span class="mf">1.10</span><span class="p">,</span>
+            <span class="mf">40.58</span><span class="p">,</span>
+            <span class="mf">37.34</span><span class="p">,</span>
+            <span class="mf">41.18</span><span class="p">,</span>
+            <span class="mf">38.35</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lon</span><span class="p">))</span>
+
+    <span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>  <span class="c1"># NOQA</span>
+    <span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.727985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.683994</span><span class="p">),</span>  <span class="c1"># MRC</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657872</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.764148</span><span class="p">),</span>  <span class="c1"># Home</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657414</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.774448</span><span class="p">),</span>  <span class="c1"># Park1</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.658333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.770993</span><span class="p">),</span>  <span class="c1"># Park2</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.654384</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.768919</span><span class="p">),</span>  <span class="c1"># Park3</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.655039</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.769048</span><span class="p">),</span>  <span class="c1"># Park4</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.876974</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.819311</span><span class="p">),</span>  <span class="c1"># CP1</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.862946</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.804977</span><span class="p">),</span>  <span class="c1"># CP2</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.849809</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.758486</span><span class="p">),</span>  <span class="c1"># CP3</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_name</span><span class="p">,</span> <span class="n">X_data</span></div>
+
+
+<div class="viewcode-block" id="plot_gps_html"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_occurrence.plot_gps_html">[docs]</a><span class="k">def</span> <span class="nf">plot_gps_html</span><span class="p">(</span><span class="n">gps_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plots gps coordinates on a map projection</span>
+
+<span class="sd">    InstallBasemap:</span>
+<span class="sd">        sudo apt-get install libgeos-dev</span>
+<span class="sd">        pip install git+https://github.com/matplotlib/basemap</span>
+<span class="sd">        http://matplotlib.org/basemap/users/examples.html</span>
+
+<span class="sd">        pip install gmplot</span>
+
+<span class="sd">        sudo apt-get install netcdf-bin</span>
+<span class="sd">        sudo apt-get install libnetcdf-dev</span>
+<span class="sd">        pip install netCDF4</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        pip install git+git://github.com/myuser/foo.git@v123</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.preproc_occurrence import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; images = ibs.images()</span>
+<span class="sd">        &gt;&gt;&gt; # Setup GPS points to draw</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Setup GPS points&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gps_list_ = np.array(images.gps2)</span>
+<span class="sd">        &gt;&gt;&gt; unixtime_list_ = np.array(images.unixtime2)</span>
+<span class="sd">        &gt;&gt;&gt; has_gps = np.all(np.logical_not(np.isnan(gps_list_)), axis=1)</span>
+<span class="sd">        &gt;&gt;&gt; has_unixtime = np.logical_not(np.isnan(unixtime_list_))</span>
+<span class="sd">        &gt;&gt;&gt; isvalid = np.logical_and(has_gps, has_unixtime)</span>
+<span class="sd">        &gt;&gt;&gt; gps_list = gps_list_.compress(isvalid, axis=0)</span>
+<span class="sd">        &gt;&gt;&gt; unixtime_list = unixtime_list_.compress(isvalid)  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; plot_image_gps(gps_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">gmplot</span>
+    <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">qt4ensure</span><span class="p">()</span>
+
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">gps_list</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">gps_list</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Get extent of</span>
+    <span class="n">bbox</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">bbox_from_verts</span><span class="p">(</span><span class="n">gps_list</span><span class="p">)</span>
+    <span class="n">centerx</span><span class="p">,</span> <span class="n">centery</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">bbox_center</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+
+    <span class="n">gmap</span> <span class="o">=</span> <span class="n">gmplot</span><span class="o">.</span><span class="n">GoogleMapPlotter</span><span class="p">(</span><span class="n">centerx</span><span class="p">,</span> <span class="n">centery</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">rgb2hex</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">)</span>
+    <span class="n">gmap</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">gmap</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;mymap.html&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="s1">&#39;mymap.html&#39;</span><span class="p">)</span></div>
+
+    <span class="c1"># # Scale</span>
+    <span class="c1"># bbox = vt.scale_bbox(bbox, 10.0)</span>
+    <span class="c1"># extent = vt.extent_from_bbox(bbox)</span>
+    <span class="c1"># basemap_extent = dict(llcrnrlon=extent[2], urcrnrlon=extent[3],</span>
+    <span class="c1">#                      llcrnrlat=extent[0], urcrnrlat=extent[1])</span>
+    <span class="c1"># # Whole globe</span>
+    <span class="c1"># #basemap_extent = dict(llcrnrlon=0, llcrnrlat=-80,</span>
+    <span class="c1"># #                      urcrnrlon=360, urcrnrlat=80)</span>
+
+    <span class="c1"># from mpl_toolkits.basemap import Basemap</span>
+    <span class="c1"># from matplotlib.colors import LightSource  # NOQA</span>
+    <span class="c1"># from mpl_toolkits.basemap import shiftgrid, cm  # NOQA</span>
+    <span class="c1"># from netCDF4 import Dataset</span>
+    <span class="c1"># # Read information to make background pretty</span>
+    <span class="c1"># logger.info(&#39;Grab topo information&#39;)</span>
+    <span class="c1"># etopodata = Dataset(&#39;http://ferret.pmel.noaa.gov/thredds/dodsC/data/PMEL/etopo5.nc&#39;)</span>
+    <span class="c1"># logger.info(&#39;Read topo information&#39;)</span>
+    <span class="c1"># topoin = etopodata.variables[&#39;ROSE&#39;][:]</span>
+    <span class="c1"># lons = etopodata.variables[&#39;ETOPO05_X&#39;][:]</span>
+    <span class="c1"># lats = etopodata.variables[&#39;ETOPO05_Y&#39;][:]</span>
+    <span class="c1"># # shift data so lons go from -180 to 180 instead of 20 to 380.</span>
+    <span class="c1"># logger.info(&#39;Shift data&#39;)</span>
+    <span class="c1"># topoin, lons = shiftgrid(180., topoin, lons, start=False)</span>
+
+    <span class="c1"># logger.info(&#39;Make figure&#39;)</span>
+    <span class="c1"># fnum = pt.ensure_fnum(None)</span>
+    <span class="c1"># fig = pt.figure(fnum=fnum, doclf=True, docla=True)  # NOQA</span>
+    <span class="c1"># logger.info(&#39;Draw projection&#39;)</span>
+    <span class="c1"># m = Basemap(projection=&#39;mill&#39;, **basemap_extent)</span>
+    <span class="c1"># # setup Lambert Conformal basemap.</span>
+    <span class="c1"># #m = Basemap(projection=&#39;cea&#39;,resolution=&#39;h&#39;, **basemap_extent)</span>
+
+    <span class="c1"># # transform to nx x ny regularly spaced 5km native projection grid</span>
+    <span class="c1"># logger.info(&#39;projection grid&#39;)</span>
+    <span class="c1"># nx = int((m.xmax - m.xmin) / 5000.) + 1</span>
+    <span class="c1"># ny = int((m.ymax - m.ymin) / 5000.) + 1</span>
+    <span class="c1"># topodat = m.transform_scalar(topoin, lons, lats, nx, ny)</span>
+
+    <span class="c1"># # plot image over map with imshow.</span>
+    <span class="c1"># im = m.imshow(topodat, cm.GMT_haxby)  # NOQA</span>
+    <span class="c1"># # draw coastlines and political boundaries.</span>
+    <span class="c1"># m.drawcoastlines()</span>
+    <span class="c1"># m.drawcountries()</span>
+    <span class="c1"># m.drawstates()</span>
+
+    <span class="c1"># transform to nx x ny regularly spaced 5km native projection grid</span>
+    <span class="c1"># ls = LightSource(azdeg=90, altdeg=20)</span>
+    <span class="c1"># rgb = ls.shade(topodat, cm.GMT_haxby)</span>
+    <span class="c1"># im = m.imshow(rgb)</span>
+    <span class="c1"># draw coastlines and political boundaries.</span>
+
+    <span class="c1"># m.drawcoastlines()</span>
+    <span class="c1"># m.drawcountries()</span>
+    <span class="c1"># m.drawstates()</span>
+
+    <span class="c1"># draw a boundary around the map, fill the background.</span>
+    <span class="c1"># this background will end up being the ocean color, since</span>
+    <span class="c1"># the continents will be drawn on top.</span>
+    <span class="c1"># m.bluemarble()</span>
+    <span class="c1"># m.drawmapboundary(fill_color=&#39;aqua&#39;)</span>
+    <span class="c1"># m.fillcontinents(color=&#39;coral&#39;, lake_color=&#39;aqua&#39;)</span>
+    <span class="c1"># Convert GPS to projected coordinates</span>
+    <span class="c1"># x1, y1 = m(lon, lat)  # convert to meters # lon==X, lat==Y</span>
+    <span class="c1"># m.plot(x1, y1, &#39;*&#39;, markersize=10)</span>
+    <span class="c1"># fig.zoom_fac = pt.zoom_factory()</span>
+    <span class="c1"># fig.pan_fac = pt.pan_factory()</span>
+    <span class="c1"># fig.show()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.hots.toy_nan_rf &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../hots.html">wbia.algo.hots</a> &raquo;</li>
+      <li>wbia.algo.hots.toy_nan_rf</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.hots.toy_nan_rf</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_toydata"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.toy_nan_rf.get_toydata">[docs]</a><span class="k">def</span> <span class="nf">get_toydata</span><span class="p">(</span><span class="n">rng</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--toy2&#39;</span><span class="p">):</span>
+        <span class="n">X_true</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">toydata2</span><span class="p">(</span><span class="n">rng</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">X_true</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">toydata1</span><span class="p">(</span><span class="n">rng</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_true</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="toydata2"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.toy_nan_rf.toydata2">[docs]</a><span class="k">def</span> <span class="nf">toydata2</span><span class="p">(</span><span class="n">rng</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">samples_generator</span>
+
+    <span class="n">n_samples</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">n_features</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">n_classes</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">n_informative</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">n_clusters_per_class</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="mi">2</span> <span class="o">**</span> <span class="n">n_informative</span><span class="p">)</span> <span class="o">//</span> <span class="n">n_classes</span><span class="p">)</span>
+    <span class="n">hypercube</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">samplekw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">flip_y</span><span class="o">=</span><span class="mf">0.00</span><span class="p">,</span>
+        <span class="n">class_sep</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+        <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">n_redundant</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">n_repeated</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">hypercube</span><span class="o">=</span><span class="n">hypercube</span><span class="p">,</span>
+        <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
+        <span class="n">n_informative</span><span class="o">=</span><span class="n">n_informative</span><span class="p">,</span>
+        <span class="n">n_classes</span><span class="o">=</span><span class="n">n_classes</span><span class="p">,</span>
+        <span class="n">n_clusters_per_class</span><span class="o">=</span><span class="n">n_clusters_per_class</span><span class="p">,</span>
+        <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">n_features</span><span class="o">=</span><span class="n">n_features</span><span class="p">,</span>
+        <span class="n">random_state</span><span class="o">=</span><span class="n">rng</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">X_true</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">samples_generator</span><span class="o">.</span><span class="n">make_classification</span><span class="p">(</span><span class="o">**</span><span class="n">samplekw</span><span class="p">)</span>
+    <span class="n">with_extra</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--extra&#39;</span><span class="p">)</span>
+    <span class="c1"># make very informative nan dimension</span>
+    <span class="k">if</span> <span class="n">with_extra</span><span class="p">:</span>
+        <span class="n">n_informative_nan</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="c1"># extra_x = (rng.randn(n_informative_nan, 2) / 2 + [[12, -8]])</span>
+        <span class="n">extra_x</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n_informative_nan</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="o">-</span><span class="mi">12</span><span class="p">]]</span>
+        <span class="n">X_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">X_true</span><span class="p">,</span> <span class="n">extra_x</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_informative_nan</span><span class="p">)</span>
+
+    <span class="c1"># Randomly drop datapoints</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">X_true</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">nanrate</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--nanrate&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nanrate</span><span class="p">:</span>
+        <span class="c1"># TODO:</span>
+        <span class="c1"># * informative nan</span>
+        <span class="c1"># * random nan</span>
+        <span class="c1"># * random nan + informative nan</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[</span><span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">nanrate</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">if</span> <span class="n">with_extra</span><span class="p">:</span>
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="n">n_informative_nan</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="n">n_informative_nan</span> <span class="p">:</span> <span class="o">-</span><span class="n">n_informative_nan</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="n">n_informative_nan</span> <span class="o">//</span> <span class="mi">2</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">return</span> <span class="n">X_true</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="toydata1"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.toy_nan_rf.toydata1">[docs]</a><span class="k">def</span> <span class="nf">toydata1</span><span class="p">(</span><span class="n">rng</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **Description of Plot**</span>
+
+<span class="sd">    You&#39;ll notice that there are 4 plots. This is necessary to visualize a grid</span>
+<span class="sd">    with nans. Each plot shows points in the 2-dimensional grid with corners at</span>
+<span class="sd">    (0, 0) and (40, 40). The top left plot has these coordinates labeled. The</span>
+<span class="sd">    other 3 plots correspond to the top left grid, but in these plots at least</span>
+<span class="sd">    one of the dimensions has been &quot;nanned&quot;. In the top right the x-dimension</span>
+<span class="sd">    is &quot;nanned&quot;. In the bottom left the y-dimension is &quot;nanned&quot;, and in the</span>
+<span class="sd">    bottom right both dimensions are &quot;nanned&quot;. Even though all plots are drawn</span>
+<span class="sd">    as a 2d-surface only the topleft plot is truly a surface with 2 degrees of</span>
+<span class="sd">    freedom. The top right and bottom left plots are really lines with 1 degree</span>
+<span class="sd">    of freedom, and the bottom right plot is actually just a single point with</span>
+<span class="sd">    0 degrees of freedom.</span>
+
+<span class="sd">    In this example I create 10 Gaussian blobs where the first 9 have their</span>
+<span class="sd">    means laid out in a 3x3 grid and the last one has its mean in the center,</span>
+<span class="sd">    but I gave it a high standard deviation. I&#39;ll refer to the high std cluster</span>
+<span class="sd">    as 9, and label the other clusters at the grid means (to agree with the</span>
+<span class="sd">    demo code) like this:</span>
+
+<span class="sd">    ```</span>
+<span class="sd">    6   7   8</span>
+<span class="sd">    3   4   5</span>
+<span class="sd">    0   1   2</span>
+<span class="sd">    ```</span>
+
+<span class="sd">    Looking at the top left plot you can see clusters 0, 1, 2, 4, 6, and 8. The</span>
+<span class="sd">    reason the other cluster do not appear in this grid is because I&#39;ve set at</span>
+<span class="sd">    least one of their dimensions to be nan.  Specifically, cluster 3 had its y</span>
+<span class="sd">    dimension set to nan; cluster 5 and 7 had their x dimension set to nan; and</span>
+<span class="sd">    cluster 9 had both x and y dimensions set to nan.</span>
+
+<span class="sd">    For clusters 3, 5, and 7, I plot &quot;nanned&quot; points as lines along the nanned</span>
+<span class="sd">    dimension to show that only the non-nan dimensions can be used to</span>
+<span class="sd">    distinguish these points. I also plot the original position before I</span>
+<span class="sd">    &quot;nanned&quot; it for visualization purposes, but the learning algorithm never</span>
+<span class="sd">    sees this. For cluster 9, I only plot the original positions because all of</span>
+<span class="sd">    this data collapses to a single point [nan, nan].</span>
+
+<span class="sd">    Red points are of class 0, and blue points are of class 1. Points in each</span>
+<span class="sd">    plot represent the training data. The colored background of each plot</span>
+<span class="sd">    represents the classification surface.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">samples_generator</span>
+    <span class="kn">import</span> <span class="nn">functools</span>
+
+    <span class="n">step</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">n_samples</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="n">blob</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">samples_generator</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">rng</span>
+    <span class="p">)</span>
+
+    <span class="n">Xy_blobs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">step</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">step</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">step</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">step</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">step</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">step</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">blob</span><span class="p">(</span><span class="n">centers</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">step</span><span class="p">]],</span> <span class="n">cluster_std</span><span class="o">=</span><span class="mi">5</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span>
+    <span class="p">]</span>
+    <span class="n">X_blobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">Xy</span> <span class="ow">in</span> <span class="n">Xy_blobs</span><span class="p">]</span>
+    <span class="n">X_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">X_blobs</span><span class="p">)</span>
+    <span class="n">y_blobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">y_</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">y_</span><span class="p">,</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">Xy_blobs</span><span class="p">]</span>
+
+    <span class="c1"># nanify some values</span>
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">X_blobs</span><span class="p">[</span><span class="mi">3</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">X_blobs</span><span class="p">[</span><span class="mi">7</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">X_blobs</span><span class="p">[</span><span class="mi">5</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">X_blobs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">X_blobs</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">y_blobs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_true</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="show_nan_decision_function_2d"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.toy_nan_rf.show_nan_decision_function_2d">[docs]</a><span class="k">def</span> <span class="nf">show_nan_decision_function_2d</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">X_true</span><span class="p">,</span> <span class="n">clf</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Drawing&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Now plot the decision boundary using a fine mesh as input to a</span>
+    <span class="c1"># filled contour plot</span>
+    <span class="n">plot_step</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span> <span class="o">=</span> <span class="n">X_true</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">X_true</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span> <span class="o">=</span> <span class="n">X_true</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">X_true</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">,</span> <span class="n">plot_step</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">,</span> <span class="n">plot_step</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">yynan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">yy</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">xxnan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">yy</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="c1"># Get prediction surface in the non-nan-zone</span>
+    <span class="n">Z_nonnan</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">yy</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">xx</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c1"># Get prediction surface in the xnan-zone</span>
+    <span class="n">Z_xnan</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">xxnan</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">yy</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">xx</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c1"># Get prediction surface in the ynan-zone</span>
+    <span class="n">Z_ynan</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">yynan</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">xx</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c1"># Get prediction surface for all-nan-zone</span>
+    <span class="n">Z_fullnan</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">xxnan</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">yynan</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">xx</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">is_nonnan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">is_xnan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">is_ynan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">is_fullnan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="c1"># Draw surfaces and support points in different axes</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.gridspec</span> <span class="k">as</span> <span class="nn">gridspec</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+    <span class="n">gs</span> <span class="o">=</span> <span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="mi">17</span><span class="p">)</span>
+    <span class="n">pnum1</span> <span class="o">=</span> <span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">8</span><span class="p">],)</span>
+    <span class="n">pnum2</span> <span class="o">=</span> <span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">:</span><span class="mi">16</span><span class="p">],)</span>
+    <span class="n">pnum3</span> <span class="o">=</span> <span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">9</span><span class="p">:</span><span class="mi">17</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">8</span><span class="p">],)</span>
+    <span class="n">pnum4</span> <span class="o">=</span> <span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">9</span><span class="p">:</span><span class="mi">17</span><span class="p">,</span> <span class="mi">8</span><span class="p">:</span><span class="mi">16</span><span class="p">],)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">RdYlBu</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+    <span class="n">sm</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">color0</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;color0 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">color0</span><span class="p">,))</span>
+    <span class="n">color1</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;color1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">color1</span><span class="p">,))</span>
+
+    <span class="k">def</span> <span class="nf">draw_line_segments</span><span class="p">(</span><span class="n">pts1</span><span class="p">,</span> <span class="n">pts2</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts2</span><span class="p">),</span> <span class="s1">&#39;unaligned&#39;</span>
+        <span class="n">segments</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xy1</span><span class="p">,</span> <span class="n">xy2</span><span class="p">)</span> <span class="k">for</span> <span class="n">xy1</span><span class="p">,</span> <span class="n">xy2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pts1</span><span class="p">,</span> <span class="n">pts2</span><span class="p">)]</span>
+        <span class="n">linewidth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;lw&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">line_group</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">LineCollection</span><span class="p">(</span>
+            <span class="n">segments</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">line_group</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw_single_nan_lines</span><span class="p">(</span><span class="n">X_true</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">nan_dim</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">flags</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">nandim_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">X_true</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">nan_dim</span><span class="p">])</span>
+        <span class="n">nandim_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">X_true</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">nan_dim</span><span class="p">])</span>
+
+        <span class="n">num_dim</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">nan_dim</span>  <span class="c1"># 2d only</span>
+        <span class="n">numdim_pts</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">num_dim</span><span class="p">]</span>
+
+        <span class="n">pts1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">flags</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">pts2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">flags</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">pts1</span><span class="p">[:,</span> <span class="n">nan_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">nandim_min</span>
+        <span class="n">pts2</span><span class="p">[:,</span> <span class="n">nan_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">nandim_max</span>
+        <span class="n">pts1</span><span class="p">[:,</span> <span class="n">num_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">numdim_pts</span>
+        <span class="n">pts2</span><span class="p">[:,</span> <span class="n">num_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">numdim_pts</span>
+        <span class="n">y_</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span>
+        <span class="n">draw_line_segments</span><span class="p">(</span>
+            <span class="n">pts1</span><span class="p">[</span><span class="n">y_</span> <span class="o">==</span> <span class="mi">0</span><span class="p">],</span> <span class="n">pts2</span><span class="p">[</span><span class="n">y_</span> <span class="o">==</span> <span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">color0</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span>
+        <span class="p">)</span>
+        <span class="n">draw_line_segments</span><span class="p">(</span>
+            <span class="n">pts1</span><span class="p">[</span><span class="n">y_</span> <span class="o">==</span> <span class="mi">1</span><span class="p">],</span> <span class="n">pts2</span><span class="p">[</span><span class="n">y_</span> <span class="o">==</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">color1</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw_train_points</span><span class="p">(</span><span class="n">X_true</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flags</span><span class="p">):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">X_true</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">y</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="n">X_true</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">y</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;o&#39;</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color0</span><span class="p">,</span>
+            <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">X_true</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">y</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">X_true</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">y</span><span class="p">[</span><span class="n">flags</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;o&#39;</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color1</span><span class="p">,</span>
+            <span class="n">markeredgecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_contour</span><span class="p">(</span><span class="n">Z</span><span class="p">):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="o">*</span><span class="n">pnum1</span><span class="p">)</span>
+    <span class="n">_contour</span><span class="p">(</span><span class="n">Z_nonnan</span><span class="p">)</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">is_nonnan</span>
+    <span class="n">draw_train_points</span><span class="p">(</span><span class="n">X_true</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;non-nan decision surface&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="o">*</span><span class="n">pnum2</span><span class="p">)</span>
+    <span class="n">_contour</span><span class="p">(</span><span class="n">Z_xnan</span><span class="p">)</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">is_xnan</span>
+    <span class="n">draw_train_points</span><span class="p">(</span><span class="n">X_true</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">draw_single_nan_lines</span><span class="p">(</span><span class="n">X_true</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;x-nan decision surface&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="o">*</span><span class="n">pnum3</span><span class="p">)</span>
+    <span class="n">_contour</span><span class="p">(</span><span class="n">Z_ynan</span><span class="p">)</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">is_ynan</span>
+    <span class="n">draw_train_points</span><span class="p">(</span><span class="n">X_true</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="c1"># make nan-lines</span>
+    <span class="n">draw_single_nan_lines</span><span class="p">(</span><span class="n">X_true</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;y-nan decision surface&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="o">*</span><span class="n">pnum4</span><span class="p">)</span>
+    <span class="n">_contour</span><span class="p">(</span><span class="n">Z_fullnan</span><span class="p">)</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">is_fullnan</span>
+    <span class="n">draw_train_points</span><span class="p">(</span><span class="n">X_true</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;full-nan decision surface&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;RandomForestClassifier With NaN decision criteria&#39;</span><span class="p">)</span>
+
+    <span class="n">gs</span> <span class="o">=</span> <span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="n">subspec</span> <span class="o">=</span> <span class="n">gs</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">cax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">subspec</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sm</span><span class="p">,</span> <span class="n">cax</span><span class="p">)</span>
+    <span class="n">cax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;probability class 1&#39;</span><span class="p">)</span>
+
+    <span class="n">new_subplotpars</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">subplotpars</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">del</span> <span class="n">new_subplotpars</span><span class="p">[</span><span class="s1">&#39;validate&#39;</span><span class="p">]</span>
+    <span class="n">new_subplotpars</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="n">left</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">1.0</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="o">**</span><span class="n">new_subplotpars</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.toy_nan_rf.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        python -m sklearn.ensemble.tests.test_forest test_multioutput</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia toy_classify_nans</span>
+<span class="sd">        python -m wbia toy_classify_nans --toy1 --save &quot;rf_nan_toy1.jpg&quot; --figsize=10,10</span>
+<span class="sd">        python -m wbia toy_classify_nans --toy2 --save &quot;rf_nan_toy2.jpg&quot; --figsize=10,10</span>
+<span class="sd">        python -m wbia toy_classify_nans --toy2 --save &quot;rf_nan_toy3.jpg&quot; --figsize=10,10 --extra</span>
+<span class="sd">        python -m wbia toy_classify_nans --toy2 --save &quot;rf_nan_toy4.jpg&quot; --figsize=10,10 --extra --nanrate=0</span>
+<span class="sd">        python -m wbia toy_classify_nans --toy2 --save &quot;rf_nan_toy5.jpg&quot; --figsize=10,10 --nanrate=0</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; result = toy_classify_nans()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
+
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating test data&#39;</span><span class="p">)</span>
+
+    <span class="n">X_true</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">get_toydata</span><span class="p">(</span><span class="n">rng</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Fitting RF on </span><span class="si">%d</span><span class="s1"> points&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">),))</span>
+    <span class="c1"># Train uncalibrated random forest classifier on train data</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span>
+        <span class="n">n_estimators</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+        <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+        <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;gini&#39;</span><span class="p">,</span>
+        <span class="n">missing_values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+        <span class="n">bootstrap</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># import pprint</span>
+    <span class="c1"># pprint.pprint(clf.__dict__)</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="c1"># pprint.pprint(clf.__dict__)</span>
+
+    <span class="n">show_nan_decision_function_2d</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">X_true</span><span class="p">,</span> <span class="n">clf</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.toy_nan_rf --show</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">main</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia._wbia_object &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wbia._wbia_object</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia._wbia_object</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[_wbia_object]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_find_wbia_attrs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">objname</span><span class="p">,</span> <span class="n">blacklist</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Developer function to help figure out what attributes are available</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (wbia.IBEISController):  images analysis api</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.images _find_wbia_attrs</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia._wbia_object import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; objname = &#39;images&#39;</span>
+<span class="sd">        &gt;&gt;&gt; blacklist = []</span>
+<span class="sd">        &gt;&gt;&gt; _find_wbia_attrs(ibs, objname, blacklist)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia._wbia_object import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; objname = &#39;annot&#39;</span>
+<span class="sd">        &gt;&gt;&gt; blacklist = [&#39;annot_pair&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; _find_wbia_attrs(ibs, objname, blacklist)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+
+    <span class="n">getter_prefix</span> <span class="o">=</span> <span class="s1">&#39;get_&#39;</span> <span class="o">+</span> <span class="n">objname</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
+    <span class="n">found_getters</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">search_module</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">getter_prefix</span><span class="p">)</span>
+    <span class="n">pat</span> <span class="o">=</span> <span class="n">getter_prefix</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;attr&#39;</span><span class="p">,</span> <span class="s1">&#39;.*&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">stopword</span> <span class="ow">in</span> <span class="n">blacklist</span><span class="p">:</span>
+        <span class="n">found_getters</span> <span class="o">=</span> <span class="p">[</span><span class="n">fn</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">found_getters</span> <span class="k">if</span> <span class="n">stopword</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fn</span><span class="p">]</span>
+    <span class="n">matched_getters</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s1">&#39;attr&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">found_getters</span><span class="p">]</span>
+
+    <span class="n">setter_prefix</span> <span class="o">=</span> <span class="s1">&#39;set_&#39;</span> <span class="o">+</span> <span class="n">objname</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
+    <span class="n">found_setters</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">search_module</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">setter_prefix</span><span class="p">)</span>
+    <span class="n">pat</span> <span class="o">=</span> <span class="n">setter_prefix</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;attr&#39;</span><span class="p">,</span> <span class="s1">&#39;.*&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">stopword</span> <span class="ow">in</span> <span class="n">blacklist</span><span class="p">:</span>
+        <span class="n">found_setters</span> <span class="o">=</span> <span class="p">[</span><span class="n">fn</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">found_setters</span> <span class="k">if</span> <span class="n">stopword</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fn</span><span class="p">]</span>
+    <span class="n">matched_setters</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()[</span><span class="s1">&#39;attr&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">found_setters</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">matched_getters</span><span class="p">,</span> <span class="n">matched_setters</span>
+
+
+<span class="k">def</span> <span class="nf">_inject_getter_attrs</span><span class="p">(</span>
+    <span class="n">metaself</span><span class="p">,</span>
+    <span class="n">objname</span><span class="p">,</span>
+    <span class="n">attrs</span><span class="p">,</span>
+    <span class="n">configurable_attrs</span><span class="p">,</span>
+    <span class="n">depc_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">depcache_attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">settable_attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">aliased_attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Used by the metaclass to inject methods and properties into the class</span>
+<span class="sd">    inheriting from ObjectList1D</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">settable_attrs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">settable_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">settable_attrs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">settable_attrs</span><span class="p">)</span>
+
+    <span class="c1"># Inform the class of which variables will be injected</span>
+    <span class="n">metaself</span><span class="o">.</span><span class="n">_settable_attrs</span> <span class="o">=</span> <span class="n">settable_attrs</span>
+    <span class="n">metaself</span><span class="o">.</span><span class="n">_attrs</span> <span class="o">=</span> <span class="n">attrs</span>
+    <span class="n">metaself</span><span class="o">.</span><span class="n">_configurable_attrs</span> <span class="o">=</span> <span class="n">configurable_attrs</span>
+    <span class="k">if</span> <span class="n">depcache_attrs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">_depcache_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">_depcache_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span> <span class="k">for</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">depcache_attrs</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">aliased_attrs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">_attrs_aliases</span> <span class="o">=</span> <span class="n">aliased_attrs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">_attrs_aliases</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># if not getattr(metaself, &#39;__needs_inject__&#39;, True):</span>
+    <span class="c1">#     return</span>
+
+    <span class="n">attr_to_aliases</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">metaself</span><span class="o">.</span><span class="n">_attrs_aliases</span><span class="p">,</span> <span class="n">unique_vals</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># What is difference between configurable and depcache getters?</span>
+    <span class="c1"># Could depcache getters just be made configurable?</span>
+    <span class="c1"># I guess its just an efficincy thing. Actually its config2_-vs-config</span>
+    <span class="c1"># FIXME: rectify differences between normal / configurable / depcache</span>
+    <span class="c1"># getter</span>
+
+    <span class="k">def</span> <span class="nf">_make_caching_setter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_setter</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">[</span><span class="n">attrname</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caching</span> <span class="ow">and</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">[</span><span class="n">attrname</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+                <span class="n">_rowid_setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_setter</span><span class="p">,</span> <span class="s1">&#39;_set_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_setter</span>
+
+    <span class="k">def</span> <span class="nf">_make_caching_getter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_caching</span> <span class="ow">and</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">[</span><span class="n">attrname</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">_rowid_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caching</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">[</span><span class="n">attrname</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_getter</span><span class="p">,</span> <span class="s1">&#39;_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_getter</span>
+
+    <span class="c1"># make default version use implicit rowids and another</span>
+    <span class="c1"># that takes explicit rowids.</span>
+
+    <span class="k">def</span> <span class="nf">_make_setters</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
+        <span class="n">ibs_funcname</span> <span class="o">=</span> <span class="s1">&#39;set_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_rowid_setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">ibs_callable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">ibs_funcname</span><span class="p">)</span>
+            <span class="n">ibs_callable</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_rowid_setter</span><span class="p">,</span> <span class="s1">&#39;_rowid_set_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
+        <span class="n">_setter</span> <span class="o">=</span> <span class="n">_make_caching_setter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_setter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_rowid_setter</span><span class="p">,</span> <span class="n">_setter</span>
+
+    <span class="c1"># ---</span>
+
+    <span class="k">def</span> <span class="nf">_make_getters</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
+        <span class="n">ibs_funcname</span> <span class="o">=</span> <span class="s1">&#39;get_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_rowid_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">):</span>
+            <span class="n">ibs_callable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">ibs_funcname</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">ibs_callable</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_asarray</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_rowid_getter</span><span class="p">,</span> <span class="s1">&#39;_rowid_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
+        <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_caching_getter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span>
+
+    <span class="k">def</span> <span class="nf">_make_cfg_getters</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
+        <span class="n">ibs_funcname</span> <span class="o">=</span> <span class="s1">&#39;get_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_rowid_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">):</span>
+            <span class="n">ibs_callable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">ibs_funcname</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">ibs_callable</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_asarray</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_rowid_getter</span><span class="p">,</span> <span class="s1">&#39;_rowid_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
+        <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_caching_getter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span>
+
+    <span class="k">def</span> <span class="nf">_make_depc_getters</span><span class="p">(</span><span class="n">depc_name</span><span class="p">,</span> <span class="n">attrname</span><span class="p">,</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_rowid_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">):</span>
+            <span class="n">depc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">depc_name</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_asarray</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">_rowid_getter</span><span class="p">,</span> <span class="s1">&#39;_rowid_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">)</span>
+        <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_caching_getter</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span>
+
+    <span class="c1"># Collect setter / getter functions and properties</span>
+    <span class="n">rowid_getters</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">getters</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">setters</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">properties</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+        <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_getters</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="n">settable_attrs</span><span class="p">:</span>
+            <span class="n">_rowid_setter</span><span class="p">,</span> <span class="n">_setter</span> <span class="o">=</span> <span class="n">_make_setters</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+            <span class="n">setters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_setter</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_setter</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">prop</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">fget</span><span class="o">=</span><span class="n">_getter</span><span class="p">,</span> <span class="n">fset</span><span class="o">=</span><span class="n">_setter</span><span class="p">)</span>
+        <span class="n">rowid_getters</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">))</span>
+        <span class="n">getters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_getter</span><span class="p">)</span>
+        <span class="n">properties</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">attrname</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="n">configurable_attrs</span><span class="p">:</span>
+        <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_cfg_getters</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+        <span class="n">prop</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">fget</span><span class="o">=</span><span class="n">_getter</span><span class="p">)</span>
+        <span class="n">rowid_getters</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">))</span>
+        <span class="n">getters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_getter</span><span class="p">)</span>
+        <span class="n">properties</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">attrname</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">depcache_attrs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">depcache_attrs</span><span class="p">:</span>
+            <span class="n">attrname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+            <span class="n">_rowid_getter</span><span class="p">,</span> <span class="n">_getter</span> <span class="o">=</span> <span class="n">_make_depc_getters</span><span class="p">(</span><span class="n">depc_name</span><span class="p">,</span> <span class="n">attrname</span><span class="p">,</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+            <span class="n">prop</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">fget</span><span class="o">=</span><span class="n">_getter</span><span class="p">,</span> <span class="n">fset</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">rowid_getters</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">attrname</span><span class="p">,</span> <span class="n">_rowid_getter</span><span class="p">))</span>
+            <span class="n">getters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_getter</span><span class="p">)</span>
+            <span class="n">properties</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">attrname</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span>
+
+    <span class="n">aliases</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Inject all gathered information</span>
+    <span class="k">for</span> <span class="n">attrname</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">rowid_getters</span><span class="p">:</span>
+        <span class="n">funcname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">funcname</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+        <span class="c1"># ensure aliases have rowid getters</span>
+        <span class="k">for</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">attr_to_aliases</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">alias_funcname</span> <span class="o">=</span> <span class="s1">&#39;_rowid_get_&#39;</span> <span class="o">+</span> <span class="n">alias</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">alias_funcname</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">getters</span><span class="p">:</span>
+        <span class="n">funcname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">funcname</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">setters</span><span class="p">:</span>
+        <span class="n">funcname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">funcname</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">attrname</span><span class="p">,</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">attrname</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">attr_to_aliases</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">aliases</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">alias</span><span class="p">,</span> <span class="n">attrname</span><span class="p">))</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--autogen-core&#39;</span><span class="p">):</span>
+        <span class="c1"># TODO: turn on autogenertion given a flag</span>
+        <span class="k">def</span> <span class="nf">expand_closure_source</span><span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_sourcecode</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="n">closure_vars</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">cell_contents</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_freevars</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="n">func_closure</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">re</span>
+
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">closure_vars</span><span class="p">:</span>
+                <span class="n">source</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">b&#39;</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">b&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">source</span><span class="p">)</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;def .*\(self&#39;</span><span class="p">,</span> <span class="s1">&#39;def &#39;</span> <span class="o">+</span> <span class="n">funcname</span> <span class="o">+</span> <span class="s1">&#39;(self&#39;</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s1">&#39;    &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">return</span> <span class="n">source</span>
+
+        <span class="n">explicit_lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># build explicit version for jedi?</span>
+        <span class="k">for</span> <span class="n">funcname</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">getters</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">expand_closure_source</span><span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+            <span class="n">explicit_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="c1"># build explicit version for jedi?</span>
+        <span class="k">for</span> <span class="n">funcname</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">setters</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">expand_closure_source</span><span class="p">(</span><span class="n">funcname</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+            <span class="n">explicit_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">attrname</span><span class="p">,</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+            <span class="n">getter_name</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">fget</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">fget</span><span class="p">)</span>
+            <span class="n">setter_name</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">fset</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">fset</span><span class="p">)</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;    </span><span class="si">%s</span><span class="s1"> = property(</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attrname</span><span class="p">,</span> <span class="n">getter_name</span><span class="p">,</span> <span class="n">setter_name</span><span class="p">)</span>
+            <span class="n">explicit_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">alias</span><span class="p">,</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="n">aliases</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;    </span><span class="si">%s</span><span class="s1"> = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">alias</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+            <span class="n">explicit_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+
+        <span class="n">explicit_source</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s1">&#39;from wbia import _wbia_object&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;class _</span><span class="si">%s</span><span class="s1">_base_class(_wbia_object.ObjectList1D):&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;    __needs_inject__ = False&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">explicit_source</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">explicit_lines</span><span class="p">)</span>
+        <span class="n">explicit_fname</span> <span class="o">=</span> <span class="s1">&#39;_autogen_</span><span class="si">%s</span><span class="s1">_base.py&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,)</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+
+        <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="n">explicit_fname</span><span class="p">),</span> <span class="n">explicit_source</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">attr_to_aliases</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;Unmapped aliases </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attr_to_aliases</span><span class="p">,))</span>
+
+
+<div class="viewcode-block" id="ObjectScalar0D"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectScalar0D">[docs]</a><span class="k">class</span> <span class="nc">ObjectScalar0D</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">HashComparable2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This actually stores a ObjectList1D of length 1 and</span>
+<span class="sd">    simply calls those functions where available</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj1d</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj1d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obj1d</span> <span class="o">=</span> <span class="n">obj1d</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;rowid=</span><span class="si">%s</span><span class="s1">, uuid=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj1d</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;show&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">vals</span>
+        <span class="k">return</span> <span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="nb">dir</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+        <span class="n">attrs</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">attrs</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj1d</span><span class="o">.</span><span class="n">__vector_attributes__</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">attrs</span>
+
+    <span class="k">def</span> <span class="nf">_make_lazy_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia._wbia_object ObjectScalar0D._make_lazy_dict</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia._wbia_object import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import wbia</span>
+<span class="sd">            &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; annots = ibs.annots()</span>
+<span class="sd">            &gt;&gt;&gt; subset = annots.take([0, 2, 5])</span>
+<span class="sd">            &gt;&gt;&gt; scalar = annots[0]</span>
+<span class="sd">            &gt;&gt;&gt; assert scalar.obj1d._attrs == annots._attrs</span>
+<span class="sd">            &gt;&gt;&gt; self = scalar</span>
+<span class="sd">            &gt;&gt;&gt; print(dir(self))</span>
+<span class="sd">            &gt;&gt;&gt; metadata = self._make_lazy_dict()</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;metadata = %r&#39; % (metadata,))</span>
+<span class="sd">            &gt;&gt;&gt; aid = metadata[&#39;aid&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;aid = %r&#39; % (aid,))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">LazyDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">obj1d</span><span class="o">.</span><span class="n">__vector_attributes__</span><span class="p">():</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="nb">getattr</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">metadata</span></div>
+
+
+<span class="c1"># @ut.reloadable_class</span>
+<div class="viewcode-block" id="ObjectList1D"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D">[docs]</a><span class="k">class</span> <span class="nc">ObjectList1D</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">HashComparable2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An object that efficiently operates on a list of wbia objects using</span>
+<span class="sd">    vectorized code. Single instances can be returned as ObjectScalar0D&#39;s</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">caching</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">asarray</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span> <span class="o">=</span> <span class="n">rowids</span>
+        <span class="c1"># self._islist = True</span>
+        <span class="c1"># Internal cache</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Internal behaviors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_caching</span> <span class="o">=</span> <span class="n">caching</span>
+        <span class="c1"># Private attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rowid_to_idx</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_asarray</span> <span class="o">=</span> <span class="n">asarray</span>
+        <span class="c1"># ut.make_index_lookup(self._rowids)</span>
+
+    <span class="k">def</span> <span class="nf">__vector_attributes__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_attrs</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configurable_attrs</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_depcache_attrs</span>
+            <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attrs_aliases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">attrs</span>
+
+<div class="viewcode-block" id="ObjectList1D.set_caching"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.set_caching">[docs]</a>    <span class="k">def</span> <span class="nf">set_caching</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_caching</span> <span class="o">=</span> <span class="n">flag</span></div>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;num=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">group_uuid</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="s1">&#39;incompatable&#39;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="ow">is</span> <span class="n">other</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="s1">&#39;incompatable&#39;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="ow">is</span> <span class="n">other</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="s1">&#39;incompatable&#39;</span>
+        <span class="n">rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new</span>
+
+<div class="viewcode-block" id="ObjectList1D.take"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.take">[docs]</a>    <span class="k">def</span> <span class="nf">take</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a subset of the list using the specified indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+        <span class="c1"># Create a new instance pointing only to the requested subset</span>
+        <span class="n">newself</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
+            <span class="n">rowids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="n">caching</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_caching</span>
+        <span class="p">)</span>
+        <span class="c1"># Pass along any internally cached values</span>
+        <span class="n">_new_internal</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">newself</span><span class="o">.</span><span class="n">_internal_attrs</span> <span class="o">=</span> <span class="n">_new_internal</span>
+        <span class="k">return</span> <span class="n">newself</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.preload"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.preload">[docs]</a>    <span class="k">def</span> <span class="nf">preload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">attrs</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;must be connected to preload&#39;</span>
+        <span class="k">for</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_internal_attrs</span><span class="p">[</span><span class="n">attrname</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.group_uuid"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.group_uuid">[docs]</a>    <span class="k">def</span> <span class="nf">group_uuid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sorted_uuids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uuids</span><span class="p">)</span>
+        <span class="n">group_uuid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_hash</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="o">*</span><span class="n">sorted_uuids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">group_uuid</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.disconnect"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.disconnect">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Disconnects object from the state of the database. All information has</span>
+<span class="sd">        been assumed to be preloaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="n">idxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">*</span><span class="n">idx</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+            <span class="n">obj0d_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="n">idx</span><span class="p">])</span>
+            <span class="n">obj0d</span> <span class="o">=</span> <span class="n">ObjectScalar0D</span><span class="p">(</span><span class="n">obj0d_</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">obj0d</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;only slice supported currently&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ObjectList1D.scalars"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.scalars">[docs]</a>    <span class="k">def</span> <span class="nf">scalars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">scalar_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))]</span>
+        <span class="k">return</span> <span class="n">scalar_list</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.compress"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.compress">[docs]</a>    <span class="k">def</span> <span class="nf">compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flags</span><span class="p">):</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.take_column"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.take_column">[docs]</a>    <span class="k">def</span> <span class="nf">take_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+        <span class="n">vals_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">])</span>
+        <span class="n">dict_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">vals</span><span class="p">))</span> <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">dict_list</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.chunks"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.chunks">[docs]</a>    <span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))):</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.group_indicies"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.group_indicies">[docs]</a>    <span class="k">def</span> <span class="nf">group_indicies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+        <span class="n">unique_labels</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">unique_labels</span><span class="p">,</span> <span class="n">groupxs</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.group_items"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.group_items">[docs]</a>    <span class="k">def</span> <span class="nf">group_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;group as dict&quot;&quot;&quot;</span>
+        <span class="n">unique_labels</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+        <span class="n">label_to_group</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_labels</span><span class="p">,</span> <span class="n">groups</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">label_to_group</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.group"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.group">[docs]</a>    <span class="k">def</span> <span class="nf">group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;group as list&quot;&quot;&quot;</span>
+        <span class="n">unique_labels</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">unique_labels</span><span class="p">,</span> <span class="n">groups</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.lookup_idxs"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.lookup_idxs">[docs]</a>    <span class="k">def</span> <span class="nf">lookup_idxs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lookup subset indicies by rowids&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowid_to_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rowid_to_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+        <span class="n">idx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowid_to_idx</span><span class="p">,</span> <span class="n">rowids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">idx_list</span></div>
+
+<div class="viewcode-block" id="ObjectList1D.loc"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.loc">[docs]</a>    <span class="k">def</span> <span class="nf">loc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lookup subset by rowids&quot;&quot;&quot;</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lookup_idxs</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span></div>
+
+    <span class="c1"># def filter(self, filterkw):</span>
+    <span class="c1">#     pass</span>
+
+    <span class="c1"># def filter_flags(self, filterkw):</span>
+    <span class="c1">#     pass</span>
+
+<div class="viewcode-block" id="ObjectList1D.view"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectList1D.view">[docs]</a>    <span class="k">def</span> <span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Like take, but returns a view proxy that maps to the original parent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">rowids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rowids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span>
+        <span class="c1"># unique_parent = self.take(unique_idxs)</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">ObjectView1D</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">obj1d</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">view</span></div></div>
+
+
+<div class="viewcode-block" id="ObjectView1D"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectView1D">[docs]</a><span class="k">class</span> <span class="nc">ObjectView1D</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="c1"># ut.HashComparable2):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Allows for proxy caching.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia._wbia_object import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; a = self = annots = ibs.annots(aids)</span>
+<span class="sd">        &gt;&gt;&gt; rowids = [1, 1, 3, 2, 1, 2]</span>
+<span class="sd">        &gt;&gt;&gt; self = v = a.view(rowids)</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(v.vecs[0] == v.vecs[1])</span>
+<span class="sd">        &gt;&gt;&gt; assert v.vecs[0] is v.vecs[1]</span>
+<span class="sd">        &gt;&gt;&gt; assert v.vecs[0] is not v.vecs[2]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">obj1d</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span> <span class="o">=</span> <span class="n">obj1d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unique_inverse</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_alignment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="n">cache</span>
+        <span class="c1"># Views always cache data for now</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_caching</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="nb">dir</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+        <span class="n">attrs</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">attrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;__dict__&#39;</span><span class="p">,</span> <span class="s1">&#39;__module__&#39;</span><span class="p">,</span> <span class="s1">&#39;__weakref__&#39;</span><span class="p">]</span>
+        <span class="c1"># [&#39;_unique_parent&#39;, &#39;_caching&#39;, &#39;_attr_rowid_value&#39;, &#39;_rowids&#39;]</span>
+        <span class="n">attrs</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">attrs</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span><span class="o">.</span><span class="n">__vector_attributes__</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">attrs</span>
+
+    <span class="k">def</span> <span class="nf">__vector_attributes__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span><span class="o">.</span><span class="n">__vector_attributes__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        key = &#39;vecs&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_rowid_getter</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span><span class="p">,</span> <span class="s1">&#39;_rowid_get_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;ObjectView1D has no attribute </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caching</span><span class="p">:</span>
+            <span class="n">rowid_to_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">miss_rowids</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">rowid</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span> <span class="k">if</span> <span class="n">rowid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rowid_to_value</span>
+            <span class="p">]</span>
+            <span class="n">miss_data</span> <span class="o">=</span> <span class="n">_rowid_getter</span><span class="p">(</span><span class="n">miss_rowids</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">miss_rowids</span><span class="p">,</span> <span class="n">miss_data</span><span class="p">):</span>
+                <span class="n">rowid_to_value</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">unique_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">rowid_to_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">unique_data</span> <span class="o">=</span> <span class="n">_rowid_getter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique_inverse</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;unique=</span><span class="si">%r</span><span class="s1">, num=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unique_rowids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="c1"># def __hash__(self):</span>
+    <span class="c1">#     return hash(self.group_uuid())</span>
+
+<div class="viewcode-block" id="ObjectView1D.view"><a class="viewcode-back" href="../../api.html#wbia._wbia_object.ObjectView1D.view">[docs]</a>    <span class="k">def</span> <span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowids</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns a view of a view that uses the same per-item cache</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia._wbia_object import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import wbia</span>
+<span class="sd">            &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; aids = ibs.get_valid_aids()</span>
+<span class="sd">            &gt;&gt;&gt; annots = ibs.annots(aids)</span>
+<span class="sd">            &gt;&gt;&gt; self = annots.view(annots._rowids)</span>
+<span class="sd">            &gt;&gt;&gt; v1 = self.view([1, 1, 2, 3, 1, 2])</span>
+<span class="sd">            &gt;&gt;&gt; v2 = self.view([3, 4, 5])</span>
+<span class="sd">            &gt;&gt;&gt; v3 = self.view([1, 4])</span>
+<span class="sd">            &gt;&gt;&gt; v4 = self.view(3)</span>
+<span class="sd">            &gt;&gt;&gt; lazy4 = v4._make_lazy_dict()</span>
+<span class="sd">            &gt;&gt;&gt; assert v1.vecs[0] is v3.vecs[0]</span>
+<span class="sd">            &gt;&gt;&gt; assert v2._cache is self._cache</span>
+<span class="sd">            &gt;&gt;&gt; assert v2._cache is v1._cache</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">rowids</span><span class="p">):</span>
+            <span class="n">childview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">rowids</span><span class="p">,</span> <span class="n">obj1d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">childview</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">([</span><span class="n">rowids</span><span class="p">],</span> <span class="n">obj1d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj1d</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">)</span>
+            <span class="n">childview</span> <span class="o">=</span> <span class="n">ObjectScalar0D</span><span class="p">(</span><span class="n">childview</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">childview</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_part_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_part_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_part_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Autogen:</span>
+<span class="sd">    python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tgen.sh&#39;, &#39;wbia.templates.template_generator&#39;)&quot;  # NOQA</span>
+<span class="sd">    sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=age_m  # NOQA</span>
+<span class="sd">    sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_  # NOQA</span>
+<span class="sd">    sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_ --diff  # NOQA</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">routes_ajax</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">PART_NOTE</span> <span class="o">=</span> <span class="s1">&#39;part_note&#39;</span>
+<span class="n">PART_NUM_VERTS</span> <span class="o">=</span> <span class="s1">&#39;part_num_verts&#39;</span>
+<span class="n">PART_ROWID</span> <span class="o">=</span> <span class="s1">&#39;part_rowid&#39;</span>
+<span class="n">PART_TAG_TEXT</span> <span class="o">=</span> <span class="s1">&#39;part_tag_text&#39;</span>
+<span class="n">PART_THETA</span> <span class="o">=</span> <span class="s1">&#39;part_theta&#39;</span>
+<span class="n">PART_VERTS</span> <span class="o">=</span> <span class="s1">&#39;part_verts&#39;</span>
+<span class="n">PART_UUID</span> <span class="o">=</span> <span class="s1">&#39;part_uuid&#39;</span>
+<span class="n">PART_QUALITY</span> <span class="o">=</span> <span class="s1">&#39;part_quality&#39;</span>
+<span class="n">PART_STAGED_FLAG</span> <span class="o">=</span> <span class="s1">&#39;part_staged_flag&#39;</span>
+<span class="n">PART_STAGED_USER_ID</span> <span class="o">=</span> <span class="s1">&#39;part_staged_user_identity&#39;</span>
+
+
+<span class="c1"># ==========</span>
+<span class="c1"># IDERS</span>
+<span class="c1"># ==========</span>
+
+
+<span class="c1"># TODO CACHE THIS AND FIND WHAT IT SHOULD INVALIDATE IT</span>
+<span class="c1"># ADD PARTS, DELETE PARTS ANYTHING ELSE?</span>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="k">def</span> <span class="nf">_get_all_part_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  all unfiltered part_rowids (part rowids)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_part_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">all_part_rowids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">all_part_rowids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="n">all_part_rowids</span>
+
+
+<div class="viewcode-block" id="get_valid_part_rowids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_valid_part_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_valid_part_rowids</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">include_only_aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">viewpoint</span><span class="o">=</span><span class="s1">&#39;no-filter&#39;</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_part_rowids</span><span class="p">()</span>
+
+    <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_part_set</span><span class="p">(</span>
+        <span class="n">part_rowid_list</span><span class="p">,</span>
+        <span class="n">include_only_aid_list</span><span class="o">=</span><span class="n">include_only_aid_list</span><span class="p">,</span>
+        <span class="n">is_staged</span><span class="o">=</span><span class="n">is_staged</span><span class="p">,</span>
+        <span class="n">viewpoint</span><span class="o">=</span><span class="n">viewpoint</span><span class="p">,</span>
+        <span class="n">minqual</span><span class="o">=</span><span class="n">minqual</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_num_parts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_num_parts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_num_parts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Number of valid parts</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_part_rowids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="part_src_api"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.part_src_api">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/&lt;rowid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">part_src_api</span><span class="p">(</span><span class="n">rowid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the base64 encoded image of part &lt;rowid&gt;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/&lt;rowid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">routes_ajax</span><span class="o">.</span><span class="n">part_src</span><span class="p">(</span><span class="n">rowid</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="filter_part_set"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.filter_part_set">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">filter_part_set</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">part_rowid_list</span><span class="p">,</span>
+    <span class="n">include_only_aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">is_staged</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">viewpoint</span><span class="o">=</span><span class="s1">&#39;no-filter&#39;</span><span class="p">,</span>
+    <span class="n">minqual</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">part_rowid_list</span><span class="p">:</span>  <span class="c1"># no need to filter if empty</span>
+        <span class="k">return</span> <span class="n">part_rowid_list</span>
+    <span class="c1"># -- valid part_rowid filtering --</span>
+
+    <span class="c1"># filter by is_staged</span>
+    <span class="k">if</span> <span class="n">is_staged</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># corresponding unoptimized hack for is_staged</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_staged_flags</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">is_staged</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_staged_flags</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">include_only_aid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_gids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="n">is_valid_gid</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span> <span class="ow">in</span> <span class="n">include_only_aid_list</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">]</span>
+        <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">is_valid_gid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">viewpoint</span> <span class="o">!=</span> <span class="s1">&#39;no-filter&#39;</span><span class="p">:</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_viewpoints</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="n">is_valid_viewpoint</span> <span class="o">=</span> <span class="p">[</span><span class="n">viewpoint</span> <span class="o">==</span> <span class="n">flag</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">viewpoint_list</span><span class="p">]</span>
+        <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">is_valid_viewpoint</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">minqual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_part_rowids_to_quality</span><span class="p">(</span>
+            <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">minqual</span><span class="p">,</span> <span class="n">unknown_ok</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+    <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_rowid_list</span></div>
+
+
+<span class="c1"># ==========</span>
+<span class="c1"># ADDERS</span>
+<span class="c1"># ==========</span>
+
+
+<div class="viewcode-block" id="add_parts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.add_parts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">adder</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">add_parts</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">aid_list</span><span class="p">,</span>
+    <span class="n">bbox_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">theta_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">detect_confidence_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">notes_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">vert_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">part_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">viewpoint_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">quality_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">type_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">staged_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">staged_user_id_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds an part to annotations</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        aid_list                 (list): annotation rowids to add part to</span>
+<span class="sd">        bbox_list                (list): of [x, y, w, h] bounding boxes for each annotation (supply verts instead)</span>
+<span class="sd">        theta_list               (list): orientations of parts</span>
+<span class="sd">        vert_list                (list): alternative to bounding box</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: part_rowid_list</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">       detect_confidence_list = None</span>
+<span class="sd">       notes_list = None</span>
+<span class="sd">       part_uuid_list = None</span>
+<span class="sd">       viewpoint_list = None</span>
+<span class="sd">       quality_list = None</span>
+<span class="sd">       type_list = None</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/part/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ut.embed()</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] adding parts&#39;</span><span class="p">)</span>
+    <span class="c1"># Prepare the SQL input</span>
+    <span class="c1"># For import only, we can specify both by setting import_override to True</span>
+    <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">bbox_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">bool</span><span class="p">(</span>
+        <span class="n">vert_list</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">),</span> <span class="s1">&#39;must specify exactly one of bbox_list or vert_list&#39;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;aid_list&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">vert_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vert_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">verts_list_from_bboxes_list</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">bbox_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">bboxes_from_vert_list</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">theta_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">theta_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))]</span>
+
+    <span class="n">len_bbox</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+    <span class="n">len_vert</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+    <span class="n">len_aid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">len_theta</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta_list</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">len_vert</span> <span class="o">==</span> <span class="n">len_bbox</span><span class="p">,</span> <span class="s1">&#39;bbox and verts are not of same size&#39;</span>
+        <span class="k">assert</span> <span class="n">len_aid</span> <span class="o">==</span> <span class="n">len_bbox</span><span class="p">,</span> <span class="s1">&#39;bbox and aid are not of same size&#39;</span>
+        <span class="k">assert</span> <span class="n">len_aid</span> <span class="o">==</span> <span class="n">len_theta</span><span class="p">,</span> <span class="s1">&#39;bbox and aid are not of same size&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;len_vert&#39;</span><span class="p">,</span> <span class="s1">&#39;len_aid&#39;</span><span class="p">,</span> <span class="s1">&#39;len_bbox&#39;</span> <span class="s1">&#39;len_theta&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># nothing is being added</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] WARNING: 0 parts are being added!&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="nb">locals</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">detect_confidence_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">detect_confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">notes_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">notes_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="n">viewpoint_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">type_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">type_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">nVert_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span> <span class="k">for</span> <span class="n">verts</span> <span class="ow">in</span> <span class="n">vert_list</span><span class="p">]</span>
+    <span class="n">vertstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span> <span class="k">for</span> <span class="n">verts</span> <span class="ow">in</span> <span class="n">vert_list</span><span class="p">]</span>
+    <span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span> <span class="n">width_list</span><span class="p">,</span> <span class="n">height_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">bbox_list</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">nVert_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">)</span>
+
+    <span class="c1"># Build ~~deterministic?~~ random and unique PART ids</span>
+    <span class="k">if</span> <span class="n">part_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">part_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))]</span>
+
+    <span class="k">if</span> <span class="n">staged_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">staged_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">is_staged_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">staged_uuid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">staged_uuid</span> <span class="ow">in</span> <span class="n">staged_uuid_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">staged_user_id_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">staged_user_id_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="c1"># Define arguments to insert</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;part_uuid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_xtl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_ytl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_width&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_height&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_theta&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_num_verts&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_verts&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_viewpoint&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_detect_confidence&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_note&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_type&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_staged_flag&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_staged_uuid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_staged_user_identity&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">check_uuid_flags</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">auuid</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span> <span class="k">for</span> <span class="n">auuid</span> <span class="ow">in</span> <span class="n">part_uuid_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">check_uuid_flags</span><span class="p">):</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span><span class="n">check_uuid_flags</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;positions </span><span class="si">%r</span><span class="s1"> have malformated UUIDS&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pos</span><span class="p">,))</span>
+
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">part_uuid_list</span><span class="p">,</span>
+            <span class="n">aid_list</span><span class="p">,</span>
+            <span class="n">xtl_list</span><span class="p">,</span>
+            <span class="n">ytl_list</span><span class="p">,</span>
+            <span class="n">width_list</span><span class="p">,</span>
+            <span class="n">height_list</span><span class="p">,</span>
+            <span class="n">theta_list</span><span class="p">,</span>
+            <span class="n">nVert_list</span><span class="p">,</span>
+            <span class="n">vertstr_list</span><span class="p">,</span>
+            <span class="n">viewpoint_list</span><span class="p">,</span>
+            <span class="n">detect_confidence_list</span><span class="p">,</span>
+            <span class="n">notes_list</span><span class="p">,</span>
+            <span class="n">type_list</span><span class="p">,</span>
+            <span class="n">is_staged_list</span><span class="p">,</span>
+            <span class="n">staged_uuid_list</span><span class="p">,</span>
+            <span class="n">staged_user_id_list</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Execute add PARTs SQL</span>
+    <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_rowids_from_uuid</span>
+    <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_rows"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_rows">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @register_api(&#39;/api/part/rows/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_part_rows</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;get_part_rows&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;part_uuid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_xtl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_ytl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_width&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_height&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_theta&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_num_verts&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_verts&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_viewpoint&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_detect_confidence&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_note&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_quality&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_type&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">rows_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">rows_list</span></div>
+
+
+<span class="c1"># ==========</span>
+<span class="c1"># DELETERS</span>
+<span class="c1"># ==========</span>
+
+
+<div class="viewcode-block" id="delete_parts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.delete_parts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">deleter</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">delete_parts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    deletes parts from the database</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: DELETE</span>
+<span class="sd">        URL:    /api/part/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        part_rowid_list (int):  list of part ids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> parts&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">))</span>
+    <span class="c1"># delete parent rowid column if exists in part table</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">)</span></div>
+
+
+<span class="c1"># ==========</span>
+<span class="c1"># GETTERS</span>
+<span class="c1"># ==========</span>
+
+
+<div class="viewcode-block" id="get_part_rowids_from_uuid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_rowids_from_uuid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/rowid/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_rowids_from_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): part rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/rowid/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">part_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">PART_ROWID</span><span class="p">,),</span> <span class="n">uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">PART_UUID</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_rowids_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_missing_uuid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_missing_uuid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/part/uuid/missing/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_part_missing_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): a list of missing part uuids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_rowids_from_uuid</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">)</span>
+    <span class="n">missing_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span> <span class="k">for</span> <span class="n">part_rowid</span><span class="p">,</span> <span class="n">uuid</span> <span class="ow">in</span> <span class="n">zipped</span> <span class="k">if</span> <span class="n">part_rowid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">missing_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_bboxes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_bboxes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/bbox/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_bboxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        bbox_list (list):  part bounding boxes in image space</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/bbox/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;part_xtl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_ytl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_width&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_height&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bbox_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_detect_confidence"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_detect_confidence">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/detect/confidence/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_detect_confidence</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): a list confidences that the parts is a valid detection</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/detect/confidence/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_detect_confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_detect_confidence&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_detect_confidence_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_gids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/image/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">assume_unique</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get parent imageation rowids of parts</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        part_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        gid_list (list):  image rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/image/rowid/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.get_valid_part_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; result = get_part_gids(ibs, part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_aids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gid_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_image_rowids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_image_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_part_image_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_gids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_part_image_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_image_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_part_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_gids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_aids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/annot/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">assume_unique</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get parent annotation rowids of parts</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        part_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        aid_list (list):  annot rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/annot/rowid/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.get_valid_part_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; result = get_part_aids(ibs, part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">assume_unique</span><span class="o">=</span><span class="n">assume_unique</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">aid_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_annot_rowids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_annot_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_part_annot_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_aids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_part_annot_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_annot_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_part_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_aids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">annot_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_thetas"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_thetas">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/theta/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_thetas</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        theta_list (list): a list of floats describing the angles of each part</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_part_funcs --test-get_part_thetas</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/theta/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;NAUT_test&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.get_valid_part_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; result = get_part_thetas(ibs, part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        []</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_theta&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">theta_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: part_uuid_list a list of part uuids by part_rowid</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_uuid&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_valid_part_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_valid_part_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/part/uuid/valid/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_valid_part_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: part_uuid_list a list of part uuids for all valid part_rowids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_part_rowids</span><span class="p">()</span>
+    <span class="n">part_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_uuids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_verts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_verts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/vert/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_verts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        vert_list (list): the vertices that form the polygon of each part</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/vert/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_part</span>
+
+    <span class="n">vertstr_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_verts&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="n">preproc_part</span><span class="o">.</span><span class="n">postget_part_verts</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">)</span>
+    <span class="c1"># vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]</span>
+    <span class="k">return</span> <span class="n">vert_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_rotated_verts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_rotated_verts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/vert/rotated/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_rotated_verts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        rotated_vert_list (list): verticies after rotation by theta.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/vert/rotated/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_verts</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_thetas</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="c1"># Convex bounding boxes for verticies</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">bboxes_from_vert_list</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+    <span class="n">rot_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">rotation_around_bbox_mat3x3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">bbox</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">theta</span><span class="p">,</span> <span class="n">bbox</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">theta_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">rotated_vert_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">transform_points_with_homography</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">rot</span><span class="p">,</span> <span class="n">verts</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rot_list</span><span class="p">,</span> <span class="n">vert_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c1"># vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]</span>
+    <span class="k">return</span> <span class="n">rotated_vert_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_notes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_notes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        part_notes_list (list): a list of part notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">PART_NOTE</span><span class="p">,),</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_notes_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_types"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_types">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/type/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_types</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        part_notes_list (list): a list of part notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_type_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_type&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_type_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_viewpoints"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_viewpoints">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/viewpoint/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_viewpoints</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        part_notes_list (list): a list of part notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_viewpoint&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_viewpoint_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_num_verts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_num_verts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/num/vert/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_num_verts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        nVerts_list (list): the number of vertices that form the polygon of each part</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/num/vert/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nVerts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">PART_NUM_VERTS</span><span class="p">,),</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nVerts_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_qualities"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_qualities">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">PART_QUALITY</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/quality/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_qualities</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    part_quality_list &lt;- part.part_quality[part_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;part_quality&quot; in the &quot;part&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        part_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: part_quality_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = part_quality</span>
+<span class="sd">        tbl = part</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        wbia.const.QUALITY_INT_TO_TEXT</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/quality/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs._get_all_part_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; eager = True</span>
+<span class="sd">        &gt;&gt;&gt; part_quality_list = ibs.get_part_qualities(part_rowid_list, eager=eager)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;part_quality_list = %r&#39; % (part_quality_list,))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(part_rowid_list) == len(part_quality_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">part_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">PART_QUALITY</span><span class="p">,)</span>
+    <span class="n">part_quality_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_quality_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_quality_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_quality_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/quality/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_quality_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;get_part_quality_texts&#39;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/quality/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">quality_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_qualities</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">quality_text_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="p">,</span> <span class="n">quality_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">quality_text_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_isjunk"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_isjunk">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/part/isjunk/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_part_isjunk</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;get_part_isjunk&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">qual_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_qualities</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="c1"># isjunk_list = [qual == const.QUALITY_TEXT_TO_INT[&#39;junk&#39;] for qual in qual_list]</span>
+    <span class="n">isjunk_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qual</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">QUALITY_TEXT_TO_INTS</span><span class="p">[</span><span class="s1">&#39;junk&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">qual</span> <span class="ow">in</span> <span class="n">qual_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">isjunk_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_reviewed"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_reviewed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/reviewed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): &quot;All Instances Found&quot; flag, true if all objects of interest</span>
+<span class="sd">    (animals) have an PART in the part</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/reviewed/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_toggle_reviewed&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">reviewed_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_tag_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_tag_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_part_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;part_tags_list &lt;- part.part_tags[part_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;part_tags&quot; in the &quot;part&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        part_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: part_tags_list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs._get_all_part_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; eager = True</span>
+<span class="sd">        &gt;&gt;&gt; part_tags_list = ibs.get_part_tag_text(part_rowid_list, eager=eager)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(part_rowid_list) == len(part_tags_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_type_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">part_type_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">part_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">part_type</span> <span class="ow">in</span> <span class="n">part_type_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">part_type_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_staged_flags"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_staged_flags">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/staged/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_staged_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns if an part is staged</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        part_rowid_list (int):  list of part ids</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: part_staged_flag_list - True if part is staged</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_part_funcs --test-get_part_staged_flags</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/staged/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.get_valid_part_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = get_part_staged_flags(ibs, part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_staged_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">PART_STAGED_FLAG</span><span class="p">,),</span> <span class="n">part_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_staged_flag_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_staged_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_staged_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/staged/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_staged_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: part_uuid_list a list of image uuids by aid</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/staged/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_staged_uuid&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_staged_user_ids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_staged_user_ids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/staged/user/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_staged_user_ids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns if an part is staged</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        part_rowid_list (int):  list of part ids</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: part_staged_user_id_list - True if part is staged</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_part_funcs --test-get_part_staged_user_ids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/staged/user/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.get_valid_part_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = get_part_staged_user_ids(ibs, part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_staged_user_id_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">PART_STAGED_USER_ID</span><span class="p">,),</span> <span class="n">part_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">part_staged_user_id_list</span></div>
+
+
+<div class="viewcode-block" id="get_part_staged_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_staged_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/staged/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_staged_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): part metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/staged/metadata/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_staged_metadata_json&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">metadata_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">metadata_str</span> <span class="k">if</span> <span class="n">return_raw</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+        <span class="n">metadata_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metadata_list</span></div>
+
+
+<span class="c1">#### SETTERS ####  # NOQA</span>
+
+
+<span class="k">def</span> <span class="nf">_update_part_rotate_fix_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">=</span> <span class="n">bbox</span>
+    <span class="n">diffx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">w</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)))</span>
+    <span class="n">diffy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">h</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)))</span>
+    <span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">xtl</span> <span class="o">+</span> <span class="n">diffx</span><span class="p">,</span> <span class="n">ytl</span> <span class="o">+</span> <span class="n">diffy</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span>
+    <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bbox</span>
+
+
+<div class="viewcode-block" id="update_part_rotate_90"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.update_part_rotate_90">[docs]</a><span class="k">def</span> <span class="nf">update_part_rotate_90</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="kn">import</span> <span class="n">PI</span><span class="p">,</span> <span class="n">TAU</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid direction supplied&#39;</span><span class="p">)</span>
+
+    <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_thetas</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">theta_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">theta</span> <span class="o">+</span> <span class="p">(</span><span class="n">val</span> <span class="o">*</span> <span class="n">PI</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span> <span class="o">%</span> <span class="n">TAU</span> <span class="k">for</span> <span class="n">theta</span> <span class="ow">in</span> <span class="n">theta_list</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_part_thetas</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">)</span>
+
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_bboxes</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_update_part_rotate_fix_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span> <span class="k">for</span> <span class="n">bbox</span> <span class="ow">in</span> <span class="n">bbox_list</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_part_bboxes</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">)</span>
+
+    <span class="c1"># Update part contours</span>
+    <span class="n">part_contours</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_contour</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">part_bboxes</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_bboxes</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+
+    <span class="n">part_rowid_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">part_contours_</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">part_contours</span><span class="p">,</span> <span class="n">part_bboxes</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">part_rowid</span><span class="p">,</span> <span class="n">part_contour</span><span class="p">,</span> <span class="n">part_bbox</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+        <span class="n">contour_data</span> <span class="o">=</span> <span class="n">part_contour</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;contour&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">segment</span> <span class="o">=</span> <span class="n">contour_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;segment&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">part_bbox</span>
+
+            <span class="n">theta</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">val</span> <span class="o">*</span> <span class="n">PI</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rotation_around_bbox_mat3x3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">bbox</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">segment</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;flag&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">f</span><span class="p">]:</span>
+                    <span class="n">points</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]</span>
+                    <span class="n">xyz_points</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">add_homogenous_coordinate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                    <span class="n">trans_points</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">remove_homogenous_coordinate</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz_points</span><span class="p">))</span>
+                    <span class="n">new_points</span> <span class="o">=</span> <span class="n">trans_points</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                    <span class="n">x_</span><span class="p">,</span> <span class="n">y_</span> <span class="o">=</span> <span class="n">new_points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                    <span class="n">segment</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_</span>
+                    <span class="n">segment</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_</span>
+                    <span class="n">segment</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;r&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span> <span class="o">*</span> <span class="n">h</span><span class="p">)</span> <span class="o">/</span> <span class="n">w</span>
+
+            <span class="n">part_contour</span><span class="p">[</span><span class="s1">&#39;contour&#39;</span><span class="p">][</span><span class="s1">&#39;segment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">segment</span>
+
+            <span class="n">part_rowid_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part_rowid</span><span class="p">)</span>
+            <span class="n">part_contours_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part_contour</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_part_contour</span><span class="p">(</span><span class="n">part_rowid_list_</span><span class="p">,</span> <span class="n">part_contours_</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update_part_rotate_left_90"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.update_part_rotate_left_90">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/rotate/left/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">update_part_rotate_left_90</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">update_part_rotate_90</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update_part_rotate_right_90"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.update_part_rotate_right_90">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/rotate/right/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">update_part_rotate_right_90</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">update_part_rotate_90</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">)</span></div>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/annot/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">_set_part_aid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets part notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/annot/rowid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">confidence</span><span class="p">,)</span> <span class="k">for</span> <span class="n">confidence</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="set_part_bboxes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_bboxes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/bbox/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_bboxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets bboxes of a list of parts by part_rowid,</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        part_rowid_list (list of rowids): list of part rowids</span>
+<span class="sd">        bbox_list (list of (x, y, w, h)): new bounding boxes for each part_rowid</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        set_part_bboxes is a proxy for set_part_verts</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/bbox/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
+
+    <span class="c1"># changing the bboxes also changes the bounding polygon</span>
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">verts_list_from_bboxes_list</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+    <span class="c1"># naively overwrite the bounding polygon with a rectangle - for now trust the user!</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_part_verts</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">vert_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_detect_confidence"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_detect_confidence">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/detect/confidence/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_detect_confidence</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">confidence_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets part notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/detect/confidence/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">confidence</span><span class="p">,)</span> <span class="k">for</span> <span class="n">confidence</span> <span class="ow">in</span> <span class="n">confidence_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_detect_confidence&#39;</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_notes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_notes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">notes_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets part notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">notes</span><span class="p">,)</span> <span class="k">for</span> <span class="n">notes</span> <span class="ow">in</span> <span class="n">notes_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">PART_NOTE</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_types"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_types">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/type/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_types</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">type_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets part notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">type_</span><span class="p">,)</span> <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">type_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_type&#39;</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_viewpoints"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_viewpoints">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/viewpoint/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_viewpoints</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets part notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">viewpoint_</span><span class="p">,)</span> <span class="k">for</span> <span class="n">viewpoint_</span> <span class="ow">in</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_viewpoint&#39;</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_tag_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_tag_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="k">def</span> <span class="nf">set_part_tag_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">part_tags_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;part_tags_list -&gt; part.part_tags[part_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        part_rowid_list</span>
+<span class="sd">        part_tags_list</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># logger.info(&#39;[ibs] set_part_tag_text of part_rowid_list=%r to tags=%r&#39; % (part_rowid_list, part_tags_list))</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">part_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">PART_TAG_TEXT</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">part_tags_list</span><span class="p">,</span>
+        <span class="n">id_iter</span><span class="p">,</span>
+        <span class="n">duplicate_behavior</span><span class="o">=</span><span class="n">duplicate_behavior</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_thetas"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_thetas">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/theta/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_thetas</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets thetas of a list of part_rowid_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/theta/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">theta</span><span class="p">,)</span> <span class="k">for</span> <span class="n">theta</span> <span class="ow">in</span> <span class="n">theta_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">PART_THETA</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_verts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_verts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/vert/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_verts</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">verts_list</span><span class="p">,</span> <span class="n">delete_thumbs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">notify_root</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the vertices [(x, y), ...] of a list of part_rowid_list</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/vert/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">geometry</span>
+
+    <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="c1"># Compute data to set</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">verts_list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">verts_list</span> <span class="o">=</span> <span class="n">verts_list</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">vert_list</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">verts_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vert_list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">verts_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">vert_list</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">num_verts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">verts_list</span><span class="p">))</span>
+    <span class="n">verts_as_strings</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">verts_list</span><span class="p">))</span>
+    <span class="n">id_iter1</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="c1"># also need to set the internal number of vertices</span>
+    <span class="n">val_iter1</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">num_verts</span><span class="p">,</span> <span class="n">verts</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">num_verts</span><span class="p">,</span> <span class="n">verts</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">num_verts_list</span><span class="p">,</span> <span class="n">verts_as_strings</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">PART_NUM_VERTS</span><span class="p">,</span>
+        <span class="n">PART_VERTS</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># SET VERTS in PART_TABLE</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter1</span><span class="p">,</span> <span class="n">id_iter1</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+    <span class="c1"># changing the vertices also changes the bounding boxes</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">bboxes_from_vert_list</span><span class="p">(</span><span class="n">verts_list</span><span class="p">)</span>  <span class="c1"># new bboxes</span>
+    <span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span> <span class="n">width_list</span><span class="p">,</span> <span class="n">height_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">bbox_list</span><span class="p">))</span>
+    <span class="n">val_iter2</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span> <span class="n">width_list</span><span class="p">,</span> <span class="n">height_list</span><span class="p">)</span>
+    <span class="n">id_iter2</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;part_xtl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_ytl&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_width&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;part_height&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># SET BBOX in PART_TABLE</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter2</span><span class="p">,</span> <span class="n">id_iter2</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;set_annot_verts...thumbs&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">delete_thumbs</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">delete_part_chips</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>  <span class="c1"># INVALIDATE THUMBNAILS</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;set_annot_verts...roots&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">notify_root</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">depc_part</span><span class="o">.</span><span class="n">notify_root_changed</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="s1">&#39;verts&#39;</span><span class="p">,</span> <span class="n">force_delete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_qualities"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_qualities">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="n">PART_QUALITY</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/quality/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_qualities</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">part_quality_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    part_quality_list -&gt; part.part_quality[part_rowid_list]</span>
+
+<span class="sd">    A quality is an integer representing the following types:</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        part_rowid_list</span>
+<span class="sd">        part_quality_list</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        wbia.const.QUALITY_INT_TO_TEXT</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/quality/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">part_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">PART_QUALITY</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">part_quality_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_quality_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_quality_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/quality/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_quality_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">quality_text_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;set_part_quality_texts&#39;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/quality/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">):</span>
+        <span class="n">part_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">part_rowid_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quality_text_list</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">quality_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">quality_text_list</span><span class="p">]</span>
+    <span class="n">quality_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">QUALITY_TEXT_TO_INT</span><span class="p">,</span> <span class="n">quality_text_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_part_qualities</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">quality_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_reviewed"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_reviewed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/reviewed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the part all instances found bit</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/reviewed/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">reviewed</span><span class="p">,)</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">reviewed_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_toggle_reviewed&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="n">PART_STAGED_FLAG</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/staged/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">_set_part_staged_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets if an part is staged</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/staged/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">flag</span><span class="p">,)</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">PART_STAGED_FLAG</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="set_part_staged_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_staged_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/staged/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_staged_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">part_uuid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">aid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_uuid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_uuid</span> <span class="ow">in</span> <span class="n">part_uuid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_staged_uuid&#39;</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">part_uuid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">part_uuid</span> <span class="ow">in</span> <span class="n">part_uuid_list</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_set_part_staged_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_staged_user_ids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_staged_user_ids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="n">PART_STAGED_USER_ID</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/staged/user/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_staged_user_ids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">user_id_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the staged part user id</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/staged/user/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">user_id</span><span class="p">,)</span> <span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">user_id_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">PART_STAGED_USER_ID</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_part_staged_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_staged_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/staged/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_staged_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">metadata_dict_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the part&#39;s staged metadata using a metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/staged/metadata/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_part_funcs --test-set_part_staged_metadata</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import random</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = [[0, 0, 100, 100]] * len(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)</span>
+<span class="sd">        &gt;&gt;&gt; metadata_dict_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     {&#39;test&#39;: random.uniform(0.0, 1.0)},</span>
+<span class="sd">        &gt;&gt;&gt; ] * len(part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_dict_list))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_part_staged_metadata(part_rowid_list, metadata_dict_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; metadata_dict_list_ = ibs.get_part_staged_metadata(part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_dict_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert metadata_dict_list == metadata_dict_list_</span>
+<span class="sd">        &gt;&gt;&gt; metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_str_list))</span>
+<span class="sd">        &gt;&gt;&gt; metadata_str_list_ = ibs.get_part_staged_metadata(part_rowid_list, return_raw=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_str_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert metadata_str_list == metadata_str_list_</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_parts(part_rowid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_dict</span> <span class="ow">in</span> <span class="n">metadata_dict_list</span><span class="p">:</span>
+        <span class="n">metadata_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+        <span class="n">metadata_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_str</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_staged_metadata_json&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_part_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): part metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/metadata/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_metadata_json&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">metadata_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">metadata_str</span> <span class="k">if</span> <span class="n">return_raw</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+        <span class="n">metadata_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metadata_list</span></div>
+
+
+<div class="viewcode-block" id="set_part_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">metadata_dict_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the part&#39;s metadata using a metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/metadata/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_part_funcs --test-set_part_metadata</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import random</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = [[0, 0, 100, 100]] * len(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)</span>
+<span class="sd">        &gt;&gt;&gt; metadata_dict_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     {&#39;test&#39;: random.uniform(0.0, 1.0)},</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_dict_list))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_part_metadata(part_rowid_list, metadata_dict_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; metadata_dict_list_ = ibs.get_part_metadata(part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_dict_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert metadata_dict_list == metadata_dict_list_</span>
+<span class="sd">        &gt;&gt;&gt; metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_str_list))</span>
+<span class="sd">        &gt;&gt;&gt; metadata_str_list_ = ibs.get_part_metadata(part_rowid_list, return_raw=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_str_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert metadata_str_list == metadata_str_list_</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_parts(part_rowid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_dict</span> <span class="ow">in</span> <span class="n">metadata_dict_list</span><span class="p">:</span>
+        <span class="n">metadata_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+        <span class="n">metadata_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_str</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_metadata_json&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_part_contour"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.get_part_contour">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/contour/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_part_contour</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): part contour dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/part/contour/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">contour_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_contour_json&#39;</span><span class="p">,),</span> <span class="n">part_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">contour_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">contour_str</span> <span class="ow">in</span> <span class="n">contour_str_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">contour_str</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]:</span>
+            <span class="n">contour_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">contour_dict</span> <span class="o">=</span> <span class="n">contour_str</span> <span class="k">if</span> <span class="n">return_raw</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">contour_str</span><span class="p">)</span>
+        <span class="n">contour_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contour_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">contour_list</span></div>
+
+
+<div class="viewcode-block" id="set_part_contour"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.set_part_contour">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/part/contour/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_part_contour</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">contour_dict_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the part&#39;s contour using a contour dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/part/contour/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_part_funcs --test-set_part_contour</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_part_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import random</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = [[0, 0, 100, 100]] * len(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)</span>
+<span class="sd">        &gt;&gt;&gt; contour_dict_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     {&#39;test&#39;: random.uniform(0.0, 1.0)},</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(contour_dict_list))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_part_contour(part_rowid_list, contour_dict_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; contour_dict_list_ = ibs.get_part_contour(part_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(contour_dict_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert contour_dict_list == contour_dict_list_</span>
+<span class="sd">        &gt;&gt;&gt; contour_str_list = [ut.to_json(contour_dict) for contour_dict in contour_dict_list]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(contour_str_list))</span>
+<span class="sd">        &gt;&gt;&gt; contour_str_list_ = ibs.get_part_contour(part_rowid_list, return_raw=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(contour_str_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert contour_str_list == contour_str_list_</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_parts(part_rowid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">part_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">part_rowid</span> <span class="ow">in</span> <span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">contour_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">contour_dict</span> <span class="ow">in</span> <span class="n">contour_dict_list</span><span class="p">:</span>
+        <span class="n">contour_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">contour_dict</span><span class="p">)</span>
+        <span class="n">contour_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contour_str</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">contour_str</span><span class="p">,)</span> <span class="k">for</span> <span class="n">contour_str</span> <span class="ow">in</span> <span class="n">contour_str_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PART_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;part_contour_json&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<span class="c1"># setting up the Wild Dog data for assigner training</span>
+<span class="c1"># def get_corresponding_aids(ibs, part_rowid_list, from_aids=None):</span>
+<span class="c1">#     if from_aids is None:</span>
+<span class="c1">#         from_aids = ibs.get_valid_aids()</span>
+
+
+<span class="c1"># def get_corresponding_aids_slow(ibs, part_rowid_list, from_aids):</span>
+<span class="c1">#     part_bboxes = ibs.get_part_bboxes(part_rowid_list)</span>
+<span class="c1">#     annot_bboxes = ibs.get_annot_bboxes(from_aids)</span>
+<span class="c1">#     annot_gids = ibs.get_annot_gids(from_aids)</span>
+<span class="c1">#     from collections import defaultdict</span>
+
+<span class="c1">#     bbox_gid_to_aids = defaultdict(int)</span>
+<span class="c1">#     for aid, gid, bbox in zip(from_aids, annot_gids, annot_bboxes):</span>
+<span class="c1">#         bbox_gid_to_aids[(bbox[0], bbox[1], bbox[2], bbox[3], gid)] = aid</span>
+<span class="c1">#     part_gids = ibs.get_part_image_rowids(parts)</span>
+<span class="c1">#     part_rowid_to_aid = {</span>
+<span class="c1">#         part_id: bbox_gid_to_aids[(bbox[0], bbox[1], bbox[2], bbox[3], gid)]</span>
+<span class="c1">#         for part_id, gid, bbox in zip(part_rowid_list, part_gids, part_bboxes)</span>
+<span class="c1">#     }</span>
+
+<span class="c1">#     part_aids = [part_rowid_to_aid[partid] for partid in parts]</span>
+<span class="c1">#     part_parent_aids = ibs.get_part_aids(part_rowid_list)</span>
+
+<span class="c1">#     # parents might be non-unique so we gotta make a unique name for each parent</span>
+<span class="c1">#     parent_aid_to_part_rowids = defaultdict(list)</span>
+<span class="c1">#     for part_rowid, parent_aid in zip(part_rowid_list, part_parent_aids):</span>
+<span class="c1">#         parent_aid_to_part_rowids[parent_aid] += [part_rowid]</span>
+
+<span class="c1">#     part_annot_names = [</span>
+<span class="c1">#         &#39;,&#39;.join(str(p) for p in parent_aid_to_part_rowids[parent_aid])</span>
+<span class="c1">#         for parent_aid in part_parent_aids</span>
+<span class="c1">#     ]</span>
+
+<span class="c1">#     # now assign names so we can associate the part annots with the non-part annots</span>
+<span class="c1">#     new_part_names = [&#39;part-%s&#39; % part_rowid for part_rowid in part_rowid_list]</span>
+
+
+<span class="c1"># def sort_parts_by_tags(ibs, part_rowid_list):</span>
+<span class="c1">#     tags = ibs.get_part_tag_text(part_rowid_list)</span>
+<span class="c1">#     from collections import defaultdict</span>
+
+<span class="c1">#     tag_to_rowids = defaultdict(list)</span>
+<span class="c1">#     for tag, part_rowid in zip(tags, part_rowid_list):</span>
+<span class="c1">#         tag_to_rowids[tag] += [part_rowid]</span>
+<span class="c1">#     parts_by_tags = [tag_to_rowdids[tag] for tag in tag_to_rowdids.keys()]</span>
+<span class="c1">#     return parts_by_tags</span>
+
+
+<span class="c1"># ==========</span>
+<span class="c1"># Testdata</span>
+<span class="c1"># ==========</span>
+
+
+<div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_part_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Auto-docstr for &#39;testdata_ibs&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

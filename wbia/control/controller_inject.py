@@ -848,9 +848,10 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
 
             try:
                 if not MICROSOFT_API_ENABLED:
-                    assert (
-                        'annotation' not in rule
-                    ), 'An API rule should use "annot" instead of annotation(s)"'
+                    if not rule.startswith('/v0.1/wildbook/'):
+                        assert (
+                            'annotation' not in rule
+                        ), 'An API rule should use "annot" instead of annotation(s)"'
                 assert (
                     'imgset' not in rule
                 ), 'An API should use "imageset" instead of imgset(s)"'

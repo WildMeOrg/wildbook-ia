@@ -683,7 +683,7 @@ def compute_probchip(depc, aid_list, config=None):
         python -m wbia.core_annots --test-compute_probchip --show --fw_detector=cnn
         python -m wbia.core_annots --test-compute_probchip --show --fw_detector=rf --smooth_thresh=None
 
-    Example1:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.core_annots import *  # NOQA
         >>> import wbia
@@ -1946,7 +1946,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         python -m wbia.core_annots --exec-compute_labels_annotations:0
         python -m wbia.core_annots --exec-compute_labels_annotations:1
 
-    Example0:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.core_images import *  # NOQA
         >>> import wbia
@@ -1970,7 +1970,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> results = depc.get_property('labeler', aid_list, None)
         >>> print(results)
 
-    Example1:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.core_images import *  # NOQA
         >>> import wbia

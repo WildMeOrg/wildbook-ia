@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_name_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_name_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_name_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tgen.sh&#39;, &#39;wbia.templates.template_generator&#39;)&quot;  # NOQA</span>
+<span class="sd">sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --modfname manual_name_funcs  # NOQA</span>
+<span class="sd">sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modfname manual_name_funcs --funcname-filter=sex  # NOQA</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># TODO: Fix this name it is too special case</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">ANNOT_ROWID</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid&#39;</span>
+<span class="n">ANNOT_SEMANTIC_UUID</span> <span class="o">=</span> <span class="s1">&#39;annot_semantic_uuid&#39;</span>
+<span class="n">NAME_ROWID</span> <span class="o">=</span> <span class="s1">&#39;name_rowid&#39;</span>
+
+<span class="n">NAME_UUID</span> <span class="o">=</span> <span class="s1">&#39;name_uuid&#39;</span>
+<span class="n">NAME_TEXT</span> <span class="o">=</span> <span class="s1">&#39;name_text&#39;</span>
+<span class="n">NAME_ALIAS_TEXT</span> <span class="o">=</span> <span class="s1">&#39;name_alias_text&#39;</span>
+<span class="n">NAME_NOTE</span> <span class="o">=</span> <span class="s1">&#39;name_note&#39;</span>
+<span class="n">NAME_SEX</span> <span class="o">=</span> <span class="s1">&#39;name_sex&#39;</span>
+<span class="n">NAME_TEMP_FLAG</span> <span class="o">=</span> <span class="s1">&#39;name_temp_flag&#39;</span>
+
+
+<div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># qreq_.qparams</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span></div>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="k">def</span> <span class="nf">_get_all_known_name_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)</span>
+    <span class="n">all_known_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_known_nids</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="k">def</span> <span class="nf">_get_all_name_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)</span>
+    <span class="n">all_known_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_known_nids</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_get_all_known_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    alias</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_get_all_known_name_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="add_names"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.add_names">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">adder</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">add_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">name_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name_note_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds a list of names.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        name_rowid_list (list): their nids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/name/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name_note_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">name_note_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="c1"># Get random uuids</span>
+    <span class="k">if</span> <span class="n">name_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">name_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">))]</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">NAME_UUID</span><span class="p">,</span> <span class="n">NAME_TEXT</span><span class="p">,</span> <span class="n">NAME_NOTE</span><span class="p">]</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">name_uuid_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">name_note_list</span><span class="p">))</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_rowid_list</span></div>
+    <span class="c1"># OLD WAY</span>
+    <span class="c1"># # nid_list_ = [namenid_dict[name] for name in name_list_]</span>
+    <span class="c1"># name_text_list_ = ibs.sanitize_name_texts(name_text_list)</span>
+    <span class="c1"># # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot</span>
+    <span class="c1"># lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]</span>
+    <span class="c1"># lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)</span>
+    <span class="c1"># nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)</span>
+    <span class="c1"># # nid_list = [const.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]</span>
+    <span class="c1"># return nid_list</span>
+
+
+<span class="c1"># def init_default_speciesvalue():</span>
+<span class="c1">#    #const.KEY_DEFAULTS[const.SPECIES_KEY]</span>
+<span class="c1">#    note_list = [&#39;default value&#39;]</span>
+<span class="c1">#    # Get random uuids</span>
+<span class="c1">#    import uuid</span>
+<span class="c1">#    lblannot_uuid_list = [uuid.UUID(&#39;00000000-0000-0000-0000-000000000001&#39;)]</span>
+<span class="c1">#    value_list = [const.KEY_DEFAULTS[const.SPECIES_KEY]]</span>
+<span class="c1">#    colnames = [&#39;species_uuid&#39;, &#39;species_rowid&#39;, &#39;species_text&#39;, &#39;species_note&#39;]</span>
+<span class="c1">#    params_iter = list(zip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list))</span>
+<span class="c1">#    get_rowid_from_superkey = ibs.get_species_rowid_from_species_text</span>
+<span class="c1">#    superkey_paramx = (1, 2)</span>
+<span class="c1">#    species_rowid_list = ibs.db.add_cleanly(const.SPECIES_TABLE, colnames, params_iter,</span>
+<span class="c1">#                                            get_rowid_from_superkey, superkey_paramx)</span>
+
+
+<div class="viewcode-block" id="sanitize_name_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.sanitize_name_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/sanitize/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">sanitize_name_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/name/sanitize</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_names</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="n">name_text_list_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="n">name_text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">name_text</span> <span class="k">for</span> <span class="n">name_text</span> <span class="ow">in</span> <span class="n">name_text_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">name_text_list_</span></div>
+
+
+<div class="viewcode-block" id="delete_names"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.delete_names">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">deleter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">delete_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    deletes names from the database</span>
+
+<span class="sd">    CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS</span>
+<span class="sd">    at least ensure that no annot is associated with any of these nids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: DELETE</span>
+<span class="sd">        URL:    /api/name/</span>
+
+<span class="sd">    # Ignore:</span>
+<span class="sd">    #     &gt;&gt;&gt; # UNPORTED_DOCTEST</span>
+<span class="sd">    #     &gt;&gt;&gt; gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]</span>
+<span class="sd">    #     &gt;&gt;&gt; gid_list = ibs.add_images(gpath_list)</span>
+<span class="sd">    #     &gt;&gt;&gt; bbox_list = [(0, 0, 100, 100)]*len(gid_list)</span>
+<span class="sd">    #     &gt;&gt;&gt; name_list = [&#39;a&#39;, &#39;b&#39;, &#39;a&#39;, &#39;d&#39;]</span>
+<span class="sd">    #     &gt;&gt;&gt; aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)</span>
+<span class="sd">    #     &gt;&gt;&gt; assert len(aid_list) != 0, &quot;No annotations added&quot;</span>
+<span class="sd">    #     &gt;&gt;&gt; nid_list = ibs.get_valid_nids()</span>
+<span class="sd">    #     &gt;&gt;&gt; assert len(nid_list) != 0, &quot;No names added&quot;</span>
+<span class="sd">    #     &gt;&gt;&gt; nid = nid_list[0]</span>
+<span class="sd">    #     &gt;&gt;&gt; assert nid is not None, &quot;nid is None&quot;</span>
+<span class="sd">    #     &gt;&gt;&gt; ibs.delete_names(nid)</span>
+<span class="sd">    #     &gt;&gt;&gt; all_nids = ibs.get_valid_nids()</span>
+<span class="sd">    #     &gt;&gt;&gt; assert nid not in all_nids, &quot;NID not deleted&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> names&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">safe</span><span class="p">:</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">),</span> <span class="s1">&#39;should not be any annots belonging to a deleted name&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> annots that belonged to those names&#39;</span>
+                    <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span></div>
+    <span class="c1"># return len(name_rowid_list)</span>
+    <span class="c1"># ibs.delete_lblannots(nid_list)</span>
+
+
+<div class="viewcode-block" id="get_empty_nids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_empty_nids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="c1"># @register_api(&#39;/api/name/nids/empty/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_empty_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">_nid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get name rowids that do not have any annotations (not including UNKONWN)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: nid_list - all names without any animals (does not include unknown names)</span>
+<span class="sd">        an nid is not invalid if it has a valid alias</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_empty_nids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; new_nid_list = ibs.make_next_nids(num=2)</span>
+<span class="sd">        &gt;&gt;&gt; empty_nids = ibs.get_empty_nids()</span>
+<span class="sd">        &gt;&gt;&gt; assert len(empty_nids) == 2, &#39;get_empty_nids fails1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert new_nid_list == empty_nids, &#39;get_empty_nids fails2&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_empty_nids()</span>
+<span class="sd">        &gt;&gt;&gt; empty_nids2 = ibs.get_empty_nids()</span>
+<span class="sd">        &gt;&gt;&gt; assert len(empty_nids2) == 0, &#39;get_empty_nids fails3&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result = str(empty_nids2)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        []</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">recursive</span> <span class="o">=</span> <span class="n">_nid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">recstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">recursive</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="n">_nid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_known_name_rowids</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">),)</span>
+    <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">CHECKING </span><span class="si">%d</span><span class="s1"> NIDS FOR EMPTY (RECURSIVE)&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CHECKING </span><span class="si">%d</span><span class="s1"> NIDS FOR EMPTY&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">nRois_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_num_annotations</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">)</span>
+    <span class="c1"># Filter names with rois</span>
+    <span class="n">isempty_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">nRois</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nRois</span> <span class="ow">in</span> <span class="n">nRois_list</span><span class="p">)</span>
+    <span class="n">empty_nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iter_compress</span><span class="p">(</span><span class="n">_nid_list</span><span class="p">,</span> <span class="n">isempty_list</span><span class="p">))</span>
+    <span class="c1"># Filter names with aliases (TODO: use transitivity to determine validity)</span>
+    <span class="n">alias_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_alias_texts</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">)</span>
+    <span class="n">hasalias_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">alias_text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">alias_text</span> <span class="ow">in</span> <span class="n">alias_text_list</span><span class="p">]</span>
+    <span class="c1"># Find nids with aliases and without alias</span>
+    <span class="n">alias_nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ifilter_items</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">,</span> <span class="n">hasalias_list</span><span class="p">))</span>
+    <span class="n">no_alias_nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ifilterfalse_items</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">,</span> <span class="n">hasalias_list</span><span class="p">))</span>
+    <span class="c1"># Find name texts and then nids of the original nids that have valid aliases</span>
+    <span class="n">alias_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_alias_texts</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">)</span>
+    <span class="n">alias_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="n">alias_text_list</span><span class="p">)</span>
+    <span class="c1"># Find the empty aliases, recursively</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">)))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs without an alias&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">no_alias_nid_list</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39; checking these recursively&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs with an alias...</span><span class="si">%s</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">recstr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">alias_nid_list</span><span class="p">),</span> <span class="n">message</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">empty_alias_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_empty_nids</span><span class="p">(</span><span class="n">_nid_list</span><span class="o">=</span><span class="n">alias_nid_list</span><span class="p">)</span>
+    <span class="c1"># Compile the full list of nids without any associated annotations</span>
+    <span class="n">empty_nid_list</span> <span class="o">=</span> <span class="n">empty_nid_list</span> <span class="o">+</span> <span class="n">no_alias_nid_list</span> <span class="o">+</span> <span class="n">empty_alias_nid_list</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">recursive</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Found </span><span class="si">%d</span><span class="s1"> empty NIDs with an alias that is recursively empty&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">empty_alias_nid_list</span><span class="p">),)</span>
+        <span class="p">)</span>
+    <span class="n">empty_nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">))</span>
+    <span class="c1"># Sanity check</span>
+    <span class="n">nRois_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_num_annotations</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">)</span>
+    <span class="n">isempty_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nRois</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nRois</span> <span class="ow">in</span> <span class="n">nRois_list</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">isempty_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">empty_nid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">empty_nid_list</span></div>
+
+
+<div class="viewcode-block" id="delete_empty_nids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.delete_empty_nids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @register_api(&#39;/api/name/nids/empty/&#39;, methods=[&#39;DELETE&#39;])</span>
+<span class="k">def</span> <span class="nf">delete_empty_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Removes names that have no Rois from the database</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting empty nids&#39;</span><span class="p">)</span>
+    <span class="n">invalid_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_empty_nids</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] ... </span><span class="si">%d</span><span class="s1"> empty nids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invalid_nids</span><span class="p">),))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_names</span><span class="p">(</span><span class="n">invalid_nids</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_name_aids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/annot/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # TODO: Rename to get_anot_rowids_from_name_rowid</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">         list: aids_list a list of list of aids in each name</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/annot/rowid/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Map annotations to name ids</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs.get_annot_name_rowids(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Get annotation ids for each name</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = ibs.get_name_aids(nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Run Assertion Test</span>
+<span class="sd">        &gt;&gt;&gt; groupid2_items = ut.group_items(aids_list, nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; grouped_items = list(groupid2_items.values())</span>
+<span class="sd">        &gt;&gt;&gt; passed_iter = map(ut.allsame, grouped_items)</span>
+<span class="sd">        &gt;&gt;&gt; passed_list = list(passed_iter)</span>
+<span class="sd">        &gt;&gt;&gt; assert all(passed_list), &#39;problem in get_name_aids&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # Print gropued items</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(groupid2_items, newlines=False))</span>
+
+<span class="sd">    Ignore;</span>
+<span class="sd">        from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        import wbia</span>
+<span class="sd">        #ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        #ibs = wbia.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        ibs = wbia.opendb(&#39;PZ_Master0&#39;)</span>
+<span class="sd">        #ibs = wbia.opendb(&#39;GZ_ALL&#39;)</span>
+
+<span class="sd">        nid_list = ibs.get_valid_nids()</span>
+<span class="sd">        nid_list_ = [const.UNKNOWN_NAME_ROWID if nid &lt;= 0 else nid for nid in nid_list]</span>
+
+<span class="sd">        with ut.Timer(&#39;sql&#39;):</span>
+<span class="sd">            #aids_list1 = ibs.get_name_aids(nid_list, enable_unknown_fix=False)</span>
+<span class="sd">            aids_list1 = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)</span>
+
+<span class="sd">        with ut.Timer(&#39;hackquery + group&#39;):</span>
+<span class="sd">            opstr = &#39;&#39;&#39;</span>
+<span class="sd">            SELECT annot_rowid, name_rowid</span>
+<span class="sd">            FROM annotations</span>
+<span class="sd">            WHERE name_rowid IN</span>
+<span class="sd">                (%s)</span>
+<span class="sd">                ORDER BY name_rowid ASC, annot_rowid ASC</span>
+<span class="sd">            &#39;&#39;&#39; % (&#39;, &#39;.join(map(str, nid_list)))</span>
+<span class="sd">            pair_list = ibs.db.connection.execute(opstr).fetchall()</span>
+<span class="sd">            aids = np.array(ut.get_list_column(pair_list, 0))</span>
+<span class="sd">            nids = np.array(ut.get_list_column(pair_list, 1))</span>
+<span class="sd">            unique_nids, groupx = vt.group_indices(nids)</span>
+<span class="sd">            grouped_aids_ = vt.apply_grouping(aids, groupx)</span>
+<span class="sd">            aids_list5 = [sorted(arr.tolist()) for arr in grouped_aids_]</span>
+
+<span class="sd">        for aids1, aids5 in zip(aids_list1, aids_list5):</span>
+<span class="sd">            if (aids1) != (aids5):</span>
+<span class="sd">                logger.info(aids1)</span>
+<span class="sd">                logger.info(aids5)</span>
+<span class="sd">                logger.info(&#39;-----&#39;)</span>
+
+<span class="sd">        ut.assert_lists_eq(list(map(tuple, aids_list5)), list(map(tuple, aids_list1)))</span>
+
+<span class="sd">        with ut.Timer(&#39;numpy&#39;):</span>
+<span class="sd">            # alt method</span>
+<span class="sd">            valid_aids = np.array(ibs.get_valid_aids())</span>
+<span class="sd">            valid_nids = np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))</span>
+<span class="sd">            aids_list2 = [valid_aids.take(np.flatnonzero(valid_nids == nid)).tolist() for nid in nid_list_]</span>
+
+<span class="sd">        with ut.Timer(&#39;numpy2&#39;):</span>
+<span class="sd">            # alt method</span>
+<span class="sd">            valid_aids = np.array(ibs.get_valid_aids())</span>
+<span class="sd">            valid_nids = np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))</span>
+<span class="sd">            aids_list3 = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]</span>
+
+<span class="sd">        with ut.Timer(&#39;numpy3&#39;):</span>
+<span class="sd">            # alt method</span>
+<span class="sd">            valid_aids = np.array(ibs.get_valid_aids())</span>
+<span class="sd">            valid_nids = np.array(ibs.db.get_all_col_rows(const.ANNOTATION_TABLE, NAME_ROWID))</span>
+<span class="sd">            aids_list4 = [valid_aids.take(np.flatnonzero(np.equal(valid_nids, nid))).tolist() for nid in nid_list_]</span>
+<span class="sd">        assert aids_list2 == aids_list3</span>
+<span class="sd">        assert aids_list3 == aids_list4</span>
+<span class="sd">        assert aids_list1 == aids_list2</span>
+
+<span class="sd">        valid_aids = ibs.get_valid_aids()</span>
+<span class="sd">        %timeit ibs.db.get_all_col_rows(&#39;annotations&#39;, &#39;rowid&#39;)</span>
+<span class="sd">        %timeit ibs.db.get_all_col_rows(&#39;annotations&#39;, &#39;name_rowid&#39;)</span>
+<span class="sd">        %timeit ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False)</span>
+<span class="sd">        %timeit ibs.get_valid_aids()</span>
+<span class="sd">        %timeit ibs.get_annot_name_rowids(ibs.get_valid_aids(), distinguish_unknowns=False)</span>
+<span class="sd">        valid_nids1 = ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False)</span>
+<span class="sd">        valid_nids2 = ibs.db.get_all_col_rows(&#39;annotations&#39;, &#39;name_rowid&#39;)</span>
+<span class="sd">        assert valid_nids1 == valid_nids2</span>
+
+<span class="sd">    ibs.db.fname</span>
+<span class="sd">    ibs.db.fpath</span>
+
+<span class="sd">    import sqlite3</span>
+
+<span class="sd">    con = sqlite3.connect(ibs.db.fpath)</span>
+
+<span class="sd">    opstr = &#39;&#39;&#39;</span>
+<span class="sd">    SELECT annot_rowid, name_rowid</span>
+<span class="sd">    FROM annotations</span>
+<span class="sd">    WHERE name_rowid IN</span>
+<span class="sd">        (SELECT name_rowid FROM name)</span>
+<span class="sd">        ORDER BY name_rowid ASC, annot_rowid ASC</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<span class="sd">    annot_rowid_list = con.execute(opstr).fetchall()</span>
+<span class="sd">    aid_list = ut.get_list_column(annot_rowid_list, 0)</span>
+<span class="sd">    nid_list = ut.get_list_column(annot_rowid_list, 1)</span>
+
+
+<span class="sd">    # HACKY HACKY HACK</span>
+
+<span class="sd">    with ut.Timer(&#39;hackquery + group&#39;):</span>
+<span class="sd">        #nid_list = ibs.get_valid_nids()[10:15]</span>
+<span class="sd">        nid_list = ibs.get_valid_nids()</span>
+<span class="sd">        opstr = &#39;&#39;&#39;</span>
+<span class="sd">        SELECT annot_rowid, name_rowid</span>
+<span class="sd">        FROM annotations</span>
+<span class="sd">        WHERE name_rowid IN</span>
+<span class="sd">            (%s)</span>
+<span class="sd">            ORDER BY name_rowid ASC, annot_rowid ASC</span>
+<span class="sd">        &#39;&#39;&#39; % (&#39;, &#39;.join(map(str, nid_list)))</span>
+<span class="sd">        pair_list = ibs.db.connection.execute(opstr).fetchall()</span>
+<span class="sd">        aids = np.array(ut.get_list_column(pair_list, 0))</span>
+<span class="sd">        nids = np.array(ut.get_list_column(pair_list, 1))</span>
+<span class="sd">        unique_nids, groupx = vt.group_indices(nids)</span>
+<span class="sd">        grouped_aids_ = vt.apply_grouping(aids, groupx)</span>
+<span class="sd">        grouped_aids = [arr.tolist() for arr in grouped_aids_]</span>
+
+<span class="sd">    SELECT</span>
+<span class="sd">       name_rowid, COUNT(annot_rowid) AS number, GROUP_CONCAT(annot_rowid) AS aid_list</span>
+<span class="sd">    FROM annotations</span>
+<span class="sd">    WHERE name_rowid in (SELECT name_rowid FROM name)</span>
+<span class="sd">     GROUP BY name_rowid</span>
+<span class="sd">    ORDER BY name_rowid ASC</span>
+
+
+<span class="sd">    import vtool as vt</span>
+<span class="sd">    vt</span>
+<span class="sd">    vt.aid_list[0]</span>
+
+
+<span class="sd">    annot_rowid_list = con.execute(opstr).fetchall()</span>
+<span class="sd">    opstr = &#39;&#39;&#39;</span>
+<span class="sd">        SELECT annot_rowid</span>
+<span class="sd">        FROM annotations</span>
+<span class="sd">        WHERE name_rowid=?</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+<span class="sd">    cur = ibs.db.connection.cursor()</span>
+
+<span class="sd">    cur = con.execute(&#39;BEGIN IMMEDIATE TRANSACTION&#39;)</span>
+<span class="sd">    cur = ibs.db.connection</span>
+<span class="sd">    res = [cur.execute(opstr, (nid,)).fetchall() for nid in nid_list_]</span>
+<span class="sd">    cur.execute(&#39;COMMIT TRANSACTION&#39;)</span>
+
+<span class="sd">    res = [ibs.db.cur.execute(opstr, (nid,)).fetchall() for nid in nid_list_]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: THIS FUNCTION IS VERY SLOW</span>
+    <span class="c1"># ADD A LOCAL CACHE TO FIX THIS SPEED</span>
+    <span class="c1"># ALSO FIX GET_IMAGE_AIDS</span>
+    <span class="c1"># really a getter for the annotation table not the name table</span>
+    <span class="c1"># return [[] for nid in nid_list]</span>
+    <span class="c1"># TODO: should a query of the UNKNOWN_NAME_ROWID return anything?</span>
+    <span class="c1"># TODO: don&#39;t even run negative aids as queries</span>
+    <span class="n">nid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
+
+    <span class="n">NEW_INDEX_HACK</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">USE_GROUPING_HACK</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">NEW_INDEX_HACK</span><span class="p">:</span>
+        <span class="c1"># FIXME: This index should when the database is defined.</span>
+        <span class="c1"># Ensure that an index exists on the image column of the annotation table</span>
+        <span class="c1"># logger.info(len(nid_list_))</span>
+        <span class="k">with</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
+            <span class="n">nid_list_</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_ROWID</span><span class="p">,</span>
+            <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># %timeit ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)</span>
+        <span class="c1"># The index maxes the following query very efficient</span>
+    <span class="k">elif</span> <span class="n">USE_GROUPING_HACK</span><span class="p">:</span>
+        <span class="c1"># This code doesn&#39;t work because it doesn&#39;t respect empty names</span>
+        <span class="n">input_list</span><span class="p">,</span> <span class="n">inverse_unique</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">input_str</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">input_list</span><span class="p">)))</span>
+        <span class="n">opstr</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        SELECT annot_rowid, name_rowid</span>
+<span class="s2">        FROM </span><span class="si">{ANNOTATION_TABLE}</span><span class="s2"></span>
+<span class="s2">        WHERE name_rowid IN</span>
+<span class="s2">            (</span><span class="si">{input_str}</span><span class="s2">)</span>
+<span class="s2">            ORDER BY name_rowid ASC, annot_rowid ASC</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">input_str</span><span class="o">=</span><span class="n">input_str</span><span class="p">,</span> <span class="n">ANNOTATION_TABLE</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="n">pair_list</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">opstr</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">aidscol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">pair_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">nidscol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">pair_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">nidscol</span><span class="p">)</span>
+        <span class="n">grouped_aids_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">aidscol</span><span class="p">,</span> <span class="n">groupx</span><span class="p">)</span>
+        <span class="c1"># aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]</span>
+        <span class="n">structured_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">grouped_aids_</span><span class="p">]</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">structured_aids_list</span><span class="p">)[</span><span class="n">inverse_unique</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># USE_NUMPY_IMPL = False</span>
+        <span class="c1"># Use qt if getting one at a time otherwise perform bulk operation</span>
+        <span class="n">USE_NUMPY_IMPL</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+        <span class="c1"># USE_NUMPY_IMPL = len(nid_list_) &gt; 10</span>
+        <span class="k">if</span> <span class="n">USE_NUMPY_IMPL</span><span class="p">:</span>
+            <span class="c1"># This seems to be 30x faster for bigger inputs</span>
+            <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_aids</span><span class="p">())</span>
+            <span class="n">valid_nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_col_rows</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">NAME_ROWID</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="c1"># np.array(ibs.get_annot_name_rowids(valid_aids, distinguish_unknowns=False))</span>
+
+            <span class="c1"># MEMORY HOG LIKE A SON OF A BITCH</span>
+            <span class="c1"># aids_list = [</span>
+            <span class="c1">#     valid_aids.take(np.flatnonzero(</span>
+            <span class="c1">#         np.equal(valid_nids, nid))).tolist()</span>
+            <span class="c1">#     for nid in nid_list_</span>
+            <span class="c1"># ]</span>
+
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">),),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+            <span class="n">aids_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">nid_list_unique</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list_unique</span><span class="p">:</span>
+                <span class="n">bool_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span>
+                <span class="n">flattened</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">bool_list</span><span class="p">)</span>
+                <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">valid_aids</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">flattened</span><span class="p">)</span>
+                <span class="n">aid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="n">aids_dict</span><span class="p">[</span><span class="n">nid</span><span class="p">]</span> <span class="o">=</span> <span class="n">aid_list</span>
+
+            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">aids_dict</span><span class="p">,</span> <span class="n">nid_list_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># SQL IMPL</span>
+            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
+                <span class="n">nid_list_</span><span class="p">,</span>
+                <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_ROWID</span><span class="p">,</span>
+                <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="n">enable_unknown_fix</span><span class="p">:</span>
+        <span class="c1"># enable_unknown_fix == distinguish_unknowns</span>
+        <span class="c1"># negative name rowids correspond to unknown annoations wherex annot_rowid = -name_rowid</span>
+        <span class="c1"># aids_list = [None if nid is None else ([-nid] if nid &lt; 0 else aids)</span>
+        <span class="c1">#             for nid, aids in zip(nid_list, aids_list)]</span>
+        <span class="c1"># Not sure if this should fail or return empty list on None nid</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[]</span> <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">([</span><span class="o">-</span><span class="n">nid</span><span class="p">]</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">aids</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1"># aids_list = [[-nid] if nid &lt; 0 else aids</span>
+        <span class="c1">#             for nid, aids in zip(nid_list, aids_list)]</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annotation_set</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="n">is_staged</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aid_list_</span> <span class="ow">in</span> <span class="n">aids_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">aids_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_annot_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_annot_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/annot/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">annot_uuids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">annot_uuids_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_exemplar_aids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_exemplar_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/annot/rowid/exemplar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_exemplar_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  a list of list of cids in each name</span>
+
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_exemplar_aids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/annot/rowid/examplar/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs.get_annot_name_rowids(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; exemplar_aids_list = ibs.get_name_exemplar_aids(nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = [sorted(i) for i in exemplar_aids_list]</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[], [2, 3], [2, 3], [], [5, 6], [5, 6], [7], [8], [], [10], [], [12], [13]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get all annot ids for each name</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Flag any annots that are not exemplar and remove them</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">exemplar_aids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">flags</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">exemplar_aids_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_exemplar_name_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_exemplar_name_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/annot/uuid/exemplar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_exemplar_name_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_exemplar_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">annot_uuids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">annot_uuids_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_gids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/image/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): the image ids associated with name ids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/image/rowid/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs._get_all_known_name_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; gids_list = ibs.get_name_gids(nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = [sorted(gids) for gids in gids_list]</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[2, 3], [5, 6], [7], [8], [10], [12], [13]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Optimize</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gids_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_image_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_image_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/image/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPRICATE</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): the image ids associated with name ids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/image/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Optimize</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_gids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">image_uuids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">gid_list</span> <span class="ow">in</span> <span class="n">gids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">image_uuids_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): uuids_list - name uuids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uuids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_UUID</span><span class="p">,),</span> <span class="n">nid_list</span><span class="p">)</span>
+    <span class="c1"># notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="k">return</span> <span class="n">uuids_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_notes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_notes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): notes_list - name notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_NOTE</span><span class="p">,),</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="c1"># notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="k">return</span> <span class="n">notes_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): name metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/metadata/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;name_metadata_json&#39;</span><span class="p">,),</span> <span class="n">name_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">metadata_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">metadata_str</span> <span class="k">if</span> <span class="n">return_raw</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+        <span class="n">metadata_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metadata_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_num_annotations"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_num_annotations">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/num/annot/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_num_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  the number of annotations for each name</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_num_annotations</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/num/annot/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs._get_all_known_name_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; result = get_name_num_annotations(ibs, nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [2, 2, 1, 1, 1, 1, 1]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Optimize</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">enable_unknown_fix</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="get_name_num_exemplar_annotations"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_num_exemplar_annotations">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/num/annot/exemplar/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_num_exemplar_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  the number of annotations, which are exemplars for each name</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/num/annot/exemplar/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_exemplar_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="get_name_temp_flag"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_temp_flag">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/temp/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_temp_flag</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    name_temp_flag_list &lt;- name.name_temp_flag[name_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;name_temp_flag&quot; in the &quot;name&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: name_temp_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = name_temp_flag</span>
+<span class="sd">        tbl = name</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_temp_flag</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/temp/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs._get_all_name_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; eager = True</span>
+<span class="sd">        &gt;&gt;&gt; name_temp_flag_list = ibs.get_name_temp_flag(name_rowid_list, eager=eager)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(name_rowid_list) == len(name_temp_flag_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">name_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_TEMP_FLAG</span><span class="p">,)</span>
+    <span class="n">name_temp_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">id_iter</span><span class="p">,</span>
+        <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_temp_flag_list</span></div>
+
+
+<div class="viewcode-block" id="set_name_temp_flag"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_temp_flag">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/temp/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_name_temp_flag</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_temp_flag_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    name_temp_flag_list -&gt; name.name_temp_flag[name_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name_rowid_list</span>
+<span class="sd">        name_temp_flag_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = name</span>
+<span class="sd">        col = name_temp_flag</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/name/temp/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">name_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_TEMP_FLAG</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">name_temp_flag_list</span><span class="p">,</span>
+        <span class="n">id_iter</span><span class="p">,</span>
+        <span class="n">duplicate_behavior</span><span class="o">=</span><span class="n">duplicate_behavior</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_name_alias_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_alias_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/alias/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_name_alias_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): name_alias_text_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_texts</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_alias_texts</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/alias/text/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs.get_valid_nids()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; name_alias_text_list = get_name_alias_texts(ibs, name_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(name_alias_text_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [None, None, None, None, None, None, None]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name_alias_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ALIAS_TEXT</span><span class="p">,),</span> <span class="n">name_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_alias_text_list</span></div>
+
+
+<div class="viewcode-block" id="set_name_alias_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_alias_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_invalidator</span><span class="p">(</span>
+    <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="n">ANNOT_SEMANTIC_UUID</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">)</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/alias/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">set_name_alias_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_alias_text_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): name_alias_text_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_texts</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/name/alias/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ibsfuncs.assert_valid_names(name_alias_text_list)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">name_alias_text_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ALIAS_TEXT</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span></div>
+    <span class="c1"># TODO: ibs.update_annot_semantic_uuids(aid_list)</span>
+
+
+<div class="viewcode-block" id="get_name_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">apply_fix</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): text names</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_texts</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/text/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs._get_all_known_name_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; name_text_list = get_name_texts(ibs, name_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(name_text_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;easy&#39;, &#39;hard&#39;, &#39;jeff&#39;, &#39;lena&#39;, &#39;occl&#39;, &#39;polar&#39;, &#39;zebra&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: Use standalone name table</span>
+    <span class="c1"># TODO:</span>
+    <span class="c1"># Change the temporary negative indexes back to the unknown NID for the</span>
+    <span class="c1"># SQL query. Then augment the lblannot list to distinguish unknown lblannots</span>
+    <span class="c1"># name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)</span>
+    <span class="c1"># name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)</span>
+    <span class="n">name_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_TEXT</span><span class="p">,),</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">apply_fix</span><span class="p">:</span>
+        <span class="n">name_text_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
+            <span class="k">if</span> <span class="n">rowid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="ow">or</span> <span class="n">name_text</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">name_text</span>
+            <span class="k">for</span> <span class="n">name_text</span><span class="p">,</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="n">name_text_list</span></div>
+
+
+<div class="viewcode-block" id="get_num_names"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_num_names">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_num_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Number of valid names</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_num_names</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; result = get_num_names(ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        7</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_name_rowids_from_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_rowids_from_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/rowid/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_rowids_from_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        name_text_list (list):</span>
+<span class="sd">        ensure (bool): adds as new names if non-existant (default = True)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        name_rowid_list (list): Creates one if it doesnt exist</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_rowids_from_text:0</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_rowids_from_text:1</span>
+
+<span class="sd">    TODO:</span>
+<span class="sd">        should ensure be defaulted to False?</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/rowid/text/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; name_text_list = [u&#39;Fred&#39;, u&#39;Sue&#39;, &#39;____&#39;, u&#39;zebra_grevys&#39;, &#39;TYPO&#39;, &#39;____&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; ensure = False</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(list(zip(name_text_list, name_rowid_list))))</span>
+<span class="sd">        &gt;&gt;&gt; ensure = True</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(list(zip(name_text_list, name_rowid_list))))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_name_table()</span>
+<span class="sd">        &gt;&gt;&gt; result = str(name_rowid_list) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; typo_rowids = ibs.get_name_rowids_from_text([&#39;TYPO&#39;, &#39;Fred&#39;, &#39;Sue&#39;, &#39;zebra_grevys&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_names(typo_rowids)</span>
+<span class="sd">        &gt;&gt;&gt; result += str(ibs._get_all_known_name_rowids())</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;----&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_name_table()</span>
+<span class="sd">        &gt;&gt;&gt; assert result == f&#39;{name_rowid_list}\n[1, 2, 3, 4, 5, 6, 7]&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+        <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text_</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_rowids_from_text_"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_rowids_from_text_">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_name_rowids_from_text_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        name_text_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        name_rowid_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-get_name_rowids_from_text_</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; name_text_list = [u&#39;Fred&#39;, &#39;easy&#39;, u&#39;Sue&#39;, &#39;____&#39;, u&#39;zebra_grevys&#39;, &#39;TYPO&#39;, &#39;jeff&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs.get_name_rowids_from_text_(name_text_list)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_name_table()</span>
+<span class="sd">        &gt;&gt;&gt; result = str(name_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [None, 1, None, 0, None, None, 3]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name_text_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sanitize_name_texts</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,),</span> <span class="n">name_text_list_</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_TEXT</span>
+    <span class="p">)</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
+        <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_text_list_</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">name_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_rowids_from_uuid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_rowids_from_uuid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/rowid/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_rowids_from_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">,</span> <span class="n">nid_hack</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        name_text_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        name_rowid_list (list):</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,),</span> <span class="n">uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_UUID</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">nid_hack</span><span class="p">:</span>
+        <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">name_uuid</span> <span class="k">if</span> <span class="n">name_rowid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">name_rowid</span>
+            <span class="k">for</span> <span class="n">name_uuid</span><span class="p">,</span> <span class="n">name_rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="n">name_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_nids_with_gids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_nids_with_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/dict/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_nids_with_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">nid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span>
+    <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_gids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">combined_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">gid_list</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">combined_dict</span></div>
+
+
+<div class="viewcode-block" id="get_valid_nids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_valid_nids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_valid_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">min_pername</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all valid names with at least one animal</span>
+<span class="sd">        (does not include unknown names)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">imgsetid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_known_name_rowids</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_nids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+    <span class="c1"># HACK FOR UNKNOWN. Makes things crash</span>
+    <span class="c1"># _nid_list += [0]</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">_nid_list</span>
+
+    <span class="k">if</span> <span class="n">filter_empty</span><span class="p">:</span>
+        <span class="n">min_pername</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">min_pername</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_pername</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">min_pername</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nAnnot_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_num_annotations</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nAnnot_list</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_pername</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nid_list</span></div>
+
+
+<div class="viewcode-block" id="set_name_notes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_notes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_name_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">notes_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets a note for each name (multiple annotations)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/name/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])</span>
+    <span class="c1"># ibs.set_lblannot_notes(nid_list, notes_list)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">notes_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_NOTE</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_name_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_name_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">metadata_dict_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the name&#39;s metadata using a metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/name/metadata/</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_dict</span> <span class="ow">in</span> <span class="n">metadata_dict_list</span><span class="p">:</span>
+        <span class="n">metadata_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+        <span class="n">metadata_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_str</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;name_metadata_json&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_name_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_name_texts</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">name_rowid_list</span><span class="p">,</span>
+    <span class="n">name_text_list</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">notify_wildbook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">assert_wildbook</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Changes the name text. Does not affect the animals of this name.</span>
+<span class="sd">    Effectively just changes the TEXT UUID</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_name_funcs --test-set_name_texts</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/name/text/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs.get_valid_nids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; name_list = ibs.get_name_texts(nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = set_name_texts(ibs, nid_list, name_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] setting </span><span class="si">%d</span><span class="s1"> name texts&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">),))</span>
+    <span class="k">if</span> <span class="n">notify_wildbook</span> <span class="ow">and</span> <span class="n">wbia</span><span class="o">.</span><span class="n">ENABLE_WILDBOOK_SIGNAL</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] notifying WildBook of name text changes&#39;</span><span class="p">)</span>
+        <span class="n">status_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">wildbook_signal_name_changes</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">)</span>
+
+        <span class="n">wb_signaled</span> <span class="o">=</span> <span class="n">status_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">assert_wildbook</span> <span class="ow">and</span> <span class="n">wb_signaled</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">status_list</span><span class="p">,</span> <span class="s1">&#39;The request to WB failed&#39;</span>
+            <span class="n">failed_nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ifilterfalse_items</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">status_list</span><span class="p">))</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">failed_nid_list</span><span class="p">),</span>
+                <span class="n">failed_nid_list</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Failed to update </span><span class="si">%d</span><span class="s1"> WB names, nid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_nid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">msg</span>
+    <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_names</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="n">old_name_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="c1"># sanitize_name_texts(ibs, name_text_list):</span>
+    <span class="c1"># ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])</span>
+    <span class="c1"># ibs.set_lblannot_values(nid_list, name_list)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">name_text_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_TEXT</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="c1"># Database updated, log name changes</span>
+    <span class="k">if</span> <span class="n">update_json_log</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">time</span>
+
+        <span class="n">json_log_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_logdir_local</span><span class="p">()</span>
+        <span class="n">json_log_filename</span> <span class="o">=</span> <span class="s1">&#39;names.updates.json&#39;</span>
+        <span class="n">json_log_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">json_log_path</span><span class="p">,</span> <span class="n">json_log_filename</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Logging name changes to: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,))</span>
+        <span class="c1"># Log has never been made, create one</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">):</span>
+            <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;updates&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="p">}</span>
+            <span class="n">json_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">pretty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_log_file</span><span class="p">:</span>
+                <span class="n">json_log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+        <span class="c1"># Get current log state</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_log_file</span><span class="p">:</span>
+            <span class="n">json_str</span> <span class="o">=</span> <span class="n">json_log_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">json_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+        <span class="n">db_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_name</span><span class="p">()</span>
+        <span class="n">db_init_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()</span>
+        <span class="c1"># Zip all the updates together and write to updates list in dictionary</span>
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">old_name_text_list</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name_rowid</span><span class="p">,</span> <span class="n">old_name_text</span><span class="p">,</span> <span class="n">new_name_text</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+            <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;updates&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;time_unixtime&#39;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
+                    <span class="s1">&#39;db_name&#39;</span><span class="p">:</span> <span class="n">db_name</span><span class="p">,</span>
+                    <span class="s1">&#39;db_init_uuid&#39;</span><span class="p">:</span> <span class="n">db_init_uuid</span><span class="p">,</span>
+                    <span class="s1">&#39;name_rowid&#39;</span><span class="p">:</span> <span class="n">name_rowid</span><span class="p">,</span>
+                    <span class="s1">&#39;name_old_text&#39;</span><span class="p">:</span> <span class="n">old_name_text</span><span class="p">,</span>
+                    <span class="s1">&#39;name_new_text&#39;</span><span class="p">:</span> <span class="n">new_name_text</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="c1"># Write new log state</span>
+        <span class="n">json_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">pretty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_log_file</span><span class="p">:</span>
+            <span class="n">json_log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_name_sex"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_sex">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/sex/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_sex</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    name_sex_list &lt;- name.name_sex[name_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;name_sex&quot; in the &quot;name&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: name_sex_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = name_sex</span>
+<span class="sd">        tbl = name</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/sex/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, config2_ = testdata_ibs()</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs._get_all_name_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; eager = True</span>
+<span class="sd">        &gt;&gt;&gt; name_sex_list = ibs.get_name_sex(name_rowid_list, eager=eager)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(name_rowid_list) == len(name_sex_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">name_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_SEX</span><span class="p">,)</span>
+    <span class="n">name_sex_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">id_iter</span><span class="p">,</span>
+        <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_sex_list</span></div>
+
+
+<div class="viewcode-block" id="set_name_sex"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_sex">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/sex/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_name_sex</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_sex_list</span><span class="p">,</span> <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    name_sex_list -&gt; name.name_sex[name_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name_rowid_list</span>
+<span class="sd">        name_sex_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = name</span>
+<span class="sd">        col = name_sex</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/name/sex/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">name_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_SEX</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">name_sex_list</span><span class="p">,</span>
+        <span class="n">id_iter</span><span class="p">,</span>
+        <span class="n">duplicate_behavior</span><span class="o">=</span><span class="n">duplicate_behavior</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_name_sex_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_sex_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/sex/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_sex_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/sex/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name_sex_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_sex</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+    <span class="n">name_sex_text_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SEX_INT_TO_TEXT</span><span class="p">,</span> <span class="n">name_sex_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_sex_text_list</span></div>
+
+
+<div class="viewcode-block" id="set_name_sex_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.set_name_sex_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/sex/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_name_sex_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_sex_text_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/name/sex/text/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name_sex_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SEX_TEXT_TO_INT</span><span class="p">,</span> <span class="n">name_sex_text_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">set_name_sex</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_sex_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_name_age_months_est_min"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_age_months_est_min">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/age/months/min/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_name_age_months_est_min</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/age/months/min/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="n">age_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_min</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">age_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_age_months_est_max"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_age_months_est_max">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/age/months/max/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_name_age_months_est_max</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/age/months/max/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="n">age_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_max</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">age_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_imgsetids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_imgsetids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/imageset/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_imgsetids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/imageset/rowid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+    <span class="n">name_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">name_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">name_aids_list</span><span class="p">)</span>
+    <span class="n">name_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">name_aid_list</span><span class="p">)</span>
+    <span class="n">name_imgsetids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">name_gid_list</span><span class="p">)</span>
+    <span class="n">name_imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">name_imgsetids_list</span><span class="p">)</span>
+    <span class="n">name_imgsetids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">name_imgsetid_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">name_imgsetids</span></div>
+
+
+<div class="viewcode-block" id="get_name_imgset_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_imgset_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/imageset/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_name_imgset_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/name/imageset/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name_imgsetids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_imgsetids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">name_uuids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuids</span><span class="p">(</span><span class="n">name_imgsetid</span><span class="p">)</span> <span class="k">for</span> <span class="n">name_imgsetid</span> <span class="ow">in</span> <span class="n">name_imgsetids</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">name_uuids_list</span></div>
+
+
+<span class="c1"># def get_imageset_nids(ibs,</span>
+
+
+<div class="viewcode-block" id="get_name_has_split"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_has_split">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter</span>
+<span class="k">def</span> <span class="nf">get_name_has_split</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.other.ibsfuncs --test-get_name_speeds</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs._get_all_known_nids()</span>
+<span class="sd">        &gt;&gt;&gt; splits_list = ibs.get_name_has_split(nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(splits_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="c1"># ibs.check_name_mapping_consistency(aids_list_)</span>
+
+    <span class="k">def</span> <span class="nf">get_valid_aids_clique_annotmatch_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">itertools</span>
+
+        <span class="n">aid_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">aids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">am_ids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+        <span class="n">am_ids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">am_ids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">am_ids</span>
+
+    <span class="n">amids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_valid_aids_clique_annotmatch_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span><span class="p">]</span>
+    <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_prop</span><span class="p">,</span> <span class="s1">&#39;SplitCase&#39;</span><span class="p">),</span> <span class="n">amids_list</span>
+    <span class="p">)</span>
+    <span class="n">has_splits</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">any</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">has_splits</span></div>
+
+
+<div class="viewcode-block" id="get_name_speeds"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_speeds">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_name_speeds</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.other.ibsfuncs --test-get_name_speeds</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs._get_all_known_nids()</span>
+<span class="sd">        &gt;&gt;&gt; speeds_list = get_name_speeds(ibs, nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(speeds_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="c1"># ibs.check_name_mapping_consistency(aids_list_)</span>
+    <span class="c1"># aids_list = [(aids) for aids in aids_list_]</span>
+    <span class="c1"># speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)</span>
+    <span class="n">speeds_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_unflat_annots_speeds_list2</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">speeds_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_hourdiffs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_hourdiffs">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter</span>
+<span class="k">def</span> <span class="nf">get_name_hourdiffs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.other.ibsfuncs --test-get_name_hourdiffs</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs._get_all_known_nids()</span>
+<span class="sd">        &gt;&gt;&gt; hourdiffs_list = ibs.get_name_hourdiffs(nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = hourdiffs_list</span>
+<span class="sd">        &gt;&gt;&gt; print(hourdiffs_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="c1"># ibs.check_name_mapping_consistency(aids_list_)</span>
+    <span class="c1"># HACK FILTERING SHOULD NOT OCCUR HERE</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span><span class="p">]</span>
+    <span class="n">hourdiffs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_unflat_annots_hourdists_list</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hourdiffs_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_max_hourdiff"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_max_hourdiff">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter</span>
+<span class="k">def</span> <span class="nf">get_name_max_hourdiff</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="n">hourdiffs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_hourdiffs</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">maxhourdiff_list_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">safe_max</span><span class="p">(</span><span class="n">hourdiff</span><span class="p">,</span> <span class="n">nans</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">hourdiff</span> <span class="ow">in</span> <span class="n">hourdiffs_list</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">maxhourdiff_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">maxhourdiff_list_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">maxhourdiff_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_max_speed"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_max_speed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter</span>
+<span class="k">def</span> <span class="nf">get_name_max_speed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.other.ibsfuncs --test-get_name_max_speed</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs._get_all_known_nids()</span>
+<span class="sd">        &gt;&gt;&gt; maxspeed_list = ibs.get_name_max_speed(nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = maxspeed_list</span>
+<span class="sd">        &gt;&gt;&gt; print(maxspeed_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">speeds_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_speeds</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">maxspeed_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vt</span><span class="o">.</span><span class="n">safe_max</span><span class="p">(</span><span class="n">speeds</span><span class="p">,</span> <span class="n">nans</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">speeds</span> <span class="ow">in</span> <span class="n">speeds_list</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">maxspeed_list</span></div>
+
+
+<div class="viewcode-block" id="get_name_gps_tracks"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_name_funcs.get_name_gps_tracks">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_name_gps_tracks</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.other.ibsfuncs --test-get_name_gps_tracks</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_name_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = wbia.opendb(&#39;PZ_Master0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #nid_list = ibs.get_valid_nids()</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; nonempty_list = list(map(lambda x: len(x) &gt; 0, gps_track_list))</span>
+<span class="sd">        &gt;&gt;&gt; ut.compress(nid_list, nonempty_list)</span>
+<span class="sd">        &gt;&gt;&gt; ut.compress(gps_track_list, nonempty_list)</span>
+<span class="sd">        &gt;&gt;&gt; ut.compress(aid_track_list, nonempty_list)</span>
+<span class="sd">        &gt;&gt;&gt; aid_track_list = list(map(sorted, aid_track_list))</span>
+<span class="sd">        &gt;&gt;&gt; result = str(aid_track_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;only specify one please&#39;</span>
+    <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">aids_list_</span><span class="p">,</span> <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span>
+    <span class="p">]</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">gpss_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+
+    <span class="n">isvalids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">gps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="ow">or</span> <span class="n">gps</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">for</span> <span class="n">gps</span> <span class="ow">in</span> <span class="n">gpss</span><span class="p">]</span> <span class="k">for</span> <span class="n">gpss</span> <span class="ow">in</span> <span class="n">gpss_list</span>
+    <span class="p">]</span>
+    <span class="n">gps_track_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gpss</span><span class="p">,</span> <span class="n">isvalids</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpss</span><span class="p">,</span> <span class="n">isvalids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpss_list</span><span class="p">,</span> <span class="n">isvalids_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">aid_track_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">isvalids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">isvalids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">isvalids_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">gps_track_list</span><span class="p">,</span> <span class="n">aid_track_list</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

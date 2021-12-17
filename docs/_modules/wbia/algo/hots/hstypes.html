@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.hots.hstypes &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../hots.html">wbia.algo.hots</a> &raquo;</li>
+      <li>wbia.algo.hots.hstypes</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.hots.hstypes</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">hstypes</span>
+<span class="sd">Todo:</span>
+<span class="sd">* SIFT: Root_SIFT -&gt; L2 normalized -&gt; Centering.</span>
+<span class="sd"># http://hal.archives-ouvertes.fr/docs/00/84/07/21/PDF/RR-8325.pdf</span>
+<span class="sd">The devil is in the deatails</span>
+<span class="sd">http://www.robots.ox.ac.uk/~vilem/bmvc2011.pdf</span>
+<span class="sd">This says dont clip, do rootsift instead</span>
+<span class="sd"># http://hal.archives-ouvertes.fr/docs/00/68/81/69/PDF/hal_v1.pdf</span>
+<span class="sd">* Quantization of residual vectors</span>
+<span class="sd">* Burstiness normalization for N-SMK</span>
+<span class="sd">* Implemented A-SMK</span>
+<span class="sd">* Incorporate Spatial Verification</span>
+<span class="sd">* Implement correct cfgstrs based on algorithm input</span>
+<span class="sd">for cached computations.</span>
+<span class="sd">* Color by word</span>
+<span class="sd">* Profile on hyrule</span>
+<span class="sd">* Train vocab on paris</span>
+<span class="sd">* Remove self matches.</span>
+<span class="sd">* New SIFT parameters for pyhesaff (root, powerlaw, meanwhatever, output_dtype)</span>
+
+
+<span class="sd">TODO:</span>
+<span class="sd">    This needs to be less constant when using non-sift descriptors</span>
+
+<span class="sd">Issues:</span>
+<span class="sd">* 10GB are in use when performing query on Oxford 5K</span>
+<span class="sd">* errors when there is a word without any database vectors.</span>
+<span class="sd">currently a weight of zero is hacked in</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># INTEGER_TYPE = np.int32</span>
+<span class="c1"># INDEX_TYPE = np.int32</span>
+<span class="c1"># INDEX_TYPE = np.int64</span>
+<span class="c1"># The index type should be the native sytem int, otherwise np.take will fail</span>
+<span class="c1"># due to the safe constraint.</span>
+<span class="n">INDEX_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int_</span>
+
+<span class="c1"># INTEGER_TYPE = np.int64</span>
+<span class="c1"># INTEGER_TYPE = np.int32</span>
+<span class="n">INTEGER_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span>
+
+<span class="c1"># FLOAT_TYPE = np.float64</span>
+<span class="n">FLOAT_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+<span class="c1"># FLOAT_TYPE = np.float32</span>
+
+<span class="n">VEC_DIM</span> <span class="o">=</span> <span class="mi">128</span>
+
+<span class="n">VEC_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span>
+<span class="n">VEC_IINFO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">VEC_TYPE</span><span class="p">)</span>
+<span class="n">VEC_MAX</span> <span class="o">=</span> <span class="n">VEC_IINFO</span><span class="o">.</span><span class="n">max</span>
+<span class="n">VEC_MIN</span> <span class="o">=</span> <span class="n">VEC_IINFO</span><span class="o">.</span><span class="n">min</span>
+<span class="c1"># Psuedo max values come from SIFT descriptors implementation</span>
+<span class="c1"># Each component has a theoretical maximum of 512</span>
+<span class="n">VEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="mi">512</span>
+<span class="c1"># unit sphere points can only be twice the maximum descriptor magnitude away</span>
+<span class="c1"># from each other. The pseudo max is 512, so 1024 is the upper bound</span>
+<span class="c1"># FURTHERMORE SIFT Descriptors are constrained to be in the upper right quadrent</span>
+<span class="c1"># which means any two vectors with one full component and zeros elsewhere are</span>
+<span class="c1"># maximally distant. VEC_PSEUDO_MAX_DISTANCE = np.sqrt(2) * VEC_PSEUDO_MAX</span>
+<span class="k">if</span> <span class="n">VEC_MIN</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c1"># SIFT distances can be on only on one quadrent of unit sphere</span>
+    <span class="c1"># hense the np.sqrt(2) coefficient on the component maximum</span>
+    <span class="c1"># Otherwise it would be 2.</span>
+    <span class="n">VEC_PSEUDO_MAX_DISTANCE</span> <span class="o">=</span> <span class="n">VEC_PSEUDO_MAX</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">VEC_PSEUDO_MAX_DISTANCE_SQRD</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">512.0</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">VEC_MIN</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c1"># Can be on whole unit sphere</span>
+    <span class="n">VEC_PSEUDO_MAX_DISTANCE</span> <span class="o">=</span> <span class="n">VEC_PSEUDO_MAX</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;impossible state&#39;</span><span class="p">)</span>
+
+<span class="n">PSEUDO_UINT8_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">VEC_PSEUDO_MAX</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">SeeAlso:</span>
+<span class="sd">    vt.distance.understanding_pseudomax_props</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="n">RVEC_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span>
+<span class="c1"># RVEC_TYPE = np.float16</span>
+<span class="k">if</span> <span class="n">RVEC_TYPE</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">:</span>
+    <span class="c1"># Unfortunatley int8 cannot represent NaN, maybe used a masked array</span>
+    <span class="n">RVEC_INFO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">RVEC_TYPE</span><span class="p">)</span>
+    <span class="n">RVEC_MAX</span> <span class="o">=</span> <span class="mi">128</span>
+    <span class="n">RVEC_MIN</span> <span class="o">=</span> <span class="o">-</span><span class="mi">128</span>
+    <span class="c1"># Psuedo max values is used for a quantization trick where you pack more data</span>
+    <span class="c1"># into a smaller space than would normally be allowed. We are able to do this</span>
+    <span class="c1"># because values will hardly ever be close to the true max.</span>
+    <span class="n">RVEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="n">RVEC_MAX</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">RVEC_PSEUDO_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RVEC_PSEUDO_MAX</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">RVEC_TYPE</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
+    <span class="n">RVEC_INFO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">RVEC_TYPE</span><span class="p">)</span>
+    <span class="n">RVEC_MAX</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">RVEC_MIN</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+    <span class="n">RVEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="n">RVEC_MAX</span>
+    <span class="n">RVEC_PSEUDO_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RVEC_PSEUDO_MAX</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;impossible RVEC_TYPE&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># Feature Match datatype</span>
+<span class="n">FM_DTYPE</span> <span class="o">=</span> <span class="n">INTEGER_TYPE</span>
+<span class="c1"># Feature Score datatype</span>
+<span class="n">FS_DTYPE</span> <span class="o">=</span> <span class="n">FLOAT_TYPE</span>
+<span class="c1"># Feature Rank datatype</span>
+<span class="c1"># FK_DTYPE  = np.int16</span>
+<span class="n">FK_DTYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span>
+
+
+<div class="viewcode-block" id="FiltKeys"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.hstypes.FiltKeys">[docs]</a><span class="k">class</span> <span class="nc">FiltKeys</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">DISTINCTIVENESS</span> <span class="o">=</span> <span class="s1">&#39;distinctiveness&#39;</span>
+    <span class="n">FG</span> <span class="o">=</span> <span class="s1">&#39;fg&#39;</span>
+    <span class="n">RATIO</span> <span class="o">=</span> <span class="s1">&#39;ratio&#39;</span>
+    <span class="n">DIST</span> <span class="o">=</span> <span class="s1">&#39;dist&#39;</span>
+    <span class="n">BARL2</span> <span class="o">=</span> <span class="s1">&#39;bar_l2&#39;</span>
+    <span class="n">LNBNN</span> <span class="o">=</span> <span class="s1">&#39;lnbnn&#39;</span>
+    <span class="n">HOMOGERR</span> <span class="o">=</span> <span class="s1">&#39;homogerr&#39;</span></div>
+
+
+<span class="c1"># Denote which scores should be  used as weights</span>
+<span class="c1"># the others are used as scores</span>
+<span class="n">WEIGHT_FILTERS</span> <span class="o">=</span> <span class="p">[</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">FG</span><span class="p">,</span> <span class="n">FiltKeys</span><span class="o">.</span><span class="n">DISTINCTIVENESS</span><span class="p">,</span> <span class="n">FiltKeys</span><span class="o">.</span><span class="n">HOMOGERR</span><span class="p">]</span>
+
+
+<span class="c1"># Replace old cmtup_old with ducktype</span>
+<span class="c1"># Keep this turned off for now until we actually start using it</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

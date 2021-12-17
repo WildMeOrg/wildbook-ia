@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.web.routes_experiments &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.web.routes_experiments</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.web.routes_experiments</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dependencies: flask, tornado</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_route</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">DBDIR_PREFIX</span> <span class="o">=</span> <span class="s1">&#39;/Datasets&#39;</span>
+<span class="c1"># DBDIR_PREFIX = &#39;/media/hdd/work&#39;</span>
+
+
+<span class="n">DB_DICT</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">DBDIR_DICT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;demo-jasonp&#39;</span><span class="p">:</span> <span class="s1">&#39;/data2/wbia/DEMO2-JASONP&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;demo-chuck&#39;</span><span class="p">:</span> <span class="s1">&#39;/data2/wbia/DEMO2-CHUCK&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;demo-hendrik&#39;</span><span class="p">:</span> <span class="s1">&#39;/data2/wbia/DEMO2-HENDRIK&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;demo-jonv&#39;</span><span class="p">:</span> <span class="s1">&#39;/data2/wbia/DEMO2-JONV&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;demo-jasonh&#39;</span><span class="p">:</span> <span class="s1">&#39;/data2/wbia/DEMO2-JASONH&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;demo-dan&#39;</span><span class="p">:</span> <span class="s1">&#39;/data2/wbia/DEMO2-DAN&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;demo-kaia&#39;</span><span class="p">:</span> <span class="s1">&#39;/data2/wbia/DEMO2-KAIA&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;demo-tanya&#39;</span><span class="p">:</span> <span class="s1">&#39;/data2/wbia/DEMO2-TANYA&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;voting&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">DBDIR_PREFIX</span><span class="p">,</span> <span class="s1">&#39;DETECT_TEAM&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;voting-team1&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">DBDIR_PREFIX</span><span class="p">,</span> <span class="s1">&#39;DETECT_TEAM1&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;voting-team2&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">DBDIR_PREFIX</span><span class="p">,</span> <span class="s1">&#39;DETECT_TEAM2&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;voting-team3&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">DBDIR_PREFIX</span><span class="p">,</span> <span class="s1">&#39;DETECT_TEAM3&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;voting-team4&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">DBDIR_PREFIX</span><span class="p">,</span> <span class="s1">&#39;DETECT_TEAM4&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;voting-team5&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">DBDIR_PREFIX</span><span class="p">,</span> <span class="s1">&#39;DETECT_TEAM5&#39;</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="n">GLOBAL_AOI_VALUES</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">GLOBAL_AOI_DICT</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">GLOBAL_IMAGE_UUID_LIST</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">GLOBAL_ANNOT_UUID_LIST</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="view_experiments"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.view_experiments">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/experiments/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">view_experiments</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s1">&#39;experiments&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="experiment_init_db"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiment_init_db">[docs]</a><span class="k">def</span> <span class="nf">experiment_init_db</span><span class="p">(</span><span class="n">tag</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">DBDIR_DICT</span><span class="p">:</span>
+        <span class="n">dbdir</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">DBDIR_DICT</span><span class="p">[</span><span class="n">tag</span><span class="p">]))</span>
+        <span class="n">DB_DICT</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">DB_DICT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="experiments_image_src"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiments_image_src">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/experiments/ajax/image/src/&lt;tag&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">experiments_image_src</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">tag</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tag</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">experiment_init_db</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;thumbsize&#39;</span><span class="p">:</span> <span class="mi">800</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">ensure_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Load image</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_width</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="experiments_interest"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiments_interest">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/experiments/interest/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">experiments_interest</span><span class="p">(</span><span class="n">dbtag1</span><span class="o">=</span><span class="s1">&#39;demo-jasonp&#39;</span><span class="p">,</span> <span class="n">dbtag2</span><span class="o">=</span><span class="s1">&#39;demo-chuck&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
+    <span class="kn">from</span> <span class="nn">wbia.other.detectfuncs</span> <span class="kn">import</span> <span class="n">general_overlap</span><span class="p">,</span> <span class="n">general_parse_gt</span>
+
+    <span class="n">dbtag1</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">dbtag1</span><span class="p">)</span>
+    <span class="n">dbtag2</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">dbtag2</span><span class="p">)</span>
+    <span class="n">ibs1</span> <span class="o">=</span> <span class="n">experiment_init_db</span><span class="p">(</span><span class="n">dbtag1</span><span class="p">)</span>
+    <span class="n">ibs2</span> <span class="o">=</span> <span class="n">experiment_init_db</span><span class="p">(</span><span class="n">dbtag2</span><span class="p">)</span>
+    <span class="n">dbdir1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">dbdir</span>
+    <span class="n">dbdir2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">dbdir</span>
+
+    <span class="n">gid_list1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">reviewed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">gid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">reviewed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">gt_dict1</span> <span class="o">=</span> <span class="n">general_parse_gt</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">gid_list1</span><span class="p">)</span>
+    <span class="n">gt_dict2</span> <span class="o">=</span> <span class="n">general_parse_gt</span><span class="p">(</span><span class="n">ibs2</span><span class="p">,</span> <span class="n">gid_list2</span><span class="p">)</span>
+
+    <span class="n">uuid_list1</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list1</span><span class="p">)))</span>
+    <span class="n">uuid_list2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list2</span><span class="p">)))</span>
+
+    <span class="n">gid_pair_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">index1</span><span class="p">,</span> <span class="n">index2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="n">stats_global</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;disagree_interest1&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;disagree_interest2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;annot1&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;annot2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">while</span> <span class="n">index1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid_list1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">index2</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid_list2</span><span class="p">):</span>
+        <span class="n">uuid1</span> <span class="o">=</span> <span class="n">UUID</span><span class="p">(</span><span class="n">uuid_list1</span><span class="p">[</span><span class="n">index1</span><span class="p">])</span> <span class="k">if</span> <span class="n">index1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid_list1</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">uuid2</span> <span class="o">=</span> <span class="n">UUID</span><span class="p">(</span><span class="n">uuid_list2</span><span class="p">[</span><span class="n">index2</span><span class="p">])</span> <span class="k">if</span> <span class="n">index2</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid_list2</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">uuid1</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">uuid2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="n">gid1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">uuid1</span><span class="p">)</span>
+        <span class="n">gid2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">uuid2</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index1</span><span class="p">,</span> <span class="n">index2</span><span class="p">))</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">uuid1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">uuid2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">uuid1</span> <span class="o">==</span> <span class="n">uuid2</span><span class="p">:</span>
+                <span class="n">gt_list1</span> <span class="o">=</span> <span class="n">gt_dict1</span><span class="p">[</span><span class="n">uuid1</span><span class="p">]</span>
+                <span class="n">gt_list2</span> <span class="o">=</span> <span class="n">gt_dict2</span><span class="p">[</span><span class="n">uuid2</span><span class="p">]</span>
+
+                <span class="n">stats_global</span><span class="p">[</span><span class="s1">&#39;annot1&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_list1</span><span class="p">)</span>
+                <span class="n">stats_global</span><span class="p">[</span><span class="s1">&#39;annot2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_list2</span><span class="p">)</span>
+
+                <span class="n">overlap</span> <span class="o">=</span> <span class="n">general_overlap</span><span class="p">(</span><span class="n">gt_list1</span><span class="p">,</span> <span class="n">gt_list2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">overlap</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                    <span class="n">index_list1</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">index_list2</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">index_list1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">overlap</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">index_list2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">overlap</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="n">pair_list1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">index_list1</span><span class="p">))</span>
+                <span class="n">pair_list2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">index_list2</span><span class="p">))</span>
+                <span class="n">pair_list2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">_</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pair_list2</span><span class="p">])</span>
+                <span class="n">pair_union</span> <span class="o">=</span> <span class="n">pair_list1</span> <span class="o">|</span> <span class="n">pair_list2</span>
+                <span class="n">pair_intersect</span> <span class="o">=</span> <span class="n">pair_list1</span> <span class="o">&amp;</span> <span class="n">pair_list2</span>
+                <span class="n">pair_diff_sym</span> <span class="o">=</span> <span class="n">pair_list1</span> <span class="o">^</span> <span class="n">pair_list2</span>
+                <span class="n">pair_diff1</span> <span class="o">=</span> <span class="n">pair_list1</span> <span class="o">-</span> <span class="n">pair_list2</span>
+                <span class="n">pair_diff2</span> <span class="o">=</span> <span class="n">pair_list2</span> <span class="o">-</span> <span class="n">pair_list1</span>
+
+                <span class="n">message_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_list1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_list2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Jason has annotations, Chuck none&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_list1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_list2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Chuck has annotations, Jason none&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair_diff1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair_diff2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Jason has additional annotations&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair_diff1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair_diff2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Chuck has additional annotations&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair_diff1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair_diff2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Assignment mismatch&#39;</span><span class="p">)</span>
+
+                <span class="n">disagree</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">index1_</span><span class="p">,</span> <span class="n">index2_</span> <span class="ow">in</span> <span class="n">pair_intersect</span><span class="p">:</span>
+                    <span class="n">gt1</span> <span class="o">=</span> <span class="n">gt_list1</span><span class="p">[</span><span class="n">index1_</span><span class="p">]</span>
+                    <span class="n">gt2</span> <span class="o">=</span> <span class="n">gt_list2</span><span class="p">[</span><span class="n">index2_</span><span class="p">]</span>
+                    <span class="n">interest1</span> <span class="o">=</span> <span class="n">gt1</span><span class="p">[</span><span class="s1">&#39;interest&#39;</span><span class="p">]</span>
+                    <span class="n">interest2</span> <span class="o">=</span> <span class="n">gt2</span><span class="p">[</span><span class="s1">&#39;interest&#39;</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="n">interest1</span> <span class="o">!=</span> <span class="n">interest2</span><span class="p">:</span>
+                        <span class="n">disagree</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">interest1</span> <span class="o">&gt;</span> <span class="n">interest2</span><span class="p">:</span>
+                            <span class="n">stats_global</span><span class="p">[</span><span class="s1">&#39;disagree_interest1&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">interest2</span> <span class="o">&gt;</span> <span class="n">interest1</span><span class="p">:</span>
+                            <span class="n">stats_global</span><span class="p">[</span><span class="s1">&#39;disagree_interest2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">if</span> <span class="n">disagree</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Interest mismatch&#39;</span><span class="p">)</span>
+
+                <span class="n">stats</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;num_annot1&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_list1</span><span class="p">),</span>
+                    <span class="s1">&#39;num_annot2&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_list2</span><span class="p">),</span>
+                    <span class="s1">&#39;num_interest1&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">gt_list1</span> <span class="k">if</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;interest&#39;</span><span class="p">]]),</span>
+                    <span class="s1">&#39;num_interest2&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">gt_list2</span> <span class="k">if</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;interest&#39;</span><span class="p">]]),</span>
+                    <span class="s1">&#39;conflict&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">message_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;br/&gt;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">message_list</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">uuid1</span> <span class="o">&lt;</span> <span class="n">uuid2</span><span class="p">:</span>
+                    <span class="n">gid2</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">gid1</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">gid_pair_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">gid1</span><span class="p">,</span> <span class="n">gid2</span><span class="p">,</span> <span class="n">stats</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">gid1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">index1</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">gid2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">index2</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">embed</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">globals</span><span class="p">(),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s1">&#39;experiments&#39;</span><span class="p">,</span> <span class="s1">&#39;interest&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">embed</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="voting_uuid_list"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.voting_uuid_list">[docs]</a><span class="k">def</span> <span class="nf">voting_uuid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">team_list</span><span class="p">):</span>
+    <span class="n">blacklist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">())</span>
+    <span class="c1"># image_uuid_list = image_uuid_list[:100]</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">team</span> <span class="ow">in</span> <span class="n">team_list</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking team </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">team</span><span class="p">,))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">gid_list</span> <span class="o">=</span> <span class="n">team</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gid_list</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+            <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+            <span class="n">blacklist</span> <span class="o">+=</span> <span class="p">[</span><span class="n">image_uuid</span> <span class="k">for</span> <span class="n">image_uuid</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">zipped</span> <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">team</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">aid_list</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+            <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">blacklist</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">))</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">annot_uuid</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">zipped</span>
+                <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="p">]</span>
+    <span class="n">blacklist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">blacklist</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blacklist</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Blacklisted </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">blacklist</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)))</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">blacklist</span><span class="p">))</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="voting_data"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.voting_data">[docs]</a><span class="k">def</span> <span class="nf">voting_data</span><span class="p">(</span>
+    <span class="n">method</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">option</span><span class="o">=</span><span class="s1">&#39;inclusive&#39;</span><span class="p">,</span>
+    <span class="n">species</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span>
+    <span class="n">team1</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">team2</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">team3</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">team4</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">team5</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">global</span> <span class="n">GLOBAL_AOI_VALUES</span><span class="p">,</span> <span class="n">GLOBAL_AOI_DICT</span><span class="p">,</span> <span class="n">GLOBAL_ANNOT_UUID_LIST</span>
+
+    <span class="n">method</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+    <span class="n">method_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">method_list</span>
+    <span class="k">assert</span> <span class="n">option</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;inclusive&#39;</span><span class="p">,</span> <span class="s1">&#39;exclusive&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">species</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;giraffe&#39;</span><span class="p">,</span> <span class="s1">&#39;kenya&#39;</span><span class="p">,</span> <span class="s1">&#39;seaturtle&#39;</span><span class="p">,</span> <span class="s1">&#39;whalefluke&#39;</span><span class="p">,</span> <span class="s1">&#39;zebra&#39;</span><span class="p">]</span>
+
+    <span class="n">enabled_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">team1</span><span class="p">,</span> <span class="n">team2</span><span class="p">,</span> <span class="n">team3</span><span class="p">,</span> <span class="n">team4</span><span class="p">,</span> <span class="n">team5</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="kc">False</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">enabled</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span> <span class="k">for</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="n">enabled_list</span><span class="p">]</span>
+
+    <span class="n">method_</span> <span class="o">=</span> <span class="n">enabled_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">method_</span><span class="p">)</span>
+
+    <span class="n">aoi_values</span> <span class="o">=</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">team1</span><span class="p">,</span> <span class="n">team2</span><span class="p">,</span> <span class="n">team3</span><span class="p">,</span> <span class="n">team4</span><span class="p">,</span> <span class="n">team5</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">GLOBAL_AOI_VALUES</span> <span class="o">==</span> <span class="n">aoi_values</span> <span class="ow">and</span> <span class="n">GLOBAL_AOI_DICT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">GLOBAL_AOI_DICT</span>
+
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">team_list</span> <span class="o">=</span> <span class="n">experiments_voting_initialize</span><span class="p">(</span><span class="n">enabled_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;giraffe_masai&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;giraffe_reticulated&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;turtle_sea&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;whale_fluke&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;zebra_plains&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;giraffe&#39;</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;giraffe_amasai&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;giraffe_reticulated&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;kenya&#39;</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;giraffe_amasai&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;giraffe_reticulated&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;zebra_plains&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;seaturtle&#39;</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;turtle_sea&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;whalefluke&#39;</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;whale_fluke&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;zebra&#39;</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;zebra_plains&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span>
+
+    <span class="n">species_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+
+    <span class="n">aoi_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="n">GLOBAL_ANNOT_UUID_LIST</span><span class="p">:</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_set</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">team</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">team</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">team</span> <span class="ow">in</span> <span class="n">team_list</span>
+        <span class="p">]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">-=</span> <span class="n">method</span>
+
+        <span class="k">if</span> <span class="n">option</span> <span class="o">==</span> <span class="s1">&#39;inclusive&#39;</span><span class="p">:</span>
+            <span class="n">aoi</span> <span class="o">=</span> <span class="n">count</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s1">&#39;exclusive&#39;</span><span class="p">:</span>
+            <span class="n">aoi</span> <span class="o">=</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">aoi</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+
+        <span class="n">aoi_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]</span> <span class="o">=</span> <span class="n">aoi</span>
+
+    <span class="n">GLOBAL_AOI_VALUES</span> <span class="o">=</span> <span class="n">aoi_values</span>
+    <span class="n">GLOBAL_AOI_DICT</span> <span class="o">=</span> <span class="n">aoi_dict</span>
+
+    <span class="k">return</span> <span class="n">aoi_dict</span></div>
+
+
+<div class="viewcode-block" id="experiments_voting_counts"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiments_voting_counts">[docs]</a><span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/experiments/ajax/voting/count/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">experiments_voting_counts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aoi_dict</span> <span class="o">=</span> <span class="n">voting_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># Totals</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">aoi_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">flag_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">total_str</span> <span class="o">=</span> <span class="s1">&#39;Undefined&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">total_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">/</span> <span class="n">total</span><span class="p">,)</span>
+
+    <span class="n">stage1_count_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">count</span><span class="p">,</span> <span class="n">total_str</span><span class="p">,</span> <span class="n">total</span><span class="p">]</span>
+
+    <span class="c1"># Image Totals</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">team_list</span> <span class="o">=</span> <span class="n">experiments_voting_initialize</span><span class="p">()</span>
+
+    <span class="n">gid_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="n">aoi_dict</span><span class="p">:</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gid_dict</span><span class="p">:</span>
+            <span class="n">gid_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">gid_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">aoi_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]:</span>
+            <span class="n">gid_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">count_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">precentage_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_dict</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">gid_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">gid_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">precentage</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">total</span><span class="p">)</span>
+        <span class="n">count_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+        <span class="n">precentage_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precentage</span><span class="p">)</span>
+
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">count_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">count_str</span> <span class="o">=</span> <span class="s1">&#39;Undefined&#39;</span>
+        <span class="n">deviation_str</span> <span class="o">=</span> <span class="s1">&#39;Undefined&#39;</span>
+        <span class="n">percentage_str</span> <span class="o">=</span> <span class="s1">&#39;Undefined&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">count_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">count_list</span><span class="p">)</span>
+        <span class="n">avg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">count_list</span><span class="p">)</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">count_list</span><span class="p">)</span>
+        <span class="n">count_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">avg</span><span class="p">,)</span>
+        <span class="n">deviation_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">std</span><span class="p">,)</span>
+        <span class="n">percentage_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="n">precentage_list</span><span class="p">)</span> <span class="o">/</span> <span class="n">total</span><span class="p">,)</span>
+
+    <span class="n">stage2_count_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">count_str</span><span class="p">,</span> <span class="n">deviation_str</span><span class="p">,</span> <span class="n">percentage_str</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">stage1_count_list</span><span class="p">,</span> <span class="n">stage2_count_list</span></div>
+
+
+<div class="viewcode-block" id="experiments_voting_variance"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiments_voting_variance">[docs]</a><span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/experiments/ajax/voting/variance/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">experiments_voting_variance</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">team_index</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aoi_dict</span> <span class="o">=</span> <span class="n">voting_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">team_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">team_index</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">team_index</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">team_list</span> <span class="o">=</span> <span class="n">experiments_voting_initialize</span><span class="p">()</span>
+    <span class="n">team</span> <span class="o">=</span> <span class="n">team_list</span><span class="p">[</span><span class="n">team_index</span><span class="p">]</span>
+
+    <span class="n">incorrect</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="n">aoi_dict</span><span class="p">:</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">team</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+        <span class="n">interest</span> <span class="o">=</span> <span class="n">team</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">interest</span> <span class="o">!=</span> <span class="n">aoi_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]:</span>
+            <span class="n">incorrect</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">accuracy_str</span> <span class="o">=</span> <span class="s1">&#39;Undefined&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">correct</span> <span class="o">=</span> <span class="n">total</span> <span class="o">-</span> <span class="n">incorrect</span>
+        <span class="n">accuracy_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.02f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">correct</span> <span class="o">/</span> <span class="n">total</span><span class="p">),)</span>
+    <span class="k">return</span> <span class="n">team_index</span><span class="p">,</span> <span class="n">incorrect</span><span class="p">,</span> <span class="n">accuracy_str</span></div>
+
+
+<span class="k">def</span> <span class="nf">_normalize_image</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="n">image</span> <span class="o">*=</span> <span class="mf">255.0</span>
+    <span class="n">image</span><span class="p">[</span><span class="n">image</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">image</span><span class="p">[</span><span class="n">image</span> <span class="o">&gt;</span> <span class="mf">255.0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">255.0</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">merge</span><span class="p">((</span><span class="n">image</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">image</span><span class="p">))</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">400</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_NEAREST</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image</span>
+
+
+<div class="viewcode-block" id="experiments_voting_center_src"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiments_voting_center_src">[docs]</a><span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/experiments/ajax/voting/center/src/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">experiments_voting_center_src</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aoi</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aoi_dict</span> <span class="o">=</span> <span class="n">voting_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">team_list</span> <span class="o">=</span> <span class="n">experiments_voting_initialize</span><span class="p">()</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="n">aoi_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">aoi</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">aoi_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">cx</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">cy</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">cx</span> <span class="o">/=</span> <span class="n">width</span>
+        <span class="n">cy</span> <span class="o">/=</span> <span class="n">height</span>
+        <span class="n">cx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">cx</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+        <span class="n">cy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">cy</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">cx</span> <span class="ow">and</span> <span class="n">cx</span> <span class="o">&lt;</span> <span class="mi">100</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">cy</span> <span class="ow">and</span> <span class="n">cy</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="n">image</span><span class="p">[</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span>
+
+    <span class="n">maximum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">/=</span> <span class="n">maximum</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">_normalize_image</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="c1"># Load image</span>
+    <span class="k">return</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">appf</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_width</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="experiments_voting_area_src"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiments_voting_area_src">[docs]</a><span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/experiments/ajax/voting/area/src/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">experiments_voting_area_src</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aoi</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aoi_dict</span> <span class="o">=</span> <span class="n">voting_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">team_list</span> <span class="o">=</span> <span class="n">experiments_voting_initialize</span><span class="p">()</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="n">aoi_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">aoi</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">aoi_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">w</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span>
+        <span class="n">x0</span> <span class="o">/=</span> <span class="n">width</span>
+        <span class="n">y0</span> <span class="o">/=</span> <span class="n">height</span>
+        <span class="n">x1</span> <span class="o">/=</span> <span class="n">width</span>
+        <span class="n">y1</span> <span class="o">/=</span> <span class="n">height</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">x0</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">y0</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">x1</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">y1</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+        <span class="n">image</span><span class="p">[</span><span class="n">x0</span><span class="p">:</span><span class="n">x1</span><span class="p">,</span> <span class="n">y0</span><span class="p">:</span><span class="n">y1</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span>
+
+    <span class="n">maximum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">/=</span> <span class="n">maximum</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">_normalize_image</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="c1"># Load image</span>
+    <span class="k">return</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">appf</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_width</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="experiments_voting_bbox_width"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiments_voting_bbox_width">[docs]</a><span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/experiments/ajax/voting/bbox/metrics/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">experiments_voting_bbox_width</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aoi_dict</span> <span class="o">=</span> <span class="n">voting_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">team_list</span> <span class="o">=</span> <span class="n">experiments_voting_initialize</span><span class="p">()</span>
+
+    <span class="n">bins</span> <span class="o">=</span> <span class="mf">10.0</span>
+    <span class="n">key_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="n">histogram_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;keys&#39;</span><span class="p">:</span> <span class="n">key_list</span><span class="p">,</span>
+        <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="n">index</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)],</span>
+        <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="n">index</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)],</span>
+        <span class="s1">&#39;area&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="n">index</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)],</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="n">aoi_dict</span><span class="p">:</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">w</span> <span class="o">/=</span> <span class="n">width</span>
+        <span class="n">h</span> <span class="o">/=</span> <span class="n">height</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">h</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">bins</span><span class="p">))</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">bins</span><span class="p">))</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">bins</span><span class="p">))</span>
+        <span class="n">histogram_dict</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">histogram_dict</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">h</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">histogram_dict</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">a</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">aoi_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]:</span>
+            <span class="n">histogram_dict</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">w</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">histogram_dict</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">h</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">histogram_dict</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">a</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">for</span> <span class="n">histogram_key</span> <span class="ow">in</span> <span class="n">histogram_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">histogram_key</span> <span class="o">==</span> <span class="s1">&#39;keys&#39;</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">histogram_list</span> <span class="o">=</span> <span class="n">histogram_dict</span><span class="p">[</span><span class="n">histogram_key</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">histogram_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">histogram_list</span><span class="p">)):</span>
+            <span class="n">histogam</span> <span class="o">=</span> <span class="n">histogram_list</span><span class="p">[</span><span class="n">histogram_index</span><span class="p">]</span>
+            <span class="n">histogram_list</span><span class="p">[</span><span class="n">histogram_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">histogam</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">bins</span><span class="p">),</span> <span class="n">histogram_dict</span></div>
+
+
+<div class="viewcode-block" id="experiments_voting_initialize"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiments_voting_initialize">[docs]</a><span class="k">def</span> <span class="nf">experiments_voting_initialize</span><span class="p">(</span><span class="n">enabled_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">GLOBAL_IMAGE_UUID_LIST</span><span class="p">,</span> <span class="n">GLOBAL_ANNOT_UUID_LIST</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">experiment_init_db</span><span class="p">(</span><span class="s1">&#39;voting&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="n">ibs1</span> <span class="o">=</span> <span class="n">experiment_init_db</span><span class="p">(</span><span class="s1">&#39;voting-team1&#39;</span><span class="p">)</span>
+    <span class="n">ibs2</span> <span class="o">=</span> <span class="n">experiment_init_db</span><span class="p">(</span><span class="s1">&#39;voting-team2&#39;</span><span class="p">)</span>
+    <span class="n">ibs3</span> <span class="o">=</span> <span class="n">experiment_init_db</span><span class="p">(</span><span class="s1">&#39;voting-team3&#39;</span><span class="p">)</span>
+    <span class="n">ibs4</span> <span class="o">=</span> <span class="n">experiment_init_db</span><span class="p">(</span><span class="s1">&#39;voting-team4&#39;</span><span class="p">)</span>
+    <span class="n">ibs5</span> <span class="o">=</span> <span class="n">experiment_init_db</span><span class="p">(</span><span class="s1">&#39;voting-team5&#39;</span><span class="p">)</span>
+    <span class="n">team_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">ibs3</span><span class="p">,</span> <span class="n">ibs4</span><span class="p">,</span> <span class="n">ibs5</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">team_list</span>
+
+    <span class="k">if</span> <span class="n">enabled_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">team_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span>
+        <span class="k">assert</span> <span class="kc">False</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">enabled</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span> <span class="k">for</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="n">enabled_list</span><span class="p">]</span>
+        <span class="n">team_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">team</span> <span class="k">for</span> <span class="n">team</span><span class="p">,</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">team_list</span><span class="p">,</span> <span class="n">enabled_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">enabled</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="p">[</span><span class="n">GLOBAL_IMAGE_UUID_LIST</span><span class="p">,</span> <span class="n">GLOBAL_ANNOT_UUID_LIST</span><span class="p">]:</span>
+        <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">voting_uuid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">team_list</span><span class="p">)</span>
+        <span class="n">GLOBAL_IMAGE_UUID_LIST</span> <span class="o">=</span> <span class="n">image_uuid_list</span>
+        <span class="n">GLOBAL_ANNOT_UUID_LIST</span> <span class="o">=</span> <span class="n">annot_uuid_list</span>
+
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">team_list</span></div>
+
+
+<div class="viewcode-block" id="experiments_voting"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_experiments.experiments_voting">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/experiments/voting/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">experiments_voting</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="n">experiments_voting_initialize</span><span class="p">()</span>
+    <span class="n">voting_data</span><span class="p">()</span>
+
+    <span class="n">embed</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">globals</span><span class="p">(),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s1">&#39;experiments&#39;</span><span class="p">,</span> <span class="s1">&#39;voting&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">embed</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

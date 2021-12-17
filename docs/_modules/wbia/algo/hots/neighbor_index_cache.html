@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.hots.neighbor_index_cache &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../hots.html">wbia.algo.hots</a> &raquo;</li>
+      <li>wbia.algo.hots.neighbor_index_cache</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.hots.neighbor_index_cache</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">NEEDS CLEANUP</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots.neighbor_index</span> <span class="kn">import</span> <span class="n">NeighborIndex</span><span class="p">,</span> <span class="n">get_support_data</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">USE_HOTSPOTTER_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache-hs&#39;</span><span class="p">)</span>
+<span class="n">NOCACHE_UUIDS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache-uuids&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">USE_HOTSPOTTER_CACHE</span>
+
+<span class="c1"># LRU cache for nn_indexers. Ensures that only a few are ever in memory</span>
+<span class="c1"># MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval(&#39;--max-neighbor-cachesize&#39;, type_=int, default=2)</span>
+<span class="n">MAX_NEIGHBOR_CACHE_SIZE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--max-neighbor-cachesize&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># Background process for building indexes</span>
+<span class="n">CURRENT_THREAD</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1"># Global map to keep track of UUID lists with prebuild indexers.</span>
+<span class="n">UUID_MAP</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+<span class="n">NEIGHBOR_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_lru_cache</span><span class="p">(</span><span class="n">MAX_NEIGHBOR_CACHE_SIZE</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="UUIDMapHyrbridCache"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.UUIDMapHyrbridCache">[docs]</a><span class="k">class</span> <span class="nc">UUIDMapHyrbridCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class that lets multiple ways of writing to the uuid_map</span>
+<span class="sd">    be swapped in and out interchangably</span>
+
+<span class="sd">    TODO: the global read / write should periodically sync itself to disk and it</span>
+<span class="sd">    should be loaded from disk initially</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="c1"># self.uuid_map_fpath = uuid_map_fpath</span>
+        <span class="c1"># self.init(uuid_map_fpath, min_reindex_thresh)</span>
+
+<div class="viewcode-block" id="UUIDMapHyrbridCache.init"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.UUIDMapHyrbridCache.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="c1"># self.read_func  = self.read_uuid_map_cpkl</span>
+        <span class="c1"># self.write_func = self.write_uuid_map_cpkl</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_uuid_map_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_uuid_map_dict</span></div>
+
+<div class="viewcode-block" id="UUIDMapHyrbridCache.dump"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.UUIDMapHyrbridCache.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">):</span>
+        <span class="c1"># TODO: DUMP AND LOAD THIS HYBRID CACHE TO DISK</span>
+        <span class="c1"># write_uuid_map_cpkl</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;uuid_maps_hybrid_cache.cPkl&#39;</span>
+        <span class="n">cpkl_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">lock_and_save_cPkl</span><span class="p">(</span><span class="n">cpkl_fpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UUIDMapHyrbridCache.load"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.UUIDMapHyrbridCache.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a cache UUIDMap</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;uuid_maps_hybrid_cache.cPkl&#39;</span>
+        <span class="n">cpkl_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lock_and_load_cPkl</span><span class="p">(</span><span class="n">cpkl_fpath</span><span class="p">)</span></div>
+
+    <span class="c1"># def __call__(self):</span>
+    <span class="c1">#    return  self.read_func(*self.args, **self.kwargs)</span>
+
+    <span class="c1"># def __setitem__(self, daids_hashid, visual_uuid_list):</span>
+    <span class="c1">#    uuid_map_fpath = self.uuid_map_fpath</span>
+    <span class="c1">#    self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)</span>
+
+    <span class="c1"># @profile</span>
+    <span class="c1"># def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):</span>
+    <span class="c1">#    #with ut.EmbedOnException():</span>
+    <span class="c1">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
+    <span class="c1">#        with ut.shelf_open(uuid_map_fpath) as uuid_map:</span>
+    <span class="c1">#            candidate_uuids = {</span>
+    <span class="c1">#                key: val for key, val in uuid_map.items()</span>
+    <span class="c1">#                if len(val) &gt;= min_reindex_thresh</span>
+    <span class="c1">#            }</span>
+    <span class="c1">#    return candidate_uuids</span>
+
+    <span class="c1"># @profile</span>
+    <span class="c1"># def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):</span>
+    <span class="c1">#    logger.info(&#39;Writing %d visual uuids to uuid map&#39; % (len(visual_uuid_list)))</span>
+    <span class="c1">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
+    <span class="c1">#        with ut.shelf_open(uuid_map_fpath) as uuid_map:</span>
+    <span class="c1">#            uuid_map[daids_hashid] = visual_uuid_list</span>
+
+    <span class="c1"># @profile</span>
+    <span class="c1"># def read_uuid_map_cpkl(self, uuid_map_fpath, min_reindex_thresh):</span>
+    <span class="c1">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
+    <span class="c1">#        #with ut.shelf_open(uuid_map_fpath) as uuid_map:</span>
+    <span class="c1">#        try:</span>
+    <span class="c1">#            uuid_map = ut.load_cPkl(uuid_map_fpath)</span>
+    <span class="c1">#            candidate_uuids = {</span>
+    <span class="c1">#                key: val for key, val in uuid_map.items()</span>
+    <span class="c1">#                if len(val) &gt;= min_reindex_thresh</span>
+    <span class="c1">#            }</span>
+    <span class="c1">#        except IOError:</span>
+    <span class="c1">#            return {}</span>
+    <span class="c1">#    return candidate_uuids</span>
+
+    <span class="c1"># @profile</span>
+    <span class="c1"># def write_uuid_map_cpkl(self, uuid_map_fpath, visual_uuid_list, daids_hashid):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    let the multi-indexer know about any big caches we&#39;ve made multi-indexer.</span>
+    <span class="c1">#    Also lets nnindexer know about other prebuilt indexers so it can attempt to</span>
+    <span class="c1">#    just add points to them as to avoid a rebuild.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    logger.info(&#39;Writing %d visual uuids to uuid map&#39; % (len(visual_uuid_list)))</span>
+    <span class="c1">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
+    <span class="c1">#        try:</span>
+    <span class="c1">#            uuid_map = ut.load_cPkl(uuid_map_fpath)</span>
+    <span class="c1">#        except IOError:</span>
+    <span class="c1">#            uuid_map = {}</span>
+    <span class="c1">#        uuid_map[daids_hashid] = visual_uuid_list</span>
+    <span class="c1">#        ut.save_cPkl(uuid_map_fpath, uuid_map)</span>
+
+<div class="viewcode-block" id="UUIDMapHyrbridCache.read_uuid_map_dict"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.UUIDMapHyrbridCache.read_uuid_map_dict">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">read_uuid_map_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;uses in memory dictionary instead of disk&quot;&quot;&quot;</span>
+        <span class="n">uuid_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span><span class="p">[</span><span class="n">uuid_map_fpath</span><span class="p">]</span>
+        <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">uuid_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_reindex_thresh</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">candidate_uuids</span></div>
+
+<div class="viewcode-block" id="UUIDMapHyrbridCache.write_uuid_map_dict"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.UUIDMapHyrbridCache.write_uuid_map_dict">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">write_uuid_map_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        uses in memory dictionary instead of disk</span>
+
+<span class="sd">        let the multi-indexer know about any big caches we&#39;ve made multi-indexer.</span>
+<span class="sd">        Also lets nnindexer know about other prebuilt indexers so it can attempt to</span>
+<span class="sd">        just add points to them as to avoid a rebuild.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">NOCACHE_UUIDS</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;uuid cache is off&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># with ut.EmbedOnException():</span>
+        <span class="n">uuid_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span><span class="p">[</span><span class="n">uuid_map_fpath</span><span class="p">]</span>
+        <span class="n">uuid_map</span><span class="p">[</span><span class="n">daids_hashid</span><span class="p">]</span> <span class="o">=</span> <span class="n">visual_uuid_list</span></div></div>
+
+
+<span class="n">UUID_MAP_CACHE</span> <span class="o">=</span> <span class="n">UUIDMapHyrbridCache</span><span class="p">()</span>
+
+
+<span class="c1"># @profile</span>
+<div class="viewcode-block" id="get_nnindexer_uuid_map_fpath"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.get_nnindexer_uuid_map_fpath">[docs]</a><span class="k">def</span> <span class="nf">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache get_nnindexer_uuid_map_fpath</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=&#39;default:fgw_thresh=.3&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(ut.path_ndir_split(uuid_map_fpath, 3))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">        .../_wbia_cache/flann/uuid_map_mzwwsbjisbkdxorl.cPkl</span>
+<span class="sd">        .../_wbia_cache/flann/uuid_map_FLANN(8_kdtrees_fgwthrsh=0.3)_Feat(hesaff+sift)_Chip(sz700,width).cPkl</span>
+<span class="sd">        .../_wbia_cache/flann/uuid_map_FLANN(8_kdtrees)_Feat(hesaff+sift)_Chip(sz700,width).cPkl</span>
+<span class="sd">        .../_wbia_cache/flann/uuid_map_FLANN(8_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).cPkl</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flann_cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
+    <span class="c1"># Have uuid shelf conditioned on the baseline flann and feature parameters</span>
+    <span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">flann_cfgstr</span>
+    <span class="n">feat_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
+    <span class="n">chip_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfgstr</span>
+    <span class="n">featweight_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">featweight_cfgstr</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fgw_thresh</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fgw_thresh</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">uuid_map_cfgstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">flann_cfgstr</span><span class="p">,</span> <span class="n">feat_cfgstr</span><span class="p">,</span> <span class="n">chip_cfgstr</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uuid_map_cfgstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">flann_cfgstr</span><span class="p">,</span> <span class="n">featweight_cfgstr</span><span class="p">,</span> <span class="n">feat_cfgstr</span><span class="p">,</span> <span class="n">chip_cfgstr</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="c1"># uuid_map_ext    = &#39;.shelf&#39;</span>
+    <span class="n">uuid_map_ext</span> <span class="o">=</span> <span class="s1">&#39;.cPkl&#39;</span>
+    <span class="n">uuid_map_prefix</span> <span class="o">=</span> <span class="s1">&#39;uuid_map&#39;</span>
+    <span class="n">uuid_map_fname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">consensed_cfgstr</span><span class="p">(</span><span class="n">uuid_map_prefix</span><span class="p">,</span> <span class="n">uuid_map_cfgstr</span><span class="p">)</span> <span class="o">+</span> <span class="n">uuid_map_ext</span>
+    <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">flann_cachedir</span><span class="p">,</span> <span class="n">uuid_map_fname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">uuid_map_fpath</span></div>
+
+
+<div class="viewcode-block" id="build_nnindex_cfgstr"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.build_nnindex_cfgstr">[docs]</a><span class="k">def</span> <span class="nf">build_nnindex_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    builds a string that  uniquely identified an indexer built with parameters</span>
+<span class="sd">    from the input query requested and indexing descriptor from the input</span>
+<span class="sd">    annotation ids</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+<span class="sd">        daid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: nnindex_cfgstr</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --test-build_nnindex_cfgstr</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=dict(fg_on=False))</span>
+<span class="sd">        &gt;&gt;&gt; nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(nnindex_cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">        _VUUIDS((6)ylydksaqdigdecdd)_FLANN(8_kdtrees)_FeatureWeight(detector=cnn,sz256,thresh=20,ksz=20,enabled=False)_FeatureWeight(detector=cnn,sz256,thresh=20,ksz=20,enabled=False)</span>
+
+<span class="sd">        _VUUIDS((6)ylydksaqdigdecdd)_FLANN(8_kdtrees)_FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">flann_cfgstr</span>
+    <span class="n">featweight_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">featweight_cfgstr</span>
+    <span class="n">feat_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
+    <span class="n">chip_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfgstr</span>
+    <span class="c1"># FIXME; need to include probchip (or better yet just use depcache)</span>
+    <span class="c1"># probchip_cfgstr = qreq_.qparams.chip_cfgstr</span>
+    <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">get_data_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="n">nnindex_cfgstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">data_hashid</span><span class="p">,</span> <span class="n">flann_cfgstr</span><span class="p">,</span> <span class="n">featweight_cfgstr</span><span class="p">,</span> <span class="n">feat_cfgstr</span><span class="p">,</span> <span class="n">chip_cfgstr</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">nnindex_cfgstr</span></div>
+
+
+<div class="viewcode-block" id="clear_memcache"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.clear_memcache">[docs]</a><span class="k">def</span> <span class="nf">clear_memcache</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">NEIGHBOR_CACHE</span>
+    <span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="clear_uuid_cache"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.clear_uuid_cache">[docs]</a><span class="k">def</span> <span class="nf">clear_uuid_cache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --test-clear_uuid_cache</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=&#39;default:fg_on=True&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; fgws_list = clear_uuid_cache(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(fgws_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nnindex] clearing uuid cache&#39;</span><span class="p">)</span>
+    <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">uuid_map_fpath</span> <span class="o">+</span> <span class="s1">&#39;.lock&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nnindex] finished uuid cache clear&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_uuid_cache"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.print_uuid_cache">[docs]</a><span class="k">def</span> <span class="nf">print_uuid_cache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --test-print_uuid_cache</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;PZ_Master0&#39;, p=&#39;default:fg_on=False&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print_uuid_cache(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(nnindexer)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nnindex] clearing uuid cache&#39;</span><span class="p">)</span>
+    <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">read_uuid_map_dict</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">candidate_uuids</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="request_wbia_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.request_wbia_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">request_wbia_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CALLED BY QUERYREQUST::LOAD_INDEXER</span>
+<span class="sd">    IBEIS interface into neighbor_index_cache</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest): hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        NeighborIndexer: nnindexer</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache request_wbia_nnindexer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = testdata_nnindexer(None)</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = request_wbia_nnindexer(qreq_)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">,</span> <span class="s1">&#39;use_augmented_indexer&#39;</span><span class="p">):</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">use_augmented_indexer</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">use_augmented_indexer</span><span class="p">:</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">request_augmented_wbia_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">request_memcached_wbia_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nnindexer</span></div>
+
+
+<div class="viewcode-block" id="request_augmented_wbia_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.request_augmented_wbia_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">request_augmented_wbia_nnindexer</span><span class="p">(</span>
+    <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_memcache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_rebuild</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DO NOT USE. THIS FUNCTION CAN CURRENTLY CAUSE A SEGFAULT</span>
+
+<span class="sd">    tries to give you an indexer for the requested daids using the least amount</span>
+<span class="sd">    of computation possible. By loading and adding to a partially build nnindex</span>
+<span class="sd">    if possible and if that fails fallbs back to request_memcache.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+<span class="sd">        daid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: nnindex_cfgstr</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --test-request_augmented_wbia_nnindexer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; use_memcache, max_covers, verbose = True, None, True</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = sorted(ibs.get_valid_aids(species=ZEB_PLAIN))[0:6]</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(daid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_.qparams.min_reindex_thresh = 1</span>
+<span class="sd">        &gt;&gt;&gt; min_reindex_thresh = qreq_.qparams.min_reindex_thresh</span>
+<span class="sd">        &gt;&gt;&gt; # CLEAR CACHE for clean test</span>
+<span class="sd">        &gt;&gt;&gt; clear_uuid_cache(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; # LOAD 3 AIDS INTO CACHE</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = sorted(ibs.get_valid_aids(species=ZEB_PLAIN))[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; # Should fallback</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = request_augmented_wbia_nnindexer(qreq_, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # assert the fallback</span>
+<span class="sd">        &gt;&gt;&gt; uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(</span>
+<span class="sd">        ...     qreq_, daid_list, min_reindex_thresh, max_covers)</span>
+<span class="sd">        &gt;&gt;&gt; result2 = uncovered_aids, covered_aids_list</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(result2, ([4, 5, 6], [[1, 2, 3]]), &#39;pre augment&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Should augment</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = request_augmented_wbia_nnindexer(qreq_, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(</span>
+<span class="sd">        ...     qreq_, daid_list, min_reindex_thresh, max_covers)</span>
+<span class="sd">        &gt;&gt;&gt; result3 = uncovered_aids, covered_aids_list</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(result3, ([], [[1, 2, 3, 4, 5, 6]]), &#39;post augment&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Should fallback</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer2 = request_augmented_wbia_nnindexer(qreq_, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert nnindexer is nnindexer2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">NEIGHBOR_CACHE</span>
+    <span class="n">min_reindex_thresh</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">min_reindex_thresh</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">force_rebuild</span><span class="p">:</span>
+        <span class="n">new_daid_list</span><span class="p">,</span> <span class="n">covered_aids_list</span> <span class="o">=</span> <span class="n">group_daids_by_cached_nnindexer</span><span class="p">(</span>
+            <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">,</span> <span class="n">max_covers</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">can_augment</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">covered_aids_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_set_equal</span><span class="p">(</span>
+            <span class="n">covered_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">daid_list</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">can_augment</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[aug] Requesting augmented nnindexer&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">can_augment</span><span class="p">:</span>
+        <span class="n">covered_aids</span> <span class="o">=</span> <span class="n">covered_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;[aug] Augmenting index </span><span class="si">%r</span><span class="s1"> old daids with </span><span class="si">%d</span><span class="s1"> new daids&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">covered_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_daid_list</span><span class="p">))</span>
+            <span class="p">)</span>
+        <span class="c1"># Load the base covered indexer</span>
+        <span class="c1"># THIS SHOULD LOAD NOT REBUILD IF THE UUIDS ARE COVERED</span>
+        <span class="n">base_nnindexer</span> <span class="o">=</span> <span class="n">request_memcached_wbia_nnindexer</span><span class="p">(</span>
+            <span class="n">qreq_</span><span class="p">,</span> <span class="n">covered_aids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">use_memcache</span><span class="o">=</span><span class="n">use_memcache</span>
+        <span class="p">)</span>
+        <span class="c1"># Remove this indexer from the memcache because we are going to change it</span>
+        <span class="k">if</span> <span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>  <span class="c1"># NOQA (has_key is for a lru cache)</span>
+            <span class="n">base_nnindexer</span><span class="o">.</span><span class="n">cfgstr</span>
+        <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Removing key from memcache&#39;</span><span class="p">)</span>
+            <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">base_nnindexer</span><span class="o">.</span><span class="n">cfgstr</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">del</span> <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">base_nnindexer</span><span class="o">.</span><span class="n">cfgstr</span><span class="p">]</span>
+
+        <span class="n">support_data</span> <span class="o">=</span> <span class="n">get_support_data</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">new_daid_list</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">new_vecs_list</span><span class="p">,</span> <span class="n">new_fgws_list</span><span class="p">,</span> <span class="n">new_fxs_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">support_data</span>
+        <span class="n">base_nnindexer</span><span class="o">.</span><span class="n">add_support</span><span class="p">(</span>
+            <span class="n">new_daid_list</span><span class="p">,</span> <span class="n">new_vecs_list</span><span class="p">,</span> <span class="n">new_fgws_list</span><span class="p">,</span> <span class="n">new_fxs_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="c1"># FIXME: pointer issues</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">base_nnindexer</span>
+        <span class="c1"># Change to the new cfgstr</span>
+        <span class="n">nnindex_cfgstr</span> <span class="o">=</span> <span class="n">build_nnindex_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">nnindexer</span><span class="o">.</span><span class="n">cfgstr</span> <span class="o">=</span> <span class="n">nnindex_cfgstr</span>
+        <span class="n">cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
+        <span class="n">nnindexer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
+        <span class="c1"># Write to inverse uuid</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_reindex_thresh</span><span class="p">:</span>
+            <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+            <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">get_data_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+            <span class="n">visual_uuid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+            <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">write_uuid_map_dict</span><span class="p">(</span>
+                <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span>
+            <span class="p">)</span>
+        <span class="c1"># Write to memcache</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[aug] Wrote to memcache=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+        <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">nnindex_cfgstr</span><span class="p">]</span> <span class="o">=</span> <span class="n">nnindexer</span>
+        <span class="k">return</span> <span class="n">nnindexer</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># if ut.VERBOSE:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[aug] Nothing to augment, fallback to memcache&#39;</span><span class="p">)</span>
+        <span class="c1"># Fallback</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">request_memcached_wbia_nnindexer</span><span class="p">(</span>
+            <span class="n">qreq_</span><span class="p">,</span>
+            <span class="n">daid_list</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+            <span class="n">use_memcache</span><span class="o">=</span><span class="n">use_memcache</span><span class="p">,</span>
+            <span class="n">force_rebuild</span><span class="o">=</span><span class="n">force_rebuild</span><span class="p">,</span>
+            <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">nnindexer</span></div>
+
+
+<div class="viewcode-block" id="request_memcached_wbia_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.request_memcached_wbia_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">request_memcached_wbia_nnindexer</span><span class="p">(</span>
+    <span class="n">qreq_</span><span class="p">,</span>
+    <span class="n">daid_list</span><span class="p">,</span>
+    <span class="n">use_memcache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">,</span>
+    <span class="n">veryverbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">force_rebuild</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">memtrack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    FOR INTERNAL USE ONLY</span>
+<span class="sd">    takes custom daid list. might not be the same as what is in qreq_</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --test-request_memcached_wbia_nnindexer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_.qparams.min_reindex_thresh = 3</span>
+<span class="sd">        &gt;&gt;&gt; ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(daid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; use_memcache = True</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = request_memcached_wbia_nnindexer(qreq_, daid_list, use_memcache)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(nnindexer)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">NEIGHBOR_CACHE</span>
+    <span class="c1"># try:</span>
+    <span class="k">if</span> <span class="n">veryverbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">NEIGHBOR_CACHE</span><span class="p">),)</span>
+        <span class="p">)</span>
+        <span class="c1"># the lru cache wont be recognized by get_object_size_str, cast to pure python objects</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = </span><span class="si">%s</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">items</span><span class="p">()),)</span>
+        <span class="p">)</span>
+    <span class="c1"># if memtrack is not None:</span>
+    <span class="c1">#    memtrack.report(&#39;IN REQUEST MEMCACHE&#39;)</span>
+    <span class="n">nnindex_cfgstr</span> <span class="o">=</span> <span class="n">build_nnindex_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="c1"># neighbor memory cache</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="n">force_rebuild</span>
+        <span class="ow">and</span> <span class="n">use_memcache</span>
+        <span class="ow">and</span> <span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">)</span>  <span class="c1"># NOQA (has_key is for a lru cache)</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">veryverbose</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... nnindex memcache hit: cfgstr=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">nnindex_cfgstr</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">veryverbose</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... nnindex memcache miss: cfgstr=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+        <span class="c1"># Write to inverse uuid</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">request_diskcached_wbia_nnindexer</span><span class="p">(</span>
+            <span class="n">qreq_</span><span class="p">,</span>
+            <span class="n">daid_list</span><span class="p">,</span>
+            <span class="n">nnindex_cfgstr</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="p">,</span>
+            <span class="n">force_rebuild</span><span class="o">=</span><span class="n">force_rebuild</span><span class="p">,</span>
+            <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">,</span>
+            <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">NEIGHBOR_CACHE_WRITE</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">NEIGHBOR_CACHE_WRITE</span><span class="p">:</span>
+            <span class="c1"># Write to memcache</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[disk] Write to memcache=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+            <span class="n">NEIGHBOR_CACHE</span><span class="p">[</span><span class="n">nnindex_cfgstr</span><span class="p">]</span> <span class="o">=</span> <span class="n">nnindexer</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[disk] Did not write to memcache=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnindex_cfgstr</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">nnindexer</span></div>
+
+
+<div class="viewcode-block" id="request_diskcached_wbia_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.request_diskcached_wbia_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">request_diskcached_wbia_nnindexer</span><span class="p">(</span>
+    <span class="n">qreq_</span><span class="p">,</span>
+    <span class="n">daid_list</span><span class="p">,</span>
+    <span class="n">nnindex_cfgstr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">force_rebuild</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">memtrack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    builds new NeighborIndexer which will try to use a disk cached flann if</span>
+<span class="sd">    available</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+<span class="sd">        daid_list (list):</span>
+<span class="sd">        nnindex_cfgstr (?):</span>
+<span class="sd">        verbose (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        NeighborIndexer: nnindexer</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --test-request_diskcached_wbia_nnindexer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(daid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = request_diskcached_wbia_nnindexer(qreq_, daid_list, nnindex_cfgstr, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(nnindexer)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">nnindex_cfgstr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nnindex_cfgstr</span> <span class="o">=</span> <span class="n">build_nnindex_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">nnindex_cfgstr</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
+    <span class="n">flann_params</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">flann_params</span>
+    <span class="n">flann_params</span><span class="p">[</span><span class="s1">&#39;checks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">checks</span>
+    <span class="c1"># if memtrack is not None:</span>
+    <span class="c1">#    memtrack.report(&#39;[PRE SUPPORT]&#39;)</span>
+    <span class="c1"># Get annot descriptors to index</span>
+    <span class="k">if</span> <span class="n">prog_hook</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">prog_hook</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;Loading support data for indexer&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[nnindex] Loading support data for indexer&#39;</span><span class="p">)</span>
+    <span class="n">vecs_list</span><span class="p">,</span> <span class="n">fgws_list</span><span class="p">,</span> <span class="n">fxs_list</span> <span class="o">=</span> <span class="n">get_support_data</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">memtrack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;[AFTER GET SUPPORT DATA]&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">new_neighbor_index</span><span class="p">(</span>
+            <span class="n">daid_list</span><span class="p">,</span>
+            <span class="n">vecs_list</span><span class="p">,</span>
+            <span class="n">fgws_list</span><span class="p">,</span>
+            <span class="n">fxs_list</span><span class="p">,</span>
+            <span class="n">flann_params</span><span class="p">,</span>
+            <span class="n">cachedir</span><span class="p">,</span>
+            <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+            <span class="n">force_rebuild</span><span class="o">=</span><span class="n">force_rebuild</span><span class="p">,</span>
+            <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">,</span>
+            <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+            <span class="n">ex</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">msg_</span><span class="o">=</span><span class="s1">&#39;cannot build inverted index&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ibs.get_infostr()&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="c1"># Record these uuids in the disk based uuid map so they can be augmented if</span>
+    <span class="c1"># needed</span>
+    <span class="n">min_reindex_thresh</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">min_reindex_thresh</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_reindex_thresh</span><span class="p">:</span>
+        <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">get_data_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">visual_uuid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">write_uuid_map_dict</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">memtrack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;[AFTER WRITE_UUID_MAP]&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nnindexer</span></div>
+
+
+<div class="viewcode-block" id="group_daids_by_cached_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.group_daids_by_cached_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">group_daids_by_cached_nnindexer</span><span class="p">(</span>
+    <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">,</span> <span class="n">max_covers</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --test-group_daids_by_cached_nnindexer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(daid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Set the params a bit lower</span>
+<span class="sd">        &gt;&gt;&gt; max_covers = None</span>
+<span class="sd">        &gt;&gt;&gt; qreq_.qparams.min_reindex_thresh = 1</span>
+<span class="sd">        &gt;&gt;&gt; min_reindex_thresh = qreq_.qparams.min_reindex_thresh</span>
+<span class="sd">        &gt;&gt;&gt; # STEP 0: CLEAR THE CACHE</span>
+<span class="sd">        &gt;&gt;&gt; clear_uuid_cache(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; # STEP 1: ASSERT EMPTY INDEX</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = sorted(ibs.get_valid_aids(species=ZEB_PLAIN))[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(</span>
+<span class="sd">        ...     qreq_, daid_list, min_reindex_thresh, max_covers)</span>
+<span class="sd">        &gt;&gt;&gt; result1 = uncovered_aids, covered_aids_list</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(result1, ([], [[1, 2, 3]]), &#39;pre request&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # TEST 2: SHOULD MAKE 123 COVERED</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = request_memcached_wbia_nnindexer(qreq_, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(</span>
+<span class="sd">        ...     qreq_, daid_list, min_reindex_thresh, max_covers)</span>
+<span class="sd">        &gt;&gt;&gt; result2 = uncovered_aids, covered_aids_list</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(result2, ([], [[1, 2, 3]]), &#39;post request&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="c1"># read which annotations have prebuilt caches</span>
+    <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">read_uuid_map_dict</span><span class="p">(</span>
+        <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span>
+    <span class="p">)</span>
+    <span class="c1"># find a maximum independent set cover of the requested annotations</span>
+    <span class="n">annot_vuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>  <span class="c1"># 3.2 %</span>
+    <span class="n">covertup</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">greedy_max_inden_setcover</span><span class="p">(</span>
+        <span class="n">candidate_uuids</span><span class="p">,</span> <span class="n">annot_vuuid_list</span><span class="p">,</span> <span class="n">max_covers</span>
+    <span class="p">)</span>  <span class="c1"># 0.2 %</span>
+    <span class="n">uncovered_vuuids</span><span class="p">,</span> <span class="n">covered_vuuids_list</span><span class="p">,</span> <span class="n">accepted_keys</span> <span class="o">=</span> <span class="n">covertup</span>
+    <span class="c1"># return the grouped covered items (so they can be loaded) and</span>
+    <span class="c1"># the remaining uuids which need to have an index computed.</span>
+    <span class="c1">#</span>
+    <span class="n">uncovered_aids_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">(</span><span class="n">uncovered_vuuids</span><span class="p">)</span>  <span class="c1"># 28.0%</span>
+    <span class="n">covered_aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">,</span> <span class="n">covered_vuuids_list</span>
+    <span class="p">)</span>  <span class="c1"># 68%</span>
+    <span class="c1"># FIXME:</span>
+    <span class="n">uncovered_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">uncovered_aids_</span><span class="p">)</span>
+    <span class="c1"># covered_aids_list = list(map(sorted, covered_aids_list_))</span>
+    <span class="n">covered_aids_list</span> <span class="o">=</span> <span class="n">covered_aids_list_</span>
+    <span class="k">return</span> <span class="n">uncovered_aids</span><span class="p">,</span> <span class="n">covered_aids_list</span></div>
+
+
+<div class="viewcode-block" id="get_data_cfgstr"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.get_data_cfgstr">[docs]</a><span class="k">def</span> <span class="nf">get_data_cfgstr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;part 2 data hash id&quot;&quot;&quot;</span>
+    <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">daids_hashid</span></div>
+
+
+<div class="viewcode-block" id="new_neighbor_index"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.new_neighbor_index">[docs]</a><span class="k">def</span> <span class="nf">new_neighbor_index</span><span class="p">(</span>
+    <span class="n">daid_list</span><span class="p">,</span>
+    <span class="n">vecs_list</span><span class="p">,</span>
+    <span class="n">fgws_list</span><span class="p">,</span>
+    <span class="n">fxs_list</span><span class="p">,</span>
+    <span class="n">flann_params</span><span class="p">,</span>
+    <span class="n">cachedir</span><span class="p">,</span>
+    <span class="n">cfgstr</span><span class="p">,</span>
+    <span class="n">force_rebuild</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">memtrack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    constructs neighbor index independent of wbia</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        daid_list (list):</span>
+<span class="sd">        vecs_list (list):</span>
+<span class="sd">        fgws_list (list):</span>
+<span class="sd">        flann_params (dict):</span>
+<span class="sd">        flann_cachedir (None):</span>
+<span class="sd">        nnindex_cfgstr (str):</span>
+<span class="sd">        use_memcache (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        nnindexer</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --test-new_neighbor_index</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;testdb1&#39;, a=&#39;default:species=zebra_plains&#39;, p=&#39;default:fgw_thresh=.999&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = qreq_.daids</span>
+<span class="sd">        &gt;&gt;&gt; nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ut.exec_funckw(new_neighbor_index, globals())</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr = nnindex_cfgstr</span>
+<span class="sd">        &gt;&gt;&gt; cachedir     = qreq_.ibs.get_flann_cachedir()</span>
+<span class="sd">        &gt;&gt;&gt; flann_params = qreq_.qparams.flann_params</span>
+<span class="sd">        &gt;&gt;&gt; # Get annot descriptors to index</span>
+<span class="sd">        &gt;&gt;&gt; vecs_list, fgws_list, fxs_list = get_support_data(qreq_, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer = new_neighbor_index(daid_list, vecs_list, fgws_list, fxs_list, flann_params, cachedir, cfgstr, verbose=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;nnindexer.ax2_aid = %s&#39; % (str(nnindexer.ax2_aid),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        nnindexer.ax2_aid = [1 2 3 4 5 6]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">NeighborIndex</span><span class="p">(</span><span class="n">flann_params</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+    <span class="c1"># if memtrack is not None:</span>
+    <span class="c1">#    memtrack.report(&#39;CREATEED NEIGHTOB INDEX&#39;)</span>
+    <span class="c1"># Initialize neighbor with unindexed data</span>
+    <span class="n">nnindexer</span><span class="o">.</span><span class="n">init_support</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">,</span> <span class="n">fgws_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">memtrack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;AFTER INIT SUPPORT&#39;</span><span class="p">)</span>
+    <span class="c1"># Load or build the indexing structure</span>
+    <span class="n">nnindexer</span><span class="o">.</span><span class="n">ensure_indexer</span><span class="p">(</span>
+        <span class="n">cachedir</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+        <span class="n">force_rebuild</span><span class="o">=</span><span class="n">force_rebuild</span><span class="p">,</span>
+        <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">,</span>
+        <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">memtrack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s1">&#39;AFTER LOAD OR BUILD&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nnindexer</span></div>
+
+
+<div class="viewcode-block" id="testdata_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.testdata_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">testdata_nnindexer</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">with_indexer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_memcache</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = testdata_nnindexer(&#39;PZ_Master1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; S = np.cov(nnindexer.idx2_vec.T)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.ensureqt()</span>
+<span class="sd">        &gt;&gt;&gt; pt.plt.imshow(S)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; nnindexer, qreq_, ibs = testdata_nnindexer()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">dbname</span><span class="p">)</span>
+    <span class="c1"># use_memcache isn&#39;t use here because we aren&#39;t lazy loading the indexer</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fg_on</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span>
+        <span class="n">daid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_memcache</span><span class="o">=</span><span class="n">use_memcache</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">with_indexer</span><span class="p">:</span>
+        <span class="c1"># we do an explicit creation of an indexer for these tests</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">request_wbia_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">use_memcache</span><span class="o">=</span><span class="n">use_memcache</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nnindexer</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">nnindexer</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span></div>
+
+
+<span class="c1"># ------------</span>
+<span class="c1"># NEW</span>
+
+
+<div class="viewcode-block" id="check_background_process"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.check_background_process">[docs]</a><span class="k">def</span> <span class="nf">check_background_process</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    checks to see if the process has finished and then</span>
+<span class="sd">    writes the uuid map to disk</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">CURRENT_THREAD</span>
+    <span class="k">if</span> <span class="n">CURRENT_THREAD</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">CURRENT_THREAD</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[FG] background thread is not ready yet&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="c1"># Get info set in background process</span>
+    <span class="n">finishtup</span> <span class="o">=</span> <span class="n">CURRENT_THREAD</span><span class="o">.</span><span class="n">finishtup</span>
+    <span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">)</span> <span class="o">=</span> <span class="n">finishtup</span>
+    <span class="c1"># Clean up background process</span>
+    <span class="n">CURRENT_THREAD</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+    <span class="n">CURRENT_THREAD</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># Write data to current uuidcache</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">visual_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_reindex_thresh</span><span class="p">:</span>
+        <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">write_uuid_map_dict</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="can_request_background_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.can_request_background_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">can_request_background_nnindexer</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">CURRENT_THREAD</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">CURRENT_THREAD</span><span class="o">.</span><span class="n">is_alive</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="request_background_nnindexer"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.request_background_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">request_background_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;FIXME: Duplicate code</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+<span class="sd">        daid_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots.neighbor_index_cache --test-request_background_nnindexer</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots.neighbor_index_cache import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(daid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; request_background_nnindexer(qreq_, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(False)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">CURRENT_THREAD</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Requesting background reindex&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_request_background_nnindexer</span><span class="p">():</span>
+        <span class="c1"># Make sure this function doesn&#39;t run if it is already running</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;REQUEST DENIED&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;REQUEST ACCPETED&#39;</span><span class="p">)</span>
+    <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+    <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">build_nnindex_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
+    <span class="c1"># Save inverted cache uuid mappings for</span>
+    <span class="n">min_reindex_thresh</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">min_reindex_thresh</span>
+    <span class="c1"># Grab the keypoints names and image ids before query time?</span>
+    <span class="n">flann_params</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">flann_params</span>
+    <span class="c1"># Get annot descriptors to index</span>
+    <span class="n">vecs_list</span><span class="p">,</span> <span class="n">fgws_list</span><span class="p">,</span> <span class="n">fxs_list</span> <span class="o">=</span> <span class="n">get_support_data</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="c1"># Dont hash rowids when given enough info in nnindex_cfgstr</span>
+    <span class="n">flann_params</span><span class="p">[</span><span class="s1">&#39;cores&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Only ues a few cores in the background</span>
+    <span class="c1"># Build/Load the flann index</span>
+    <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">get_nnindexer_uuid_map_fpath</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">visual_uuid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+
+    <span class="c1"># set temporary attribute for when the thread finishes</span>
+    <span class="n">finishtup</span> <span class="o">=</span> <span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">)</span>
+    <span class="n">CURRENT_THREAD</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">spawn_background_process</span><span class="p">(</span>
+        <span class="n">background_flann_func</span><span class="p">,</span>
+        <span class="n">cachedir</span><span class="p">,</span>
+        <span class="n">daid_list</span><span class="p">,</span>
+        <span class="n">vecs_list</span><span class="p">,</span>
+        <span class="n">fgws_list</span><span class="p">,</span>
+        <span class="n">fxs_list</span><span class="p">,</span>
+        <span class="n">flann_params</span><span class="p">,</span>
+        <span class="n">cfgstr</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">CURRENT_THREAD</span><span class="o">.</span><span class="n">finishtup</span> <span class="o">=</span> <span class="n">finishtup</span></div>
+
+
+<div class="viewcode-block" id="background_flann_func"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.neighbor_index_cache.background_flann_func">[docs]</a><span class="k">def</span> <span class="nf">background_flann_func</span><span class="p">(</span>
+    <span class="n">cachedir</span><span class="p">,</span>
+    <span class="n">daid_list</span><span class="p">,</span>
+    <span class="n">vecs_list</span><span class="p">,</span>
+    <span class="n">fgws_list</span><span class="p">,</span>
+    <span class="n">fxs_list</span><span class="p">,</span>
+    <span class="n">flann_params</span><span class="p">,</span>
+    <span class="n">cfgstr</span><span class="p">,</span>
+    <span class="n">uuid_map_fpath</span><span class="p">,</span>
+    <span class="n">daids_hashid</span><span class="p">,</span>
+    <span class="n">visual_uuid_list</span><span class="p">,</span>
+    <span class="n">min_reindex_thresh</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;FIXME: Duplicate code&quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[BG] Starting Background FLANN&#39;</span><span class="p">)</span>
+    <span class="c1"># FIXME. dont use flann cache</span>
+    <span class="n">nnindexer</span> <span class="o">=</span> <span class="n">NeighborIndex</span><span class="p">(</span><span class="n">flann_params</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+    <span class="c1"># Initialize neighbor with unindexed data</span>
+    <span class="n">nnindexer</span><span class="o">.</span><span class="n">init_support</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">,</span> <span class="n">fgws_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Load or build the indexing structure</span>
+    <span class="n">nnindexer</span><span class="o">.</span><span class="n">ensure_indexer</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">visual_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_reindex_thresh</span><span class="p">:</span>
+        <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">write_uuid_map_dict</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[BG] Finished Background FLANN&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

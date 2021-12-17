@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.web.apis &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.web.apis</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.web.apis</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dependencies: flask, tornado</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span><span class="p">,</span> <span class="n">send_file</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">uuid</span> <span class="k">as</span> <span class="nn">uuid_module</span>
+<span class="kn">from</span> <span class="nn">wbia.web.app</span> <span class="kn">import</span> <span class="n">PROMETHEUS</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_route</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="web_embed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.web_embed">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/embed/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">web_embed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="image_src_api_ext"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.image_src_api_ext">[docs]</a><span class="nd">@register_route</span><span class="p">(</span>
+    <span class="s1">&#39;/api/image/src/&lt;rowid&gt;.jpg&#39;</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span>
+    <span class="n">__route_prefix_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">__route_postfix_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">__route_authenticate__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">image_src_api_ext</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">image_src_api</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="c1"># Special function that is a route only to ignore the JSON response, but is</span>
+<span class="c1"># actually (and should be) an API call</span>
+<div class="viewcode-block" id="image_src_api"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.image_src_api">[docs]</a><span class="nd">@register_route</span><span class="p">(</span>
+    <span class="s1">&#39;/api/image/src/&lt;rowid&gt;/&#39;</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span>
+    <span class="n">__route_prefix_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">__route_authenticate__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">image_src_api</span><span class="p">(</span><span class="n">rowid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fresh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the image file of image &lt;gid&gt;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.app import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_with_web(&#39;testdb1&#39;) as (ibs, client):</span>
+<span class="sd">        ...     resp = client.get(&#39;/api/image/src/1/&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(resp.data)</span>
+<span class="sd">        b&#39;\xff\xd8\xff\xe0\x00\x10JFIF...</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/src/&lt;rowid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">thumbnail</span> <span class="o">=</span> <span class="n">thumbnail</span> <span class="ow">or</span> <span class="s1">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s1">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="k">if</span> <span class="n">thumbnail</span><span class="p">:</span>
+        <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="n">ensure_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">fresh</span> <span class="o">=</span> <span class="n">fresh</span> <span class="ow">or</span> <span class="s1">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s1">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
+        <span class="k">if</span> <span class="n">fresh</span><span class="p">:</span>
+            <span class="c1"># import os</span>
+            <span class="c1"># os.remove(gpath)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+            <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="n">ensure_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">rowid</span><span class="p">)</span>
+
+    <span class="c1"># Load image</span>
+    <span class="k">assert</span> <span class="n">gpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image path should not be None&#39;</span>
+    <span class="n">orient</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">rowid</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">orient</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Encode image</span>
+    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">img_io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">image_pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="s1">&#39;JPEG&#39;</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">img_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;image/jpeg&#39;</span><span class="p">)</span></div>
+    <span class="c1"># return send_file(gpath, mimetype=&#39;application/unknown&#39;)</span>
+
+
+<span class="c1"># Special function that is a route only to ignore the JSON response, but is</span>
+<span class="c1"># actually (and should be) an API call</span>
+<div class="viewcode-block" id="annot_src_api"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.annot_src_api">[docs]</a><span class="nd">@register_route</span><span class="p">(</span>
+    <span class="s1">&#39;/api/annot/src/&lt;rowid&gt;/&#39;</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span>
+    <span class="n">__route_prefix_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">__route_authenticate__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">annot_src_api</span><span class="p">(</span><span class="n">rowid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fresh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the image file of annot &lt;aid&gt;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--slow)</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web-tests)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.app import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_with_web(&#39;testdb1&#39;) as (ibs, client):</span>
+<span class="sd">        ...     resp = client.get(&#39;/api/annot/src/1/&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(resp.data)</span>
+<span class="sd">        b&#39;\xff\xd8\xff\xe0\x00\x10JFIF...</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/src/&lt;rowid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Load image</span>
+    <span class="k">assert</span> <span class="n">gpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image path should not be None&#39;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Encode image</span>
+    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">img_io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">image_pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="s1">&#39;JPEG&#39;</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">img_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;image/jpeg&#39;</span><span class="p">)</span></div>
+    <span class="c1"># return send_file(gpath, mimetype=&#39;application/unknown&#39;)</span>
+
+
+<span class="c1"># Special function that is a route only to ignore the JSON response, but is</span>
+<span class="c1"># actually (and should be) an API call</span>
+<div class="viewcode-block" id="background_src_api"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.background_src_api">[docs]</a><span class="nd">@register_route</span><span class="p">(</span>
+    <span class="s1">&#39;/api/background/src/&lt;rowid&gt;/&#39;</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span>
+    <span class="n">__route_prefix_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">__route_authenticate__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">background_src_api</span><span class="p">(</span><span class="n">rowid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fresh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the image file of annot &lt;aid&gt;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--slow)</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web-tests)</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia_cnn)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.app import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_with_web(&#39;testdb1&#39;) as (ibs, client):</span>
+<span class="sd">        ...     resp = client.get(&#39;/api/background/src/1/&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(resp.data)</span>
+<span class="sd">        b&#39;\xff\xd8\xff\xe0\x00\x10JFIF...</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/src/&lt;rowid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_probchip_fpath</span><span class="p">(</span><span class="n">rowid</span><span class="p">)</span>
+
+    <span class="c1"># Load image</span>
+    <span class="k">assert</span> <span class="n">gpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;image path should not be None&#39;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Encode image</span>
+    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">img_io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">image_pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="s1">&#39;JPEG&#39;</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">img_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;image/jpeg&#39;</span><span class="p">)</span></div>
+    <span class="c1"># return send_file(gpath, mimetype=&#39;application/unknown&#39;)</span>
+
+
+<span class="c1"># Special function that is a route only to ignore the JSON response, but is</span>
+<span class="c1"># actually (and should be) an API call</span>
+<div class="viewcode-block" id="image_src_api_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.image_src_api_json">[docs]</a><span class="nd">@register_route</span><span class="p">(</span>
+    <span class="s1">&#39;/api/image/src/json/&lt;uuid&gt;/&#39;</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span>
+    <span class="n">__route_prefix_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">__route_authenticate__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">image_src_api_json</span><span class="p">(</span><span class="n">uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the image file of image &lt;gid&gt;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web-tests)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.app import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_with_web(&#39;testdb1&#39;) as (ibs, client):</span>
+<span class="sd">        ...     resp = client.get(&#39;/api/image/src/json/0a9bc03d-a75e-8d14-0153-e2949502aba7/&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(resp.data)</span>
+<span class="sd">        b&#39;\xff\xd8\xff\xe0\x00\x10JFIF...</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/src/&lt;gid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">uuid</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">uuid</span> <span class="o">=</span> <span class="n">uuid_module</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">uuid</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">translate_wbia_webreturn</span>
+
+        <span class="k">return</span> <span class="n">translate_wbia_webreturn</span><span class="p">(</span>
+            <span class="kc">None</span><span class="p">,</span> <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Invalid image UUID&#39;</span>
+        <span class="p">)</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">uuid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image_src_api</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_image_conv_feature</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">model_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;vgg16&#39;</span><span class="p">,</span> <span class="s1">&#39;vgg19&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;inception_v3&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">model_list</span><span class="p">,</span> <span class="s1">&#39;model must be one of </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model_list</span><span class="p">,)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="n">model</span><span class="p">}</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+    <span class="n">feature_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+        <span class="s1">&#39;features&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;vector&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span>
+    <span class="p">)</span>
+    <span class="n">feature</span> <span class="o">=</span> <span class="n">feature_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">byte_str</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">byte_str</span>
+
+
+<div class="viewcode-block" id="image_conv_feature_api"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.image_conv_feature_api">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/feature/&lt;rowid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">image_conv_feature_api</span><span class="p">(</span><span class="n">rowid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;resnet50&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/feature/json/&lt;uuid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">rowid</span>
+    <span class="k">assert</span> <span class="n">gid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">_image_conv_feature</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="image_conv_feature_api_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.image_conv_feature_api_json">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/feature/json/&lt;uuid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">image_conv_feature_api_json</span><span class="p">(</span><span class="n">uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;resnet50&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/feature/json/&lt;uuid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">uuid</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">uuid</span> <span class="o">=</span> <span class="n">uuid_module</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">uuid</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">uuid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">translate_wbia_webreturn</span>
+
+        <span class="k">return</span> <span class="n">translate_wbia_webreturn</span><span class="p">(</span>
+            <span class="kc">None</span><span class="p">,</span> <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Invalid image UUID&#39;</span>
+        <span class="p">)</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">uuid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_image_conv_feature</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="image_upload"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.image_upload">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/upload/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">image_upload</span><span class="p">(</span><span class="n">cleanup</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the gid for an uploaded image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image (image binary): the POST variable containing the binary</span>
+<span class="sd">            (multi-form) image data</span>
+<span class="sd">        **kwargs: Arbitrary keyword arguments; the kwargs are passed down to</span>
+<span class="sd">            the add_images function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        gid (rowids): gid corresponding to the image submitted.</span>
+<span class="sd">            lexigraphical order.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/upload/image/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;request.files = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">,))</span>
+
+    <span class="n">filestore</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">filestore</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebMissingInput</span><span class="p">(</span>
+            <span class="s1">&#39;Missing required image parameter&#39;</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span>
+        <span class="p">)</span>
+        <span class="c1"># raise IOError(&#39;Image not given&#39;)</span>
+
+    <span class="n">uploads_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_uploadsdir</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">uploads_path</span><span class="p">)</span>
+    <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y_%m_</span><span class="si">%d</span><span class="s1">_%H_%M_%S&#39;</span><span class="p">)</span>
+
+    <span class="n">modifier</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">upload_filename</span> <span class="o">=</span> <span class="s1">&#39;upload_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">exists</span><span class="p">(</span><span class="n">upload_filename</span><span class="p">):</span>
+        <span class="n">upload_filename</span> <span class="o">=</span> <span class="s1">&#39;upload_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%04d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="n">modifier</span><span class="p">)</span>
+        <span class="n">modifier</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">upload_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">uploads_path</span><span class="p">,</span> <span class="n">upload_filename</span><span class="p">)</span>
+    <span class="n">filestore</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">upload_filepath</span><span class="p">)</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">([</span><span class="n">upload_filepath</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">cleanup</span> <span class="ow">and</span> <span class="n">exists</span><span class="p">(</span><span class="n">upload_filepath</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">upload_filepath</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">gid</span></div>
+
+
+<div class="viewcode-block" id="image_upload_zip"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.image_upload_zip">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/upload/zip/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">image_upload_zip</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the gid_list for image files submitted in a ZIP archive.  The image</span>
+<span class="sd">    archive should be flat (no folders will be scanned for images) and must be smaller</span>
+<span class="sd">    than 100 MB.  The archive can submit multiple images, ideally in JPEG format to save</span>
+<span class="sd">    space.  Duplicate image uploads will result in the duplicate images receiving</span>
+<span class="sd">    the same gid based on the hashed pixel values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_zip_archive (binary): the POST variable containing the binary</span>
+<span class="sd">            (multi-form) image archive data</span>
+<span class="sd">        **kwargs: Arbitrary keyword arguments; the kwargs are passed down to</span>
+<span class="sd">            the add_images function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        gid_list (list if rowids): the list of gids corresponding to the images</span>
+<span class="sd">            submitted.  The gids correspond to the image names sorted in</span>
+<span class="sd">            lexigraphical order.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/image/zip</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="c1"># Get image archive</span>
+    <span class="n">image_archive</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;image_zip_archive&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">image_archive</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Image archive not given&#39;</span><span class="p">)</span>
+
+    <span class="c1"># If the directory already exists, delete it</span>
+    <span class="n">uploads_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_uploadsdir</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">uploads_path</span><span class="p">)</span>
+    <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y_%m_</span><span class="si">%d</span><span class="s1">_%H_%M_%S&#39;</span><span class="p">)</span>
+
+    <span class="n">modifier</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">upload_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">exists</span><span class="p">(</span><span class="n">upload_path</span><span class="p">):</span>
+        <span class="n">upload_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%04d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="n">modifier</span><span class="p">)</span>
+        <span class="n">modifier</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">upload_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">uploads_path</span><span class="p">,</span> <span class="n">upload_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
+
+    <span class="c1"># Extract the content</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">image_archive</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zfile</span><span class="p">:</span>
+            <span class="n">zfile</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">remove_dirs</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Image archive extracton failed&#39;</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    test to ensure Directory and utool do the same thing</span>
+
+<span class="sd">    from wbia.detecttools.directory import Directory</span>
+<span class="sd">    upload_path = ut.truepath(&#39;~/Pictures&#39;)</span>
+<span class="sd">    gpath_list1 = sorted(ut.list_images(upload_path, recursive=False, full=True))</span>
+
+<span class="sd">    direct = Directory(upload_path, include_file_extensions=&#39;images&#39;, recursive=False)</span>
+<span class="sd">    gpath_list = direct.files()</span>
+<span class="sd">    gpath_list = sorted(gpath_list)</span>
+
+<span class="sd">    assert gpath_list1 == gpath_list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">upload_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="c1"># direct = Directory(upload_path, include_file_extensions=&#39;images&#39;, recursive=False)</span>
+    <span class="c1"># gpath_list = direct.files()</span>
+    <span class="c1"># gpath_list = sorted(gpath_list)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gid_list</span></div>
+
+
+<div class="viewcode-block" id="hello_world"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.hello_world">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/test/helloworld/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">hello_world</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web-tests)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.app import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import requests</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_with_web(&#39;testdb1&#39;) as (ibs, client):</span>
+<span class="sd">        ...     resp = client.get(&#39;/api/test/helloworld/?test0=0&#39;)</span>
+<span class="sd">        ...     payload = {</span>
+<span class="sd">        ...         &#39;test1&#39; : &#39;test1&#39;,</span>
+<span class="sd">        ...         &#39;test2&#39; : None,  # NOTICE test2 DOES NOT SHOW UP</span>
+<span class="sd">        ...     }</span>
+<span class="sd">        ...     resp = client.post(&#39;/api/test/helloworld/&#39;, data=payload)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;+------------ HELLO WORLD ------------&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Args: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Kwargs: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;request.args: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;request.form: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;request.url; </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;request.environ: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;request: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">),))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;L____________ HELLO WORLD ____________&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="heartbeat"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.heartbeat">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/test/heartbeat/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">heartbeat</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
+    <span class="c1"># ut.embed()</span>
+
+    <span class="k">if</span> <span class="n">PROMETHEUS</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">prometheus_update</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="api_test_datasets_id"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis.api_test_datasets_id">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/test/dataset/id/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">api_test_datasets_id</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;zebra&#39;</span><span class="p">,</span> <span class="s1">&#39;dolphin&#39;</span><span class="p">,</span> <span class="s1">&#39;humpback&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;zebra&#39;</span><span class="p">]:</span>
+        <span class="n">qtext</span> <span class="o">=</span> <span class="s2">&quot;Grevy&#39;s Zebra Query&quot;</span>
+        <span class="n">dtext</span> <span class="o">=</span> <span class="s2">&quot;Grevy&#39;s Zebra Database&quot;</span>
+    <span class="k">elif</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;dolphin&#39;</span><span class="p">]:</span>
+        <span class="n">qtext</span> <span class="o">=</span> <span class="s1">&#39;Dorsal Query&#39;</span>
+        <span class="n">dtext</span> <span class="o">=</span> <span class="s1">&#39;Dorsal Database&#39;</span>
+    <span class="k">elif</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;humpback&#39;</span><span class="p">]:</span>
+        <span class="n">qtext</span> <span class="o">=</span> <span class="s1">&#39;Fluke Query&#39;</span>
+        <span class="n">dtext</span> <span class="o">=</span> <span class="s1">&#39;Fluke Database&#39;</span>
+
+    <span class="n">imageset_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">([</span><span class="n">qtext</span><span class="p">,</span> <span class="n">dtext</span><span class="p">])</span>
+    <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imageset_rowid_list</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;query&#39;</span><span class="p">:</span> <span class="n">qaid_list</span><span class="p">,</span>
+        <span class="s1">&#39;database&#39;</span><span class="p">:</span> <span class="n">daid_list</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">response</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

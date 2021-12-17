@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.graph.nx_utils &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../graph.html">wbia.algo.graph</a> &raquo;</li>
+      <li>wbia.algo.graph.nx_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.graph.nx_utils</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO: the k-components will soon be implemented in networkx 2.0 use those instead</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>  <span class="c1"># NOQA</span>
+
+<span class="c1"># import wbia.algo.graph.nx_edge_kconnectivity as nx_ec</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">nx_edge_augmentation</span> <span class="k">as</span> <span class="n">nx_aug</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="connected_component_subgraphs"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.connected_component_subgraphs">[docs]</a><span class="k">def</span> <span class="nf">connected_component_subgraphs</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">G</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">c</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_dz</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dzip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="diag_product"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.diag_product">[docs]</a><span class="k">def</span> <span class="nf">diag_product</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Does product, but iterates over the diagonal first&quot;&quot;&quot;</span>
+    <span class="n">s1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+    <span class="n">s2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">s2</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s1</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+            <span class="n">s1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_roll</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s2</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+            <span class="n">s2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_roll</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="e_"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.e_">[docs]</a><span class="k">def</span> <span class="nf">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">v</span> <span class="k">else</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="edges_inside"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.edges_inside">[docs]</a><span class="k">def</span> <span class="nf">edges_inside</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds edges within a set of nodes</span>
+<span class="sd">    Running time is O(len(nodes) ** 2)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        graph (nx.Graph): an undirected graph</span>
+<span class="sd">        nodes1 (set): a set of nodes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="n">upper</span> <span class="o">=</span> <span class="n">nodes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">graph_adj</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">adj</span>
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">upper</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">graph_adj</span><span class="p">[</span><span class="n">u</span><span class="p">]):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+        <span class="n">upper</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="edges_outgoing"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.edges_outgoing">[docs]</a><span class="k">def</span> <span class="nf">edges_outgoing</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds edges leaving a set of nodes.</span>
+<span class="sd">    Average running time is O(len(nodes) * ave_degree(nodes))</span>
+<span class="sd">    Worst case running time is O(G.number_of_edges()).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        graph (nx.Graph): a graph</span>
+<span class="sd">        nodes (set): set of nodes</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.graph.nx_utils import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; G = demodata_bridge()</span>
+<span class="sd">        &gt;&gt;&gt; nodes = {1, 2, 3, 4}</span>
+<span class="sd">        &gt;&gt;&gt; outgoing = edges_outgoing(G, nodes)</span>
+<span class="sd">        &gt;&gt;&gt; assert outgoing == {(3, 5), (4, 8)}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">]</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="edges_cross"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.edges_cross">[docs]</a><span class="k">def</span> <span class="nf">edges_cross</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nodes1</span><span class="p">,</span> <span class="n">nodes2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds edges between two sets of disjoint nodes.</span>
+<span class="sd">    Running time is O(len(nodes1) * len(nodes2))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        graph (nx.Graph): an undirected graph</span>
+<span class="sd">        nodes1 (set): set of nodes disjoint from `nodes2`</span>
+<span class="sd">        nodes2 (set): set of nodes disjoint from `nodes1`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">nodes1</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">nodes2</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">])}</span></div>
+
+
+<div class="viewcode-block" id="edges_between"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.edges_between">[docs]</a><span class="k">def</span> <span class="nf">edges_between</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nodes1</span><span class="p">,</span> <span class="n">nodes2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assume_disjoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">assume_dense</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get edges between two components or within a single component</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        graph (nx.Graph): the graph</span>
+<span class="sd">        nodes1 (set): list of nodes</span>
+<span class="sd">        nodes2 (set): if None it is equivlanet to nodes2=nodes1 (default=None)</span>
+<span class="sd">        assume_disjoint (bool): skips expensive check to ensure edges arnt</span>
+<span class="sd">            returned twice (default=False)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.graph.nx_utils --test-edges_between</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.graph.nx_utils import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; edges = [</span>
+<span class="sd">        &gt;&gt;&gt;     (1, 2), (2, 3), (3, 4), (4, 1), (4, 3),  # cc 1234</span>
+<span class="sd">        &gt;&gt;&gt;     (1, 5), (7, 2), (5, 1),  # cc 567 / 5678</span>
+<span class="sd">        &gt;&gt;&gt;     (7, 5), (5, 6), (8, 7),</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; digraph = nx.DiGraph(edges)</span>
+<span class="sd">        &gt;&gt;&gt; graph = nx.Graph(edges)</span>
+<span class="sd">        &gt;&gt;&gt; nodes1 = [1, 2, 3, 4]</span>
+<span class="sd">        &gt;&gt;&gt; nodes2 = [5, 6, 7]</span>
+<span class="sd">        &gt;&gt;&gt; n2 = sorted(edges_between(graph, nodes1, nodes2))</span>
+<span class="sd">        &gt;&gt;&gt; n4 = sorted(edges_between(graph, nodes1))</span>
+<span class="sd">        &gt;&gt;&gt; n5 = sorted(edges_between(graph, nodes1, nodes1))</span>
+<span class="sd">        &gt;&gt;&gt; n1 = sorted(edges_between(digraph, nodes1, nodes2))</span>
+<span class="sd">        &gt;&gt;&gt; n3 = sorted(edges_between(digraph, nodes1))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;n2 == %r&#39; % (n2,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;n4 == %r&#39; % (n4,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;n5 == %r&#39; % (n5,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;n1 == %r&#39; % (n1,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;n3 == %r&#39; % (n3,))</span>
+<span class="sd">        &gt;&gt;&gt; assert n2 == ([(1, 5), (2, 7)]), &#39;2&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert n4 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), &#39;4&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert n5 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), &#39;5&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert n1 == ([(1, 5), (5, 1), (7, 2)]), &#39;1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert n3 == ([(1, 2), (2, 3), (3, 4), (4, 1), (4, 3)]), &#39;3&#39;</span>
+<span class="sd">        &gt;&gt;&gt; n6 = sorted(edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_dense=False))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;n6 = %r&#39; % (n6,))</span>
+<span class="sd">        &gt;&gt;&gt; n6 = sorted(edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_dense=True))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;n6 = %r&#39; % (n6,))</span>
+<span class="sd">        &gt;&gt;&gt; assert n6 == ([(1, 2), (1, 5), (2, 3), (4, 1), (5, 1), (5, 6), (7, 2)]), &#39;6&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">assume_dense</span><span class="p">:</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">_edges_between_dense</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nodes1</span><span class="p">,</span> <span class="n">nodes2</span><span class="p">,</span> <span class="n">assume_disjoint</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">_edges_between_sparse</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nodes1</span><span class="p">,</span> <span class="n">nodes2</span><span class="p">,</span> <span class="n">assume_disjoint</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">is_directed</span><span class="p">():</span>
+        <span class="k">yield from</span> <span class="n">edges</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_edges_between_dense</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nodes1</span><span class="p">,</span> <span class="n">nodes2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assume_disjoint</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The dense method is where we enumerate all possible edges and just take the</span>
+<span class="sd">    ones that exist (faster for very dense graphs)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">nodes2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nodes2</span> <span class="ow">is</span> <span class="n">nodes1</span><span class="p">:</span>
+        <span class="c1"># Case where we are looking at internal nodes only</span>
+        <span class="n">edge_iter</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">nodes1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">assume_disjoint</span><span class="p">:</span>
+        <span class="c1"># We assume len(isect(nodes1, nodes2)) == 0</span>
+        <span class="n">edge_iter</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">nodes1</span><span class="p">,</span> <span class="n">nodes2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># make sure a single edge is not returned twice</span>
+        <span class="c1"># in the case where len(isect(nodes1, nodes2)) &gt; 0</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes1</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="n">nodes1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes2</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="n">nodes2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes2</span><span class="p">)</span>
+        <span class="n">nodes_isect</span> <span class="o">=</span> <span class="n">nodes1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">nodes2</span><span class="p">)</span>
+        <span class="n">nodes_only1</span> <span class="o">=</span> <span class="n">nodes1</span> <span class="o">-</span> <span class="n">nodes_isect</span>
+        <span class="n">nodes_only2</span> <span class="o">=</span> <span class="n">nodes2</span> <span class="o">-</span> <span class="n">nodes_isect</span>
+        <span class="n">edge_sets</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">nodes_only1</span><span class="p">,</span> <span class="n">nodes_only2</span><span class="p">),</span>
+            <span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">nodes_only1</span><span class="p">,</span> <span class="n">nodes_isect</span><span class="p">),</span>
+            <span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">nodes_only2</span><span class="p">,</span> <span class="n">nodes_isect</span><span class="p">),</span>
+            <span class="n">it</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">nodes_isect</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">edge_iter</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">edge_sets</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">is_directed</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span> <span class="ow">in</span> <span class="n">edge_iter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span>
+            <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">n2</span><span class="p">,</span> <span class="n">n1</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">n2</span><span class="p">,</span> <span class="n">n1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span> <span class="ow">in</span> <span class="n">edge_iter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span>
+
+
+<span class="k">def</span> <span class="nf">_edges_inside_lower</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;finds lower triangular edges inside the nodes&quot;&quot;&quot;</span>
+    <span class="n">both_lower</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">neighbs</span> <span class="ow">in</span> <span class="n">both_adj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">neighbsBB_lower</span> <span class="o">=</span> <span class="n">neighbs</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">both_lower</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">neighbsBB_lower</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">both_lower</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_edges_inside_upper</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;finds upper triangular edges inside the nodes&quot;&quot;&quot;</span>
+    <span class="n">both_upper</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">both_adj</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">neighbs</span> <span class="ow">in</span> <span class="n">both_adj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">neighbsBB_upper</span> <span class="o">=</span> <span class="n">neighbs</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">both_upper</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">neighbsBB_upper</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">both_upper</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only1_adj</span><span class="p">,</span> <span class="n">only2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;finds edges between disjoint nodes&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">neighbs</span> <span class="ow">in</span> <span class="n">only1_adj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Find the neighbors of u in only1 that are also in only2</span>
+        <span class="n">neighbs12</span> <span class="o">=</span> <span class="n">neighbs</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">only2</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">neighbs12</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_edges_between_sparse</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nodes1</span><span class="p">,</span> <span class="n">nodes2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assume_disjoint</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    In this version we check the intersection of existing edges and the edges</span>
+<span class="sd">    in the second set (faster for sparse graphs)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Notes:</span>
+    <span class="c1"># 1 = edges only in `nodes1`</span>
+    <span class="c1"># 2 = edges only in `nodes2`</span>
+    <span class="c1"># B = edges only in both `nodes1` and `nodes2`</span>
+
+    <span class="c1"># Test for special cases</span>
+    <span class="k">if</span> <span class="n">nodes2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nodes2</span> <span class="ow">is</span> <span class="n">nodes1</span><span class="p">:</span>
+        <span class="c1"># Case where we just are finding internal edges</span>
+        <span class="n">both</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes1</span><span class="p">)</span>
+        <span class="n">both_adj</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">both</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">is_directed</span><span class="p">():</span>
+            <span class="n">edge_sets</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_edges_inside_upper</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">),</span>  <span class="c1"># B-to-B (u)</span>
+                <span class="n">_edges_inside_lower</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">),</span>  <span class="c1"># B-to-B (l)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge_sets</span> <span class="o">=</span> <span class="p">(</span><span class="n">_edges_inside_upper</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">),)</span>  <span class="c1"># B-to-B (u)</span>
+    <span class="k">elif</span> <span class="n">assume_disjoint</span><span class="p">:</span>
+        <span class="c1"># Case where we find edges between disjoint sets</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes1</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="n">nodes1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes2</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="n">nodes2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes2</span><span class="p">)</span>
+        <span class="n">only1</span> <span class="o">=</span> <span class="n">nodes1</span>
+        <span class="n">only2</span> <span class="o">=</span> <span class="n">nodes2</span>
+        <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">is_directed</span><span class="p">():</span>
+            <span class="n">only1_adj</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">only1</span><span class="p">}</span>
+            <span class="n">only2_adj</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">only2</span><span class="p">}</span>
+            <span class="n">edge_sets</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only1</span><span class="p">,</span> <span class="n">only2</span><span class="p">),</span>  <span class="c1"># 1-to-2</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only2</span><span class="p">,</span> <span class="n">only1</span><span class="p">),</span>  <span class="c1"># 2-to-1</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">only1_adj</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">only1</span><span class="p">}</span>
+            <span class="n">edge_sets</span> <span class="o">=</span> <span class="p">(</span><span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only1</span><span class="p">,</span> <span class="n">only2</span><span class="p">),)</span>  <span class="c1"># 1-to-2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Full general case</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes1</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="n">nodes1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nodes2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nodes2</span> <span class="o">=</span> <span class="n">nodes1</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nodes2</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="n">nodes2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes2</span><span class="p">)</span>
+        <span class="n">both</span> <span class="o">=</span> <span class="n">nodes1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">nodes2</span><span class="p">)</span>
+        <span class="n">only1</span> <span class="o">=</span> <span class="n">nodes1</span> <span class="o">-</span> <span class="n">both</span>
+        <span class="n">only2</span> <span class="o">=</span> <span class="n">nodes2</span> <span class="o">-</span> <span class="n">both</span>
+
+        <span class="c1"># Precompute all calls to set(graph.adj[u]) to avoid duplicate calls</span>
+        <span class="n">only1_adj</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">only1</span><span class="p">}</span>
+        <span class="n">only2_adj</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">only2</span><span class="p">}</span>
+        <span class="n">both_adj</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">u</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">both</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">is_directed</span><span class="p">():</span>
+            <span class="n">edge_sets</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only1_adj</span><span class="p">,</span> <span class="n">only2</span><span class="p">),</span>  <span class="c1"># 1-to-2</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only1_adj</span><span class="p">,</span> <span class="n">both</span><span class="p">),</span>  <span class="c1"># 1-to-B</span>
+                <span class="n">_edges_inside_upper</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">),</span>  <span class="c1"># B-to-B (u)</span>
+                <span class="n">_edges_inside_lower</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">),</span>  <span class="c1"># B-to-B (l)</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">,</span> <span class="n">only1</span><span class="p">),</span>  <span class="c1"># B-to-1</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">,</span> <span class="n">only2</span><span class="p">),</span>  <span class="c1"># B-to-2</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only2_adj</span><span class="p">,</span> <span class="n">both</span><span class="p">),</span>  <span class="c1"># 2-to-B</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only2_adj</span><span class="p">,</span> <span class="n">only1</span><span class="p">),</span>  <span class="c1"># 2-to-1</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge_sets</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only1_adj</span><span class="p">,</span> <span class="n">only2</span><span class="p">),</span>  <span class="c1"># 1-to-2</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only1_adj</span><span class="p">,</span> <span class="n">both</span><span class="p">),</span>  <span class="c1"># 1-to-B</span>
+                <span class="n">_edges_inside_upper</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">both_adj</span><span class="p">),</span>  <span class="c1"># B-to-B (u)</span>
+                <span class="n">_edges_between_disjoint</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">only2_adj</span><span class="p">,</span> <span class="n">both</span><span class="p">),</span>  <span class="c1"># 2-to-B</span>
+            <span class="p">)</span>
+
+    <span class="k">yield from</span> <span class="n">it</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">edge_sets</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="group_name_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.group_name_edges">[docs]</a><span class="k">def</span> <span class="nf">group_name_edges</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">node_to_label</span><span class="p">):</span>
+    <span class="n">ne_to_edges</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>
+        <span class="n">name_edge</span> <span class="o">=</span> <span class="n">e_</span><span class="p">(</span><span class="n">node_to_label</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">node_to_label</span><span class="p">[</span><span class="n">v</span><span class="p">])</span>
+        <span class="n">ne_to_edges</span><span class="p">[</span><span class="n">name_edge</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ne_to_edges</span></div>
+
+
+<div class="viewcode-block" id="ensure_multi_index"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.ensure_multi_index">[docs]</a><span class="k">def</span> <span class="nf">ensure_multi_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">names</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">([[],</span> <span class="p">[]],</span> <span class="p">[[],</span> <span class="p">[]],</span> <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">index</span></div>
+
+
+<div class="viewcode-block" id="demodata_bridge"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.demodata_bridge">[docs]</a><span class="k">def</span> <span class="nf">demodata_bridge</span><span class="p">():</span>
+    <span class="c1"># define 2-connected compoments and bridges</span>
+    <span class="n">cc2</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">11</span><span class="p">)]</span>
+    <span class="n">bridges</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="p">(</span><span class="mi">22</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">24</span><span class="p">)]</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">cc2</span> <span class="o">+</span> <span class="n">bridges</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">G</span></div>
+
+
+<div class="viewcode-block" id="demodata_tarjan_bridge"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.demodata_tarjan_bridge">[docs]</a><span class="k">def</span> <span class="nf">demodata_tarjan_bridge</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.graph.nx_utils demodata_tarjan_bridge --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.graph.nx_utils import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; G = demodata_tarjan_bridge()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_nx(G)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># define 2-connected compoments and bridges</span>
+    <span class="n">cc2</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">17</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">14</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">bridges</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">17</span><span class="p">)]</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">cc2</span> <span class="o">+</span> <span class="n">bridges</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">G</span></div>
+
+
+<span class="c1"># def is_tri_edge_connected(G):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     Yet another Simple Algorithm for Triconnectivity</span>
+<span class="c1">#     http://www.sciencedirect.com/science/article/pii/S1570866708000415</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     pass</span>
+
+
+<div class="viewcode-block" id="is_k_edge_connected"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.is_k_edge_connected">[docs]</a><span class="k">def</span> <span class="nf">is_k_edge_connected</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">nx_aug</span><span class="o">.</span><span class="n">is_k_edge_connected</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="complement_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.complement_edges">[docs]</a><span class="k">def</span> <span class="nf">complement_edges</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">it</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">e_</span><span class="p">,</span> <span class="n">nx_aug</span><span class="o">.</span><span class="n">complement_edges</span><span class="p">(</span><span class="n">G</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="k_edge_augmentation"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.k_edge_augmentation">[docs]</a><span class="k">def</span> <span class="nf">k_edge_augmentation</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">it</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">e_</span><span class="p">,</span> <span class="n">nx_aug</span><span class="o">.</span><span class="n">k_edge_augmentation</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">avail</span><span class="o">=</span><span class="n">avail</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="n">partial</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="is_complete"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.is_complete">[docs]</a><span class="k">def</span> <span class="nf">is_complete</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">self_loops</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">G</span><span class="o">.</span><span class="n">is_multigraph</span><span class="p">()</span>
+    <span class="n">n_edges</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+    <span class="n">n_nodes</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">G</span><span class="o">.</span><span class="n">is_directed</span><span class="p">():</span>
+        <span class="n">n_need</span> <span class="o">=</span> <span class="n">n_nodes</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_nodes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_need</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_nodes</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_nodes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">self_loops</span><span class="p">:</span>
+        <span class="n">n_need</span> <span class="o">+=</span> <span class="n">n_nodes</span>
+    <span class="k">return</span> <span class="n">n_edges</span> <span class="o">==</span> <span class="n">n_need</span></div>
+
+
+<div class="viewcode-block" id="random_k_edge_connected_graph"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.random_k_edge_connected_graph">[docs]</a><span class="k">def</span> <span class="nf">random_k_edge_connected_graph</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Super hacky way of getting a random k-connected graph</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.graph.nx_utils import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; size, k, p = 25, 3, .1</span>
+<span class="sd">        &gt;&gt;&gt; rng = ut.ensure_rng(0)</span>
+<span class="sd">        &gt;&gt;&gt; gs = []</span>
+<span class="sd">        &gt;&gt;&gt; for x in range(4):</span>
+<span class="sd">        &gt;&gt;&gt;     G = random_k_edge_connected_graph(size, k, p, rng)</span>
+<span class="sd">        &gt;&gt;&gt;     gs.append(G)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; pnum_ = pt.make_pnum_nextgen(nRows=2, nSubplots=len(gs))</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 1</span>
+<span class="sd">        &gt;&gt;&gt; for g in gs:</span>
+<span class="sd">        &gt;&gt;&gt;     pt.show_nx(g, fnum=fnum, pnum=pnum_())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+
+    <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span><span class="p">)</span>
+        <span class="c1"># Randomly generate a graph</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">fast_gnp_random_graph</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">edge_connectivity</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="c1"># If it has exactly the desired connectivity we are one</span>
+        <span class="k">if</span> <span class="n">conn</span> <span class="o">==</span> <span class="n">k</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="c1"># If it has more, then we regenerate the graph with fewer edges</span>
+        <span class="k">elif</span> <span class="n">conn</span> <span class="o">&gt;</span> <span class="n">k</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">p</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="c1"># If it has less then we add a small set of edges to get there</span>
+        <span class="k">elif</span> <span class="n">conn</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">:</span>
+            <span class="c1"># p = 2 * p - p ** 2</span>
+            <span class="c1"># if count == 2:</span>
+            <span class="n">aug_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">k_edge_augmentation</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">aug_edges</span><span class="p">)</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">g</span></div>
+
+
+<div class="viewcode-block" id="edge_df"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_utils.edge_df">[docs]</a><span class="k">def</span> <span class="nf">edge_df</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+    <span class="n">edge_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="n">graph</span><span class="o">.</span><span class="n">get_edge_data</span><span class="p">(</span><span class="o">*</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">}</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">edge_dict</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ignore</span><span class="p">:</span>
+            <span class="n">ignore</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">ignore</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">ignore</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

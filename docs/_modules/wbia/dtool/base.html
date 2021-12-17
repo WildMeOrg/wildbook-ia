@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.dtool.base &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.dtool.base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.dtool.base</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">operator</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[depbase]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia.dtool&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="StackedConfig"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.StackedConfig">[docs]</a><span class="k">class</span> <span class="nc">StackedConfig</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">DictLike</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">HashComparable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages a list of configurations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_list</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_orig_config_list</span> <span class="o">=</span> <span class="n">config_list</span>
+        <span class="c1"># Cast all inputs to config classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_config_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">cfg</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s1">&#39;get_cfgstr&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">make_configclass</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_config_list</span>
+        <span class="p">]</span>
+        <span class="c1"># Parse out items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_items</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="nb">list</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s1">&#39;parse_items&#39;</span><span class="p">)</span>
+                <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_orig_config_list</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="c1"># self.keys = ut.flatten(list(cfg.keys()) for cfg in self.config_list)</span>
+
+<div class="viewcode-block" id="StackedConfig.get_cfgstr"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.StackedConfig.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_config_list</span><span class="p">]</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cfgstr</span></div>
+
+<div class="viewcode-block" id="StackedConfig.keys"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.StackedConfig.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Needed for comparison operators&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+
+<div class="viewcode-block" id="StackedConfig.getitem"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.StackedConfig.getitem">[docs]</a>    <span class="k">def</span> <span class="nf">getitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config">[docs]</a><span class="nd">@functools</span><span class="o">.</span><span class="n">total_ordering</span>
+<span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">DictLike</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for heirarchical config</span>
+<span class="sd">    need to overwrite get_param_info_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.base Config</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg1 = Config.from_dict({&#39;a&#39;: 1, &#39;b&#39;: 2})</span>
+<span class="sd">        &gt;&gt;&gt; cfg2 = Config.from_dict({&#39;a&#39;: 2, &#39;b&#39;: 2})</span>
+<span class="sd">        &gt;&gt;&gt; # Must be hashable and orderable</span>
+<span class="sd">        &gt;&gt;&gt; hash(cfg1)</span>
+<span class="sd">        &gt;&gt;&gt; cfg1 &gt; cfg2</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Config.deepcopy"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.deepcopy">[docs]</a>    <span class="k">def</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="n">cfg2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+        <span class="n">cfg2</span><span class="o">.</span><span class="n">_subconfig_attrs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_attrs</span><span class="p">)</span>
+        <span class="n">cfg2</span><span class="o">.</span><span class="n">_subconfig_names</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_names</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cfg2</span><span class="o">.</span><span class="n">_param_info_list</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">_param_info_list</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">cfg2</span></div>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_name</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;hash comparable broke in python3&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">lt</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;hash comparable broke in python3&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">eq</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Needed for comparison operators&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Config.get_config_name"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.get_config_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_config_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;the user might want to overwrite this function&quot;&quot;&quot;</span>
+        <span class="c1"># VERY HACKY</span>
+        <span class="n">config_name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Config&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">config_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">config_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config_name</span></div>
+
+<div class="viewcode-block" id="Config.get_varnames"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.get_varnames">[docs]</a>    <span class="k">def</span> <span class="nf">get_varnames</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">pi</span><span class="o">.</span><span class="n">varname</span> <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()]</span> <span class="o">+</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_attrs</span></div>
+
+<div class="viewcode-block" id="Config.update"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overwrites default DictLike update for only keys that exist.</span>
+<span class="sd">        Non-existing key are ignored.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            prefixed keys in the form &lt;classname&gt;_&lt;key&gt; will be just be</span>
+<span class="sd">            interpreted as &lt;key&gt;</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.base update --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache import DummyVsManyConfig</span>
+<span class="sd">            &gt;&gt;&gt; cfg = DummyVsManyConfig()</span>
+<span class="sd">            &gt;&gt;&gt; cfg.update(DummyAlgo_version=4)</span>
+<span class="sd">            &gt;&gt;&gt; print(cfg)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># FIXME: currently can&#39;t update subconfigs based on namespaces</span>
+        <span class="c1"># and non-namespaced vars are in the context of the root level.</span>
+        <span class="c1"># self_keys = set(cfg.__dict__.keys())</span>
+        <span class="c1"># self_keys.append(cfg.get_varnames())</span>
+        <span class="n">_aliases</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_make_key_alias_checker</span><span class="p">()</span>
+        <span class="n">self_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># update only existing keys or namespace prefixed keys</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_aliases</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">self_keys</span><span class="p">:</span>
+                    <span class="n">cfg</span><span class="o">.</span><span class="n">setitem</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+                    <span class="k">break</span></div>
+
+<div class="viewcode-block" id="Config.pop_update"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.pop_update">[docs]</a>    <span class="k">def</span> <span class="nf">pop_update</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates based on other, while popping off used arguments.</span>
+<span class="sd">        (useful for testing if a parameter was unused or misspelled)</span>
+
+<span class="sd">        Doctest:</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia import dtool as dt</span>
+<span class="sd">            &gt;&gt;&gt; cfg = dt.Config.from_dict({&#39;a&#39;: 1, &#39;b&#39;: 2, &#39;c&#39;: 3})</span>
+<span class="sd">            &gt;&gt;&gt; other = {&#39;a&#39;: 5, &#39;e&#39;: 2}</span>
+<span class="sd">            &gt;&gt;&gt; cfg.pop_update(other)</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg[&#39;a&#39;] == 5</span>
+<span class="sd">            &gt;&gt;&gt; assert len(other) == 1 and &#39;a&#39; not in other</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_aliases</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_make_key_alias_checker</span><span class="p">()</span>
+        <span class="n">self_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="c1"># update only existing keys or namespace prefixed keys</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_aliases</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">self_keys</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                    <span class="n">cfg</span><span class="o">.</span><span class="n">setitem</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+                    <span class="k">break</span></div>
+
+    <span class="k">def</span> <span class="nf">_make_key_alias_checker</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="n">prefixes</span> <span class="o">=</span> <span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">(),</span> <span class="n">cfg</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_aliases</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">key</span>
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">:</span>
+                <span class="n">prefix</span> <span class="o">=</span> <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
+                    <span class="n">key_alias</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]</span>
+                    <span class="k">yield</span> <span class="n">key_alias</span>
+
+        <span class="k">return</span> <span class="n">_aliases</span>
+
+<div class="viewcode-block" id="Config.update2"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.update2">[docs]</a>    <span class="k">def</span> <span class="nf">update2</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overwrites default DictLike update for only keys that exist.</span>
+<span class="sd">        Non-existing key are ignored.</span>
+<span class="sd">        Also updates nested configs.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            prefixed keys in the form &lt;classname&gt;_&lt;key&gt; will be just be</span>
+<span class="sd">            interpreted as &lt;key&gt;</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.base update --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia import dtool as dt</span>
+<span class="sd">            &gt;&gt;&gt; cfg = dt.Config.from_dict({</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;a&#39;: 1,</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;b&#39;: 2,</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;c&#39;: 3,</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;sub1&#39;: dt.Config.from_dict({</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;x&#39;: &#39;x&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;y&#39;: {&#39;z&#39;, &#39;x&#39;},</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;c&#39;: 33,</span>
+<span class="sd">            &gt;&gt;&gt;     }),</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;sub2&#39;: dt.Config.from_dict({</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;s&#39;: [1, 2, 3],</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;t&#39;: (1, 2, 3),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;c&#39;: 42,</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;sub3&#39;: dt.Config.from_dict({</span>
+<span class="sd">            &gt;&gt;&gt;             &#39;b&#39;: 99,</span>
+<span class="sd">            &gt;&gt;&gt;             &#39;c&#39;: 88,</span>
+<span class="sd">            &gt;&gt;&gt;         }),</span>
+<span class="sd">            &gt;&gt;&gt;     }),</span>
+<span class="sd">            &gt;&gt;&gt; })</span>
+<span class="sd">            &gt;&gt;&gt; kwargs = {&#39;c&#39;: 10}</span>
+<span class="sd">            &gt;&gt;&gt; cfg.update2(c=10, y={1,2})</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg.c == 10</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg.sub1.c == 10</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg.sub2.c == 10</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg.sub2.sub3.c == 10</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg.sub1.y == {1, 2}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;only specify one arg&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">_update2</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">_update2</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># yields a list of keys updated as they happen</span>
+        <span class="n">_aliases</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_make_key_alias_checker</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">native_items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_aliases</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="n">cfg</span><span class="o">.</span><span class="n">setitem</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                    <span class="k">yield</span> <span class="n">k</span>
+                    <span class="k">break</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">nested_items</span><span class="p">():</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Config</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">_update2</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">k</span>
+
+<div class="viewcode-block" id="Config.nested_items"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.nested_items">[docs]</a>    <span class="k">def</span> <span class="nf">nested_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Config</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span></div>
+
+<div class="viewcode-block" id="Config.native_items"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.native_items">[docs]</a>    <span class="k">def</span> <span class="nf">native_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Config</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span></div>
+
+<div class="viewcode-block" id="Config.initialize_params"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.initialize_params">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_params</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes config class attributes based on params info list&quot;&quot;&quot;</span>
+        <span class="c1"># logger.info(&quot;INIT PARAMS&quot;)</span>
+        <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+
+        <span class="c1"># SO HACKY</span>
+        <span class="c1"># Hacks in implicit edges from nodes to the algorithm</span>
+        <span class="c1"># using their subconfigurations</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_sub_config_list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">_sub_config_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subclass</span> <span class="ow">in</span> <span class="n">_sub_config_list</span><span class="p">:</span>
+                <span class="c1"># subclass.static_config_name()</span>
+                <span class="n">subcfg</span> <span class="o">=</span> <span class="n">subclass</span><span class="p">()</span>
+                <span class="n">subcfg_name</span> <span class="o">=</span> <span class="n">subcfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+                <span class="n">subcfg_attr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_underscore_case</span><span class="p">(</span><span class="n">subcfg_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_cfg&#39;</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">subcfg_attr</span><span class="p">,</span> <span class="n">subcfg</span><span class="p">)</span>
+                <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subcfg_name</span><span class="p">)</span>
+                <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_attrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subcfg_attr</span><span class="p">)</span>
+                <span class="n">subcfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.get_sub_config_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.get_sub_config_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_sub_config_list</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s1">&#39;_sub_config_list&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_sub_config_list</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="Config.parse_namespace_config_items"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.parse_namespace_config_items">[docs]</a>    <span class="k">def</span> <span class="nf">parse_namespace_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursively extracts key, val pairs from Config objects</span>
+<span class="sd">        into a flat list. (there must not be name conflicts)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">item</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s1">&#39;parse_namespace_config_items&#39;</span><span class="p">):</span>
+                <span class="n">child_cfg</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="n">child_params</span> <span class="o">=</span> <span class="n">child_cfg</span><span class="o">.</span><span class="n">parse_namespace_config_items</span><span class="p">()</span>
+                <span class="n">param_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">child_params</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s1">&#39;parse_items&#39;</span><span class="p">):</span>
+                <span class="c1"># hack for ut.Pref configs</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">parse_items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s1">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s1"> appears more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,)</span>
+                        <span class="p">)</span>
+                    <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                    <span class="c1"># Incorporate namespace</span>
+                    <span class="n">param_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s1"> appears more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,)</span>
+                    <span class="p">)</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="c1"># Incorporate namespace</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+                <span class="n">param_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">param_list</span></div>
+
+<div class="viewcode-block" id="Config.parse_items"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.parse_items">[docs]</a>    <span class="k">def</span> <span class="nf">parse_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list: param_list</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.base --exec-parse_items</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache import DummyVsManyConfig</span>
+<span class="sd">            &gt;&gt;&gt; cfg = DummyVsManyConfig()</span>
+<span class="sd">            &gt;&gt;&gt; param_list = cfg.parse_items()</span>
+<span class="sd">            &gt;&gt;&gt; result = (&#39;param_list = %s&#39; % (ut.repr2(param_list, nl=1),))</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">namespace_param_list</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">parse_namespace_config_items</span><span class="p">()</span>
+        <span class="n">param_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">namespace_param_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">needs_namespace_keys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">param_names</span><span class="p">)</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">namespace_param_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="c1"># prepend namespaces to variables that need it</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">needs_namespace_keys</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">namespace_param_list</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">param_list</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">param_list</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">duplicate_keys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">param_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="c1"># hack to let version through</span>
+        <span class="c1"># import utool</span>
+        <span class="c1"># with utool.embed_on_exception_context:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">duplicate_keys</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s1">&#39;Configs have duplicate names: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">duplicate_keys</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">param_list</span></div>
+
+<div class="viewcode-block" id="Config.get_cfgstr_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;default get_cfgstr_list, can be overrided by a config object&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ignore_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">pi</span><span class="o">.</span><span class="n">get_itemstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pi</span><span class="o">.</span><span class="n">get_itemstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span> <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()]</span>
+        <span class="n">filtered_itemstr_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">itemstr_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">with_name</span><span class="p">:</span>
+            <span class="n">config_name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filtered_itemstr_list</span><span class="p">)</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">config_name</span><span class="p">,</span> <span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="s1">&#39;)&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">cfgstr</span></div>
+
+<div class="viewcode-block" id="Config.get_cfgstr"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">str_</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">str_</span><span class="p">]</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">cfg</span><span class="p">[</span><span class="n">subcfg_attr</span><span class="p">]</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span> <span class="k">for</span> <span class="n">subcfg_attr</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_subconfig_attrs</span><span class="p">]</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.get_param_info_dict"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.get_param_info_dict">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_dict</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="n">param_info_list</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()</span>
+        <span class="n">param_info_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">pi</span><span class="o">.</span><span class="n">varname</span><span class="p">:</span> <span class="n">pi</span> <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">param_info_list</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">param_info_dict</span></div>
+
+<div class="viewcode-block" id="Config.assert_self_types"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.assert_self_types">[docs]</a>    <span class="k">def</span> <span class="nf">assert_self_types</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Assert self types of cfg=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfg</span><span class="p">,))</span>
+        <span class="n">pi_dict</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">pi</span> <span class="o">=</span> <span class="n">pi_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">pi</span><span class="o">.</span><span class="n">error_if_invalid_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... checks passed&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.getinfo"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.getinfo">[docs]</a>    <span class="k">def</span> <span class="nf">getinfo</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Config.get_hashid"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.get_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_hashid</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Config.keys"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Required for DictLike interface&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_varnames</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Config.getitem"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.getitem">[docs]</a>    <span class="k">def</span> <span class="nf">getitem</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Required for DictLike interface&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.get"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get a paramater value by string&quot;&quot;&quot;</span>
+        <span class="n">ERROR_ON_DEFAULT</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">ERROR_ON_DEFAULT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.setitem"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.setitem">[docs]</a>    <span class="k">def</span> <span class="nf">setitem</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Required for DictLike interface&quot;&quot;&quot;</span>
+        <span class="c1"># TODO; check for valid config setting</span>
+        <span class="n">pi_dict</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_dict</span><span class="p">()</span>
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">pi_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">pi</span><span class="o">.</span><span class="n">error_if_invalid_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.get_param_info_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_param_info_list</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s1">&#39;Need to define _param_info_list or get_param_info_list&#39;</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.from_argv_dict"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.from_argv_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_argv_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        handy command line tool</span>
+<span class="sd">        ut.parse_argv_cfg</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">new_vals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_dict_from_argv</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">new_vals</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cfg</span></div>
+
+<div class="viewcode-block" id="Config.from_argv_cfgs"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.from_argv_cfgs">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_argv_cfgs</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        handy command line tool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+        <span class="c1"># name = cls.static_config_name()</span>
+        <span class="n">argname</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s1">&#39;_alias&#39;</span><span class="p">):</span>
+            <span class="n">argname</span> <span class="o">=</span> <span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_alias</span><span class="p">)</span>
+        <span class="c1"># if hasattr(cls, &#39;_alias&#39;):</span>
+        <span class="c1">#    argname = (argname, &#39;--&#39; + cls._alias)</span>
+        <span class="n">new_vals_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_argv_cfg</span><span class="p">(</span><span class="n">argname</span><span class="p">)</span>
+        <span class="n">self_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">new_vals</span><span class="p">)</span> <span class="k">for</span> <span class="n">new_vals</span> <span class="ow">in</span> <span class="n">new_vals_list</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">self_list</span></div>
+
+<div class="viewcode-block" id="Config.from_dict"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dict_</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            dict_ (dict_):  a dictionary</span>
+<span class="sd">            tablename (None): (default = None)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: param_info_list</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.base Config.from_dict --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; cls = Config</span>
+<span class="sd">            &gt;&gt;&gt; dict_ = {&#39;K&#39;: 1, &#39;Knorm&#39;: 5, &#39;min_pername&#39;: 1, &#39;max_pername&#39;: 1,}</span>
+<span class="sd">            &gt;&gt;&gt; tablename = None</span>
+<span class="sd">            &gt;&gt;&gt; config = cls.from_dict(dict_, tablename)</span>
+<span class="sd">            &gt;&gt;&gt; print(config)</span>
+<span class="sd">            &gt;&gt;&gt; # xdoctest: +REQUIRES(--show)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; dlg = config.make_qt_dialog(</span>
+<span class="sd">            &gt;&gt;&gt;     title=&#39;Confirm Merge Query&#39;,</span>
+<span class="sd">            &gt;&gt;&gt;     msg=&#39;Confirm&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; dlg.resize(700, 500)</span>
+<span class="sd">            &gt;&gt;&gt; dlg.show()</span>
+<span class="sd">            &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; self = dlg.widget</span>
+<span class="sd">            &gt;&gt;&gt; guitool.qtapp_loop(qwin=dlg)</span>
+<span class="sd">            &gt;&gt;&gt; updated_config = self.config  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;updated_config = %r&#39; % (updated_config,))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">UnnamedConfig</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">class_from_dict</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">UnnamedConfig</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">config</span></div>
+
+<div class="viewcode-block" id="Config.class_from_dict"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.class_from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">class_from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dict_</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">tablename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tablename</span> <span class="o">=</span> <span class="s1">&#39;Unnamed&#39;</span>
+        <span class="n">UnnamedConfig</span> <span class="o">=</span> <span class="n">make_configclass</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">UnnamedConfig</span></div>
+
+<div class="viewcode-block" id="Config.make_qt_dialog"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.make_qt_dialog">[docs]</a>    <span class="k">def</span> <span class="nf">make_qt_dialog</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Edit Config&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;Confim&#39;</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+
+        <span class="n">gt</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>  <span class="c1"># must be ensured before any embeding</span>
+        <span class="n">dlg</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">ConfigConfirmWidget</span><span class="o">.</span><span class="n">as_dialog</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+        <span class="n">dlg</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+        <span class="n">dlg</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">dlg</span></div>
+
+<div class="viewcode-block" id="Config.getstate_todict_recursive"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.Config.getstate_todict_recursive">[docs]</a>    <span class="k">def</span> <span class="nf">getstate_todict_recursive</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
+
+        <span class="n">_dict</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+        <span class="n">_dict2</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+                <span class="c1"># val = val.asdict()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">getstate_todict_recursive</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">getstate_todict_recursive</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+                <span class="n">_dict2</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_dict2</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">_dict2</span></div>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        FIXME</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache import DummyKptsConfig</span>
+<span class="sd">            &gt;&gt;&gt; import pickle</span>
+<span class="sd">            &gt;&gt;&gt; cfg = DummyKptsConfig()</span>
+<span class="sd">            &gt;&gt;&gt; ser = pickle.dumps(cfg)</span>
+<span class="sd">            &gt;&gt;&gt; cfg2 = pickle.loads(ser)</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg == cfg2</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg is not cfg2</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache import DummyVsManyConfig</span>
+<span class="sd">            &gt;&gt;&gt; import pickle</span>
+<span class="sd">            &gt;&gt;&gt; cfg = DummyVsManyConfig()</span>
+<span class="sd">            &gt;&gt;&gt; state = cfg.__getstate__()</span>
+<span class="sd">            &gt;&gt;&gt; cfg2 = DummyVsManyConfig()</span>
+<span class="sd">            &gt;&gt;&gt; serialized = pickle.dumps(cfg)</span>
+<span class="sd">            &gt;&gt;&gt; unserialized = pickle.loads(serialized)</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg == unserialized</span>
+<span class="sd">            &gt;&gt;&gt; assert cfg is not unserialized</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># from wbia import dtool</span>
+        <span class="c1"># _dict = cfg.asdict()</span>
+        <span class="c1"># _dict2 = {}</span>
+        <span class="c1"># for key, val in _dict.items():</span>
+        <span class="c1">#    if isinstance(val, dtool.Config):</span>
+        <span class="c1">#        val = val.asdict()</span>
+        <span class="c1">#    _dict2[key] = val</span>
+        <span class="c1"># return {&#39;dtool.Config&#39;: _dict2}</span>
+        <span class="k">return</span> <span class="n">cfg</span><span class="o">.</span><span class="vm">__dict__</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">state</span><span class="p">)</span></div>
+        <span class="c1"># cfg.initialize_params()</span>
+        <span class="c1"># cfg.update(**state)</span>
+
+    <span class="c1"># @classmethod</span>
+    <span class="c1"># def static_config_name(cls):</span>
+    <span class="c1">#    class_str = str(cls)</span>
+    <span class="c1">#    full_class_str = class_str.replace(&#39;&lt;class \&#39;&#39;, &#39;&#39;).replace(&#39;\&#39;&gt;&#39;, &#39;&#39;)</span>
+    <span class="c1">#    config_name = splitext(full_class_str)[1][1:].replace(&#39;Config&#39;, &#39;&#39;)</span>
+    <span class="c1">#    return config_name</span>
+
+
+<div class="viewcode-block" id="make_configclass"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.make_configclass">[docs]</a><span class="k">def</span> <span class="nf">make_configclass</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">tablename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a custom config class from a dict&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">rectify_item</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">varname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Copy and assign a new varname</span>
+                <span class="n">pi</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                <span class="n">pi</span><span class="o">.</span><span class="n">varname</span> <span class="o">=</span> <span class="n">key</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pi</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="k">assert</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span> <span class="o">==</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;Given varname=</span><span class="si">%r</span><span class="s1"> does not match key=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">pi</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span>
+                    <span class="n">key</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">pi</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Config</span><span class="p">):</span>
+                <span class="c1"># Set table name from key when doing nested from dicts</span>
+                <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;UnnamedConfig&#39;</span><span class="p">:</span>
+                    <span class="n">val</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;Config&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+
+    <span class="n">param_info_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">rectify_item</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="k">return</span> <span class="n">from_param_info_list</span><span class="p">(</span><span class="n">param_info_list</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="from_param_info_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.from_param_info_list">[docs]</a><span class="k">def</span> <span class="nf">from_param_info_list</span><span class="p">(</span><span class="n">param_info_list</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;Unnamed&#39;</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
+
+    <span class="k">class</span> <span class="nc">UnnamedConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+        <span class="n">_param_info_list</span> <span class="o">=</span> <span class="n">param_info_list</span>
+
+    <span class="n">UnnamedConfig</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tablename</span> <span class="o">+</span> <span class="s1">&#39;Config&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">UnnamedConfig</span></div>
+
+
+<div class="viewcode-block" id="IBEISRequestHacks"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.IBEISRequestHacks">[docs]</a><span class="k">class</span> <span class="nc">IBEISRequestHacks</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">_isnewreq</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ibs</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;HACK specific to wbia&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">qannots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dannots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">daids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IBEISRequestHacks.get_qreq_annot_nids"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.IBEISRequestHacks.get_qreq_annot_nids">[docs]</a>    <span class="k">def</span> <span class="nf">get_qreq_annot_nids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="c1"># VERY HACKY. To be just hacky it should store</span>
+        <span class="c1"># the nids as a state, but whatever...</span>
+        <span class="c1"># devleopment time constraints and whatnot</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span></div>
+        <span class="c1"># return self.ibs.annots(self.daids, self.params)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">extern_query_config2</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">params</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">extern_data_config2</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">params</span></div>
+
+    <span class="c1">#</span>
+
+    <span class="c1"># def get_external_data_config2(request):</span>
+    <span class="c1">#    # HACK</span>
+    <span class="c1">#    #return None</span>
+    <span class="c1">#    #logger.info(&#39;[d] request.params = %r&#39; % (request.params,))</span>
+    <span class="c1">#    return request.params</span>
+
+    <span class="c1"># def get_external_query_config2(request):</span>
+    <span class="c1">#    # HACK</span>
+    <span class="c1">#    #return None</span>
+    <span class="c1">#    #logger.info(&#39;[q] request.params = %r&#39; % (request.params,))</span>
+    <span class="c1">#    return request.params</span>
+
+
+<div class="viewcode-block" id="config_graph_subattrs"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.config_graph_subattrs">[docs]</a><span class="k">def</span> <span class="nf">config_graph_subattrs</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">depc</span><span class="p">):</span>
+    <span class="c1"># TODO: if this hack is fully completed need a way of getting the</span>
+    <span class="c1"># full config belonging to both chip + feat</span>
+    <span class="c1"># cfg = request.config.feat_cfg</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">netx</span>
+
+    <span class="n">tablename</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">configclass_dict</span><span class="p">)[</span><span class="n">cfg</span><span class="o">.</span><span class="vm">__class__</span><span class="p">]</span>
+    <span class="c1"># tablename = cfg.get_config_name()</span>
+    <span class="n">ancestors</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">ancestors</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+    <span class="n">subconfigs_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">configclass_dict</span><span class="p">,</span> <span class="n">ancestors</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">subconfigs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">subconfigs_</span><span class="p">)</span>  <span class="c1"># NOQA</span></div>
+
+
+<div class="viewcode-block" id="BaseRequest"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.BaseRequest">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">BaseRequest</span><span class="p">(</span><span class="n">IBEISRequestHacks</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class that maintains both an algorithm, inputs, and a config.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaseRequest.static_new"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.BaseRequest.static_new">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">static_new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;hack for autoreload&quot;&quot;&quot;</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">tablename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;_tablename&#39;</span><span class="p">):</span>
+                    <span class="n">tablename</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_tablename</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tablename</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">requestclass_dict</span><span class="p">)[</span><span class="bp">cls</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;tablename must be given&#39;</span><span class="p">)</span>
+                <span class="k">raise</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">tablename</span> <span class="o">=</span> <span class="n">tablename</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">parent_rowids</span> <span class="o">=</span> <span class="n">parent_rowids</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">depc</span> <span class="o">=</span> <span class="n">depc</span>
+        <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">configclass</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">configclass_dict</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">configclass</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="c1"># HACK FOR IBEIS</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
+        <span class="c1"># HACK-ier FOR BACKWARDS COMPATABILITY</span>
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># params.featweight_cfgstr = query_cfg._featweight_cfg.get_cfgstr()</span>
+            <span class="c1"># TODO: if this hack is fully completed need a way of getting the</span>
+            <span class="c1"># full config belonging to both chip + feat</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chip_cfgstr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chip_cfg_dict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;feat_cfgstr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;hesaff_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;featweight_cfgstr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">feat_weight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">qparams</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">request</span></div>
+
+<div class="viewcode-block" id="BaseRequest.new"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.BaseRequest.new">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">static_new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_rootset_hashid</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">root_rowids</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+        <span class="n">uuid_type</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">prefix</span><span class="p">,</span> <span class="n">uuid_type</span><span class="p">,</span> <span class="s1">&#39;UUIDS&#39;</span><span class="p">))</span>
+        <span class="c1"># Hack: allow general specification of uuid types</span>
+        <span class="n">uuid_list</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">get_root_uuid</span><span class="p">(</span><span class="n">root_rowids</span><span class="p">)</span>
+        <span class="c1"># uuid_hashid = ut.hashstr_arr27(uuid_list, label, pathsafe=True)</span>
+        <span class="n">uuid_hashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">pathsafe</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># TODO: uuid_hashid = ut.hashid_arr(uuid_list, label=label)</span>
+        <span class="k">return</span> <span class="n">uuid_hashid</span>
+
+<div class="viewcode-block" id="BaseRequest.get_cfgstr"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.BaseRequest.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">with_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        main cfgstring used to identify the &#39;querytype&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">with_input</span><span class="p">:</span>
+            <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">get_input_hashid</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">with_pipe</span><span class="p">:</span>
+            <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">get_pipe_cfgstr</span><span class="p">())</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cfgstr</span></div>
+
+<div class="viewcode-block" id="BaseRequest.get_input_hashid"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.BaseRequest.get_input_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_input_hashid</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;abstract class method&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseRequest.get_pipe_cfgstr"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.BaseRequest.get_pipe_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_pipe_cfgstr</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BaseRequest.get_pipe_hashid"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.BaseRequest.get_pipe_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_pipe_hashid</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">get_pipe_cfgstr</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="BaseRequest.ensure_dependencies"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.BaseRequest.ensure_dependencies">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_dependencies</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.base --exec-BaseRequest.ensure_dependencies</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache import testdata_depc</span>
+<span class="sd">            &gt;&gt;&gt; depc = testdata_depc()</span>
+<span class="sd">            &gt;&gt;&gt; request = depc.new_request(&#39;vsmany&#39;, [1, 2], [2, 3, 4])</span>
+<span class="sd">            &gt;&gt;&gt; request.ensure_dependencies()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+
+        <span class="n">depc</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">dependencies</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ancestors</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">tablename</span><span class="p">)</span>
+            <span class="n">subgraph</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="nb">set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">dependencies</span><span class="p">,</span> <span class="p">{</span><span class="n">request</span><span class="o">.</span><span class="n">tablename</span><span class="p">}))</span>
+            <span class="n">dependency_order</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">topological_sort</span><span class="p">(</span><span class="n">subgraph</span><span class="p">)</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">dependency_order</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">[</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">algorithms</span><span class="o">.</span><span class="n">dijkstra_path</span><span class="p">(</span><span class="n">subgraph</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">start</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="o">+</span> <span class="n">nx</span><span class="o">.</span><span class="n">algorithms</span><span class="o">.</span><span class="n">dijkstra_path</span><span class="p">(</span><span class="n">subgraph</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">tablename</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">dependency_order</span>
+            <span class="p">]</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">graph</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">topological_sort</span><span class="p">(</span><span class="n">graph</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>
+        <span class="c1"># parent_to_children = ut.edges_to_adjacency_list(edges)</span>
+        <span class="n">child_to_parents</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">edges_to_adjacency_list</span><span class="p">([</span><span class="n">t</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">])</span>
+        <span class="n">to_root</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">tablename</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">paths_to_root</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">tablename</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">child_to_parents</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">from_root</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">reverse_path</span><span class="p">(</span><span class="n">to_root</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">child_to_parents</span><span class="p">)</span>
+        <span class="n">dependency_levels_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_levels</span><span class="p">(</span><span class="n">from_root</span><span class="p">)</span>
+        <span class="n">dependency_levels</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">longest_levels</span><span class="p">(</span><span class="n">dependency_levels_</span><span class="p">)</span>
+
+        <span class="n">true_order</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">dependency_levels</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># logger.info(&#39;[req] Ensuring %s request dependencies: %r&#39; % (request, true_order,))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span>
+            <span class="s1">&#39;[req] Ensuring request </span><span class="si">%s</span><span class="s1"> dependencies: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">true_order</span><span class="p">),</span>
+            <span class="s1">&#39;yellow&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">true_order</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">depc</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">ismulti</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># HACK FOR IBEIS</span>
+                <span class="n">all_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flat_unique</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
+                <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="n">all_aids</span><span class="p">)</span>
+                <span class="k">pass</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># zip(depc.get_implicit_edges())</span>
+        <span class="c1"># zip(depc.get_implicit_edges())</span>
+
+        <span class="c1"># raise NotImplementedError(&#39;todo&#39;)</span>
+        <span class="c1"># depc = request.depc</span>
+        <span class="c1"># parent_rowids = request.parent_rowids</span>
+        <span class="c1"># config = request.config</span>
+        <span class="c1"># rowid_dict = depc.get_all_descendant_rowids(</span>
+        <span class="c1">#    request.tablename, root_rowids, config=config)</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseRequest.execute"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.BaseRequest.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">postprocess</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;[req] Executing request </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="p">,),</span> <span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">tablename</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">use_cache</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent_rowids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parent_rowids</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">parent_rowids</span>
+        <span class="c1"># Compute and cache any uncomputed results</span>
+        <span class="n">rowids</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_rowid</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">recompute</span><span class="o">=</span><span class="ow">not</span> <span class="n">use_cache</span><span class="p">)</span>
+        <span class="c1"># Load all results</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">postprocess</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;postprocess_execute&#39;</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Converting results&#39;</span><span class="p">)</span>
+            <span class="n">result_list</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">postprocess_execute</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">result_list</span></div>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># SUPER HACK</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;dbdir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;depc&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">state_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia</span>
+
+        <span class="n">dbdir</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;dbdir&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;dbdir&#39;</span><span class="p">]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span>
+        <span class="n">depc</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">depc</span>
+        <span class="n">configclass</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">configclass_dict</span><span class="p">[</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;tablename&#39;</span><span class="p">]]</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">configclass</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;depc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">depc</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="n">request</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AnnotSimiliarity"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.AnnotSimiliarity">[docs]</a><span class="k">class</span> <span class="nc">AnnotSimiliarity</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="AnnotSimiliarity.get_query_hashid"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.AnnotSimiliarity.get_query_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_query_hashid</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">_get_rootset_hashid</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnnotSimiliarity.get_data_hashid"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.AnnotSimiliarity.get_data_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_data_hashid</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">_get_rootset_hashid</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">daids</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="VsOneSimilarityRequest"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.VsOneSimilarityRequest">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">VsOneSimilarityRequest</span><span class="p">(</span><span class="n">BaseRequest</span><span class="p">,</span> <span class="n">AnnotSimiliarity</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Similarity request for pairwise scores</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://thingspython.wordpress.com/2010/09/27/</span>
+<span class="sd">        another-super-wrinkle-raising-typeerror/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.base --exec-VsOneSimilarityRequest</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.example_depcache import testdata_depc</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = [1, 2, 3, 5]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = [2, 3, 4]</span>
+<span class="sd">        &gt;&gt;&gt; depc = testdata_depc()</span>
+<span class="sd">        &gt;&gt;&gt; request = depc.new_request(&#39;vsone&#39;, qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; results = request.execute()</span>
+<span class="sd">        &gt;&gt;&gt; # Test that adding a query / data id only recomputes necessary items</span>
+<span class="sd">        &gt;&gt;&gt; request2 = depc.new_request(&#39;vsone&#39;, qaid_list + [4], daid_list + [5])</span>
+<span class="sd">        &gt;&gt;&gt; results2 = request2.execute()</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;results = %r&#39; % (results,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;results2 = %r&#39; % (results2,))</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(results), 10, &#39;incorrect num output&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(results2), 16, &#39;incorrect num output&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_symmetric</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="VsOneSimilarityRequest.new"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.VsOneSimilarityRequest.new">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">parent_rowids</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">make_parent_rowids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">parent_rowids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">product_nonsame</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">))</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">static_new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">daids</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">request</span></div>
+
+<div class="viewcode-block" id="VsOneSimilarityRequest.make_parent_rowids"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.VsOneSimilarityRequest.make_parent_rowids">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">make_parent_rowids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">product_nonsame</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parent_rowids_T</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_transpose</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">parent_rowids</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VsOneSimilarityRequest.execute"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.VsOneSimilarityRequest.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">postprocess</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;HACKY REIMPLEMENTATION&quot;&quot;&quot;</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;[req] Executing request </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="p">,),</span> <span class="s1">&#39;yellow&#39;</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">tablename</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">use_cache</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parent_rowids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parent_rowids</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">parent_rowids</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># previously defined in execute subset</span>
+            <span class="c1"># subparent_rowids = request.make_parent_rowids(</span>
+            <span class="c1"># qaids, request.daids)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;given </span><span class="si">%d</span><span class="s1"> specific parent_rowids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">),))</span>
+
+        <span class="c1"># vsone hack (i,j) same as (j,i)</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">_symmetric</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+            <span class="n">directed_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">)</span>
+            <span class="n">undirected_edges</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">to_undirected_edges</span><span class="p">(</span><span class="n">directed_edges</span><span class="p">)</span>
+            <span class="n">edge_ids</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compute_unique_data_ids</span><span class="p">(</span><span class="n">undirected_edges</span><span class="p">)</span>
+            <span class="n">unique_rows</span><span class="p">,</span> <span class="n">unique_rowx</span><span class="p">,</span> <span class="n">inverse_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span>
+                <span class="n">edge_ids</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">parent_rowids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">parent_rowids</span><span class="p">,</span> <span class="n">unique_rowx</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parent_rowids_</span> <span class="o">=</span> <span class="n">parent_rowids</span>
+
+        <span class="c1"># Compute and cache any uncomputed results</span>
+        <span class="n">rowids</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_rowid</span><span class="p">(</span><span class="n">parent_rowids_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">recompute</span><span class="o">=</span><span class="ow">not</span> <span class="n">use_cache</span><span class="p">)</span>
+        <span class="c1"># Load all results</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">_symmetric</span><span class="p">:</span>
+            <span class="n">result_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="n">inverse_idx</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">postprocess</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;postprocess_execute&#39;</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Converting results&#39;</span><span class="p">)</span>
+            <span class="n">result_list</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">postprocess_execute</span><span class="p">(</span>
+                <span class="n">table</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="n">result_list</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_list</span></div>
+
+<div class="viewcode-block" id="VsOneSimilarityRequest.get_input_hashid"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.VsOneSimilarityRequest.get_input_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_input_hashid</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">get_query_hashid</span><span class="p">(),</span> <span class="n">request</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">()])</span></div>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">infostr_</span> <span class="o">=</span> <span class="s1">&#39;nQ=</span><span class="si">%s</span><span class="s1">, nD=</span><span class="si">%s</span><span class="s1">, nP=</span><span class="si">%d</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">qaids</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">daids</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">parent_rowids</span><span class="p">),</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">get_pipe_hashid</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">%s</span><span class="s1">) </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">infostr_</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VsManySimilarityRequest"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.VsManySimilarityRequest">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">VsManySimilarityRequest</span><span class="p">(</span><span class="n">BaseRequest</span><span class="p">,</span> <span class="n">AnnotSimiliarity</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Request for one-vs-many simlarity</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.base --exec-VsManySimilarityRequest</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.base import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.example_depcache import testdata_depc</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = [1, 2]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = [2, 3, 4]</span>
+<span class="sd">        &gt;&gt;&gt; depc = testdata_depc()</span>
+<span class="sd">        &gt;&gt;&gt; request = depc.new_request(&#39;vsmany&#39;, qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; request.ensure_dependencies()</span>
+<span class="sd">        &gt;&gt;&gt; results = request.execute()</span>
+<span class="sd">        &gt;&gt;&gt; # Test dependence on data</span>
+<span class="sd">        &gt;&gt;&gt; request2 = depc.new_request(&#39;vsmany&#39;, qaid_list + [3], daid_list + [5])</span>
+<span class="sd">        &gt;&gt;&gt; results2 = request2.execute()</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;results = %r&#39; % (results,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;results2 = %r&#39; % (results2,))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(results) == 2, &#39;incorrect num output&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert len(results2) == 3, &#39;incorrect num output&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="VsManySimilarityRequest.new"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.VsManySimilarityRequest.new">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tablename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">parent_rowids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">static_new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">parent_rowids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">tablename</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">daids</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+        <span class="c1"># HACK</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">daids</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">daids</span>
+        <span class="k">return</span> <span class="n">request</span></div>
+
+<div class="viewcode-block" id="VsManySimilarityRequest.get_input_hashid"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.VsManySimilarityRequest.get_input_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_input_hashid</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="c1"># return &#39;_&#39;.join([request.get_query_hashid(), request.get_data_hashid()])</span>
+        <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">get_query_hashid</span><span class="p">()])</span></div>
+
+<div class="viewcode-block" id="VsManySimilarityRequest.get_cfgstr"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.VsManySimilarityRequest.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span> <span class="n">with_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hash_pipe</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Override default get_cfgstr to show reliance on data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">with_input</span><span class="p">:</span>
+            <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">get_query_hashid</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">with_data</span><span class="p">:</span>
+            <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">with_pipe</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hash_pipe</span><span class="p">:</span>
+                <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">get_pipe_hashid</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">get_pipe_cfgstr</span><span class="p">())</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cfgstr</span></div>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">request</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">controller</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">infostr_</span> <span class="o">=</span> <span class="s1">&#39;nQ=</span><span class="si">%s</span><span class="s1">, nD=</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">qaids</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">daids</span><span class="p">),</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">get_pipe_hashid</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">%s</span><span class="s1">) </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">infostr_</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ClassVsClassSimilarityRequest"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.ClassVsClassSimilarityRequest">[docs]</a><span class="k">class</span> <span class="nc">ClassVsClassSimilarityRequest</span><span class="p">(</span><span class="n">BaseRequest</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="AlgoResult"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.AlgoResult">[docs]</a><span class="k">class</span> <span class="nc">AlgoResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for algo result objects&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AlgoResult.load_from_fpath"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.AlgoResult.load_from_fpath">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load_from_fpath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="AlgoResult.save_to_fpath"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.AlgoResult.save_to_fpath">[docs]</a>    <span class="k">def</span> <span class="nf">save_to_fpath</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">save_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
+        <span class="k">return</span> <span class="n">state_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AlgoResult.copy"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.AlgoResult.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">())</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+
+<div class="viewcode-block" id="safeop"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.safeop">[docs]</a><span class="k">def</span> <span class="nf">safeop</span><span class="p">(</span><span class="n">op_</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">xs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">op_</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatchResult"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.base.MatchResult">[docs]</a><span class="k">class</span> <span class="nc">MatchResult</span><span class="p">(</span><span class="n">AlgoResult</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">qaid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">daids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">qnid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dnid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">annot_score_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">unique_nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name_score_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dnid_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">dnid_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">annot_score_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_score_list</span> <span class="o">=</span> <span class="n">safeop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">name_score_list</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_daids</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">daids</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">qaids</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39; qaid=</span><span class="si">%s</span><span class="s1"> nD=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">num_daids</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

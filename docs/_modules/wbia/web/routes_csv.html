@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.web.routes_csv &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.web.routes_csv</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.web.routes_csv</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dependencies: flask, tornado</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">current_app</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">routes</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_route</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_associations_dict"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_associations_dict">[docs]</a><span class="k">def</span> <span class="nf">get_associations_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">desired_species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">itertools</span>
+
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;ZEBRA_Kaia&#39;</span><span class="p">:</span>
+        <span class="n">valid_aid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+        <span class="n">imageset_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_princeton_kaia_imageset_filtering</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">valid_aid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+        <span class="n">imageset_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">(</span><span class="n">is_special</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">valid_nid_set</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">valid_aid_set</span><span class="p">)</span>
+    <span class="n">valid_nid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">valid_nid_set</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">imageset_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">(</span><span class="n">imageset_list</span><span class="p">)</span>
+    <span class="n">time_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_start_time_posix</span><span class="p">(</span><span class="n">imageset_list</span><span class="p">)</span>
+    <span class="n">nids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_nids</span><span class="p">(</span><span class="n">imageset_list</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_associate</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name2</span> <span class="o">&lt;</span> <span class="n">name1</span><span class="p">:</span>
+            <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="o">=</span> <span class="n">name2</span><span class="p">,</span> <span class="n">name1</span>
+        <span class="k">if</span> <span class="n">name1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dict_</span><span class="p">:</span>
+            <span class="n">dict_</span><span class="p">[</span><span class="n">name1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">name2</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dict_</span><span class="p">[</span><span class="n">name1</span><span class="p">]:</span>
+            <span class="n">dict_</span><span class="p">[</span><span class="n">name1</span><span class="p">][</span><span class="n">name2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dict_</span><span class="p">[</span><span class="n">name1</span><span class="p">][</span><span class="n">name2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,))</span>
+
+    <span class="n">assoc_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">imageset_text</span><span class="p">,</span> <span class="n">time_</span><span class="p">,</span> <span class="n">nid_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">imageset_text_list</span><span class="p">,</span> <span class="n">time_list</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">desired_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+
+            <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">):</span>
+                <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">valid_aid_set</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                    <span class="n">species</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">species_list</span><span class="o">.</span><span class="n">count</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;ZEBRA_Kaia&#39;</span> <span class="ow">and</span> <span class="n">desired_species</span> <span class="o">==</span> <span class="s1">&#39;zebra&#39;</span><span class="p">:</span>
+                        <span class="n">flag</span> <span class="o">=</span> <span class="n">species</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;zebra_plains&#39;</span><span class="p">,</span> <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">flag</span> <span class="o">=</span> <span class="n">species</span> <span class="o">==</span> <span class="n">desired_species</span>
+                <span class="n">flag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+            <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">valid_nid_set</span><span class="p">)</span>
+        <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+        <span class="c1"># Add singles</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">name_list</span><span class="p">:</span>
+            <span class="n">_associate</span><span class="p">(</span><span class="n">assoc_dict</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">imageset_text</span><span class="p">)</span>
+            <span class="c1"># _associate(assoc_dict, name, name, time_)</span>
+        <span class="c1"># Add pairs</span>
+        <span class="n">comb_list</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">name_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">comb_list</span><span class="p">)):</span>
+            <span class="n">_associate</span><span class="p">(</span><span class="n">assoc_dict</span><span class="p">,</span> <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span><span class="p">,</span> <span class="n">imageset_text</span><span class="p">)</span>
+            <span class="c1"># _associate(assoc_dict, name, name, time_)</span>
+
+    <span class="k">return</span> <span class="n">assoc_dict</span></div>
+
+
+<div class="viewcode-block" id="download_associations_list"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.download_associations_list">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/princeton/associations/list/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">download_associations_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="n">key_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">key_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="n">key_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key_str</span><span class="p">)</span>
+    <span class="n">key_str</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">key_str_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">key_str</span> <span class="o">+=</span> <span class="s1">&#39;.&#39;</span>
+
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;associations.list.</span><span class="si">%s</span><span class="s1">csv&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key_str</span><span class="p">,)</span>
+    <span class="n">assoc_dict</span> <span class="o">=</span> <span class="n">get_associations_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">max_length</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">name1</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">assoc_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">name2</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">assoc_dict</span><span class="p">[</span><span class="n">name1</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">id_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">assoc_dict</span><span class="p">[</span><span class="n">name1</span><span class="p">][</span><span class="n">name2</span><span class="p">]))</span>
+            <span class="n">id_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">id_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;:COMMA:&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">id_list</span><span class="p">]</span>
+            <span class="n">max_length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">))</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">name1</span><span class="p">,</span>
+                <span class="n">name2</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">),</span>
+                <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">id_list</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+            <span class="n">combined_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combined_str</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">max_length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># name_header_str = &#39;TIME&#39;</span>
+        <span class="n">name_header_str</span> <span class="o">=</span> <span class="s1">&#39;ENCOUTNER&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># name_header_str = &#39;,&#39;.join([ &#39;TIME%d&#39; % (i + 1, ) for i in range(max_length) ])</span>
+        <span class="n">name_header_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;ENCOUNTER</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_length</span><span class="p">)])</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;NAME1,NAME2,ASSOCIATIONS,</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_header_str</span><span class="p">,)</span> <span class="o">+</span> <span class="n">combined_str</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">combined_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="download_associations_matrix"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.download_associations_matrix">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/princeton/associations/matrix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">download_associations_matrix</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="n">key_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">key_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="n">key_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key_str</span><span class="p">)</span>
+    <span class="n">key_str</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">key_str_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">key_str</span> <span class="o">+=</span> <span class="s1">&#39;.&#39;</span>
+
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;associations.matrix.</span><span class="si">%s</span><span class="s1">csv&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key_str</span><span class="p">,)</span>
+
+    <span class="n">assoc_dict</span> <span class="o">=</span> <span class="n">get_associations_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">assoc_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">assoc_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="c1"># max_length = len(assoc_list)</span>
+
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index1</span><span class="p">,</span> <span class="n">name1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">assoc_list</span><span class="p">):</span>
+        <span class="n">temp_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">name1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">index2</span><span class="p">,</span> <span class="n">name2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">assoc_list</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">assoc_dict</span><span class="p">[</span><span class="n">name1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name2</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">value_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">value_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">value_len</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">value_len</span>
+            <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value_str</span><span class="p">,))</span>
+        <span class="n">temp_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_list</span><span class="p">)</span>
+        <span class="n">combined_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_str</span><span class="p">)</span>
+
+    <span class="c1"># if max_length == 1:</span>
+    <span class="c1">#     name_header_str = &#39;NAME&#39;</span>
+    <span class="c1"># else:</span>
+    <span class="c1">#     name_header_str = &#39;,&#39;.join([ &#39;NAME%d&#39; % (i + 1, ) for i in range(max_length) ])</span>
+    <span class="n">name_header_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">assoc_list</span><span class="p">)</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;MATRIX,</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_header_str</span><span class="p">,)</span> <span class="o">+</span> <span class="n">combined_str</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">combined_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="download_sightings"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.download_sightings">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/princeton/sightings/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">download_sightings</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;sightings.csv&#39;</span>
+    <span class="n">kaia</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;ZEBRA_Kaia&#39;</span>
+    <span class="n">sightings</span> <span class="o">=</span> <span class="n">routes</span><span class="o">.</span><span class="n">sightings</span><span class="p">(</span><span class="n">html_encode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kaia</span><span class="o">=</span><span class="n">kaia</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">sightings</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_image_info"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_image_info">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/princeton/images/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_image_info</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">datetime</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;images.csv&#39;</span>
+
+    <span class="n">valid_aid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">())</span>
+    <span class="n">gname_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gnames</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">datetime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">datetime_list_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">datetime_</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">datetime_</span> <span class="ow">in</span> <span class="n">datetime_list</span>
+    <span class="p">]</span>
+    <span class="n">lat_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_lat</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">lon_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_lon</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">note_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_notes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">party_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">contributor_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">note_list</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">note</span> <span class="o">=</span> <span class="n">note</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">party</span><span class="p">,</span> <span class="n">contributor</span> <span class="o">=</span> <span class="n">note</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">party_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">party</span><span class="p">)</span>
+            <span class="n">contributor_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contributor</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">party_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNKNOWN&#39;</span><span class="p">)</span>
+            <span class="n">contributor_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNKNOWN&#39;</span><span class="p">)</span>
+
+    <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">gid_list</span><span class="p">,</span>
+        <span class="n">gname_list</span><span class="p">,</span>
+        <span class="n">datetime_list_</span><span class="p">,</span>
+        <span class="n">lat_list</span><span class="p">,</span>
+        <span class="n">lon_list</span><span class="p">,</span>
+        <span class="n">party_list</span><span class="p">,</span>
+        <span class="n">contributor_list</span><span class="p">,</span>
+        <span class="n">note_list</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">aid_</span> <span class="k">for</span> <span class="n">aid_</span> <span class="ow">in</span> <span class="n">aid_list_</span> <span class="k">if</span> <span class="n">aid_</span> <span class="ow">in</span> <span class="n">valid_aid_set</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid_list_</span> <span class="ow">in</span> <span class="n">aids_list</span>
+    <span class="p">]</span>
+    <span class="n">names_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">zipped</span><span class="p">)</span> <span class="o">+</span> <span class="n">name_list</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">zipped</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">name_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">zipped_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">names_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span> <span class="o">!=</span> <span class="s1">&#39;ZEBRA_Kaia&#39;</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="p">]</span>
+    <span class="n">max_length</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">name_list</span> <span class="ow">in</span> <span class="n">names_list</span><span class="p">:</span>
+        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">max_length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">name_header_str</span> <span class="o">=</span> <span class="s1">&#39;NAME&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">name_header_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;NAME</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_length</span><span class="p">)])</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;GID,FILENAME,TIMESTAMP,GPSLAT,GPSLON,PARTY,CONTRIBUTOR,NOTES,</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">name_header_str</span><span class="p">,)</span>
+        <span class="o">+</span> <span class="n">combined_str</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">combined_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_demographic_info"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_demographic_info">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/princeton/demographics/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_demographic_info</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;demographics.csv&#39;</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span>
+    <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">sex_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_sex_text</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">min_ages_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_age_months_est_min</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">max_ages_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_age_months_est_max</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_primary_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">species_list</span><span class="o">.</span><span class="n">count</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">species</span>
+
+    <span class="n">age_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">min_ages</span><span class="p">,</span> <span class="n">max_ages</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">min_ages_list</span><span class="p">,</span> <span class="n">max_ages_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">min_ages</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">max_ages</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">age_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;AMBIGUOUS&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">min_age</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">max_age</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">min_ages</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">min_age</span> <span class="o">=</span> <span class="n">min_ages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">max_ages</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">max_age</span> <span class="o">=</span> <span class="n">max_ages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Histogram</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">min_age</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">age_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNREVIEWED&#39;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="c1"># Bins</span>
+        <span class="k">if</span> <span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;0-3 Months&#39;</span>
+        <span class="k">elif</span> <span class="n">min_age</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;3-6 Months&#39;</span>
+        <span class="k">elif</span> <span class="n">min_age</span> <span class="o">==</span> <span class="mi">6</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="o">==</span> <span class="mi">11</span><span class="p">:</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;6-12 Months&#39;</span>
+        <span class="k">elif</span> <span class="n">min_age</span> <span class="o">==</span> <span class="mi">12</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="o">==</span> <span class="mi">23</span><span class="p">:</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;Yearling&#39;</span>
+        <span class="k">elif</span> <span class="n">min_age</span> <span class="o">==</span> <span class="mi">24</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="o">==</span> <span class="mi">35</span><span class="p">:</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;2-Year-Old&#39;</span>
+        <span class="k">elif</span> <span class="n">min_age</span> <span class="o">==</span> <span class="mi">36</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;Adult&#39;</span>
+        <span class="k">elif</span> <span class="n">min_age</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">max_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+        <span class="n">age_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">age</span><span class="p">)</span>
+
+    <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">,</span> <span class="n">sex_list</span><span class="p">,</span> <span class="n">age_list</span><span class="p">)</span>
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">zipped</span><span class="p">)))</span> <span class="k">for</span> <span class="n">zipped</span> <span class="ow">in</span> <span class="n">zipped_list</span><span class="p">]</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;NID,NAME,SEX,AGE</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">combined_str</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">combined_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annotation_special_kaia_dung_samples"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_annotation_special_kaia_dung_samples">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/princeton/special/kaia-dung-samples/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_annotation_special_kaia_dung_samples</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;dungsamples.csv&#39;</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">dungsample_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">dungsample</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">dungsample</span> <span class="ow">in</span> <span class="n">dungsample_list</span><span class="p">]</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">dungsample_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">dungsample_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">assoc_dict</span> <span class="o">=</span> <span class="n">get_associations_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">desired_species</span><span class="o">=</span><span class="s1">&#39;zebra&#39;</span><span class="p">,</span> <span class="n">tier</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">encounter_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">max_length</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">name_list</span><span class="p">):</span>
+        <span class="n">id_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">assoc_dict</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">name</span><span class="p">]))</span>
+        <span class="n">id_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">id_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;:COMMA:&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">id_</span> <span class="ow">in</span> <span class="n">id_list</span><span class="p">]</span>
+        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">))</span>
+        <span class="n">encounter_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span>
+        <span class="n">encounter_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">encounter_str</span><span class="p">)</span>
+
+    <span class="n">sex_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_sex</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">age_min_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_min</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">age_max_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_max</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">condition_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">sex_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">age_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">condition_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sex_list</span><span class="p">,</span> <span class="n">age_min_list</span><span class="p">,</span> <span class="n">age_max_list</span><span class="p">,</span> <span class="n">condition_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">sex_</span><span class="p">,</span> <span class="n">age_min</span><span class="p">,</span> <span class="n">age_max</span><span class="p">,</span> <span class="n">condition_</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sex_</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">sex_</span> <span class="o">=</span> <span class="s1">&#39;male&#39;</span>
+        <span class="k">elif</span> <span class="n">sex_</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sex_</span> <span class="o">=</span> <span class="s1">&#39;female&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sex_</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
+
+        <span class="k">if</span> <span class="n">age_min</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">age_max</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;age1&#39;</span>
+        <span class="k">elif</span> <span class="n">age_min</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">age_max</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;age2&#39;</span>
+        <span class="k">elif</span> <span class="n">age_min</span> <span class="o">==</span> <span class="mi">6</span> <span class="ow">and</span> <span class="n">age_max</span> <span class="o">==</span> <span class="mi">11</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;age3&#39;</span>
+        <span class="k">elif</span> <span class="n">age_min</span> <span class="o">==</span> <span class="mi">12</span> <span class="ow">and</span> <span class="n">age_max</span> <span class="o">==</span> <span class="mi">23</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;age4&#39;</span>
+        <span class="k">elif</span> <span class="n">age_min</span> <span class="o">==</span> <span class="mi">24</span> <span class="ow">and</span> <span class="n">age_max</span> <span class="o">==</span> <span class="mi">35</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;age5&#39;</span>
+        <span class="k">elif</span> <span class="n">age_min</span> <span class="o">==</span> <span class="mi">36</span> <span class="ow">and</span> <span class="n">age_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;age6&#39;</span>
+        <span class="k">elif</span> <span class="n">age_min</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">age_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
+
+        <span class="k">if</span> <span class="n">condition_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">condition_</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">assert</span> <span class="n">age_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;age1&#39;</span><span class="p">,</span> <span class="s1">&#39;age2&#39;</span><span class="p">,</span> <span class="s1">&#39;age3&#39;</span><span class="p">,</span> <span class="s1">&#39;age4&#39;</span><span class="p">,</span> <span class="s1">&#39;age5&#39;</span><span class="p">,</span> <span class="s1">&#39;age6&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">sex_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;male&#39;</span><span class="p">,</span> <span class="s1">&#39;female&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">condition_</span> <span class="ow">and</span> <span class="n">condition_</span> <span class="o">&lt;=</span> <span class="mi">5</span>
+
+        <span class="k">if</span> <span class="n">sex_</span> <span class="o">==</span> <span class="s1">&#39;male&#39;</span><span class="p">:</span>
+            <span class="n">sex_</span> <span class="o">=</span> <span class="s1">&#39;Male&#39;</span>
+        <span class="k">elif</span> <span class="n">sex_</span> <span class="o">==</span> <span class="s1">&#39;female&#39;</span><span class="p">:</span>
+            <span class="n">sex_</span> <span class="o">=</span> <span class="s1">&#39;Female&#39;</span>
+        <span class="k">elif</span> <span class="n">sex_</span> <span class="o">==</span> <span class="s1">&#39;unknown&#39;</span><span class="p">:</span>
+            <span class="n">sex_</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sex_</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+
+        <span class="k">if</span> <span class="n">age_</span> <span class="o">==</span> <span class="s1">&#39;age1&#39;</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;0-3 Months&#39;</span>
+        <span class="k">elif</span> <span class="n">age_</span> <span class="o">==</span> <span class="s1">&#39;age2&#39;</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;3-6 Months&#39;</span>
+        <span class="k">elif</span> <span class="n">age_</span> <span class="o">==</span> <span class="s1">&#39;age3&#39;</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;6-12 Months&#39;</span>
+        <span class="k">elif</span> <span class="n">age_</span> <span class="o">==</span> <span class="s1">&#39;age4&#39;</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;Yearling&#39;</span>
+        <span class="k">elif</span> <span class="n">age_</span> <span class="o">==</span> <span class="s1">&#39;age5&#39;</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;2-Year-Old&#39;</span>
+        <span class="k">elif</span> <span class="n">age_</span> <span class="o">==</span> <span class="s1">&#39;age6&#39;</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;Adult&#39;</span>
+        <span class="k">elif</span> <span class="n">age_</span> <span class="o">==</span> <span class="s1">&#39;unknown&#39;</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">age_</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+
+        <span class="n">sex_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sex_</span><span class="p">)</span>
+        <span class="n">age_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">age_</span><span class="p">)</span>
+        <span class="n">condition_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">condition_</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">max_length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">name_header_str</span> <span class="o">=</span> <span class="s1">&#39;ENCOUTNER&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">name_header_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;ENCOUNTER</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_length</span><span class="p">)])</span>
+
+    <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">name_list</span><span class="p">,</span>
+            <span class="n">nid_list</span><span class="p">,</span>
+            <span class="n">aid_list</span><span class="p">,</span>
+            <span class="n">dungsample_list</span><span class="p">,</span>
+            <span class="n">age_list_</span><span class="p">,</span>
+            <span class="n">sex_list_</span><span class="p">,</span>
+            <span class="n">condition_list_</span><span class="p">,</span>
+            <span class="n">encounter_str_list</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">zipped_</span><span class="p">)))</span> <span class="k">for</span> <span class="n">zipped_</span> <span class="ow">in</span> <span class="n">zipped_list</span><span class="p">]</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;NAME,NID,AID,DUNGSAMPLE,AGE,SEX,CONDITION,</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_header_str</span><span class="p">,)</span>
+        <span class="o">+</span> <span class="n">combined_str</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">combined_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annotation_special_monica_laurel_max"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_annotation_special_monica_laurel_max">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/princeton/special/monica-laurel-max/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_annotation_special_monica_laurel_max</span><span class="p">(</span><span class="n">desired_species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;special.monica-laurel-max.csv&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_process_annot_name_uuids_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">uuid</span>
+
+        <span class="n">auuid_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">nuuid_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                <span class="n">auuid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">nuuid</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="k">else</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">auuid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">auuid</span><span class="p">)</span>
+                <span class="n">nuuid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nuuid</span><span class="p">)</span>
+
+        <span class="n">annot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">auuid_list</span><span class="p">)</span>
+        <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_uuid</span><span class="p">(</span><span class="n">nuuid_list</span><span class="p">)</span>
+
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annot_rowid_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+        <span class="n">mapping_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">zipped</span> <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">mapping_dict</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> aids&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">name_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_uuids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">sex_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_sex_text</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">age_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">contrib_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_contributor_tag</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">gname_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gnames</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">imageset_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_imgsetids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">imageset_rowids_set</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="n">imageset_rowids_list</span><span class="p">)</span>
+
+    <span class="n">special_imageset_rowid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">(</span><span class="n">is_special</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">imagesets_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">imageset_rowid_set</span> <span class="o">-</span> <span class="n">special_imageset_rowid_set</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">imageset_rowid_set</span> <span class="ow">in</span> <span class="n">imageset_rowids_set</span>
+    <span class="p">]</span>
+
+    <span class="n">imageset_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">imagesets_list</span><span class="p">]</span>
+    <span class="n">imageset_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_text</span><span class="p">(</span><span class="n">imageset_list</span><span class="p">)</span>
+    <span class="n">imageset_metadata_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_metadata</span><span class="p">(</span><span class="n">imageset_list</span><span class="p">)</span>
+    <span class="n">annot_metadata_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_metadata</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">imageset_metadata_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_metadata_list</span><span class="p">)</span>
+
+    <span class="n">imageset_metadata_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">())</span>
+    <span class="n">imageset_metadata_key_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="nb">set</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">imageset_metadata_dict_</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">imageset_metadata_dict_</span> <span class="ow">in</span> <span class="n">imageset_metadata_list_</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">imageset_metadata_key_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">imageset_metadata_key_list</span><span class="p">)</span>
+
+    <span class="n">annot_metadata_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+    <span class="n">annot_metadata_key_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="nb">set</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">annot_metadata_dict_</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">annot_metadata_dict_</span> <span class="ow">in</span> <span class="n">annot_metadata_list_</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">annot_metadata_key_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">annot_metadata_key_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;Monica-Laurel&#39;</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">wbia</span>
+
+        <span class="n">ibs1</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;/home/zebra/Desktop/Monica/&#39;</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ibs2</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;/home/zebra/Desktop/Laurel/&#39;</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;Monica-Max&#39;</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">wbia</span>
+
+        <span class="n">ibs1</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;/home/zebra/Desktop/Monica/&#39;</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ibs2</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;/home/zebra/Desktop/Max/&#39;</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ibs1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ibs2</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">line_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">nid_list</span><span class="p">,</span>
+        <span class="n">aid_list</span><span class="p">,</span>
+        <span class="n">name_uuid_list</span><span class="p">,</span>
+        <span class="n">annot_uuid_list</span><span class="p">,</span>
+        <span class="n">name_list</span><span class="p">,</span>
+        <span class="n">species_list</span><span class="p">,</span>
+        <span class="n">sex_list</span><span class="p">,</span>
+        <span class="n">age_list</span><span class="p">,</span>
+        <span class="n">gname_list</span><span class="p">,</span>
+        <span class="n">contrib_list</span><span class="p">,</span>
+        <span class="n">imageset_list</span><span class="p">,</span>
+        <span class="n">imageset_text_list</span><span class="p">,</span>
+        <span class="n">imageset_metadata_list</span><span class="p">,</span>
+        <span class="n">annot_metadata_list</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">zipped</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+        <span class="p">(</span>
+            <span class="n">nid</span><span class="p">,</span>
+            <span class="n">aid</span><span class="p">,</span>
+            <span class="n">name_uuid</span><span class="p">,</span>
+            <span class="n">annot_uuid</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">sex</span><span class="p">,</span>
+            <span class="n">age</span><span class="p">,</span>
+            <span class="n">gname</span><span class="p">,</span>
+            <span class="n">contrib</span><span class="p">,</span>
+            <span class="n">imageset_rowid</span><span class="p">,</span>
+            <span class="n">imageset_text</span><span class="p">,</span>
+            <span class="n">imageset_metadata_dict</span><span class="p">,</span>
+            <span class="n">annot_metadata_dict</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">args</span>
+
+        <span class="n">contrib_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">contrib</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">contrib</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">desired_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">species</span> <span class="o">!=</span> <span class="n">desired_species</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">nid</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">nid_old</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">name_old</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">name_changed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">cross_database_match</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ibs1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ibs2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">aid1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+                <span class="n">aid2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">aid1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="n">aid2</span> <span class="ow">is</span> <span class="kc">None</span>
+                    <span class="n">name_uuid_old</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_name_uuids</span><span class="p">(</span><span class="n">aid1</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">aid2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="n">aid1</span> <span class="ow">is</span> <span class="kc">None</span>
+                    <span class="n">name_uuid_old</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_name_uuids</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;Should be in one of these original databases&#39;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">name_uuid_old</span> <span class="o">!=</span> <span class="n">name_uuid</span><span class="p">:</span>
+                    <span class="n">name_changed</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">if</span> <span class="n">name_uuid_old</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">nid_old</span> <span class="o">=</span> <span class="s1">&#39;UNKNOWN NID&#39;</span>
+                        <span class="n">name_old</span> <span class="o">=</span> <span class="s1">&#39;UNKNOWN NAME&#39;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">nid_old</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_uuid</span><span class="p">(</span><span class="n">name_uuid_old</span><span class="p">)</span>
+                        <span class="n">name_old</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_old</span><span class="p">)</span>
+
+                    <span class="n">cross_database_match</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">contrib_str</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ERROR WITH ABOVE&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+
+        <span class="n">line_list_</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">contrib_str</span><span class="p">,</span>
+                <span class="n">annot_uuid</span><span class="p">,</span>
+                <span class="n">aid</span><span class="p">,</span>
+                <span class="n">annot_uuid</span><span class="p">,</span>
+                <span class="n">nid</span><span class="p">,</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="s1">&#39;Yes&#39;</span> <span class="k">if</span> <span class="n">name_changed</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Yes&#39;</span> <span class="k">if</span> <span class="n">cross_database_match</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                <span class="n">nid_old</span><span class="p">,</span>
+                <span class="n">name_old</span><span class="p">,</span>
+                <span class="n">species</span><span class="p">,</span>
+                <span class="n">sex</span><span class="p">,</span>
+                <span class="n">age</span><span class="p">,</span>
+                <span class="n">gname</span><span class="p">,</span>
+                <span class="n">imageset_rowid</span><span class="p">,</span>
+                <span class="n">imageset_text</span><span class="p">,</span>
+                <span class="s1">&#39;|&#39;</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="o">+</span> <span class="p">[</span>
+                <span class="n">imageset_metadata_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">imageset_metadata_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">imageset_metadata_key</span> <span class="ow">in</span> <span class="n">imageset_metadata_key_list</span>
+            <span class="p">]</span>
+            <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;|&#39;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="p">[</span>
+                <span class="n">annot_metadata_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">annot_metadata_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">annot_metadata_key</span> <span class="ow">in</span> <span class="n">annot_metadata_key_list</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">line_list_</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">line_list_</span><span class="p">]</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">line_list_</span><span class="p">))</span>
+        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;DB,Annotation UUID,AID,NID,Name,Name Changed,Cross-Database Match,Old NID,Old Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,</span><span class="si">%s</span><span class="s1">,| SEPERATOR |,</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">imageset_metadata_key_str</span><span class="p">,</span> <span class="n">annot_metadata_key_str</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">combined_str</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">combined_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annotation_special_megan"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_annotation_special_megan">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/princeton/special/megan/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_annotation_special_megan</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;special.megan.csv&#39;</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">uri_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">path_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris_original</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">tag_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">date1_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">date2_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">note_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">path_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/home/zebra/Desktop/MEGAN/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">base</span> <span class="o">==</span> <span class="s1">&#39;SIDE1_3-22-2016-5-11-2016&#39;</span><span class="p">:</span>  <span class="c1"># HACK</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="s1">&#39;SIDE1_3-22-2016_5-11-2016&#39;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">note</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+                <span class="n">note</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">note</span><span class="p">)</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">note</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+            <span class="n">tag</span><span class="p">,</span> <span class="n">date1</span><span class="p">,</span> <span class="n">date2</span> <span class="o">=</span> <span class="n">path</span>
+            <span class="n">date1</span> <span class="o">=</span> <span class="n">date1</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">date2</span> <span class="o">=</span> <span class="n">date2</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">tag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="n">date1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">date1</span><span class="p">)</span>
+            <span class="n">date2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">date2</span><span class="p">)</span>
+            <span class="n">note_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">note</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ERROR PROCESSING: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base</span><span class="p">,))</span>
+
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">uri_list</span><span class="p">,</span> <span class="n">tag_list</span><span class="p">,</span> <span class="n">date1_list</span><span class="p">,</span> <span class="n">date2_list</span><span class="p">,</span> <span class="n">note_list</span><span class="p">)</span>
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">value_list</span><span class="p">))</span> <span class="k">for</span> <span class="n">value_list</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">]</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;GID,FILENAME,LOCATION,DATE1,DATE2,NOTE</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">combined_str</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">combined_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_nid_with_gids_csv"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_nid_with_gids_csv">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/nids_with_gids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_nid_with_gids_csv</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;nids_with_gids.csv&#39;</span>
+    <span class="n">combined_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_nids_with_gids</span><span class="p">()</span>
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="p">[</span><span class="n">nid</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="n">gid_list</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">combined_dict</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()))</span>
+    <span class="p">]</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
+    <span class="n">max_length</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">combined_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">max_length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">gid_header_str</span> <span class="o">=</span> <span class="s1">&#39;GID&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gid_header_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;GID</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_length</span><span class="p">)])</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;NID,NAME,</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid_header_str</span><span class="p">,)</span> <span class="o">+</span> <span class="n">combined_str</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">combined_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_gid_with_aids_csv"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_gid_with_aids_csv">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/gids_with_aids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_gid_with_aids_csv</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">combined_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_with_aids</span><span class="p">()</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;gids_with_aids.csv&#39;</span>
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">+</span> <span class="n">aid_list</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">combined_dict</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()))</span>
+    <span class="p">]</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combined_list</span><span class="p">)</span>
+    <span class="n">max_length</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">combined_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">max_length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">aid_header_str</span> <span class="o">=</span> <span class="s1">&#39;AID&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">aid_header_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;AID</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_length</span><span class="p">)])</span>
+    <span class="n">combined_str</span> <span class="o">=</span> <span class="s1">&#39;GID,</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_header_str</span><span class="p">,)</span> <span class="o">+</span> <span class="n">combined_str</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">combined_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_gid_list_csv"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_gid_list_csv">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_gid_list_csv</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;gids.csv&#39;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">return_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">))</span>
+    <span class="n">return_str</span> <span class="o">=</span> <span class="s1">&#39;GID</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">return_str</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">return_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_aid_list_csv"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.routes_csv.get_aid_list_csv">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/csv/annot/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_aid_list_csv</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;aids.csv&#39;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">return_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">return_str</span> <span class="o">=</span> <span class="s1">&#39;AID</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">return_str</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">send_csv_file</span><span class="p">(</span><span class="n">return_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

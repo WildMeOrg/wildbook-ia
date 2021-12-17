@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.images &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wbia.images</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.images</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">_wbia_object</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[images]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">BASE_TYPE</span> <span class="o">=</span> <span class="nb">type</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">_autogen_image_base</span>
+
+    <span class="n">IMAGE_BASE</span> <span class="o">=</span> <span class="n">_autogen_image_base</span><span class="o">.</span><span class="n">_image_base_class</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">IMAGE_BASE</span> <span class="o">=</span> <span class="n">_wbia_object</span><span class="o">.</span><span class="n">ObjectList1D</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">_autogen_imageset_base</span>
+
+    <span class="n">IMAGESET_BASE</span> <span class="o">=</span> <span class="n">_autogen_imageset_base</span><span class="o">.</span><span class="n">_imageset_base_class</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">IMAGESET_BASE</span> <span class="o">=</span> <span class="n">_wbia_object</span><span class="o">.</span><span class="n">ObjectList1D</span>
+
+
+<div class="viewcode-block" id="images"><a class="viewcode-back" href="../../api.html#wbia.images.images">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">uuids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Makes an Images object&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">uuids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">gids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;specify one primary key&#39;</span>
+        <span class="n">gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">uuids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">gids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">gids</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;Images&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gids</span>
+    <span class="n">gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Images</span><span class="p">(</span><span class="n">gids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="imagesets"><a class="viewcode-back" href="../../api.html#wbia.images.imagesets">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">imagesets</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gsids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gsids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">gsids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gsids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">gsids</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;ImageSets&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gsids</span>
+    <span class="n">gsids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">gsids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ImageSets</span><span class="p">(</span><span class="n">gsids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ImageIBEISPropertyInjector"><a class="viewcode-back" href="../../api.html#wbia.images.ImageIBEISPropertyInjector">[docs]</a><span class="k">class</span> <span class="nc">ImageIBEISPropertyInjector</span><span class="p">(</span><span class="n">BASE_TYPE</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ImageIBEISPropertyInjector</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
+        <span class="c1"># misc = [ &#39;instancelist&#39;, &#39;gids_with_aids&#39;, &#39;lazydict&#39;, ]  #</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;aids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;aids_of_species&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;annot_uuids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;annot_uuids_of_species&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;annotation_bboxes&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;annotation_thetas&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;contributor_tag&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;datetime&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;datetime_str&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;detect_confidence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;detectpaths&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;enabled&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;exts&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;glrids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gnames&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gps&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gps2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gsgrids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;heights&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;imagesettext&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;imgset_uuids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;imgsetids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;lat&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;location_codes&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;lon&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;missing_uuid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name_uuids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;nids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;notes&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;num_annotations&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;orientation&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;orientation_str&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;party_rowids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;party_tag&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;paths&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;reviewed&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;sizes&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;species_rowids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;species_uuids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;thumbpath&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;thumbtup&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;time_statstr&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;timedelta_posix&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;unixtime&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;unixtime_asfloat&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;unixtime2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;uris&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;uris_original&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;uuids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;widths&#39;</span> <span class="s1">&#39;imgdata&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="c1"># inverse_attrs = [</span>
+        <span class="c1">#     &#39;gids_from_uuid&#39;,</span>
+        <span class="c1"># ]</span>
+        <span class="n">objname</span> <span class="o">=</span> <span class="s1">&#39;image&#39;</span>
+        <span class="n">_wbia_object</span><span class="o">.</span><span class="n">_inject_getter_attrs</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">objname</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="p">[])</span></div>
+
+
+<span class="c1"># @ut.reloadable_class</span>
+<div class="viewcode-block" id="Images"><a class="viewcode-back" href="../../api.html#wbia.images.Images">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ImageIBEISPropertyInjector</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Images</span><span class="p">(</span><span class="n">IMAGE_BASE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a group of annotations. Efficiently accesses properties from a</span>
+<span class="sd">    database using lazy evaluation.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.images Images --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.images import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gids = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; g = self = images = Images(gids, ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(g.widths)</span>
+<span class="sd">        &gt;&gt;&gt; print(g)</span>
+<span class="sd">        &lt;Images(num=13)&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># def __init__(self, gids, ibs, config=None):</span>
+    <span class="c1">#    super(Images, self).__init__(gids, ibs, config)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">annots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_annot_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">_annot_groups</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annots</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Images.remove_from_imageset"><a class="viewcode-back" href="../../api.html#wbia.images.Images.remove_from_imageset">[docs]</a>    <span class="k">def</span> <span class="nf">remove_from_imageset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageset_text</span><span class="p">):</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imageset_text</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">gsid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">imageset_text</span><span class="p">)</span>
+            <span class="n">gsids</span> <span class="o">=</span> <span class="p">[</span><span class="n">gsid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gsids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">imageset_text</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_imagesets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gids</span><span class="p">,</span> <span class="n">gsids</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Images.append_to_imageset"><a class="viewcode-back" href="../../api.html#wbia.images.Images.append_to_imageset">[docs]</a>    <span class="k">def</span> <span class="nf">append_to_imageset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageset_text</span><span class="p">):</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imageset_text</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">gsid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">imageset_text</span><span class="p">)</span>
+            <span class="n">gsids</span> <span class="o">=</span> <span class="p">[</span><span class="n">gsid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gsids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">imageset_text</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">add_image_relationship</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gids</span><span class="p">,</span> <span class="n">gsids</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Images.show"><a class="viewcode-back" href="../../api.html#wbia.images.Images.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Can only show one, got </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+        <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_image</span>
+
+        <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">viz_image</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ImageSetAttrInjector"><a class="viewcode-back" href="../../api.html#wbia.images.ImageSetAttrInjector">[docs]</a><span class="k">class</span> <span class="nc">ImageSetAttrInjector</span><span class="p">(</span><span class="n">BASE_TYPE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia import _wbia_object</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; objname = &#39;imageset&#39;</span>
+<span class="sd">        &gt;&gt;&gt; blacklist = []</span>
+<span class="sd">        &gt;&gt;&gt; _wbia_object._find_wbia_attrs(ibs, objname, blacklist)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ImageSetAttrInjector</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
+        <span class="c1"># misc = [ &#39;instancelist&#39;, &#39;gids_with_aids&#39;, &#39;lazydict&#39;, ]  #</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;aids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;configid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;custom_filtered_aids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;duration&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;end_time_posix&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;fraction_annotmatch_reviewed&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;fraction_imgs_reviewed&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;fraction_names_with_exemplar&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gps_lats&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gps_lons&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gsgrids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;image_uuids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;imgsetids_from_text&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;imgsetids_from_uuid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;isoccurrence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name_uuids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;nids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;note&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;notes&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;num_aids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;num_annotmatch_reviewed&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;num_annots_reviewed&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;num_gids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;num_imgs_reviewed&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;num_names_with_exemplar&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;percent_annotmatch_reviewed_str&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;processed_flags&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;shipped_flags&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;smart_waypoint_ids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;smart_xml_contents&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;smart_xml_fnames&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;start_time_posix&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;text&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;uuid&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;uuids&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="c1"># inverse_attrs = [</span>
+        <span class="c1">#     &#39;gids_from_uuid&#39;,</span>
+        <span class="c1"># ]</span>
+        <span class="n">objname</span> <span class="o">=</span> <span class="s1">&#39;imageset&#39;</span>
+        <span class="n">_wbia_object</span><span class="o">.</span><span class="n">_inject_getter_attrs</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">objname</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="p">[])</span></div>
+
+
+<span class="c1"># @ut.reloadable_class</span>
+<div class="viewcode-block" id="ImageSets"><a class="viewcode-back" href="../../api.html#wbia.images.ImageSets">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ImageSetAttrInjector</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ImageSets</span><span class="p">(</span><span class="n">IMAGESET_BASE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a group of annotations. Efficiently accesses properties from a</span>
+<span class="sd">    database using lazy evaluation.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.images ImageSets</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.images import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gsids = ibs._get_all_imgsetids()</span>
+<span class="sd">        &gt;&gt;&gt; self = ImageSets(gsids, ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(self)</span>
+<span class="sd">        &lt;ImageSets(num=13)&gt;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gsids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ImageSets</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">gsids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">images</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span> <span class="k">for</span> <span class="n">gids</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gids</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">annots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

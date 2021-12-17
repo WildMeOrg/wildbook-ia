@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.preproc package &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="wbia.algo.smk package" href="wbia.algo.smk.html" />
+    <link rel="prev" title="wbia.algo.hots package" href="wbia.algo.hots.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="wbia.algo.html">wbia.algo package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="wbia.algo.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.detect.html">wbia.algo.detect package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.graph.html">wbia.algo.graph package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.hots.html">wbia.algo.hots package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">wbia.algo.preproc package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.smk.html">wbia.algo.smk package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.html">wbia.algo.verif package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.algo.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.algo.html#module-wbia.algo.Config">wbia.algo.Config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.algo.html#module-wbia.algo">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.control.html">wbia.control package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.dbio.html">wbia.dbio package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.detecttools.html">wbia.detecttools package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.dtool.html">wbia.dtool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.expt.html">wbia.expt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.gui.html">wbia.gui package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.guitool.html">wbia.guitool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.init.html">wbia.init package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.other.html">wbia.other package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.plottool.html">wbia.plottool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.scripts.html">wbia.scripts package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.templates.html">wbia.templates package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.viz.html">wbia.viz package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.web.html">wbia.web package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-main">wbia.__main__</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-devcmds-wbia">wbia._devcmds_wbia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-devscript">wbia._devscript</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia._wbia_object">wbia._wbia_object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.annotmatch_funcs">wbia.annotmatch_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.annots">wbia.annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.constants">wbia.constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_annots">wbia.core_annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_images">wbia.core_images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_parts">wbia.core_parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-demodata">wbia.demodata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-dev">wbia.dev</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-filter-configs">wbia.filter_configs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.images">wbia.images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.params">wbia.params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.tag_funcs">wbia.tag_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="api.html">API</a> &raquo;</li>
+          <li><a href="wbia.algo.html">wbia.algo package</a> &raquo;</li>
+      <li>wbia.algo.preproc package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/wbia.algo.preproc.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wbia-algo-preproc-package">
+<h1>wbia.algo.preproc package<a class="headerlink" href="#wbia-algo-preproc-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.algo.preproc.occurrence_blackbox">
+<span id="wbia-algo-preproc-occurrence-blackbox-module"></span><h2>wbia.algo.preproc.occurrence_blackbox module<a class="headerlink" href="#module-wbia.algo.preproc.occurrence_blackbox" title="Permalink to this headline"></a></h2>
+<p>animal_walking_speeds</p>
+<p>ZEBRA_SPEED_MAX  = 64  # km/h
+ZEBRA_SPEED_RUN  = 50  # km/h
+ZEBRA_SPEED_SLOW_RUN  = 20  # km/h
+ZEBRA_SPEED_FAST_WALK = 10  # km/h
+ZEBRA_SPEED_WALK = 7  # km/h</p>
+<p>km_per_sec = .02
+km_per_sec = .001
+mph = km_per_sec / ut.KM_PER_MILE * 60 * 60
+print(‘mph = %r’ % (mph,))</p>
+<p>1 / km_per_sec</p>
+<p>import datetime
+thresh_sec = datetime.timedelta(minutes=5).seconds
+thresh_km = thresh_sec * km_per_sec
+print(‘thresh_sec = %r’ % (thresh_sec,))
+print(‘thresh_km = %r’ % (thresh_km,))
+thresh_sec = thresh_km / km_per_sec
+print(‘thresh_sec = %r’ % (thresh_sec,))</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.cluster_timespace_km">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">cluster_timespace_km</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">posixtimes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latlons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh_km</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">km_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#cluster_timespace_km"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.cluster_timespace_km" title="Permalink to this definition"></a></dt>
+<dd><p>Agglometerative clustering of time/space data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_data</strong> (<em>ndarray</em>) – Nx3 array where columns are (seconds, lat, lon)</p></li>
+<li><p><strong>thresh_km</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – threshold in kilometers</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="simple">
+<dt><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</a></dt><dd><p>scipy.cluster.hierarchy.linkage.html
+scipy.cluster.hierarchy.fcluster.html</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p># Visualize spots
+<a class="reference external" href="http://www.darrinward.com/lat-long/?id=2009879">http://www.darrinward.com/lat-long/?id=2009879</a></p>
+<dl>
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.occurrence_blackbox cluster_timespace_km</p>
+</dd>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.727985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.683994</span><span class="p">),</span>  <span class="c1"># MRC</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657414</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.774448</span><span class="p">),</span>  <span class="c1"># Park1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.658333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.770993</span><span class="p">),</span>  <span class="c1"># Park2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.654384</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.768919</span><span class="p">),</span>  <span class="c1"># Park3</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.655039</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.769048</span><span class="p">),</span>  <span class="c1"># Park4</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657872</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.764148</span><span class="p">),</span>  <span class="c1"># Park5</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.876974</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.819311</span><span class="p">),</span>  <span class="c1"># CP1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.862946</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.804977</span><span class="p">),</span>  <span class="c1"># CP2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.849809</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.758486</span><span class="p">),</span>  <span class="c1"># CP3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_km</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># kilometers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">posixtimes</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlons</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="n">KM_PER_SEC</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace_km</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">thresh_km</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;X_labels = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">X_labels</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">X_labels = np.array([3, 2, 2, 2, 2, 2, 1, 1, 1])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.cluster_timespace_sec">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">cluster_timespace_sec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">posixtimes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latlons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">km_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#cluster_timespace_sec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.cluster_timespace_sec" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_data</strong> (<em>ndarray</em>) – Nx3 array where columns are (seconds, lat, lon)</p></li>
+<li><p><strong>thresh_sec</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – threshold in seconds</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.727985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.683994</span><span class="p">),</span>  <span class="c1"># MRC</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657414</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.774448</span><span class="p">),</span>  <span class="c1"># Park1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.658333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.770993</span><span class="p">),</span>  <span class="c1"># Park2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.654384</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.768919</span><span class="p">),</span>  <span class="c1"># Park3</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.655039</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.769048</span><span class="p">),</span>  <span class="c1"># Park4</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657872</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.764148</span><span class="p">),</span>  <span class="c1"># Park5</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.876974</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.819311</span><span class="p">),</span>  <span class="c1"># CP1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.862946</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.804977</span><span class="p">),</span>  <span class="c1"># CP2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.849809</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.758486</span><span class="p">),</span>  <span class="c1"># CP3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">posixtimes</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlons</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_sec</span> <span class="o">=</span> <span class="mi">250</span>  <span class="c1"># seconds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace_sec</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;X_labels = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">X_labels</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">X_labels = array([6, 4, 4, 4, 4, 5, 1, 2, 3])</span>
+</pre></div>
+</div>
+</dd>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">42.657414</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.774448</span><span class="p">),</span>  <span class="c1"># Park1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.658333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.770993</span><span class="p">),</span>  <span class="c1"># Park2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>  <span class="c1"># Park3</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>  <span class="c1"># Park3.5</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.655039</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.769048</span><span class="p">),</span>  <span class="c1"># Park4</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657872</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.764148</span><span class="p">),</span>  <span class="c1"># Park5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">posixtimes</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlons</span> <span class="o">=</span> <span class="n">X_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_sec</span> <span class="o">=</span> <span class="mi">250</span>  <span class="c1"># seconds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="n">KM_PER_SEC</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace_sec</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;X_labels = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">X_labels</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">X_labels = np.array([3, 4, 1, 2, 4, 5])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.haversine">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">haversine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latlon1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latlon2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#haversine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.haversine" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the great circle distance between two points
+on the earth (specified in decimal degrees)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latlon1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (lat, lon)</p></li>
+<li><p><strong>latlon2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (lat, lon)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>distance in kilometers</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>en.wikipedia.org/wiki/Haversine_formula
+gis.stackexchange.com/questions/81551/matching-gps-tracks
+stackoverflow.com/questions/4913349/haversine-distance-gps-points</p>
+<dl>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="k">as</span> <span class="nn">spdist</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">functools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon1</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">80.21895315</span><span class="p">,</span> <span class="o">-</span><span class="mf">158.81099213</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon2</span> <span class="o">=</span> <span class="p">[</span>  <span class="mf">9.77816711</span><span class="p">,</span>  <span class="o">-</span><span class="mf">17.27471498</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kilometers</span> <span class="o">=</span> <span class="n">haversine</span><span class="p">(</span><span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;kilometers = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kilometers</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">kilometers = 11930.909364189827</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.haversine_rad">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">haversine_rad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#haversine_rad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.haversine_rad" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.main">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.main" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>CommandLine:</dt><dd><p>ib
+cd ~/code/wbia/wbia/algo/preproc
+python occurrence_blackbox.py –lat 42.727985 42.657414 42.658333 42.654384 –lon -73.683994 -73.774448 -73.770993 -73.768919 –sec 0 0 0 0
+# Should return
+X_labels = [2, 1, 1, 1]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.prepare_data">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">prepare_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">posixtimes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latlons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">km_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'seconds'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#prepare_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.prepare_data" title="Permalink to this definition"></a></dt>
+<dd><p>Package datas and picks distance function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>posixtimes</strong> (<em>ndarray</em>) – </p></li>
+<li><p><strong>latlons</strong> (<em>ndarray</em>) – </p></li>
+<li><p><strong>km_per_sec</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – (default = 0.002)</p></li>
+<li><p><strong>thresh_units</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (default = ‘seconds’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><a href="#id1"><span class="problematic" id="id2">arr_</span></a> -</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<dl>
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.occurrence_blackbox prepare_data</p>
+</dd>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">posixtimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mf">42.727985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.683994</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mf">42.658333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.770993</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mf">42.227985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.083994</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mf">42.258333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.470993</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="mf">0.002</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_units</span> <span class="o">=</span> <span class="s1">&#39;seconds&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span><span class="p">,</span> <span class="n">dist_func</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">posixtimes</span><span class="p">,</span> <span class="n">latlons</span><span class="p">,</span> <span class="n">km_per_sec</span><span class="p">,</span> <span class="n">thresh_units</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;arr_ = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">X_data</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">dist_func</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.space_distance_km">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">space_distance_km</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pt1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pt2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#space_distance_km"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.space_distance_km" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.space_distance_sec">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">space_distance_sec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pt1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pt2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">km_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#space_distance_sec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.space_distance_sec" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.time_dist_km">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">time_dist_km</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sec1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sec2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">km_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#time_dist_km"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.time_dist_km" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.time_dist_sec">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">time_dist_sec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sec1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sec2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#time_dist_sec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.time_dist_sec" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.timespace_distance_km">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">timespace_distance_km</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pt1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pt2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">km_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#timespace_distance_km"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.timespace_distance_km" title="Permalink to this definition"></a></dt>
+<dd><p>Computes distance between two points in space and time.
+Time is converted into spatial units using km_per_sec</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pt1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (seconds, lat, lon)</p></li>
+<li><p><strong>pt2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (seconds, lat, lon)</p></li>
+<li><p><strong>km_per_sec</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – reasonable animal walking speed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>distance in kilometers</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></p>
+</dd>
+</dl>
+<dl>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="k">as</span> <span class="nn">spdist</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">functools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="mf">.02</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">40.779299</span><span class="p">,</span><span class="o">-</span><span class="mf">73.9719498</span><span class="p">]</span> <span class="c1"># museum of natural history</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">37.7336402</span><span class="p">,</span><span class="o">-</span><span class="mf">122.5050342</span><span class="p">]</span> <span class="c1"># san fransisco zoo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># google measures about 4138.88 kilometers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dist_km1</span> <span class="o">=</span> <span class="n">timespace_distance_km</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dist_km1 = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dist_km1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Now add a time component</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">360.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dist_km2</span> <span class="o">=</span> <span class="n">timespace_distance_km</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dist_km2 = </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dist_km2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">dist_km1</span><span class="p">,</span> <span class="mf">4136.4568647922624</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">dist_km2</span><span class="p">,</span> <span class="mf">4137.1768647922627</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.occurrence_blackbox.timespace_distance_sec">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.occurrence_blackbox.</span></span><span class="sig-name descname"><span class="pre">timespace_distance_sec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pt1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pt2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">km_per_sec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/occurrence_blackbox.html#timespace_distance_sec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.occurrence_blackbox.timespace_distance_sec" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-wbia.algo.preproc.preproc_annot">
+<span id="wbia-algo-preproc-preproc-annot-module"></span><h2>wbia.algo.preproc.preproc_annot module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_annot" title="Permalink to this headline"></a></h2>
+<p>helpers for controller manual_annot_funcs</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_annot.generate_annot_properties">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_annot.</span></span><span class="sig-name descname"><span class="pre">generate_annot_properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nid_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_confidence_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vert_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annot_uuid_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yaw_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet_delete_thumbs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#generate_annot_properties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.generate_annot_properties" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_annot.make_annotation_uuids">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_annot.</span></span><span class="sig-name descname"><span class="pre">make_annotation_uuids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_uuid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#make_annotation_uuids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.make_annotation_uuids" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_annot.postget_annot_verts">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_annot.</span></span><span class="sig-name descname"><span class="pre">postget_annot_verts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertstr_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#postget_annot_verts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.postget_annot_verts" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_annot.testdata_preproc_annot">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_annot.</span></span><span class="sig-name descname"><span class="pre">testdata_preproc_annot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_annot.html#testdata_preproc_annot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_annot.testdata_preproc_annot" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-wbia.algo.preproc.preproc_image">
+<span id="wbia-algo-preproc-preproc-image-module"></span><h2>wbia.algo.preproc.preproc_image module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_image" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_image.get_standard_ext">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_image.</span></span><span class="sig-name descname"><span class="pre">get_standard_ext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#get_standard_ext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.get_standard_ext" title="Permalink to this definition"></a></dt>
+<dd><p>Returns standardized image extension</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_image.on_delete">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_image.</span></span><span class="sig-name descname"><span class="pre">on_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featweight_rowid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qreq_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#on_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.on_delete" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_image.parse_exif">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_image.</span></span><span class="sig-name descname"><span class="pre">parse_exif</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pil_img</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#parse_exif"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.parse_exif" title="Permalink to this definition"></a></dt>
+<dd><p>Image EXIF helper</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_image.parse_imageinfo">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_image.</span></span><span class="sig-name descname"><span class="pre">parse_imageinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_image.html#parse_imageinfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_image.parse_imageinfo" title="Permalink to this definition"></a></dt>
+<dd><p>Worker function: gpath must be in UNIX-PATH format!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gpath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – image path</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>param_tup -</dt><dd><p>if successful returns a tuple of image parameters which are values
+for SQL columns on else returns None</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a></p>
+</dd>
+</dl>
+<dl>
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.preproc_image –exec-parse_imageinfo</p>
+</dd>
+<dt>Doctest:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">(</span><span class="s1">&#39;patsy.jpg&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">param_tup</span> <span class="o">=</span> <span class="n">parse_imageinfo</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;param_tup = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">param_tup</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uuid</span> <span class="o">=</span> <span class="n">param_tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;16008058-788c-2d48-cd50-f6029f726cbf&#39;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wbia.algo.preproc.preproc_occurrence">
+<span id="wbia-algo-preproc-preproc-occurrence-module"></span><h2>wbia.algo.preproc.preproc_occurrence module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_occurrence" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.agglomerative_cluster_occurrences">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">agglomerative_cluster_occurrences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh_sec</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#agglomerative_cluster_occurrences"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.agglomerative_cluster_occurrences" title="Permalink to this definition"></a></dt>
+<dd><p>Agglomerative occurrence clustering algorithm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_data</strong> (<em>ndarray</em>) – Length N array of data to cluster</p></li>
+<li><p><strong>thresh_sec</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(label_arr) - Length N array of cluster indexes</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.preproc_occurrence –exec-agglomerative_cluster_occurrences</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p><a class="reference external" href="https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata">https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata</a>
+<a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html</a></p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh_sec</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span> <span class="o">=</span> <span class="n">agglomerative_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh_sec</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;(occur_ids, occur_gids) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">((</span><span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.cluster_timespace">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">cluster_timespace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#cluster_timespace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.cluster_timespace" title="Permalink to this definition"></a></dt>
+<dd><p class="rubric">References</p>
+<dl class="simple">
+<dt><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</a></dt><dd><p>scipy.cluster.hierarchy.linkage.html</p>
+</dd>
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.preproc_occurrence cluster_timespace –show</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">testdata_gps</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hier</span><span class="o">.</span><span class="n">dendrogram</span><span class="p">(</span><span class="n">linkage_mat</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_annotaiton_gps</span><span class="p">(</span><span class="n">X_data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.compute_occurrence_groups">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">compute_occurrence_groups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#compute_occurrence_groups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.compute_occurrence_groups" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>IBEISController</em>) – wbia controller object</p></li>
+<li><p><strong>gid_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(None, None)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia compute_occurrence_groups</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">gids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># wbia.algo.Config.OccurrenceConfig().asdict()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">wbia_compute_occurrences</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">flat_imgsetids</span><span class="p">,</span> <span class="n">flat_gids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">flat_imgsetids</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">metric</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.compute_occurrence_unixtime">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">compute_occurrence_unixtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">occur_gids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#compute_occurrence_unixtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.compute_occurrence_unixtime" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.filter_and_relabel">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">filter_and_relabel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_gids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_imgs_per_occurence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">occur_unixtimes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#filter_and_relabel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.filter_and_relabel" title="Permalink to this definition"></a></dt>
+<dd><p>Removes clusters with too few members.
+Relabels clusters-labels such that label 0 has the most members</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.group_images_by_label">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">group_images_by_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_arr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#group_images_by_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.group_images_by_label" title="Permalink to this definition"></a></dt>
+<dd><p>Input: Length N list of labels and ids
+Output: Length M list of unique labels, and lenth M list of lists of ids</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.meanshift_cluster_occurrences">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">meanshift_cluster_occurrences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#meanshift_cluster_occurrences"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.meanshift_cluster_occurrences" title="Permalink to this definition"></a></dt>
+<dd><p>Meanshift occurrence clustering algorithm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_data</strong> (<em>ndarray</em>) – Length N array of data to cluster</p></li>
+<li><p><strong>quantile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – quantile should be between [0, 1].
+eg: quantile=.5 represents the median of all pairwise distances</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Length N array of labels</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.preproc.preproc_occurrence –exec-meanshift_cluster_occurrences</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">quantile</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">meanshift_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">quantile</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.plot_gps_html">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">plot_gps_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gps_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#plot_gps_html"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.plot_gps_html" title="Permalink to this definition"></a></dt>
+<dd><p>Plots gps coordinates on a map projection</p>
+<dl>
+<dt>InstallBasemap:</dt><dd><p>sudo apt-get install libgeos-dev
+pip install git+https://github.com/matplotlib/basemap
+http://matplotlib.org/basemap/users/examples.html</p>
+<p>pip install gmplot</p>
+<p>sudo apt-get install netcdf-bin
+sudo apt-get install libnetcdf-dev
+pip install netCDF4</p>
+</dd>
+<dt>Ignore:</dt><dd><p>pip install git+git://github.com/myuser/foo.git&#64;v123</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Setup GPS points to draw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Setup GPS points&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gps_list_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">gps2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unixtime_list_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">unixtime2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">has_gps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">gps_list_</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">has_unixtime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">unixtime_list_</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">isvalid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">has_gps</span><span class="p">,</span> <span class="n">has_unixtime</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gps_list</span> <span class="o">=</span> <span class="n">gps_list_</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isvalid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">unixtime_list_</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isvalid</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_image_gps</span><span class="p">(</span><span class="n">gps_list</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.prepare_X_data">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">prepare_X_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#prepare_X_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.prepare_X_data" title="Permalink to this definition"></a></dt>
+<dd><p>Splits data into groups with/without gps and time</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">images</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># wbia.control.accessor_decors.DEBUG_GETTERS = True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_gps</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">gids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">datas</span> <span class="o">=</span> <span class="n">prepare_X_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">use_gps</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">datas</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">datas</span><span class="p">[</span><span class="s1">&#39;both&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">12</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">datas</span><span class="p">[</span><span class="s1">&#39;neither&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.testdata_gps">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">testdata_gps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#testdata_gps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.testdata_gps" title="Permalink to this definition"></a></dt>
+<dd><p>Simple data to test GPS algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Nx1 matrix denoting groundtruth locations
+X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>X_name (ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.timespace_distance">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">timespace_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pt1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pt2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#timespace_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.timespace_distance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.timespace_pdist">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">timespace_pdist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#timespace_pdist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.timespace_pdist" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_occurrence.wbia_compute_occurrences">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_occurrence.</span></span><span class="sig-name descname"><span class="pre">wbia_compute_occurrences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_occurrence.html#wbia_compute_occurrences"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_occurrence.wbia_compute_occurrences" title="Permalink to this definition"></a></dt>
+<dd><p>clusters occurrences togethers (by time, not yet space)
+An occurrence is a meeting, localized in time and space between a camera
+and a group of animals.
+Animals are identified within each occurrence.</p>
+<p>Does not modify database state, just returns cluster ids</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>IBEISController</em>) – wbia controller object</p></li>
+<li><p><strong>gid_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(None, None)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia –tf wbia_compute_occurrences:0 –show
+TODO: FIXME: good example of autogen doctest return failure</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wbia.algo.preproc.preproc_residual">
+<span id="wbia-algo-preproc-preproc-residual-module"></span><h2>wbia.algo.preproc.preproc_residual module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_residual" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_residual.add_residual_params_gen">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_residual.</span></span><span class="sig-name descname"><span class="pre">add_residual_params_gen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qreq_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_residual.html#add_residual_params_gen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_residual.add_residual_params_gen" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_residual.on_delete">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_residual.</span></span><span class="sig-name descname"><span class="pre">on_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">featweight_rowid_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_residual.html#on_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_residual.on_delete" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-wbia.algo.preproc.preproc_rvec">
+<span id="wbia-algo-preproc-preproc-rvec-module"></span><h2>wbia.algo.preproc.preproc_rvec module<a class="headerlink" href="#module-wbia.algo.preproc.preproc_rvec" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_rvec.add_rvecs_params_gen">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_rvec.</span></span><span class="sig-name descname"><span class="pre">add_rvecs_params_gen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nInput</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_rvec.html#add_rvecs_params_gen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_rvec.add_rvecs_params_gen" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.preproc_rvec.generate_rvecs">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.preproc_rvec.</span></span><span class="sig-name descname"><span class="pre">generate_rvecs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vecs_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc/preproc_rvec.html#generate_rvecs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.preproc_rvec.generate_rvecs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-wbia.algo.preproc">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-wbia.algo.preproc" title="Permalink to this headline"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="wbia.algo.preproc.IMPORT_TUPLES">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.</span></span><span class="sig-name descname"><span class="pre">IMPORT_TUPLES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[('preproc_annot',</span> <span class="pre">None),</span> <span class="pre">('preproc_image',</span> <span class="pre">None),</span> <span class="pre">('preproc_occurrence',</span> <span class="pre">None),</span> <span class="pre">('preproc_residual',</span> <span class="pre">None),</span> <span class="pre">('preproc_rvec',</span> <span class="pre">None)]</span></em><a class="headerlink" href="#wbia.algo.preproc.IMPORT_TUPLES" title="Permalink to this definition"></a></dt>
+<dd><p>Regen Command:
+cd /home/joncrall/code/wbia/wbia/algo/preproc
+makeinit.py –modname=wbia.algo.preproc –write</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.reassign_submodule_attributes">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.</span></span><span class="sig-name descname"><span class="pre">reassign_submodule_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc.html#reassign_submodule_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.reassign_submodule_attributes" title="Permalink to this definition"></a></dt>
+<dd><p>why reloading all the modules doesnt do this I don’t know</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.reload_subs">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.</span></span><span class="sig-name descname"><span class="pre">reload_subs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/preproc.html#reload_subs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.preproc.reload_subs" title="Permalink to this definition"></a></dt>
+<dd><p>Reloads wbia.algo.preproc and submodules</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.preproc.rrrr">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.preproc.</span></span><span class="sig-name descname"><span class="pre">rrrr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.preproc.rrrr" title="Permalink to this definition"></a></dt>
+<dd><p>Reloads wbia.algo.preproc and submodules</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wbia.algo.hots.html" class="btn btn-neutral float-left" title="wbia.algo.hots package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wbia.algo.smk.html" class="btn btn-neutral float-right" title="wbia.algo.smk package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_species_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_species_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_species_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tgen.sh&#39;, &#39;wbia.templates.template_generator&#39;)&quot;</span>
+<span class="sd">sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --modfname manual_species_funcs</span>
+
+<span class="sd"># TODO: Fix this name it is too special case</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+<span class="c1"># import numpy as np</span>
+<span class="c1"># import vtool as vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">SPECIES_ROWID</span> <span class="o">=</span> <span class="s1">&#39;species_rowid&#39;</span>
+<span class="n">SPECIES_UUID</span> <span class="o">=</span> <span class="s1">&#39;species_uuid&#39;</span>
+<span class="n">SPECIES_TEXT</span> <span class="o">=</span> <span class="s1">&#39;species_text&#39;</span>
+<span class="n">SPECIES_NICE</span> <span class="o">=</span> <span class="s1">&#39;species_nice&#39;</span>
+<span class="n">SPECIES_CODE</span> <span class="o">=</span> <span class="s1">&#39;species_code&#39;</span>
+<span class="n">SPECIES_NOTE</span> <span class="o">=</span> <span class="s1">&#39;species_note&#39;</span>
+<span class="n">SPECIES_ENABLED</span> <span class="o">=</span> <span class="s1">&#39;species_toggle_enabled&#39;</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_get_all_species_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># all_known_species_rowids = ibs._get_all_known_lblannot_rowids(const.SPECIES_KEY)</span>
+    <span class="n">all_known_species_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_known_species_rowids</span>
+
+
+<div class="viewcode-block" id="get_all_species_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_all_species_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="k">def</span> <span class="nf">get_all_species_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">()</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">species_text_list</span></div>
+
+
+<div class="viewcode-block" id="get_all_species_nice"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_all_species_nice">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="k">def</span> <span class="nf">get_all_species_nice</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">()</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_nice</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">species_nice_list</span></div>
+
+
+<div class="viewcode-block" id="sanitize_species_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.sanitize_species_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @register_api(&#39;/api/species/sanitize/&#39;, methods=[&#39;PUT&#39;])</span>
+<span class="k">def</span> <span class="nf">sanitize_species_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    changes unknown species to the unknown value</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        species_text_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: species_text_list_</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_species_funcs --test-sanitize_species_texts</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/species/sanitize</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_species_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; species_text_list = [&#39;foo&#39;, &#39;bar&#39;, &#39;zebra_plains&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; species_text_list_ = sanitize_species_texts(ibs, species_text_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(species_text_list_, nl=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;foo&#39;, &#39;bar&#39;, &#39;zebra_plains&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># valid_species = ibs.get_all_species_texts()</span>
+    <span class="c1"># ibsfuncs.assert_valid_species_texts(ibs, species_text_list, iswarning=True)</span>
+    <span class="c1"># def _sanitize_species_text(species_text):</span>
+    <span class="c1">#     if species_text is None:</span>
+    <span class="c1">#         return None</span>
+    <span class="c1">#     elif species_text in valid_species:</span>
+    <span class="c1">#         return species_text</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         return const.UNKNOWN</span>
+    <span class="c1"># species_text_list_ = [_sanitize_species_text(species_text)</span>
+    <span class="c1">#                       for species_text in species_text_list]</span>
+    <span class="c1"># # old but same logic</span>
+    <span class="c1"># #species_text_list_ = [None if species_text is None else</span>
+    <span class="c1"># #                      species_text if species_text in valid_species else</span>
+    <span class="c1"># #                      const.UNKNOWN</span>
+    <span class="c1"># #                      for species_text in species_text_list]</span>
+    <span class="c1"># # oldest different logic</span>
+    <span class="c1"># #species_text_list_ = [None</span>
+    <span class="c1"># #                      if species_text is None or species_text == const.UNKNOWN</span>
+    <span class="c1"># #                      else species_text.lower()</span>
+    <span class="c1"># #                      for species_text in species_text_list]</span>
+    <span class="c1"># #species_text_list_ = [species_text if species_text in valid_species else None</span>
+    <span class="c1"># #                      for species_text in species_text_list_]</span>
+    <span class="c1"># return species_text_list_</span>
+    <span class="k">return</span> <span class="n">species_text_list</span></div>
+
+
+<span class="k">def</span> <span class="nf">_convert_species_nice_to_text</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+
+    <span class="k">def</span> <span class="nf">_convert</span><span class="p">(</span><span class="n">nice</span><span class="p">):</span>
+        <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[ ]+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
+        <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^a-zA-Z0-9_\+]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
+        <span class="n">nice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[_]+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
+        <span class="n">nice</span> <span class="o">=</span> <span class="n">nice</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">nice</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">_convert</span><span class="p">(</span><span class="n">species_nice</span><span class="p">)</span> <span class="k">for</span> <span class="n">species_nice</span> <span class="ow">in</span> <span class="n">species_nice_list</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_convert_species_nice_to_code</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+
+    <span class="k">def</span> <span class="nf">_convert</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[_]+&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^A-Z0-9\+]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">text</span>
+
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">_convert_species_nice_to_text</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">_convert</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span> <span class="k">for</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">species_text_list</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="add_species"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.add_species">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">adder</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">add_species</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">species_nice_list</span><span class="p">,</span>
+    <span class="n">species_text_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">species_code_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">species_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">species_note_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds a list of species.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: speciesid_list - species rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/species/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_species_funcs --test-add_species</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_species_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; species_text_list = [</span>
+<span class="sd">        ...     &#39;jaguar&#39;, &#39;zebra_plains&#39;, &#39;zebra_plains&#39;, &#39;____&#39;, &#39;TYPO&#39;,</span>
+<span class="sd">        ...     &#39;____&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar+head&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; species_rowid_list = ibs.add_species(species_text_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(list(zip(species_text_list, species_rowid_list))))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_species_table()</span>
+<span class="sd">        &gt;&gt;&gt; species_text = ibs.get_species_texts(species_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Ensure we leave testdb1 in a clean state</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_species(ibs.get_species_rowids_from_text([&#39;jaguar&#39;, &#39;TYPO&#39;]))</span>
+<span class="sd">        &gt;&gt;&gt; all_species_rowids = ibs._get_all_species_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; result =  ut.repr2(species_text, nl=False) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result += ut.repr2(all_species_rowids, nl=False) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result += ut.repr2(ibs.get_species_codes(all_species_rowids), nl=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;jaguar&#39;, &#39;zebra_plains&#39;, &#39;zebra_plains&#39;, &#39;____&#39;, &#39;typo&#39;, &#39;____&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar+head&#39;]</span>
+<span class="sd">        [1, 2, 3, 6]</span>
+<span class="sd">        [&#39;zebra_plains&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar&#39;, &#39;bear_polar+head&#39;]</span>
+<span class="sd">        [&#39;PZ&#39;, &#39;GZ&#39;, &#39;PB&#39;, &#39;BP+H&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Strip all spaces</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">_</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">species_nice_list</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">species_text_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">_convert_species_nice_to_text</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">species_code_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">species_code_list</span> <span class="o">=</span> <span class="n">_convert_species_nice_to_code</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">species_note_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">species_note_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">species_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">species_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">))]</span>
+
+    <span class="c1"># Sanatize to remove invalid names</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">species_nice</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="n">species_nice</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">species_nice</span> <span class="ow">in</span> <span class="n">species_nice_list</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">species_uuid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">species_uuid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">species_code_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">species_code_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">species_note_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">species_note_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+
+    <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
+    <span class="c1"># TODO Allow for better ensure=False without using partial</span>
+    <span class="c1"># Just autogenerate these functions</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">SPECIES_UUID</span><span class="p">,</span> <span class="n">SPECIES_TEXT</span><span class="p">,</span> <span class="n">SPECIES_NICE</span><span class="p">,</span> <span class="n">SPECIES_CODE</span><span class="p">,</span> <span class="n">SPECIES_NOTE</span><span class="p">]</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">species_uuid_list</span><span class="p">,</span>
+            <span class="n">species_text_list</span><span class="p">,</span>
+            <span class="n">species_nice_list</span><span class="p">,</span>
+            <span class="n">species_code_list</span><span class="p">,</span>
+            <span class="n">species_note_list</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">get_rowid_from_superkey</span><span class="p">,</span>
+        <span class="n">superkey_paramx</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">temp_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">flag_list</span><span class="p">))</span>
+    <span class="n">temp_list</span><span class="p">[</span><span class="n">flag_list</span> <span class="o">==</span> <span class="kc">False</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+    <span class="n">temp_list</span><span class="p">[</span><span class="n">flag_list</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span>  <span class="c1"># NOQA</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">temp_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_rowid_list</span>
+
+    <span class="c1"># Clean species</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_cleaning</span><span class="p">:</span>
+        <span class="n">species_mapping_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_clean_species</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">species_mapping_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">species_mapping_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species_rowid</span><span class="p">,</span> <span class="n">species_rowid</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">species_rowid</span> <span class="ow">in</span> <span class="n">species_rowid_list</span>
+            <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">species_rowid_list</span></div>
+    <span class="c1"># value_list = ibs.sanitize_species_texts(species_text_list)</span>
+    <span class="c1"># lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]</span>
+    <span class="c1"># lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)</span>
+    <span class="c1"># species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, species_note_list)</span>
+    <span class="c1"># # species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else</span>
+    <span class="c1">#                      rowid for rowid in species_rowid_list]</span>
+    <span class="c1"># return species_rowid_list</span>
+
+
+<div class="viewcode-block" id="delete_species"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.delete_species">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">deleter</span>
+<span class="c1"># @cache_invalidator(const.SPECIES_TABLE)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">delete_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    deletes species from the database</span>
+
+<span class="sd">    CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS</span>
+<span class="sd">    at least ensure that no annot is associated with any of these species rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: DELETE</span>
+<span class="sd">        URL:    /api/species/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> speciess&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span></div>
+    <span class="c1"># ibs.delete_lblannots(species_rowid_list)</span>
+
+
+<div class="viewcode-block" id="delete_empty_species"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.delete_empty_species">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># @accessor_decors.deleter</span>
+<span class="k">def</span> <span class="nf">delete_empty_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    deletes empty species from the database</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">species_text_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_all_species_texts</span><span class="p">())</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">used_species_text_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">unused_species_text_set</span> <span class="o">=</span> <span class="n">species_text_set</span> <span class="o">-</span> <span class="n">used_species_text_set</span>
+    <span class="n">unused_species_text_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">unused_species_text_set</span><span class="p">)</span>
+    <span class="n">unused_species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">(</span><span class="n">unused_species_text_list</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Deleting unused species: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unused_species_text_list</span><span class="p">,))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_species</span><span class="p">(</span><span class="n">unused_species_rowid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_species_rowids_from_text"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_species_rowids_from_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/rowid/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_species_rowids_from_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        species_rowid_list (list): Creates one if it doesnt exist</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_species_funcs --test-get_species_rowids_from_text:0</span>
+<span class="sd">        python -m wbia.control.manual_species_funcs --test-get_species_rowids_from_text:1</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/species/rowid/text/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_species_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; species_text_list = [</span>
+<span class="sd">        ...     u&#39;jaguar&#39;, u&#39;zebra_plains&#39;, u&#39;zebra_plains&#39;, &#39;____&#39;, &#39;TYPO&#39;,</span>
+<span class="sd">        ...     &#39;____&#39;, u&#39;zebra_grevys&#39;, u&#39;bear_polar&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; ensure = False</span>
+<span class="sd">        &gt;&gt;&gt; species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(list(zip(species_text_list, species_rowid_list))))</span>
+<span class="sd">        &gt;&gt;&gt; ensure = True</span>
+<span class="sd">        &gt;&gt;&gt; species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(list(zip(species_text_list, species_rowid_list))))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.print_species_table()</span>
+<span class="sd">        &gt;&gt;&gt; species_text = ibs.get_species_texts(species_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Ensure we leave testdb1 in a clean state</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_species(ibs.get_species_rowids_from_text([&#39;jaguar&#39;, &#39;TYPO&#39;]))</span>
+<span class="sd">        &gt;&gt;&gt; all_species_rowids = ibs._get_all_species_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(species_text, nl=False) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result += ut.repr2(all_species_rowids, nl=False) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;jaguar&#39;, &#39;zebra_plains&#39;, &#39;zebra_plains&#39;, &#39;____&#39;, &#39;typo&#39;, &#39;____&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar&#39;]</span>
+<span class="sd">        [1, 2, 3, 6]</span>
+<span class="sd">        [&#39;zebra_plains&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar&#39;, &#39;bear_polar+head&#39;]</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_species_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; species_text_list = [</span>
+<span class="sd">        ...     u&#39;jaguar&#39;, u&#39;zebra_plains&#39;, u&#39;zebra_plains&#39;, &#39;____&#39;, &#39;TYPO&#39;,</span>
+<span class="sd">        ...     &#39;____&#39;, u&#39;zebra_grevys&#39;, u&#39;bear_polar&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; ensure = False</span>
+<span class="sd">        &gt;&gt;&gt; species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">species_text_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sanitize_species_texts</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">)</span>
+        <span class="c1"># lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]</span>
+        <span class="c1"># lbltype_rowid_list = [lbltype_rowid] * len(species_text_list_)</span>
+        <span class="c1"># species_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, species_text_list_)</span>
+        <span class="c1"># Ugg species and names need their own table</span>
+        <span class="c1"># species_rowid_list = [const.UNKNOWN_SPECIES_ROWID if rowid is None else</span>
+        <span class="c1">#                      rowid for rowid in species_rowid_list]</span>
+        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">SPECIES_ROWID</span><span class="p">,),</span>
+            <span class="n">species_text_list_</span><span class="p">,</span>
+            <span class="n">id_colname</span><span class="o">=</span><span class="n">SPECIES_TEXT</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># BIG HACK FOR ENFORCING UNKNOWN SPECIESS HAVE ROWID 0</span>
+        <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span>
+            <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
+            <span class="k">else</span> <span class="n">rowid</span>
+            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_text_list_</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="n">species_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_species_rowids_from_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_species_rowids_from_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/rowid/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_species_rowids_from_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_uuid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        species_rowid_list (list): Creates one if it doesnt exist</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_species_funcs --test-get_species_rowids_from_text:0</span>
+<span class="sd">        python -m wbia.control.manual_species_funcs --test-get_species_rowids_from_text:1</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/species/rowid/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_ROWID</span><span class="p">,),</span> <span class="n">species_uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">SPECIES_UUID</span>
+    <span class="p">)</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
+        <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_uuid_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">species_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_species_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_species_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_species_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): uuids_list - species uuids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/species/uuid/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uuids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_UUID</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="c1"># notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="k">return</span> <span class="n">uuids_list</span></div>
+
+
+<div class="viewcode-block" id="get_species_texts"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_species_texts">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="n">SPECIES_TEXT</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_species_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: species_text_list text names</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_species_funcs --test-get_species_texts --enableall</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/species/text/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_species_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; species_rowid_list = ibs._get_all_species_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; result = get_species_texts(ibs, species_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(result)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;zebra_plains&#39;, &#39;zebra_grevys&#39;, &#39;bear_polar&#39;, &#39;bear_polar+head&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: use standalone species table</span>
+    <span class="c1"># species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_TEXT</span><span class="p">,),</span> <span class="n">species_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">rowid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">else</span> <span class="n">species_text</span>
+        <span class="k">for</span> <span class="n">species_text</span><span class="p">,</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_text_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">species_text_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">species_text_list</span></div>
+
+
+<div class="viewcode-block" id="get_species_nice"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_species_nice">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="n">SPECIES_NICE</span><span class="p">)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/nice/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_species_nice</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: species_text_list nice names</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_species_funcs --test-get_species_nice --enableall</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/species/nice/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_species_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs._clean_species()</span>
+<span class="sd">        &gt;&gt;&gt; species_rowid_list = ibs._get_all_species_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; result = get_species_nice(ibs, species_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(result)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [&#39;Zebra (Plains)&#39;, &quot;Zebra (Grevy&#39;s)&quot;, &#39;Polar Bear&#39;, &#39;bear_polar+head&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: use standalone species table</span>
+    <span class="c1"># species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_NICE</span><span class="p">,),</span> <span class="n">species_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">if</span> <span class="n">rowid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="k">else</span> <span class="n">species_nice</span>
+        <span class="k">for</span> <span class="n">species_nice</span><span class="p">,</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Unknown&#39;</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">species_nice_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">species_nice_list</span></div>
+
+
+<div class="viewcode-block" id="get_species_codes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_species_codes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/code/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_species_codes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): code_list - species codes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/species/code/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">species_code_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_CODE</span><span class="p">,),</span> <span class="n">species_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">species_code_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;UNKNOWN&#39;</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">code</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">species_code_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">species_code_list</span></div>
+
+
+<div class="viewcode-block" id="get_species_notes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_species_notes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/species/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_species_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): notes_list - species notes</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/species/note/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">notes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_NOTE</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="c1"># notes_list = ibs.get_lblannot_notes(nid_list)</span>
+    <span class="k">return</span> <span class="n">notes_list</span></div>
+
+
+<div class="viewcode-block" id="get_species_enabled"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.get_species_enabled">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/species/enabled/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_species_enabled</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): &quot;Species Enabled&quot; flag, true if the species is enabled</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">enabled_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_ENABLED</span><span class="p">,),</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">enabled_list</span></div>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="k">def</span> <span class="nf">_set_species_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the species nice names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">species_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">species_rowid</span> <span class="ow">in</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">enabled</span><span class="p">,)</span> <span class="k">for</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="n">species_text_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_TEXT</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="k">def</span> <span class="nf">_set_species_nice</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_nice_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the species nice names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">species_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">species_rowid</span> <span class="ow">in</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">enabled</span><span class="p">,)</span> <span class="k">for</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="n">species_nice_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_NICE</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="k">def</span> <span class="nf">_set_species_code</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">species_code_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the species nice names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">species_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">species_rowid</span> <span class="ow">in</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">enabled</span><span class="p">,)</span> <span class="k">for</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="n">species_code_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_CODE</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="set_species_enabled"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_species_funcs.set_species_enabled">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="c1"># @register_api(&#39;/api/species/enabled/&#39;, methods=[&#39;PUT&#39;])</span>
+<span class="k">def</span> <span class="nf">set_species_enabled</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_rowid_list</span><span class="p">,</span> <span class="n">enabled_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the species all instances enabled bit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">species_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">species_rowid</span> <span class="ow">in</span> <span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">enabled</span><span class="p">,)</span> <span class="k">for</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="n">enabled_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">SPECIES_ENABLED</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

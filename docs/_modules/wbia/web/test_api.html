@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.web.test_api &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.web.test_api</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.web.test_api</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This is a proof of concept for connecting to an authenticated Qubica Server&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">sha1</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">hmac</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="c1"># System variables</span>
+<span class="n">APPLICATION_PROTOCOL</span> <span class="o">=</span> <span class="s1">&#39;http&#39;</span>
+<span class="n">APPLICATION_DOMAIN</span> <span class="o">=</span> <span class="s1">&#39;127.0.0.1&#39;</span>
+<span class="n">APPLICATION_PORT</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">APPLICATION_NAME</span> <span class="o">=</span> <span class="s1">&#39;WBIA&#39;</span>
+<span class="n">APPLICATION_SECRET_KEY</span> <span class="o">=</span> <span class="s1">&#39;CB73808F-A6F6-094B-5FCD-385EBAFF8FC0&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">_raise</span><span class="p">(</span><span class="n">exception</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="n">exception</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] ERROR: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="vm">__file__</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="get_signature"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.test_api.get_signature">[docs]</a><span class="k">def</span> <span class="nf">get_signature</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">sha1</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;base64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_authorization_header"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.test_api.get_authorization_header">[docs]</a><span class="k">def</span> <span class="nf">get_authorization_header</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Get signature</span>
+    <span class="n">secret_key_signature</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">APPLICATION_SECRET_KEY</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span>
+    <span class="n">application_authentication</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">APPLICATION_NAME</span><span class="p">,</span> <span class="n">secret_key_signature</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">user_email</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">user_enc_pass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">application_authentication</span><span class="p">,)</span>
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">application_authentication</span><span class="p">,</span> <span class="n">user_email</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a general (method) API request to the server&quot;&quot;&quot;</span>
+    <span class="c1"># Make GET request to server</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">APPLICATION_PROTOCOL</span><span class="p">,</span>
+        <span class="n">APPLICATION_DOMAIN</span><span class="p">,</span>
+        <span class="n">APPLICATION_PORT</span><span class="p">,</span>
+        <span class="n">uri</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">get_authorization_header</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">user_email</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="n">header</span><span class="p">}</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">method</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">,</span>
+        <span class="n">headers</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Server request (</span><span class="si">%r</span><span class="s1">): </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">Headers: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">Args: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;GET&#39;</span><span class="p">:</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_raise</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="s1">&#39;_api_result got unsupported method=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,))</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">_raise</span><span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="s1">&#39;_api_result could not connect to server </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">req</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">json</span>
+
+
+<div class="viewcode-block" id="get_api_result"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.test_api.get_api_result">[docs]</a><span class="k">def</span> <span class="nf">get_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a GET API request to the server&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_api_result</span><span class="p">(</span>
+        <span class="n">uri</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="n">user_email</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="n">user_enc_pass</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="post_api_result"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.test_api.post_api_result">[docs]</a><span class="k">def</span> <span class="nf">post_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a GET API request to the server&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_api_result</span><span class="p">(</span>
+        <span class="n">uri</span><span class="p">,</span> <span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="n">user_email</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="n">user_enc_pass</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="run_test_api"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.test_api.run_test_api">[docs]</a><span class="k">def</span> <span class="nf">run_test_api</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.web.test_api --test-run_test_api</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.test_api import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; response = run_test_api()</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Server response: %r&#39; % (response, ))</span>
+<span class="sd">        &gt;&gt;&gt; result = response</span>
+<span class="sd">        (200, u&#39;{&quot;status&quot;: {&quot;cache&quot;: -1, &quot;message&quot;: &quot;&quot;, &quot;code&quot;: 200, &quot;success&quot;: true}, &quot;response&quot;: &quot;testdb1&quot;}&#39;, &lt;bound method Response.json of &lt;Response [200]&gt;&gt;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+
+    <span class="k">global</span> <span class="n">APPLICATION_PORT</span>
+
+    <span class="n">web_instance</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb_in_background</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">precache</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Get the application port from the background process</span>
+    <span class="k">if</span> <span class="n">APPLICATION_PORT</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># FIXME web_instance is a KillableProcess, not IBEISController,</span>
+        <span class="c1"># it doesn&#39;t have get_web_port_via_scan</span>
+        <span class="n">web_port</span> <span class="o">=</span> <span class="n">web_instance</span><span class="o">.</span><span class="n">get_web_port_via_scan</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">web_port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;IA web server is not running on any expected port&#39;</span><span class="p">)</span>
+        <span class="n">APPLICATION_PORT</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_port</span><span class="p">,)</span>
+    <span class="k">assert</span> <span class="n">APPLICATION_PORT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="c1"># let the webapi startup in the background</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="n">uri</span> <span class="o">=</span> <span class="s1">&#39;/api/core/dbname/&#39;</span>
+    <span class="c1"># Make GET request to the server as a test</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">get_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+    <span class="n">status_code</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">json</span> <span class="o">=</span> <span class="n">response</span>
+    <span class="n">web_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

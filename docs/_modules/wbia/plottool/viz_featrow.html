@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.viz_featrow &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.viz_featrow</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.viz_featrow</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="c1"># import itertools</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">custom_constants</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">custom_figure</span>
+
+<span class="c1"># (print, print_, printDBG, rrr, profile) = ut.inject(</span>
+<span class="c1">#    __name__, &#39;[viz_featrow]&#39;, DEBUG=False)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[viz_featrow]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="precisionstr"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.viz_featrow.precisionstr">[docs]</a><span class="k">def</span> <span class="nf">precisionstr</span><span class="p">(</span><span class="n">c</span><span class="o">=</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="n">pr</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;%.&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pr</span><span class="p">)</span> <span class="o">+</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="formatdist"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.viz_featrow.formatdist">[docs]</a><span class="k">def</span> <span class="nf">formatdist</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="n">pr</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">precisionstr</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="n">pr</span><span class="p">)</span> <span class="o">%</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mf">0.01</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">precisionstr</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">pr</span><span class="p">)</span> <span class="o">%</span> <span class="n">val</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">precisionstr</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="n">pr</span><span class="p">)</span> <span class="o">%</span> <span class="n">val</span></div>
+
+
+<span class="c1"># @ut.indent_func</span>
+<div class="viewcode-block" id="draw_feat_row"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.viz_featrow.draw_feat_row">[docs]</a><span class="k">def</span> <span class="nf">draw_feat_row</span><span class="p">(</span>
+    <span class="n">chip</span><span class="p">,</span>
+    <span class="n">fx</span><span class="p">,</span>
+    <span class="n">kp</span><span class="p">,</span>
+    <span class="n">sift</span><span class="p">,</span>
+    <span class="n">fnum</span><span class="p">,</span>
+    <span class="n">nRows</span><span class="p">,</span>
+    <span class="n">nCols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">px</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">prevsift</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">origsift</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">aid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">info</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="n">type_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">shape_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">vecfield</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">multicolored_arms</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">draw_chip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">draw_warped</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">draw_unwarped</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">draw_desc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">rect</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">ori</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">pts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    draw_feat_row</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        wbia.viz.viz_nearest_descriptors</span>
+<span class="sd">        ~/code/wbia/wbia/viz/viz_nearest_descriptors.py</span>
+
+<span class="sd">    CommandLine:</span>
+
+<span class="sd">        # Use this to find the fx you want to visualize</span>
+<span class="sd">        python -m wbia.plottool.interact_keypoints --test-ishow_keypoints --show --fname zebra.png</span>
+
+<span class="sd">        # Use this to visualize the featrow</span>
+<span class="sd">        python -m wbia.plottool.viz_featrow --test-draw_feat_row --show</span>
+<span class="sd">        python -m wbia.plottool.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121 --feat-all --no-sift</span>
+<span class="sd">        python -m wbia.plottool.viz_featrow --test-draw_feat_row --dpath figures --save ~/latex/crall-candidacy-2015/figures/viz_featrow.jpg</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.viz_featrow import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()</span>
+<span class="sd">        &gt;&gt;&gt; chip = imgBGR</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;There are %d features&#39; % (len(vecs)))</span>
+<span class="sd">        &gt;&gt;&gt; fx = ut.get_argval(&#39;--fx&#39;, type_=int, default=0)</span>
+<span class="sd">        &gt;&gt;&gt; kp = kpts[fx]</span>
+<span class="sd">        &gt;&gt;&gt; sift = vecs[fx]</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 1</span>
+<span class="sd">        &gt;&gt;&gt; nRows = 1</span>
+<span class="sd">        &gt;&gt;&gt; nCols = 2</span>
+<span class="sd">        &gt;&gt;&gt; px = 0</span>
+<span class="sd">        &gt;&gt;&gt; if True:</span>
+<span class="sd">        &gt;&gt;&gt;     from wbia.scripts.thesis import TMP_RC</span>
+<span class="sd">        &gt;&gt;&gt;     import matplotlib as mpl</span>
+<span class="sd">        &gt;&gt;&gt;     mpl.rcParams.update(TMP_RC)</span>
+<span class="sd">        &gt;&gt;&gt; hack = ut.get_argflag(&#39;--feat-all&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; sift = sift if not ut.get_argflag(&#39;--no-sift&#39;) else None</span>
+<span class="sd">        &gt;&gt;&gt; draw_desc = sift is not None</span>
+<span class="sd">        &gt;&gt;&gt; kw = dict(</span>
+<span class="sd">        &gt;&gt;&gt;     prevsift=None, origsift=None, aid=None, info=&#39;&#39;, type_=None,</span>
+<span class="sd">        &gt;&gt;&gt;     shape_labels=False, vecfield=False, multicolored_arms=True,</span>
+<span class="sd">        &gt;&gt;&gt;     draw_chip=hack, draw_unwarped=hack, draw_warped=True, draw_desc=draw_desc</span>
+<span class="sd">        &gt;&gt;&gt; )</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px,</span>
+<span class="sd">        &gt;&gt;&gt;                           rect=False, ori=False, pts=False, **kw)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="c1"># should not need ncols here</span>
+
+    <span class="k">if</span> <span class="n">nCols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning nCols is no longer needed&#39;</span><span class="p">)</span>
+    <span class="c1"># assert nCols_ == nCols</span>
+    <span class="n">nCols</span> <span class="o">=</span> <span class="n">draw_chip</span> <span class="o">+</span> <span class="n">draw_unwarped</span> <span class="o">+</span> <span class="n">draw_warped</span> <span class="o">+</span> <span class="n">draw_desc</span>
+
+    <span class="n">pnum_</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">px</span><span class="p">)</span>
+
+    <span class="c1"># pnum_ = df2.get_pnum_func(nRows, nCols, base=1)</span>
+    <span class="c1"># countgen = itertools.count(1)</span>
+
+    <span class="c1"># pnumgen_ = df2.make_pnum_nextgen(nRows, nCols, base=1)</span>
+
+    <span class="k">def</span> <span class="nf">_draw_patch</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">df2</span><span class="o">.</span><span class="n">draw_keypoint_patch</span><span class="p">(</span>
+            <span class="n">chip</span><span class="p">,</span>
+            <span class="n">kp</span><span class="p">,</span>
+            <span class="n">sift</span><span class="p">,</span>
+            <span class="n">rect</span><span class="o">=</span><span class="n">rect</span><span class="p">,</span>
+            <span class="n">ori</span><span class="o">=</span><span class="n">ori</span><span class="p">,</span>
+            <span class="n">pts</span><span class="o">=</span><span class="n">pts</span><span class="p">,</span>
+            <span class="n">ori_color</span><span class="o">=</span><span class="n">custom_constants</span><span class="o">.</span><span class="n">DEEP_PINK</span><span class="p">,</span>
+            <span class="n">multicolored_arms</span><span class="o">=</span><span class="n">multicolored_arms</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Feature strings</span>
+    <span class="n">xy_str</span><span class="p">,</span> <span class="n">shape_str</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">ori_str</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">kp_info</span><span class="p">(</span><span class="n">kp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">draw_chip</span><span class="p">:</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="n">pnum_</span><span class="p">()</span>
+        <span class="n">df2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+        <span class="n">kpts_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ell_linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">kpts_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">df2</span><span class="o">.</span><span class="n">draw_kpts2</span><span class="p">([</span><span class="n">kp</span><span class="p">],</span> <span class="o">**</span><span class="n">kpts_kw</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">draw_unwarped</span><span class="p">:</span>
+        <span class="c1"># Draw the unwarped selected feature</span>
+        <span class="c1"># ax = _draw_patch(fnum=fnum, pnum=pnum_(px + next(countgen)))</span>
+        <span class="c1"># pnum = pnum_(px + next(countgen)</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="n">pnum_</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">_draw_patch</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;unwarped&#39;</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;fx&#39;</span><span class="p">,</span> <span class="n">fx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">shape_labels</span><span class="p">:</span>
+            <span class="n">unwarped_lbl</span> <span class="o">=</span> <span class="s1">&#39;affine feature invV =</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">shape_str</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">ori_str</span>
+            <span class="n">custom_figure</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">unwarped_lbl</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">draw_warped</span><span class="p">:</span>
+        <span class="c1"># Draw the warped selected feature</span>
+        <span class="c1"># ax = _draw_patch(fnum=fnum, pnum=pnum_(px + next(countgen)), warped=True)</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="n">pnum_</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">_draw_patch</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">warped</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;warped&#39;</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;fx&#39;</span><span class="p">,</span> <span class="n">fx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">shape_labels</span><span class="p">:</span>
+            <span class="n">warped_lbl</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;warped feature</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;fx=</span><span class="si">%r</span><span class="s1"> scale=</span><span class="si">%.1f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">fx</span><span class="p">,</span>
+                <span class="n">scale</span><span class="p">,</span>
+                <span class="n">xy_str</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warped_lbl</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">warped_lbl</span> <span class="o">+=</span> <span class="n">info</span>
+        <span class="n">custom_figure</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">warped_lbl</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">draw_desc</span><span class="p">:</span>
+        <span class="n">border_color</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;None&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;query&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;match&#39;</span><span class="p">:</span> <span class="n">custom_constants</span><span class="o">.</span><span class="n">BLUE</span><span class="p">,</span>
+            <span class="s1">&#39;norm&#39;</span><span class="p">:</span> <span class="n">custom_constants</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">,</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">border_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df2</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">border_color</span><span class="p">)</span>
+
+        <span class="c1"># Draw the SIFT representation</span>
+        <span class="c1"># pnum = pnum_(px + next(countgen))</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="n">pnum_</span><span class="p">()</span>
+        <span class="n">sift_as_vecfield</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">SIFT_OR_VECFIELD</span> <span class="ow">or</span> <span class="n">vecfield</span>
+        <span class="k">if</span> <span class="n">sift_as_vecfield</span><span class="p">:</span>
+            <span class="n">custom_figure</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="n">df2</span><span class="o">.</span><span class="n">draw_keypoint_gradient_orientations</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="o">=</span><span class="n">sift</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sift</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span>
+                <span class="c1"># sigtitle =  &#39;sift histogram&#39; if (px % 3) == 0 else &#39;&#39;</span>
+                <span class="c1"># ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">plot_sift_signature</span><span class="p">(</span><span class="n">sift</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># sigtitle =  &#39;descriptor vector&#39; if (px % 3) == 0 else &#39;&#39;</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">plot_descriptor_signature</span><span class="p">(</span><span class="n">sift</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">_hs_viztype</span> <span class="o">=</span> <span class="s1">&#39;histogram&#39;</span>
+        <span class="c1"># dist_list = [&#39;L1&#39;, &#39;L2&#39;, &#39;hist_isect&#39;, &#39;emd&#39;]</span>
+        <span class="c1"># dist_list = [&#39;L2&#39;, &#39;hist_isect&#39;]</span>
+        <span class="c1"># dist_list = [&#39;L2&#39;]</span>
+        <span class="c1"># dist_list = [&#39;bar_L2_sift&#39;, &#39;cos_sift&#39;]</span>
+        <span class="c1"># dist_list = [&#39;L2_sift&#39;, &#39;bar_cos_sift&#39;]</span>
+        <span class="n">dist_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;L2_sift&#39;</span><span class="p">]</span>
+        <span class="n">dist_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">origsift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">distmap_orig</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compute_distances</span><span class="p">(</span><span class="n">sift</span><span class="p">,</span> <span class="n">origsift</span><span class="p">,</span> <span class="n">dist_list</span><span class="p">)</span>
+            <span class="n">dist_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="s1">&#39;query_dist: &#39;</span>
+                <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="s1">&#39;(</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">formatdist</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">distmap_orig</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">prevsift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">distmap_prev</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compute_distances</span><span class="p">(</span><span class="n">sift</span><span class="p">,</span> <span class="n">prevsift</span><span class="p">,</span> <span class="n">dist_list</span><span class="p">)</span>
+            <span class="n">dist_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="s1">&#39;prev_dist: &#39;</span>
+                <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="s1">&#39;(</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">formatdist</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">distmap_prev</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">dist_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dist_str_list</span><span class="p">)</span>
+        <span class="n">custom_figure</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">dist_str</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">px</span> <span class="o">+</span> <span class="n">nCols</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

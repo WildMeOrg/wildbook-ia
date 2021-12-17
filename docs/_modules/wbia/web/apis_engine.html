@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.web.apis_engine &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.web.apis_engine</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.web.apis_engine</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># if False:</span>
+<span class="c1">#    import os</span>
+<span class="c1">#    os.environ[&#39;UTOOL_NOCNN&#39;] = &#39;True&#39;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">uuid</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">import</span> <span class="nn">wbia.constants</span> <span class="k">as</span> <span class="nn">const</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ensure_simple_server"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.ensure_simple_server">[docs]</a><span class="k">def</span> <span class="nf">ensure_simple_server</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">5832</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.web.apis_engine --exec-ensure_simple_server</span>
+<span class="sd">        python -m utool.util_web --exec-start_simple_webserver</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_engine import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = ensure_simple_server()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_local_port_open</span><span class="p">(</span><span class="n">port</span><span class="p">):</span>
+        <span class="n">bgserver</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">spawn_background_process</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">start_simple_webserver</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bgserver</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bgserver</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>
+        <span class="n">bgserver</span><span class="o">.</span><span class="n">terminate2</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;server is running elsewhere&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bgserver</span></div>
+
+
+<div class="viewcode-block" id="ensure_uuid_list"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.ensure_uuid_list">[docs]</a><span class="k">def</span> <span class="nf">ensure_uuid_list</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">list_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">list_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">list_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span> <span class="n">list_</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">list_</span></div>
+
+
+<div class="viewcode-block" id="web_check_annot_uuids_with_names"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.web_check_annot_uuids_with_names">[docs]</a><span class="k">def</span> <span class="nf">web_check_annot_uuids_with_names</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
+
+    <span class="n">bad_uuid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+
+    <span class="n">annot_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">annot_uuid</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">zipped</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">,</span> <span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Received UUID </span><span class="si">%r</span><span class="s1"> that is not a UUID or string at index </span><span class="si">%s</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">annot_uuid</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">annot_uuid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">annot_dict</span><span class="p">:</span>
+            <span class="n">annot_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+            <span class="n">annot_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_dict</span><span class="p">[</span><span class="n">annot_uuid</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">bad_uuid_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_uuid_set</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">bad_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">bad_uuid</span><span class="p">:</span> <span class="n">annot_dict</span><span class="p">[</span><span class="n">bad_uuid</span><span class="p">]</span> <span class="k">for</span> <span class="n">bad_uuid</span> <span class="ow">in</span> <span class="n">bad_uuid_set</span><span class="p">}</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebMultipleNamedDuplicateException</span><span class="p">(</span><span class="n">bad_dict</span><span class="p">)</span>
+
+    <span class="n">annot_uuid_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">name_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="n">annot_dict</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">annot_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">,</span> <span class="p">[]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Sanity check failed in web_check_annot_uuids_with_names&#39;</span><span class="p">)</span>
+
+        <span class="n">annot_uuid_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">)</span>
+        <span class="n">name_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">annot_uuid_list_</span><span class="p">,</span> <span class="n">name_list_</span></div>
+
+
+<div class="viewcode-block" id="start_add_images"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_add_images">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/image/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_add_images</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">image_uri_list</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET/api/engine/image/json/</span>
+<span class="sd">        URL:</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uri_list (list) : list of image urls to import.</span>
+<span class="sd">        callback_url (url) : url that will be called when detection succeeds or fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_uri_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Cannot send a list of image_uri_list that is empty&#39;</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_uri_list</span><span class="p">,)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;add_images_json&#39;</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+        <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="web_check_uuids"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.web_check_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/uuid/check/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">web_check_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">qannot_uuid_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">dannot_uuid_list</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (wbia.IBEISController):  image analysis api</span>
+<span class="sd">        image_uuid_list (list): (default = [])</span>
+<span class="sd">        qannot_uuid_list (list): (default = [])</span>
+<span class="sd">        dannot_uuid_list (list): (default = [])</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.web.apis_engine --exec-web_check_uuids --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_engine import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; image_uuid_list = []</span>
+<span class="sd">        &gt;&gt;&gt; qannot_uuid_list = ibs.get_annot_uuids([1, 1, 2, 3, 2, 4])</span>
+<span class="sd">        &gt;&gt;&gt; dannot_uuid_list = ibs.get_annot_uuids([1, 2, 3])</span>
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        &gt;&gt;&gt;     web_check_uuids(ibs, image_uuid_list, qannot_uuid_list,</span>
+<span class="sd">        &gt;&gt;&gt;                     dannot_uuid_list)</span>
+<span class="sd">        &gt;&gt;&gt; except controller_inject.WebDuplicateUUIDException:</span>
+<span class="sd">        &gt;&gt;&gt;     pass</span>
+<span class="sd">        &gt;&gt;&gt; else:</span>
+<span class="sd">        &gt;&gt;&gt;     raise AssertionError(&#39;Should have gotten WebDuplicateUUIDException&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; try:</span>
+<span class="sd">        &gt;&gt;&gt;     web_check_uuids(ibs, [1, 2, 3], qannot_uuid_list,</span>
+<span class="sd">        &gt;&gt;&gt;                     dannot_uuid_list)</span>
+<span class="sd">        &gt;&gt;&gt; except controller_inject.WebMissingUUIDException as ex:</span>
+<span class="sd">        &gt;&gt;&gt;     pass</span>
+<span class="sd">        &gt;&gt;&gt; else:</span>
+<span class="sd">        &gt;&gt;&gt;     raise AssertionError(&#39;Should have gotten WebMissingUUIDException&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Successfully reported errors&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">uuid</span>
+
+    <span class="c1"># Unique list</span>
+    <span class="k">if</span> <span class="n">qannot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">qannot_uuid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">dannot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dannot_uuid_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">qannot_uuid_list</span> <span class="o">+</span> <span class="n">dannot_uuid_list</span>
+
+    <span class="c1"># UUID parse check</span>
+    <span class="n">invalid_image_uuid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">image_uuid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_uuid</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">index</span><span class="p">,</span>
+                <span class="n">image_uuid</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">invalid_image_uuid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="n">invalid_annot_uuid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">annot_uuid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annot_uuid</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">index</span><span class="p">,</span>
+                <span class="n">annot_uuid</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">invalid_annot_uuid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_image_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_annot_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;invalid_image_uuid_list&#39;</span><span class="p">:</span> <span class="n">invalid_image_uuid_list</span><span class="p">,</span>
+            <span class="s1">&#39;invalid_annot_uuid_list&#39;</span><span class="p">:</span> <span class="n">invalid_annot_uuid_list</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidUUIDException</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">))</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">))</span>
+    <span class="c1"># Check for all annot UUIDs exist</span>
+    <span class="n">missing_image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_missing_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">missing_annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_missing_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_image_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_annot_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;missing_image_uuid_list&#39;</span><span class="p">:</span> <span class="n">missing_image_uuid_list</span><span class="p">,</span>
+            <span class="s1">&#39;missing_annot_uuid_list&#39;</span><span class="p">:</span> <span class="n">missing_annot_uuid_list</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebMissingUUIDException</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">ddup_pos_map</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="p">)</span>
+    <span class="n">qdup_pos_map</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ddup_pos_map</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">qdup_pos_map</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebDuplicateUUIDException</span><span class="p">(</span><span class="n">qdup_pos_map</span><span class="p">,</span> <span class="n">qdup_pos_map</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="start_identify_annots"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_identify_annots">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/query/annot/rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_identify_annots</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">qannot_uuid_list</span><span class="p">,</span>
+    <span class="n">dannot_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">pipecfg</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;slow&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/engine/query/annot/rowid/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qannot_uuid_list (list) : specifies the query annotations to</span>
+<span class="sd">            identify.</span>
+<span class="sd">        dannot_uuid_list (list) : specifies the annotations that the</span>
+<span class="sd">            algorithm is allowed to use for identification.  If not</span>
+<span class="sd">            specified all annotations are used.   (default=None)</span>
+<span class="sd">        pipecfg (dict) : dictionary of pipeline configuration arguments</span>
+<span class="sd">            (default=None)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        # Run as main process</span>
+<span class="sd">        python -m wbia.web.apis_engine --exec-start_identify_annots:0</span>
+<span class="sd">        # Run using server process</span>
+<span class="sd">        python -m wbia.web.apis_engine --exec-start_identify_annots:1</span>
+
+<span class="sd">        # Split into multiple processes</span>
+<span class="sd">        python -m wbia.web.apis_engine --main --bg</span>
+<span class="sd">        python -m wbia.web.apis_engine --exec-start_identify_annots:1 --fg</span>
+
+<span class="sd">        python -m wbia.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88</span>
+
+<span class="sd">        python -m wbia.web.apis_engine --exec-start_identify_annots:1 --duuids=[]</span>
+<span class="sd">        python -m wbia.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=03a17411-c226-c960-d180-9fafef88c880</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_engine import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web import apis_engine</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qaids, daids = wbia.testdata_expanded_aids(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;PZ_MTEST&#39;, a=[&#39;default:qsize=2,dsize=10&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; qannot_uuid_list = ibs.get_annot_uuids(qaids)</span>
+<span class="sd">        &gt;&gt;&gt; dannot_uuid_list = ibs.get_annot_uuids(daids)</span>
+<span class="sd">        &gt;&gt;&gt; pipecfg = {}</span>
+<span class="sd">        &gt;&gt;&gt; ibs.initialize_job_manager()</span>
+<span class="sd">        &gt;&gt;&gt; jobid = ibs.start_identify_annots(qannot_uuid_list, dannot_uuid_list, pipecfg)</span>
+<span class="sd">        &gt;&gt;&gt; result = ibs.wait_for_job_result(jobid, timeout=None, freq=2)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; #print(ut.to_json(result))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.close_job_manager()</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_engine import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)  # , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids = ibs.get_valid_aids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; qaids = aids[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; daids = aids</span>
+<span class="sd">        &gt;&gt;&gt; query_config_dict = {</span>
+<span class="sd">        &gt;&gt;&gt;     #&#39;pipeline_root&#39; : &#39;BC_DTW&#39;</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(qaids, daids, cfgdict=query_config_dict)</span>
+<span class="sd">        &gt;&gt;&gt; cm_list = qreq_.execute()</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--web-tests)</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--job-engine-tests)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_engine import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(&#39;testdb1&#39;, managed=True) as web_ibs:  # , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="sd">        ...     aids = web_ibs.send_wbia_request(&#39;/api/annot/&#39;, &#39;get&#39;)[0:2]</span>
+<span class="sd">        ...     uuid_list = web_ibs.send_wbia_request(&#39;/api/annot/uuid/&#39;, type_=&#39;get&#39;, aid_list=aids)</span>
+<span class="sd">        ...     quuid_list = ut.get_argval(&#39;--quuids&#39;, type_=list, default=uuid_list)</span>
+<span class="sd">        ...     duuid_list = ut.get_argval(&#39;--duuids&#39;, type_=list, default=uuid_list)</span>
+<span class="sd">        ...     data = dict(</span>
+<span class="sd">        ...         qannot_uuid_list=quuid_list, dannot_uuid_list=duuid_list,</span>
+<span class="sd">        ...         pipecfg={},</span>
+<span class="sd">        ...         callback_url=&#39;http://127.0.1.1:5832&#39;</span>
+<span class="sd">        ...     )</span>
+<span class="sd">        ...     # Start callback server</span>
+<span class="sd">        ...     bgserver = ensure_simple_server()</span>
+<span class="sd">        ...     # --</span>
+<span class="sd">        ...     jobid = web_ibs.send_wbia_request(&#39;/api/engine/query/annot/rowid/&#39;, **data)</span>
+<span class="sd">        ...     status_response = web_ibs.wait_for_results(jobid, delays=[1, 5, 30])</span>
+<span class="sd">        ...     print(&#39;status_response = %s&#39; % (status_response,))</span>
+<span class="sd">        ...     result_response = web_ibs.read_engine_results(jobid)</span>
+<span class="sd">        ...     print(&#39;result_response = %s&#39; % (result_response,))</span>
+<span class="sd">        ...     cm_dict = result_response[&#39;json_result&#39;][0]</span>
+<span class="sd">        ...     print(&#39;Finished test&#39;)</span>
+<span class="sd">        ...     bgserver.terminate2()</span>
+<span class="sd">        Waiting for server to be up. count=0</span>
+<span class="sd">        ...</span>
+<span class="sd">        status_response = {&#39;status&#39;: &#39;ok&#39;, &#39;jobid&#39;: &#39;...&#39;, &#39;jobstatus&#39;: &#39;completed&#39;}</span>
+<span class="sd">        result_response = ...</span>
+<span class="sd">        Finished test</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        qaids = daids = ibs.get_valid_aids()</span>
+<span class="sd">        jobid = ibs.start_identify_annots(**payload)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check UUIDs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">([],</span> <span class="n">qannot_uuid_list</span><span class="p">,</span> <span class="n">dannot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># import wbia</span>
+    <span class="c1"># from wbia.web import apis_engine</span>
+    <span class="c1"># ibs.load_plugin_module(apis_engine)</span>
+    <span class="n">qannot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="p">)</span>
+    <span class="n">dannot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
+
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dannot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">dannot_uuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># VERY HACK</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span>
+        <span class="n">qaid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error in start_identify qaids&#39;</span><span class="p">,</span> <span class="n">auuid_list</span><span class="o">=</span><span class="n">qannot_uuid_list</span>
+    <span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span>
+        <span class="n">daid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error in start_identify daids&#39;</span><span class="p">,</span> <span class="n">auuid_list</span><span class="o">=</span><span class="n">dannot_uuid_list</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">pipecfg</span><span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;query_chips_simple_dict&#39;</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+        <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># if callback_url is not None:</span>
+    <span class="c1">#    #import requests</span>
+    <span class="c1">#    #requests.</span>
+    <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_identify_annots_query_complete"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_identify_annots_query_complete">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/query/graph/complete/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_identify_annots_query_complete</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">annot_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">annot_name_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">matching_state_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">query_config_dict</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">echo_query_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;slow&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/engine/query/complete/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        annot_uuid_list (list) : specifies the query annotations to</span>
+<span class="sd">            identify.</span>
+<span class="sd">        annot_name_list (list) : specifies the query annotation names</span>
+<span class="sd">        matching_state_list (list of tuple) : the list of matching state</span>
+<span class="sd">            3-tuples corresponding to the query_annot_uuid_list (default=None)</span>
+<span class="sd">        query_config_dict (dict) : dictionary of algorithmic configuration</span>
+<span class="sd">            arguments.  (default=None)</span>
+<span class="sd">        echo_query_params (bool) : flag for if to return the original query</span>
+<span class="sd">            parameters with the result</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check inputs</span>
+    <span class="k">if</span> <span class="n">annot_uuid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">annot_name_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_name_list</span><span class="p">)</span>
+
+    <span class="c1"># Check UUIDs</span>
+    <span class="k">if</span> <span class="n">annot_name_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">web_check_annot_uuids_with_names</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">annot_name_list</span><span class="p">)</span>
+        <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">annot_name_list</span> <span class="o">=</span> <span class="n">vals</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># Ensure annotations</span>
+    <span class="k">if</span> <span class="n">annot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">annot_uuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># Ensure names</span>
+    <span class="c1"># FIXME: THE QREQ STRUCTURE SHOULD HANDLE NAMES.</span>
+    <span class="k">if</span> <span class="n">annot_name_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Set names for query annotations</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">annot_name_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span>
+        <span class="n">aid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error in start_identify qaids&#39;</span><span class="p">,</span> <span class="n">auuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span>
+    <span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">aid_list</span><span class="p">,</span>
+        <span class="n">query_config_dict</span><span class="p">,</span>
+        <span class="n">k</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;query_chips_graph_complete&#39;</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+        <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_identify_annots_query"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_identify_annots_query">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/query/graph/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_identify_annots_query</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">query_annot_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="c1"># query_annot_name_uuid_list=None,</span>
+    <span class="n">query_annot_name_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">database_annot_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="c1"># database_annot_name_uuid_list=None,</span>
+    <span class="n">database_annot_name_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">database_imgsetid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">matching_state_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">query_config_dict</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">echo_query_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">include_qaid_in_daids</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;slow&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/engine/query/graph/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        query_annot_uuid_list (list) : specifies the query annotations to</span>
+<span class="sd">            identify.</span>
+<span class="sd">        query_annot_name_list (list) : specifies the query annotation names</span>
+<span class="sd">        database_annot_uuid_list (list) : specifies the annotations that the</span>
+<span class="sd">            algorithm is allowed to use for identification.  If not</span>
+<span class="sd">            specified all annotations are used.   (default=None)</span>
+<span class="sd">        database_annot_name_list (list) : specifies the database annotation</span>
+<span class="sd">            names (default=None)</span>
+<span class="sd">        matching_state_list (list of tuple) : the list of matching state</span>
+<span class="sd">            3-tuples corresponding to the query_annot_uuid_list (default=None)</span>
+<span class="sd">        query_config_dict (dict) : dictionary of algorithmic configuration</span>
+<span class="sd">            arguments.  (default=None)</span>
+<span class="sd">        echo_query_params (bool) : flag for if to return the original query</span>
+<span class="sd">            parameters with the result</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        # Normal mode</span>
+<span class="sd">        python -m wbia.web.apis_engine start_identify_annots_query</span>
+<span class="sd">        # Split mode</span>
+<span class="sd">        wbia --web</span>
+<span class="sd">        python -m wbia.web.apis_engine start_identify_annots_query --show --domain=localhost</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--job-engine-tests)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_engine import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; #domain = &#39;localhost&#39;</span>
+<span class="sd">        &gt;&gt;&gt; domain = None</span>
+<span class="sd">        &gt;&gt;&gt; with wbia.opendb_bg_web(&#39;testdb1&#39;, domain=domain, managed=True) as web_ibs:  # , domain=&#39;http://52.33.105.88&#39;)</span>
+<span class="sd">        ...     aids = web_ibs.send_wbia_request(&#39;/api/annot/&#39;, &#39;get&#39;)[0:3]</span>
+<span class="sd">        ...     uuid_list = web_ibs.send_wbia_request(&#39;/api/annot/uuid/&#39;, type_=&#39;get&#39;, aid_list=aids)</span>
+<span class="sd">        ...     quuid_list = ut.get_argval(&#39;--quuids&#39;, type_=list, default=uuid_list)[0:1]</span>
+<span class="sd">        ...     duuid_list = ut.get_argval(&#39;--duuids&#39;, type_=list, default=uuid_list)</span>
+<span class="sd">        ...     query_config_dict = {</span>
+<span class="sd">        ...        #&#39;pipeline_root&#39; : &#39;BC_DTW&#39;</span>
+<span class="sd">        ...     }</span>
+<span class="sd">        ...     data = dict(</span>
+<span class="sd">        ...         query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,</span>
+<span class="sd">        ...         query_config_dict=query_config_dict,</span>
+<span class="sd">        ...     )</span>
+<span class="sd">        ...     jobid = web_ibs.send_wbia_request(&#39;/api/engine/query/graph/&#39;, **data)</span>
+<span class="sd">        ...     print(&#39;jobid = %r&#39; % (jobid,))</span>
+<span class="sd">        ...     status_response = web_ibs.wait_for_results(jobid)</span>
+<span class="sd">        ...     result_response = web_ibs.read_engine_results(jobid)</span>
+<span class="sd">        ...     print(&#39;result_response = %s&#39; % (ut.repr3(result_response),))</span>
+<span class="sd">        ...     inference_result = result_response[&#39;json_result&#39;]</span>
+<span class="sd">        ...     if isinstance(inference_result, str):</span>
+<span class="sd">        ...        print(inference_result)</span>
+<span class="sd">        ...     cm_dict = inference_result[&#39;cm_dict&#39;]</span>
+<span class="sd">        ...     quuid = quuid_list[0]</span>
+<span class="sd">        ...     cm = cm_dict[str(quuid)]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">valid_states</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;match&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;matched&#39;</span><span class="p">],</span>  <span class="c1"># [&#39;match&#39;, &#39;matched&#39;],</span>
+        <span class="s1">&#39;nomatch&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;notmatched&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;nonmatch&#39;</span><span class="p">,</span>
+        <span class="p">],</span>  <span class="c1"># [&#39;nomatch&#39;, &#39;notmatched&#39;, &#39;nonmatched&#39;, &#39;notmatch&#39;, &#39;non-match&#39;, &#39;not-match&#39;],</span>
+        <span class="s1">&#39;notcomp&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;notcomparable&#39;</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="n">prefered_states</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">valid_states</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">flat_states</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">valid_states</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">sanitize</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">state</span> <span class="ow">in</span> <span class="n">flat_states</span>
+        <span class="p">),</span> <span class="s1">&#39;matching_state_list has unrecognized states. Should be one of </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">prefered_states</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+    <span class="c1"># HACK</span>
+    <span class="c1"># if query_annot_uuid_list is None:</span>
+    <span class="c1">#     if True:</span>
+    <span class="c1">#         query_annot_uuid_list = []</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         query_annot_uuid_list = ibs.get_annot_uuids(ibs.get_valid_aids()[0:1])</span>
+
+    <span class="n">dname_list</span> <span class="o">=</span> <span class="n">database_annot_name_list</span>
+    <span class="n">qname_list</span> <span class="o">=</span> <span class="n">query_annot_name_list</span>
+
+    <span class="k">if</span> <span class="n">database_imgsetid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">all_imgsetids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">database_imgsetid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_imgsetids</span><span class="p">:</span>
+            <span class="n">database_imgsetid</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">database_imgsetid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">database_annot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">database_imgsetid</span><span class="p">)</span>
+        <span class="n">database_annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+
+    <span class="c1"># Check inputs</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="p">),</span> <span class="s1">&#39;Can only identify one query annotation at a time. Got </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">database_annot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">database_annot_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="p">),</span> <span class="s1">&#39;Cannot specify an empty database_annot_uuid_list (e.g. []), specify or use None instead&#39;</span>
+
+    <span class="k">if</span> <span class="n">qname_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qname_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">database_annot_uuid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dname_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">database_annot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dname_list</span><span class="p">)</span>
+
+    <span class="n">proot</span> <span class="o">=</span> <span class="n">query_config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pipeline_root&#39;</span><span class="p">,</span> <span class="s1">&#39;vsmany&#39;</span><span class="p">)</span>
+    <span class="n">proot</span> <span class="o">=</span> <span class="n">query_config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proot&#39;</span><span class="p">,</span> <span class="n">proot</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">proot</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="s1">&#39;curvrankdorsal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curvrankfinfindrhybriddorsal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curvrankfluke&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curvranktwodorsal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;curvranktwofluke&#39;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">curvrank_daily_tag</span> <span class="o">=</span> <span class="n">query_config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;curvrank_daily_tag&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">curvrank_daily_tag</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">144</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;The curvrank_daily_tag cannot have more than 128 characters, please shorten and try again.&#39;</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;query_config_dict[&quot;curvrank_daily_tag&quot;]&#39;</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">curvrank_daily_tag</span>
+            <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidInput</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">query_config_dict</span><span class="p">))</span>
+        <span class="n">pop_key_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;curvrank_daily_tag&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">pop_key</span> <span class="ow">in</span> <span class="n">pop_key_list</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Popping irrelevant key for config: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pop_key</span><span class="p">,))</span>
+            <span class="n">query_config_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">pop_key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Check UUIDs</span>
+    <span class="k">if</span> <span class="n">dname_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">web_check_annot_uuids_with_names</span><span class="p">(</span><span class="n">database_annot_uuid_list</span><span class="p">,</span> <span class="n">dname_list</span><span class="p">)</span>
+        <span class="n">database_annot_uuid_list</span><span class="p">,</span> <span class="n">dname_list</span> <span class="o">=</span> <span class="n">vals</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">([],</span> <span class="n">query_annot_uuid_list</span><span class="p">,</span> <span class="n">database_annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># import wbia</span>
+    <span class="c1"># from wbia.web import apis_engine</span>
+    <span class="c1"># ibs.load_plugin_module(apis_engine)</span>
+
+    <span class="n">qannot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">query_annot_uuid_list</span><span class="p">)</span>
+    <span class="n">dannot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">database_annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># Ensure annotations</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dannot_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">dannot_uuid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">species</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
+        <span class="p">),</span> <span class="s1">&#39;Cannot query an annotation with an empty (unset) species against an unspecified database_annot_uuid_list&#39;</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annotation_set</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">dannot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># Ensure that the daid_list is non-empty after filtering out qaid_list</span>
+    <span class="n">daid_remaining_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_remaining_set</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">WebInvalidMatchException</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+
+    <span class="c1"># Ensure names</span>
+    <span class="c1"># FIXME: THE QREQ STRUCTURE SHOULD HANDLE NAMES.</span>
+    <span class="k">if</span> <span class="n">qname_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Set names for query annotations</span>
+        <span class="n">qnid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">qname_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">qnid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dname_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Set names for database annotations</span>
+        <span class="n">dnid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">dname_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">dnid_list</span><span class="p">)</span>
+
+    <span class="c1"># For caching reasons, let&#39;s add the qaids to the daids</span>
+    <span class="k">if</span> <span class="n">include_qaid_in_daids</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">daid_list</span> <span class="o">+</span> <span class="n">qaid_list</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
+
+    <span class="c1"># Convert annot UUIDs to aids for matching_state_list into user_feedback for query</span>
+    <span class="n">state_list</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">sanitize</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">matching_state_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="c1"># {&#39;aid1&#39;: [1], &#39;aid2&#39;: [2], &#39;p_match&#39;: [1.0], &#39;p_nomatch&#39;: [0.0], &#39;p_notcomp&#39;: [0.0]}</span>
+    <span class="n">user_feedback</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;aid1&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">matching_state_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+        <span class="s1">&#39;aid2&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">matching_state_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="s1">&#39;p_match&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="mf">1.0</span> <span class="k">if</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">valid_states</span><span class="p">[</span><span class="s1">&#39;match&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">state_list</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;p_nomatch&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="mf">1.0</span> <span class="k">if</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">valid_states</span><span class="p">[</span><span class="s1">&#39;nomatch&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">state_list</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;p_notcomp&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="mf">1.0</span> <span class="k">if</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">valid_states</span><span class="p">[</span><span class="s1">&#39;notcomp&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">state_list</span>
+        <span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span>
+        <span class="n">qaid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error in start_identify qaids&#39;</span><span class="p">,</span> <span class="n">auuid_list</span><span class="o">=</span><span class="n">qannot_uuid_list</span>
+    <span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span>
+        <span class="n">daid_list</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error in start_identify daids&#39;</span><span class="p">,</span> <span class="n">auuid_list</span><span class="o">=</span><span class="n">dannot_uuid_list</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">user_feedback</span><span class="p">,</span> <span class="n">query_config_dict</span><span class="p">,</span> <span class="n">echo_query_params</span><span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;query_chips_graph&#39;</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+        <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_wic_image"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_wic_image">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/wic/cnn/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_wic_image</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">image_uuid_list</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/engine/wic/cnn/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uuid_list (list) : list of image uuids to detect on.</span>
+<span class="sd">        callback_url (url) : url that will be called when detection succeeds or fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check UUIDs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="o">=</span><span class="n">image_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># import wbia</span>
+    <span class="c1"># from wbia.web import apis_engine</span>
+    <span class="c1"># ibs.load_plugin_module(apis_engine)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">gid_list</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;wic_cnn_json&#39;</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+        <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># if callback_url is not None:</span>
+    <span class="c1">#    #import requests</span>
+    <span class="c1">#    #requests.</span>
+    <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_detect_image_yolo"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_detect_image_yolo">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_detect_image_yolo</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">image_uuid_list</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/engine/detect/cnn/yolo/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uuid_list (list) : list of image uuids to detect on.</span>
+<span class="sd">        callback_url (url) : url that will be called when detection succeeds or fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check UUIDs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="o">=</span><span class="n">image_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># import wbia</span>
+    <span class="c1"># from wbia.web import apis_engine</span>
+    <span class="c1"># ibs.load_plugin_module(apis_engine)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">gid_list</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;detect_cnn_yolo_json&#39;</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+        <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># if callback_url is not None:</span>
+    <span class="c1">#    #import requests</span>
+    <span class="c1">#    #requests.</span>
+    <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_labeler_cnn"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_labeler_cnn">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/labeler/cnn/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_labeler_cnn</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">annot_uuid_list</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="c1"># Check UUIDs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># import wbia</span>
+    <span class="c1"># from wbia.web import apis_engine</span>
+    <span class="c1"># ibs.load_plugin_module(apis_engine)</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">aid_list</span><span class="p">,</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;labeler_cnn&#39;</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+        <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># if callback_url is not None:</span>
+    <span class="c1">#    #import requests</span>
+    <span class="c1">#    #requests.</span>
+    <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_review_query_chips_best"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_review_query_chips_best">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/review/query/chip/best/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_review_query_chips_best</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">annot_uuid</span><span class="p">,</span>
+    <span class="n">database_imgsetid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;slow&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">annot_uuid</span><span class="p">]</span>
+
+    <span class="c1"># Check UUIDs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># import wbia</span>
+    <span class="c1"># from wbia.web import apis_engine</span>
+    <span class="c1"># ibs.load_plugin_module(apis_engine)</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">aid</span><span class="p">,</span>
+        <span class="n">database_imgsetid</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;review_query_chips_best&#39;</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+        <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># if callback_url is not None:</span>
+    <span class="c1">#    #import requests</span>
+    <span class="c1">#    #requests.</span>
+    <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_detect_image_test_yolo"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_detect_image_test_yolo">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/test/engine/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_detect_image_test_yolo</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">shuffle</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">shuffle</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">start_detect_image_yolo</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_detect_image_lightnet"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_detect_image_lightnet">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/detect/cnn/lightnet/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_detect_image_lightnet</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">image_uuid_list</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET/api/engine/detect/cnn/lightnet/</span>
+<span class="sd">        URL:</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uuid_list (list) : list of image uuids or urls to detect on.</span>
+<span class="sd">        callback_url (url) : url that will be called when detection succeeds or fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Cannot send a list of image_uuid_list that is empty&#39;</span>
+
+    <span class="n">image_uuid_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">))))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_types</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot send a list of UUIDs mixed with URLs&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_uuid_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">image_uuid_type</span> <span class="o">=</span> <span class="n">image_uuid_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">image_uuid_type</span> <span class="o">==</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">:</span>
+        <span class="c1"># Check UUIDs</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="o">=</span><span class="n">image_uuid_list</span><span class="p">)</span>
+
+        <span class="c1"># import wbia</span>
+        <span class="c1"># from wbia.web import apis_engine</span>
+        <span class="c1"># ibs.load_plugin_module(apis_engine)</span>
+        <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">gid_list</span><span class="p">,</span>
+            <span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+            <span class="n">action</span><span class="o">=</span><span class="s1">&#39;detect_cnn_lightnet_json&#39;</span><span class="p">,</span>
+            <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+            <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+            <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+            <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+            <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># image_uuid_list contains urls</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">image_uuid_list</span><span class="p">,</span>
+            <span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+            <span class="n">action</span><span class="o">=</span><span class="s1">&#39;detect_cnn_lightnet_image_uris_json&#39;</span><span class="p">,</span>
+            <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+            <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+            <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+            <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+            <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># if callback_url is not None:</span>
+    <span class="c1">#    #import requests</span>
+    <span class="c1">#    #requests.</span>
+    <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_detect_image_test_lightnet"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_detect_image_test_lightnet">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/test/engine/detect/cnn/lightnet/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_detect_image_test_lightnet</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">shuffle</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">shuffle</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">start_detect_image_lightnet</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_predict_ws_injury_interim_svm"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_predict_ws_injury_interim_svm">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/classify/whaleshark/injury/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_predict_ws_injury_interim_svm</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">annot_uuid_list</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">lane</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">,</span>
+    <span class="n">jobid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL: /api/engine/classify/whaleshark/injury/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        annot_uuid_list (list) : list of annot uuids to detect on.</span>
+<span class="sd">        callback_url (url) : url that will be called when detection succeeds or fails</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.web.apis_engine start_predict_ws_injury_interim_svm</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_engine import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web import apis_engine</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qaids, daids = wbia.testdata_expanded_aids(</span>
+<span class="sd">        &gt;&gt;&gt;     defaultdb=&#39;WS_ALL&#39;, a=[&#39;default:qsize=2,dsize=10&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; annot_uuid_list = ibs.get_annot_uuids(qaids)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.initialize_job_manager()</span>
+<span class="sd">        &gt;&gt;&gt; jobid = ibs.start_predict_ws_injury_interim_svm(annot_uuid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ibs.wait_for_job_result(jobid, timeout=None, freq=2)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; #print(ut.to_json(result))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.close_job_manager()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check UUIDs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">qannot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+
+    <span class="c1"># import wbia</span>
+    <span class="c1"># from wbia.web import apis_engine</span>
+    <span class="c1"># ibs.load_plugin_module(apis_engine)</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">uuids</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">annots</span><span class="o">.</span><span class="n">aids</span><span class="p">,)</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;predict_ws_injury_interim_svm&#39;</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">callback_detailed</span><span class="o">=</span><span class="n">callback_detailed</span><span class="p">,</span>
+        <span class="n">lane</span><span class="o">=</span><span class="n">lane</span><span class="p">,</span>
+        <span class="n">jobid</span><span class="o">=</span><span class="n">jobid</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># if callback_url is not None:</span>
+    <span class="c1">#    #import requests</span>
+    <span class="c1">#    #requests.</span>
+    <span class="c1">#    #callback_url</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_web_query_all"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_web_query_all">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/query/web/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_web_query_all</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/engine/query/web/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;load_identification_query_object_worker&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+
+
+<div class="viewcode-block" id="start_wildbook_sync"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_engine.start_wildbook_sync">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/engine/wildbook/sync/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">start_wildbook_sync</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/engine/wildbook/sync/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">job_manager</span><span class="o">.</span><span class="n">jobiface</span><span class="o">.</span><span class="n">queue_job</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;wildbook_sync&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jobid</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

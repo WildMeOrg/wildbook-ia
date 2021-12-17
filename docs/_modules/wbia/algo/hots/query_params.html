@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.hots.query_params &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../hots.html">wbia.algo.hots</a> &raquo;</li>
+      <li>wbia.algo.hots.query_params</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.hots.query_params</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+<span class="kn">from</span> <span class="nn">wbia.algo</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span>
+
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># This object will behave like a dictionary with ** capability</span>
+<div class="viewcode-block" id="QueryParams"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_params.QueryParams">[docs]</a><span class="k">class</span> <span class="nc">QueryParams</span><span class="p">(</span><span class="n">Mapping</span><span class="p">):</span>
+    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">query_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        DEPRICATE</span>
+
+<span class="sd">        Rename to pipeline params</span>
+
+<span class="sd">        Structure to store static query pipeline parameters</span>
+<span class="sd">        parses nested config structure into this flat one</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            query_cfg (QueryConfig): query_config</span>
+<span class="sd">            cfgdict (dict or None): dictionary to update query_cfg with</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.hots.query_params --test-__init__</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.hots.query_params import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import wbia</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo import Config</span>
+<span class="sd">            &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; query_cfg = Config.QueryConfig()</span>
+<span class="sd">            &gt;&gt;&gt; cfgdict = dict(rotation_invariance=True)</span>
+<span class="sd">            &gt;&gt;&gt; qparams = QueryParams(query_cfg, cfgdict)</span>
+<span class="sd">            &gt;&gt;&gt; ut.assert_eq(qparams.hesaff_params[&#39;rotation_invariance&#39;], True)</span>
+
+<span class="sd">            _smk_SMK(agg=True,t=0.0,a=3.0,idf)_</span>
+<span class="sd">            VocabAssign(nAssign=10,a=1.2,s=None,eqw=T)_</span>
+<span class="sd">            VocabTrain(nWords=8000,init=akmeans++,nIters=128,taids=all)_</span>
+<span class="sd">            SV(OFF)_</span>
+<span class="sd">            FEATWEIGHT(ON,uselabel,rf)_</span>
+<span class="sd">            FEAT(hesaff+sift_)_</span>
+<span class="sd">            CHIP(sz450)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if given custom settings update the config and ensure feasibilty</span>
+        <span class="k">if</span> <span class="n">query_cfg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">query_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">query_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="c1"># Get flat item list</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">)</span>
+        <span class="c1"># Assert that there are no config conflicts</span>
+        <span class="n">duplicate_keys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">param_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">duplicate_keys</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s1">&#39;Configs have duplicate names: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">duplicate_keys</span>
+        <span class="p">)</span>
+        <span class="c1"># Set nexted config attributes as flat qparam properties</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">param_list</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="c1"># Add params not implicitly represented in Config object</span>
+        <span class="n">pipeline_root</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfg_dict</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">flann_params</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">hesaff_params</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="n">pipeline_root</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span> <span class="o">=</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s1">&#39;vsmany&#39;</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span> <span class="o">=</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s1">&#39;vsone&#39;</span>
+        <span class="c1"># Add custom strings to the mix as well</span>
+        <span class="c1"># TODO; Find better way to specify config strings</span>
+        <span class="c1"># FIXME: probchip is not in here</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">probchip_cfgstr</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span>
+            <span class="n">use_feat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_chip</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">featweight_cfgstr</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfgstr</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">nnweight_cfgstr</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">sv_cfgstr</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+
+<div class="viewcode-block" id="QueryParams.hack_lnbnn_config_trail"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_params.QueryParams.hack_lnbnn_config_trail">[docs]</a>    <span class="k">def</span> <span class="nf">hack_lnbnn_config_trail</span><span class="p">(</span><span class="n">qparams</span><span class="p">):</span>
+        <span class="n">query_cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">()</span>
+        <span class="n">lnbnn_trail</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">(),</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">(),</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">(),</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">(),</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">asdict</span><span class="p">(),</span>
+        <span class="p">]</span>
+        <span class="c1"># Does not include feautres. Instead use</span>
+        <span class="c1"># logger.info(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail(&#39;featweight&#39;, {})]))</span>
+        <span class="k">return</span> <span class="n">lnbnn_trail</span></div>
+
+<div class="viewcode-block" id="QueryParams.get_postsver_filtkey_list"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_params.QueryParams.get_postsver_filtkey_list">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">get_postsver_filtkey_list</span><span class="p">(</span><span class="n">qparams</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;HACK: gets columns of fsv post spatial verification.  This will</span>
+<span class="sd">        eventually be incorporated into cmtup_old instead and will not be</span>
+<span class="sd">        dependant on specifically where you are in the pipeline</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filtkey_list</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">active_filter_list</span>
+        <span class="k">if</span> <span class="n">qparams</span><span class="o">.</span><span class="n">sver_output_weighting</span><span class="p">:</span>
+            <span class="n">filtkey_list</span> <span class="o">=</span> <span class="n">filtkey_list</span><span class="p">[:]</span> <span class="o">+</span> <span class="p">[</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">HOMOGERR</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">filtkey_list</span></div>
+
+    <span class="c1"># Dictionary like interface</span>
+
+<div class="viewcode-block" id="QueryParams.get"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_params.QueryParams.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get a paramater value by string&quot;&quot;&quot;</span>
+        <span class="n">ERROR_ON_DEFAULT</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">ERROR_ON_DEFAULT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">d</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qparams</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="n">qparams</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">qparams</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="n">qparams</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">qparams</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="n">qparams</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make QueryRequest pickleable</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.hots.query_params import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import pickle</span>
+<span class="sd">            &gt;&gt;&gt; cfgdict = {&#39;pipeline_root&#39;: &#39;vsmany&#39;, &#39;sv_on&#39;: False, &#39;fg_on&#39;: True}</span>
+<span class="sd">            &gt;&gt;&gt; qparams = QueryParams(cfgdict=cfgdict)</span>
+<span class="sd">            &gt;&gt;&gt; qparams_dump = pickle.dumps(qparams)</span>
+<span class="sd">            &gt;&gt;&gt; qparams2 = pickle.loads(qparams_dump)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">state_dict</span>
+
+<div class="viewcode-block" id="QueryParams.copy"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots.query_params.QueryParams.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="n">qparams</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qparams</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

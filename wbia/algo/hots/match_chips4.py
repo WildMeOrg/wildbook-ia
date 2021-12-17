@@ -52,7 +52,7 @@ def submit_query_request(
     CommandLine:
         python -m wbia.algo.hots.match_chips4 --test-submit_query_request
 
-    Examples:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> from wbia.algo.hots.match_chips4 import *  # NOQA
@@ -153,8 +153,7 @@ def execute_query_and_save_L1(
         python -m wbia.algo.hots.match_chips4 execute_query_and_save_L1:2
         python -m wbia.algo.hots.match_chips4 execute_query_and_save_L1:3
 
-
-    Example0:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> from wbia.algo.hots.match_chips4 import *  # NOQA
@@ -165,7 +164,7 @@ def execute_query_and_save_L1(
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
 
-    Example1:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> from wbia.algo.hots.match_chips4 import *  # NOQA
@@ -176,7 +175,7 @@ def execute_query_and_save_L1(
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
 
-    Example1:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> # TEST SAVE
@@ -189,7 +188,7 @@ def execute_query_and_save_L1(
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
 
-    Example2:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> # TEST LOAD
@@ -202,7 +201,7 @@ def execute_query_and_save_L1(
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> # TEST PARTIAL HIT
         >>> from wbia.algo.hots.match_chips4 import *  # NOQA

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.mpl_keypoint &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.mpl_keypoint</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.mpl_keypoint</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">mpl_sift</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[pt.mpl_keypoint]&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># TOOD: move to util</span>
+<div class="viewcode-block" id="pass_props"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.pass_props">[docs]</a><span class="k">def</span> <span class="nf">pass_props</span><span class="p">(</span><span class="n">dict1</span><span class="p">,</span> <span class="n">dict2</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="c1"># Passes props from one kwargs dict to the next</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dict1</span><span class="p">:</span>
+            <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_draw_patches</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">patch_list</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">fcolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">):</span>
+    <span class="c1"># creates a collection from a patch list and sets properties</span>
+    <span class="c1"># print(&#39;new collecitn&#39;)</span>
+    <span class="c1"># print(alpha)</span>
+    <span class="n">coll</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">PatchCollection</span><span class="p">(</span><span class="n">patch_list</span><span class="p">)</span>
+    <span class="n">coll</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">fcolor</span><span class="p">)</span>
+    <span class="n">coll</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+    <span class="n">coll</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="n">lw</span><span class="p">)</span>
+    <span class="n">coll</span><span class="o">.</span><span class="n">set_edgecolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="c1"># coll.set_transform(ax.transData)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">coll</span><span class="p">)</span>
+
+
+<span class="c1"># ----------------------------</span>
+<div class="viewcode-block" id="draw_keypoints"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.draw_keypoints">[docs]</a><span class="k">def</span> <span class="nf">draw_keypoints</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="n">kpts_</span><span class="p">,</span>
+    <span class="n">scale_factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+    <span class="n">rotation</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">ell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">pts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">rect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">eig</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">ori</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">sifts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">siftkw</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">H</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    draws keypoints extracted by pyhesaff onto a matplotlib axis</span>
+
+<span class="sd">    FIXME: There is probably a matplotlib bug here. If you specify two different</span>
+<span class="sd">    alphas in a collection, whatever the last alpha was gets applied to</span>
+<span class="sd">    everything</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ax (mpl.Axes):</span>
+<span class="sd">        kpts (ndarray): keypoints [[x, y, a, c, d, theta], ...]</span>
+<span class="sd">        scale_factor (float):</span>
+<span class="sd">        offset (tuple):</span>
+<span class="sd">        rotation (float):</span>
+<span class="sd">        ell (bool):</span>
+<span class="sd">        pts (bool):</span>
+<span class="sd">        rect (bool):</span>
+<span class="sd">        eig (bool):</span>
+<span class="sd">        ori (bool):</span>
+<span class="sd">        sifts (None):</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/28401788/transforms-non-affine-patch</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.mpl_keypoint draw_keypoints --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.mpl_keypoint import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.mpl_keypoint import _draw_patches, _draw_pts  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; imgBGR = vt.get_star_patch(jitter=True)</span>
+<span class="sd">        &gt;&gt;&gt; H = np.array([[1, 0, 0], [.5, 2, 0], [0, 0, 1]])</span>
+<span class="sd">        &gt;&gt;&gt; H = np.array([[.8, 0, 0], [0, .8, 0], [0, 0, 1]])</span>
+<span class="sd">        &gt;&gt;&gt; H = None</span>
+<span class="sd">        &gt;&gt;&gt; TAU = 2 * np.pi</span>
+<span class="sd">        &gt;&gt;&gt; kpts_ = vt.make_test_image_keypoints(imgBGR, scale=.5, skew=2, theta=TAU / 8.0)</span>
+<span class="sd">        &gt;&gt;&gt; scale_factor=1.0</span>
+<span class="sd">        &gt;&gt;&gt; #offset=(0.0, -4.0)</span>
+<span class="sd">        &gt;&gt;&gt; offset=(0.0, 0.0)</span>
+<span class="sd">        &gt;&gt;&gt; rotation=0.0</span>
+<span class="sd">        &gt;&gt;&gt; ell=True</span>
+<span class="sd">        &gt;&gt;&gt; pts=True</span>
+<span class="sd">        &gt;&gt;&gt; rect=True</span>
+<span class="sd">        &gt;&gt;&gt; eig=True</span>
+<span class="sd">        &gt;&gt;&gt; ori=True</span>
+<span class="sd">        &gt;&gt;&gt; # make random sifts</span>
+<span class="sd">        &gt;&gt;&gt; sifts = mpl_sift.testdata_sifts()</span>
+<span class="sd">        &gt;&gt;&gt; siftkw = {}</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1],</span>
+<span class="sd">        &gt;&gt;&gt;               eig_color=[1, 1, 0], pts_size=.1)</span>
+<span class="sd">        &gt;&gt;&gt; w, h = imgBGR.shape[0:2][::-1]</span>
+<span class="sd">        &gt;&gt;&gt; imgBGR_ = imgBGR if H is None else vt.warpAffine(</span>
+<span class="sd">        &gt;&gt;&gt;     imgBGR, H, (int(w * .8), int(h * .8)))</span>
+<span class="sd">        &gt;&gt;&gt; fig, ax = pt.imshow(imgBGR_ * 255)</span>
+<span class="sd">        &gt;&gt;&gt; draw_keypoints(ax, kpts_, scale_factor, offset, rotation, ell, pts,</span>
+<span class="sd">        ...                rect, eig, ori, sifts, siftkw, H=H, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; pt.iup()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool.keypoint</span> <span class="k">as</span> <span class="nn">ktool</span>
+
+    <span class="k">if</span> <span class="n">kpts_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># pad out structure if only xy given</span>
+        <span class="n">kpts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts_</span><span class="p">),</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="n">kpts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpts_</span>
+        <span class="n">kpts</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">kpts</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">kpts_</span> <span class="o">=</span> <span class="n">kpts</span>
+
+    <span class="k">if</span> <span class="n">scale_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">scale_factor</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="c1"># print(&#39;[mpl_keypoint.draw_keypoints] kwargs = &#39; + ut.repr2(kwargs))</span>
+    <span class="c1"># ellipse and point properties</span>
+    <span class="n">pts_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pts_size&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">pts_alpha</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pts_alpha&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">ell_alpha</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ell_alpha&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">ell_linewidth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ell_linewidth&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">ell_color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ell_color&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ell_color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ell_color</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># colors</span>
+    <span class="n">pts_color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pts_color&#39;</span><span class="p">,</span> <span class="n">ell_color</span><span class="p">)</span>
+    <span class="n">rect_color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rect_color&#39;</span><span class="p">,</span> <span class="n">ell_color</span><span class="p">)</span>
+    <span class="n">eig_color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;eig_color&#39;</span><span class="p">,</span> <span class="n">ell_color</span><span class="p">)</span>
+    <span class="n">ori_color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ori_color&#39;</span><span class="p">,</span> <span class="n">ell_color</span><span class="p">)</span>
+    <span class="c1"># linewidths</span>
+    <span class="n">eig_linewidth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;eig_linewidth&#39;</span><span class="p">,</span> <span class="n">ell_linewidth</span><span class="p">)</span>
+    <span class="n">rect_linewidth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rect_linewidth&#39;</span><span class="p">,</span> <span class="n">ell_linewidth</span><span class="p">)</span>
+    <span class="n">ori_linewidth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ori_linewidth&#39;</span><span class="p">,</span> <span class="n">ell_linewidth</span><span class="p">)</span>
+    <span class="c1"># Offset keypoints</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;cannot draw no keypoints1&#39;</span>
+    <span class="n">kpts</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">offset_kpts</span><span class="p">(</span><span class="n">kpts_</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;cannot draw no keypoints2&#39;</span>
+    <span class="c1"># Build list of keypoint shape transforms from unit circles to ellipes</span>
+    <span class="n">invVR_aff2Ds</span> <span class="o">=</span> <span class="n">get_invVR_aff2Ds</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sifts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># SIFT descriptors</span>
+            <span class="n">pass_props</span><span class="p">(</span>
+                <span class="n">kwargs</span><span class="p">,</span>
+                <span class="n">siftkw</span><span class="p">,</span>
+                <span class="s1">&#39;bin_color&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;arm1_color&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;arm2_color&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;arm1_lw&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;arm2_lw&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;stroke&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;arm_alpha&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;arm_alpha&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;multicolored_arms&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">mpl_sift</span><span class="o">.</span><span class="n">draw_sifts</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">sifts</span><span class="p">,</span> <span class="n">invVR_aff2Ds</span><span class="p">,</span> <span class="o">**</span><span class="n">siftkw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rect</span><span class="p">:</span>
+            <span class="c1"># Bounding Rectangles</span>
+            <span class="n">rect_patches</span> <span class="o">=</span> <span class="n">rectangle_actors</span><span class="p">(</span><span class="n">invVR_aff2Ds</span><span class="p">)</span>
+            <span class="n">_draw_patches</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">rect_patches</span><span class="p">,</span> <span class="n">rect_color</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="p">,</span> <span class="n">rect_linewidth</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ell</span><span class="p">:</span>
+            <span class="c1"># Keypoint shape</span>
+            <span class="n">ell_patches</span> <span class="o">=</span> <span class="n">ellipse_actors</span><span class="p">(</span><span class="n">invVR_aff2Ds</span><span class="p">)</span>
+            <span class="n">_draw_patches</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ell_patches</span><span class="p">,</span> <span class="n">ell_color</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="p">,</span> <span class="n">ell_linewidth</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">eig</span><span class="p">:</span>
+            <span class="c1"># Shape eigenvectors</span>
+            <span class="n">eig_patches</span> <span class="o">=</span> <span class="n">eigenvector_actors</span><span class="p">(</span><span class="n">invVR_aff2Ds</span><span class="p">)</span>
+            <span class="n">_draw_patches</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">eig_patches</span><span class="p">,</span> <span class="n">eig_color</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="p">,</span> <span class="n">eig_linewidth</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ori</span><span class="p">:</span>
+            <span class="c1"># Keypoint orientation</span>
+            <span class="n">ori_patches</span> <span class="o">=</span> <span class="n">orientation_actors</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">)</span>
+            <span class="n">_draw_patches</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ori_patches</span><span class="p">,</span> <span class="n">ori_color</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="p">,</span> <span class="n">ori_linewidth</span><span class="p">,</span> <span class="n">ori_color</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pts</span><span class="p">:</span>
+            <span class="c1"># Keypoint locations</span>
+            <span class="n">_xs</span><span class="p">,</span> <span class="n">_ys</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_xys</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">H</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># adjust for homogrpahy</span>
+                <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+                <span class="n">_xs</span><span class="p">,</span> <span class="n">_ys</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">transform_points_with_homography</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">_xs</span><span class="p">,</span> <span class="n">_ys</span><span class="p">)))</span>
+
+            <span class="n">pts_patches</span> <span class="o">=</span> <span class="n">_draw_pts</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">_xs</span><span class="p">,</span> <span class="n">_ys</span><span class="p">,</span> <span class="n">pts_size</span><span class="p">,</span> <span class="n">pts_color</span><span class="p">,</span> <span class="n">pts_alpha</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">pts_patches</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_draw_patches</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">pts_patches</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">pts_alpha</span><span class="p">,</span> <span class="n">pts_size</span><span class="p">,</span> <span class="n">pts_color</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[mplkp] !!! ERROR&#39;</span><span class="p">)</span>
+        <span class="c1"># print(&#39;_oris.shape = %r&#39; % (_oris.shape,))</span>
+        <span class="c1"># print(&#39;_xs.shape = %r&#39; % (_xs.shape,))</span>
+        <span class="c1"># print(&#39;_iv11s.shape = %r&#39; % (_iv11s.shape,))</span>
+        <span class="k">raise</span></div>
+
+
+<span class="c1"># ----------------------------</span>
+
+
+<span class="k">def</span> <span class="nf">_draw_pts</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">_xs</span><span class="p">,</span> <span class="n">_ys</span><span class="p">,</span> <span class="n">pts_size</span><span class="p">,</span> <span class="n">pts_color</span><span class="p">,</span> <span class="n">pts_alpha</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">ptskw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">c</span><span class="o">=</span><span class="n">pts_color</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">pts_size</span><span class="p">),</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+    <span class="n">OLD_WAY</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># if pts_alpha is not None:</span>
+    <span class="c1">#    ptskw[&#39;alpha&#39;] = pts_alpha</span>
+    <span class="k">if</span> <span class="n">OLD_WAY</span><span class="p">:</span>
+        <span class="c1"># print(ut.repr2(ptskw))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">_xs</span><span class="p">,</span> <span class="n">_ys</span><span class="p">,</span> <span class="o">**</span><span class="n">ptskw</span><span class="p">)</span>
+        <span class="c1"># FIXME: THIS MIGHT CAUSE ISSUES: UNEXPECTED CALL</span>
+        <span class="c1"># ax.autoscale(enable=False)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pts_patches</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">Circle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="p">(</span><span class="n">pts_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_xs</span><span class="p">,</span> <span class="n">_ys</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1"># print(pts_color)</span>
+        <span class="k">return</span> <span class="n">pts_patches</span>
+
+
+<div class="viewcode-block" id="HomographyTransform"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.HomographyTransform">[docs]</a><span class="k">class</span> <span class="nc">HomographyTransform</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/28401788/using-homogeneous-transforms-non-affine-with-matplotlib-patches?noredirect=1#comment45156353_28401788</span>
+<span class="sd">        http://matplotlib.org/users/transforms_tutorial.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_dims</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">output_dims</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">is_separable</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_rmin</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Transform</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span> <span class="o">=</span> <span class="n">axis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_rmin</span> <span class="o">=</span> <span class="n">use_rmin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">H</span>
+
+<div class="viewcode-block" id="HomographyTransform.transform_non_affine"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.HomographyTransform.transform_non_affine">[docs]</a>    <span class="k">def</span> <span class="nf">transform_non_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_xy</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The input and output are Nx2 numpy arrays.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+        <span class="n">_xys</span> <span class="o">=</span> <span class="n">input_xy</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">xy_t</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">transform_points_with_homography</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="n">_xys</span><span class="p">)</span>
+        <span class="n">output_xy</span> <span class="o">=</span> <span class="n">xy_t</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">return</span> <span class="n">output_xy</span></div>
+
+    <span class="c1"># transform_non_affine.__doc__ = mpl.transforms.Transform.transform_non_affine.__doc__</span>
+
+<div class="viewcode-block" id="HomographyTransform.transform_path_non_affine"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.HomographyTransform.transform_path_non_affine">[docs]</a>    <span class="k">def</span> <span class="nf">transform_path_non_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">vertices</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">mpl</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">vertices</span><span class="p">),</span> <span class="n">path</span><span class="o">.</span><span class="n">codes</span><span class="p">)</span>
+        <span class="n">ipath</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">interpolated</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">_interpolation_steps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mpl</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">ipath</span><span class="o">.</span><span class="n">vertices</span><span class="p">),</span> <span class="n">ipath</span><span class="o">.</span><span class="n">codes</span><span class="p">)</span></div></div>
+
+    <span class="c1"># transform_path_non_affine.__doc__ = mpl.transforms.Transform.transform_path_non_affine.__doc__</span>
+
+
+<div class="viewcode-block" id="get_invVR_aff2Ds"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.get_invVR_aff2Ds">[docs]</a><span class="k">def</span> <span class="nf">get_invVR_aff2Ds</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns matplotlib keypoint transformations (circle -&gt; ellipse)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # Test CV2 ellipse vs mine using MSER</span>
+<span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
+<span class="sd">        &gt;&gt;&gt; import cv2</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; img_fpath = ut.grab_test_imgpath(ut.get_argval(&#39;--fname&#39;, default=&#39;zebra.png&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; imgBGR = vt.imread(img_fpath)</span>
+<span class="sd">        &gt;&gt;&gt; imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)</span>
+<span class="sd">        &gt;&gt;&gt; mser = cv2.MSER_create()</span>
+<span class="sd">        &gt;&gt;&gt; regions, bboxs = mser.detectRegions(imgGray)</span>
+<span class="sd">        &gt;&gt;&gt; region = regions[0]</span>
+<span class="sd">        &gt;&gt;&gt; bbox = bboxs[0]</span>
+<span class="sd">        &gt;&gt;&gt; vis = imgBGR.copy()</span>
+<span class="sd">        &gt;&gt;&gt; vis[region.T[1], region.T[0], :] = 0</span>
+<span class="sd">        &gt;&gt;&gt; hull = cv2.convexHull(region.reshape(-1, 1, 2))</span>
+<span class="sd">        &gt;&gt;&gt; cv2.polylines(vis, [hull], 1, (0, 255, 0))</span>
+<span class="sd">        &gt;&gt;&gt; ell = cv2.fitEllipse(region)</span>
+<span class="sd">        &gt;&gt;&gt; cv2.ellipse(vis, ell, (255))</span>
+<span class="sd">        &gt;&gt;&gt; ((cx, cy), (rx, ry), degrees) = ell</span>
+<span class="sd">        &gt;&gt;&gt; # Convert diameter to radians</span>
+<span class="sd">        &gt;&gt;&gt; rx /= 2</span>
+<span class="sd">        &gt;&gt;&gt; ry /= 2</span>
+<span class="sd">        &gt;&gt;&gt; # Make my version of ell</span>
+<span class="sd">        &gt;&gt;&gt; theta = np.radians(degrees)  # opencv lives in radians</span>
+<span class="sd">        &gt;&gt;&gt; S = vt.scale_mat3x3(rx, ry)</span>
+<span class="sd">        &gt;&gt;&gt; T = vt.translation_mat3x3(cx, cy)</span>
+<span class="sd">        &gt;&gt;&gt; R = vt.rotation_mat3x3(theta)</span>
+<span class="sd">        &gt;&gt;&gt; #R = np.eye(3)</span>
+<span class="sd">        &gt;&gt;&gt; invVR = T.dot(R).dot(S)</span>
+<span class="sd">        &gt;&gt;&gt; kpts = vt.flatten_invV_mats_to_kpts(np.array([invVR]))</span>
+<span class="sd">        &gt;&gt;&gt; pt.imshow(vis)</span>
+<span class="sd">        &gt;&gt;&gt; # MINE IS MUCH LARGER (by factor of 2)) WHY?</span>
+<span class="sd">        &gt;&gt;&gt; # we start out with a unit circle not a half circle</span>
+<span class="sd">        &gt;&gt;&gt; pt.draw_keypoints(pt.gca(), kpts, pts=True, ori=True, eig=True, rect=True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool.keypoint</span> <span class="k">as</span> <span class="nn">ktool</span>
+
+    <span class="c1"># invVR_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)</span>
+    <span class="n">invVR_mats</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_invVR_mats3x3</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">H</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">invVR_aff2Ds</span> <span class="o">=</span> <span class="p">[</span><span class="n">mpl</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Affine2D</span><span class="p">(</span><span class="n">invVR</span><span class="p">)</span> <span class="k">for</span> <span class="n">invVR</span> <span class="ow">in</span> <span class="n">invVR_mats</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">invVR_aff2Ds</span> <span class="o">=</span> <span class="p">[</span><span class="n">HomographyTransform</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">invVR</span><span class="p">))</span> <span class="k">for</span> <span class="n">invVR</span> <span class="ow">in</span> <span class="n">invVR_mats</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">invVR_aff2Ds</span></div>
+
+
+<div class="viewcode-block" id="ellipse_actors"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.ellipse_actors">[docs]</a><span class="k">def</span> <span class="nf">ellipse_actors</span><span class="p">(</span><span class="n">invVR_aff2Ds</span><span class="p">):</span>
+    <span class="c1"># warp unit circles to keypoint shapes</span>
+    <span class="n">ell_actors</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">Circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">invVR</span><span class="p">)</span> <span class="k">for</span> <span class="n">invVR</span> <span class="ow">in</span> <span class="n">invVR_aff2Ds</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">ell_actors</span></div>
+
+
+<div class="viewcode-block" id="rectangle_actors"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.rectangle_actors">[docs]</a><span class="k">def</span> <span class="nf">rectangle_actors</span><span class="p">(</span><span class="n">invVR_aff2Ds</span><span class="p">):</span>
+    <span class="n">Rect</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">Rectangle</span>
+    <span class="n">Arrow</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">FancyArrow</span>
+    <span class="n">rect_xywh</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span>
+    <span class="n">arw_xydxdy</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">arw_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">head_width</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">length_includes_head</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># warp unit rectangles to keypoint shapes</span>
+    <span class="n">rect_actors</span> <span class="o">=</span> <span class="p">[</span><span class="n">Rect</span><span class="p">(</span><span class="o">*</span><span class="n">rect_xywh</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">invVR</span><span class="p">)</span> <span class="k">for</span> <span class="n">invVR</span> <span class="ow">in</span> <span class="n">invVR_aff2Ds</span><span class="p">]</span>
+    <span class="c1"># an overhead arrow indicates the top of the rectangle</span>
+    <span class="n">arw_actors</span> <span class="o">=</span> <span class="p">[</span><span class="n">Arrow</span><span class="p">(</span><span class="o">*</span><span class="n">arw_xydxdy</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">invVR</span><span class="p">,</span> <span class="o">**</span><span class="n">arw_kw</span><span class="p">)</span> <span class="k">for</span> <span class="n">invVR</span> <span class="ow">in</span> <span class="n">invVR_aff2Ds</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">rect_actors</span> <span class="o">+</span> <span class="n">arw_actors</span></div>
+
+
+<div class="viewcode-block" id="eigenvector_actors"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.eigenvector_actors">[docs]</a><span class="k">def</span> <span class="nf">eigenvector_actors</span><span class="p">(</span><span class="n">invVR_aff2Ds</span><span class="p">):</span>
+    <span class="c1"># warps arrows into eigenvector directions</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;head_width&#39;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span>
+        <span class="s1">&#39;length_includes_head&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">eig1</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">FancyArrow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">invV</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">invV</span> <span class="ow">in</span> <span class="n">invVR_aff2Ds</span>
+    <span class="p">]</span>
+    <span class="n">eig2</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">FancyArrow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">invV</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">invV</span> <span class="ow">in</span> <span class="n">invVR_aff2Ds</span>
+    <span class="p">]</span>
+    <span class="n">eig_actors</span> <span class="o">=</span> <span class="n">eig1</span> <span class="o">+</span> <span class="n">eig2</span>
+    <span class="k">return</span> <span class="n">eig_actors</span></div>
+
+
+<div class="viewcode-block" id="orientation_actors"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_keypoint.orientation_actors">[docs]</a><span class="k">def</span> <span class="nf">orientation_actors</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;creates orientation actors w.r.t. the gravity vector&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool.keypoint</span> <span class="k">as</span> <span class="nn">ktool</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Get xy diretion of the keypoint orientations</span>
+        <span class="n">_xs</span><span class="p">,</span> <span class="n">_ys</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_xys</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+        <span class="n">_iv11s</span><span class="p">,</span> <span class="n">_iv21s</span><span class="p">,</span> <span class="n">_iv22s</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_invVs</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+        <span class="n">_oris</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_oris</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+        <span class="c1"># mpl&#39;s 0 ori == (-tau / 4) w.r.t GRAVITY_THETA</span>
+        <span class="n">abs_oris</span> <span class="o">=</span> <span class="n">_oris</span> <span class="o">+</span> <span class="n">ktool</span><span class="o">.</span><span class="n">GRAVITY_THETA</span>
+        <span class="n">_sins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">abs_oris</span><span class="p">)</span>
+        <span class="n">_coss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">abs_oris</span><span class="p">)</span>
+        <span class="c1"># The following is essentially</span>
+        <span class="c1"># invV.dot(R)</span>
+        <span class="n">_dxs</span> <span class="o">=</span> <span class="n">_coss</span> <span class="o">*</span> <span class="n">_iv11s</span>
+        <span class="n">_dys</span> <span class="o">=</span> <span class="n">_coss</span> <span class="o">*</span> <span class="n">_iv21s</span> <span class="o">+</span> <span class="n">_sins</span> <span class="o">*</span> <span class="n">_iv22s</span>
+        <span class="c1"># ut.embed()</span>
+
+        <span class="c1"># if H is not None:</span>
+        <span class="c1">#    # adjust for homogrpahy</span>
+        <span class="c1">#    import vtool as vt</span>
+        <span class="c1">#    _xs, _ys = vt.transform_points_with_homography(H, np.vstack((_xs, _ys)))</span>
+        <span class="c1">#    _dxs, _dys = vt.transform_points_with_homography(H, np.vstack((_dxs, _dys)))</span>
+
+        <span class="c1"># head_width_list = np.log(_iv11s * _iv22s) / 5</span>
+        <span class="n">head_width_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_iv11s</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;length_includes_head&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="s1">&#39;full&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;overhang&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;head_starts_at_zero&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">H</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">HomographyTransform</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
+
+        <span class="n">ori_actors</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">FancyArrow</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">head_width</span><span class="o">=</span><span class="n">hw</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">hw</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_xs</span><span class="p">,</span> <span class="n">_ys</span><span class="p">,</span> <span class="n">_dxs</span><span class="p">,</span> <span class="n">_dys</span><span class="p">,</span> <span class="n">head_width_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[mplkp.2] !!! ERROR </span><span class="si">%s</span><span class="s1">: &#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_oris.shape = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_oris</span><span class="o">.</span><span class="n">shape</span><span class="p">,))</span>
+        <span class="c1"># print(&#39;x, y, dx, dy = %r&#39; % ((x, y, dx, dy),))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_dxs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_dxs</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_dys = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_dys</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_xs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_xs</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_ys = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_ys</span><span class="p">,))</span>
+        <span class="k">raise</span>
+
+    <span class="k">return</span> <span class="n">ori_actors</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

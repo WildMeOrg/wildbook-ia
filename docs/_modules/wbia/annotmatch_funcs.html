@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.annotmatch_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wbia.annotmatch_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.annotmatch_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create dectorator to inject functions in this module into the IBEISController</span>
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+
+
+<span class="c1"># def get_annotmatch_rowids_subset_from_aids(ibs, aids):</span>
+<span class="c1">#     pass</span>
+
+
+<div class="viewcode-block" id="get_annotmatch_rowids_from_aid1"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotmatch_rowids_from_aid1">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">get_annotmatch_rowids_from_aid1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO autogenerate</span>
+
+<span class="sd">    Returns a list of the aids that were reviewed as candidate matches to the input aid</span>
+
+<span class="sd">    aid_list = ibs.get_valid_aids()</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aid1_list (list):</span>
+<span class="sd">        eager (bool): (default = True)</span>
+<span class="sd">        nInput (None): (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: annotmatch_rowid_list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">manual_annotmatch_funcs</span>
+
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">manual_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOTMATCH_ROWID</span><span class="p">,)</span>
+    <span class="c1"># FIXME: col_rowid is not correct</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid1_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># HACK IN INDEX</span>
+        <span class="k">with</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE INDEX IF NOT EXISTS aid1_to_am ON {ANNOTMATCH_TABLE} ({annot_rowid1});</span>
+<span class="sd">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">ANNOTMATCH_TABLE</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span>
+                    <span class="n">annot_rowid1</span><span class="o">=</span><span class="n">manual_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOT_ROWID1</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">manual_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOT_ROWID1</span><span class="p">]</span>
+    <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">sorted</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">annotmatch_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_annotmatch_rowids_from_aid2"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotmatch_rowids_from_aid2">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">get_annotmatch_rowids_from_aid2</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_method</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # This one is slow because aid2 is the second part of the index</span>
+<span class="sd">    Returns a list of the aids that were reviewed as candidate matches to the input aid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">manual_annotmatch_funcs</span>
+
+    <span class="k">if</span> <span class="n">nInput</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid2_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># HACK IN INDEX</span>
+        <span class="k">with</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE INDEX IF NOT EXISTS aid2_to_am ON {ANNOTMATCH_TABLE} ({annot_rowid2});</span>
+<span class="sd">                &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">ANNOTMATCH_TABLE</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span>
+                    <span class="n">annot_rowid2</span><span class="o">=</span><span class="n">manual_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOT_ROWID2</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">manual_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOTMATCH_ROWID</span><span class="p">,)</span>
+    <span class="c1"># FIXME: col_rowid is not correct</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid2_list</span><span class="p">)</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">manual_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOT_ROWID2</span><span class="p">]</span>
+    <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">sorted</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">annotmatch_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_annotmatch_rowids_from_aid"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotmatch_rowids_from_aid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">get_annotmatch_rowids_from_aid</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_method</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Undirected version</span>
+<span class="sd">    Returns a list of the aids that were reviewed as candidate matches to the input aid</span>
+<span class="sd">    aid_list = ibs.get_valid_aids()</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid</span>
+<span class="sd">        python -m wbia.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid:1 --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annotmatch_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.exec_funckw(ibs.get_annotmatch_rowids_from_aid, globals())</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:4]</span>
+<span class="sd">        &gt;&gt;&gt; annotmatch_rowid_list = ibs.get_annotmatch_rowids_from_aid(aid_list,</span>
+<span class="sd">        &gt;&gt;&gt;                                                        eager, nInput)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;annotmatch_rowid_list = %s&#39; % (str(annotmatch_rowid_list),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># from wbia.control import manual_annotmatch_funcs</span>
+    <span class="k">if</span> <span class="n">nInput</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nInput</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">rowids1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid1</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">rowids2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid2</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rowids1</span><span class="p">,</span> <span class="n">rowids2</span><span class="p">)]</span>
+    <span class="c1"># Ensure funciton output is consistent</span>
+    <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">sorted</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">annotmatch_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_annotmatch_rowid_from_undirected_superkey"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotmatch_rowid_from_undirected_superkey">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">):</span>
+    <span class="c1"># The directed nature of this makes a few things difficult and may cause</span>
+    <span class="c1"># odd behavior</span>
+    <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">([</span><span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">am_rowids</span><span class="p">])</span>
+    <span class="c1"># Check which ones are None</span>
+    <span class="n">aids1_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+    <span class="n">aids2_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+    <span class="n">am_rowids_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">(</span><span class="n">aids2_</span><span class="p">,</span> <span class="n">aids1_</span><span class="p">)</span>
+    <span class="c1"># Use the other rowid if found</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">am_rowids_</span><span class="p">):</span>
+        <span class="n">am_rowids</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">rowid</span>
+    <span class="k">return</span> <span class="n">am_rowids</span></div>
+
+
+<div class="viewcode-block" id="get_annotmatch_rowid_from_edges"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotmatch_rowid_from_edges">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annotmatch_rowid_from_edges</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Edegs are undirected</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)</span>
+    <span class="n">aids1</span> <span class="o">=</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">aids2</span> <span class="o">=</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annotmatch_rowids_in_cliques"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotmatch_rowids_in_cliques">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annotmatch_rowids_in_cliques</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">):</span>
+    <span class="c1"># Equivalent call:</span>
+    <span class="c1"># ibs.get_annotmatch_rowids_between_groups(ibs, aids_list, aids_list)</span>
+    <span class="kn">import</span> <span class="nn">itertools</span>
+
+    <span class="n">ams_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span>
+            <span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;loading clique am rowids&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">ams_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">ams</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span> <span class="k">for</span> <span class="n">ams</span> <span class="ow">in</span> <span class="n">ams_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ams_list</span></div>
+
+
+<div class="viewcode-block" id="get_annotmatch_rowids_between_groups"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotmatch_rowids_between_groups">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annotmatch_rowids_between_groups</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1_list</span><span class="p">,</span> <span class="n">aids2_list</span><span class="p">):</span>
+    <span class="n">ams_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lbl</span> <span class="o">=</span> <span class="s1">&#39;loading between group am rowids&#39;</span>
+    <span class="k">for</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids1_list</span><span class="p">,</span> <span class="n">aids2_list</span><span class="p">)),</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">):</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="n">get_annotmatch_rowids_between</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+        <span class="n">ams_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ams_list</span></div>
+
+
+<div class="viewcode-block" id="get_annotmatch_rowids_between"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotmatch_rowids_between">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annotmatch_rowids_between</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annotmatch_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids1 = aids2 = [1, 2, 3, 4, 5, 6]</span>
+<span class="sd">        &gt;&gt;&gt; rowids_between = ibs.get_annotmatch_rowids_between</span>
+<span class="sd">        &gt;&gt;&gt; ams1 = sorted(rowids_between(aids1, aids2, method=1))</span>
+<span class="sd">        &gt;&gt;&gt; ams2 = sorted(rowids_between(aids1, aids2, method=2))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(ub.find_duplicates(ams1)) == 0</span>
+<span class="sd">        &gt;&gt;&gt; assert len(ub.find_duplicates(ams2)) == 0</span>
+<span class="sd">        &gt;&gt;&gt; assert sorted(ams2) == sorted(ams1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Strategy 1: get all existing rows and see what intersects</span>
+        <span class="c1"># This is better when the enumerated set of rows would be larger than</span>
+        <span class="c1"># the database size</span>
+        <span class="n">unflat_rowids1L</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid1</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span>
+        <span class="n">unflat_rowids1R</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid2</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span>
+        <span class="n">unflat_rowids2L</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid1</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span>
+        <span class="n">unflat_rowids2R</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid2</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span>
+
+        <span class="n">am_rowids1L</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">unflat_rowids1L</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="n">am_rowids1R</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">unflat_rowids1R</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="n">am_rowids2L</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">unflat_rowids2L</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="n">am_rowids2R</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">unflat_rowids2R</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+
+        <span class="n">ams12</span> <span class="o">=</span> <span class="n">am_rowids1L</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">am_rowids2R</span><span class="p">)</span>
+        <span class="n">ams21</span> <span class="o">=</span> <span class="n">am_rowids2L</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">am_rowids1R</span><span class="p">)</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ams12</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">ams21</span><span class="p">))</span>
+        <span class="c1"># ams = sorted(am_rowids1.intersection(am_rowids2))</span>
+        <span class="c1"># rowids2 = ibs.get_annotmatch_rowids_from_aid2(aid_list)</span>
+        <span class="c1"># unflat_rowids1 = ibs.get_annotmatch_rowids_from_aid(aids1)</span>
+        <span class="c1"># unflat_rowids2 = ibs.get_annotmatch_rowids_from_aid(aids2)</span>
+        <span class="c1"># am_rowids1 = {r for r in ut.iflatten(unflat_rowids1) if r is not None}</span>
+        <span class="c1"># am_rowids2 = {r for r in ut.iflatten(unflat_rowids2) if r is not None}</span>
+        <span class="c1"># ams = sorted(am_rowids1.intersection(am_rowids2))</span>
+        <span class="c1"># ams = ut.isect(am_rowids1, am_rowids2)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># Strategy 2: enumerate what rows could exist and see what does exist</span>
+        <span class="c1"># This is better when the enumerated set of rows would be smaller than</span>
+        <span class="c1"># the database size</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">product_nonsame</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ams</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">aids1_</span><span class="p">,</span> <span class="n">aids2_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listT</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+            <span class="c1"># ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1_, aids2_)</span>
+            <span class="n">ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">(</span><span class="n">aids1_</span><span class="p">,</span> <span class="n">aids2_</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ams</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ams</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">ams</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ams</span></div>
+
+
+<div class="viewcode-block" id="add_annotmatch_undirected"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.add_annotmatch_undirected">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">add_annotmatch_undirected</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.graph</span> <span class="kn">import</span> <span class="n">nx_utils</span> <span class="k">as</span> <span class="n">nxu</span>
+
+    <span class="c1"># Enforce new undirected constraint</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">estarmap</span><span class="p">(</span><span class="n">nxu</span><span class="o">.</span><span class="n">e_</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+    <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">))</span>
+
+    <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">([</span><span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">am_rowids</span><span class="p">])</span>
+    <span class="c1"># Check which ones are None</span>
+    <span class="n">aids1_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+    <span class="n">aids2_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+    <span class="c1"># Create anything that is None</span>
+    <span class="n">am_rowids_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch</span><span class="p">(</span><span class="n">aids2_</span><span class="p">,</span> <span class="n">aids1_</span><span class="p">)</span>
+    <span class="c1"># Use the other rowid if found</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">am_rowids_</span><span class="p">):</span>
+        <span class="n">am_rowids</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">rowid</span>
+    <span class="k">return</span> <span class="n">am_rowids</span></div>
+
+
+<div class="viewcode-block" id="get_annot_pair_timedelta"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annot_pair_timedelta">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annot_pair_timedelta</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aid_list1 (int):  list of annotation ids</span>
+<span class="sd">        aid_list2 (int):  list of annotation ids</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: timedelta_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.annotmatch_funcs --test-get_annot_pair_timedelta</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annotmatch_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(hasgt=True)</span>
+<span class="sd">        &gt;&gt;&gt; unixtimes = ibs.get_annot_image_unixtimes_asfloat(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ut.compress(aid_list, ~np.isnan(unixtimes))</span>
+<span class="sd">        &gt;&gt;&gt; gt_aids_list = ibs.get_annot_groundtruth(aid_list, daid_list=aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; flags = np.array(list(map(len, gt_aids_list))) &gt; 0</span>
+<span class="sd">        &gt;&gt;&gt; aid_list1 = ut.compress(aid_list, flags)[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list2 = ut.take_column(gt_aids_list, 0)[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; timedelta_list = ibs.get_annot_pair_timedelta(aid_list1, aid_list2)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(timedelta_list, precision=1)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        np.array([7.6e+07, 7.6e+07, 2.4e+06, 2.0e+08, 9.7e+07])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unixtime_list1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes_asfloat</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
+    <span class="n">unixtime_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes_asfloat</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">)</span>
+    <span class="n">timedelta_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">unixtime_list1</span> <span class="o">-</span> <span class="n">unixtime_list2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">timedelta_list</span></div>
+
+
+<div class="viewcode-block" id="get_annotedge_timedelta"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotedge_timedelta">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annotedge_timedelta</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_pair_timedelta</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_annotedge_viewdist"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotedge_viewdist">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annotedge_viewdist</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+    <span class="n">unique_annots</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">edges</span><span class="p">))</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+    <span class="n">annots1</span> <span class="o">=</span> <span class="n">unique_annots</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">edges</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">annots2</span> <span class="o">=</span> <span class="n">unique_annots</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">edges</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">view_ints1</span> <span class="o">=</span> <span class="n">annots1</span><span class="o">.</span><span class="n">viewpoint_int</span>
+    <span class="n">view_ints2</span> <span class="o">=</span> <span class="n">annots2</span><span class="o">.</span><span class="n">viewpoint_int</span>
+
+    <span class="n">DIST</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">DIST</span>
+    <span class="n">view_dists</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">DIST</span><span class="p">[</span><span class="n">tup</span><span class="p">]</span> <span class="k">if</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">DIST</span> <span class="k">else</span> <span class="n">DIST</span><span class="p">[</span><span class="n">tup</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">view_ints1</span><span class="p">,</span> <span class="n">view_ints2</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">view_dists</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">view_dists</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">view_dists</span></div>
+
+
+<div class="viewcode-block" id="get_annot_has_reviewed_matching_aids"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annot_has_reviewed_matching_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annot_has_reviewed_matching_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">num_reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_reviewed_matching_aids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">has_reviewed_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_reviewed</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">num_reviewed</span> <span class="ow">in</span> <span class="n">num_reviewed_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">has_reviewed_list</span></div>
+
+
+<div class="viewcode-block" id="get_annot_num_reviewed_matching_aids"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annot_num_reviewed_matching_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annot_num_reviewed_matching_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        aid_list (int):  list of annotation ids</span>
+<span class="sd">        eager (bool):</span>
+<span class="sd">        nInput (None):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: num_annot_reviewed_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.annotmatch_funcs --test-get_annot_num_reviewed_matching_aids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annotmatch_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb2&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid1_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; eager = True</span>
+<span class="sd">        &gt;&gt;&gt; nInput = None</span>
+<span class="sd">        &gt;&gt;&gt; num_annot_reviewed_list = get_annot_num_reviewed_matching_aids(ibs, aid_list, eager, nInput)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(num_annot_reviewed_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_reviewed_matching_aids</span><span class="p">(</span>
+        <span class="n">aid1_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span>
+    <span class="p">)</span>
+    <span class="n">num_annot_reviewed_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">num_annot_reviewed_list</span></div>
+
+
+<div class="viewcode-block" id="get_annot_reviewed_matching_aids"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annot_reviewed_matching_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annot_reviewed_matching_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of the aids that were reviewed as candidate matches to the input aid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ANNOT_ROWID1</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid1&#39;</span>
+    <span class="n">ANNOT_ROWID2</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid2&#39;</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_ROWID2</span><span class="p">,)</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_ROWID1</span><span class="p">,)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">aids_list</span></div>
+
+
+<div class="viewcode-block" id="get_annotmatch_aids"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annotmatch_aids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annotmatch_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">):</span>
+    <span class="n">ANNOT_ROWID1</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid1&#39;</span>
+    <span class="n">ANNOT_ROWID2</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid2&#39;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">annotmatch_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_ROWID1</span><span class="p">,</span> <span class="n">ANNOT_ROWID2</span><span class="p">)</span>
+    <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">aid_pairs</span></div>
+
+
+<div class="viewcode-block" id="get_annot_pair_is_reviewed"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_annot_pair_is_reviewed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annot_pair_is_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        aid1_list (list):</span>
+<span class="sd">        aid2_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: annotmatch_reviewed_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.annotmatch_funcs --test-get_annot_pair_is_reviewed</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annotmatch_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb2&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; pairs = list(ut.product(aid_list, aid_list))</span>
+<span class="sd">        &gt;&gt;&gt; aid1_list = ut.get_list_column(pairs, 0)</span>
+<span class="sd">        &gt;&gt;&gt; aid2_list = ut.get_list_column(pairs, 1)</span>
+<span class="sd">        &gt;&gt;&gt; annotmatch_reviewed_list = get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list)</span>
+<span class="sd">        &gt;&gt;&gt; reviewed_pairs = ut.compress(pairs, annotmatch_reviewed_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = len(reviewed_pairs)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        104</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">am_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">user</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;user:&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_reviewer</span><span class="p">(</span><span class="n">am_rowids</span><span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="set_annot_pair_as_reviewed"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.set_annot_pair_as_reviewed">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;denote that this match was reviewed and keep whatever status it is given&quot;&quot;&quot;</span>
+    <span class="n">isunknown1</span><span class="p">,</span> <span class="n">isunknown2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">isunknown1</span> <span class="ow">or</span> <span class="n">isunknown2</span><span class="p">:</span>
+        <span class="n">truth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">UNKNOWN</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+        <span class="n">truth</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">POSITIVE</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">NEGATIVE</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Ensure a row exists for this pair</span>
+    <span class="n">annotmatch_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch_undirected</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">])</span>
+
+    <span class="c1"># Old functionality, remove. Reviewing should not set truth</span>
+    <span class="n">confidence</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">[</span><span class="s1">&#39;guessing&#39;</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_evidence_decision</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="p">[</span><span class="n">truth</span><span class="p">])</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_user_name</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;@&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_reviewer</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;user:&#39;</span> <span class="o">+</span> <span class="n">user_id</span><span class="p">])</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_confidence</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="p">[</span><span class="n">confidence</span><span class="p">])</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... set truth=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">truth</span><span class="p">,))</span></div>
+
+
+<div class="viewcode-block" id="set_annot_pair_as_positive_match"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.set_annot_pair_as_positive_match">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">set_annot_pair_as_positive_match</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">on_nontrivial_merge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger_</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Safe way to perform links. Errors on invalid operations.</span>
+
+<span class="sd">    TODO: ELEVATE THIS FUNCTION</span>
+<span class="sd">    Change into make_task_set_annot_pair_as_positive_match and it returns what</span>
+<span class="sd">    needs to be done.</span>
+
+<span class="sd">    Need to test several cases:</span>
+<span class="sd">        uknown, unknown</span>
+<span class="sd">        knownA, knownA</span>
+<span class="sd">        knownB, knownA</span>
+<span class="sd">        unknown, knownA</span>
+<span class="sd">        knownA, unknown</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aid1 (int):  query annotation id</span>
+<span class="sd">        aid2 (int):  matching annotation id</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.annotmatch_funcs --test-set_annot_pair_as_positive_match</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annotmatch_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid1, aid2 = ibs.get_valid_aids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; dryrun = True</span>
+<span class="sd">        &gt;&gt;&gt; status = set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)</span>
+<span class="sd">        &gt;&gt;&gt; print(status)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;... _set_annot_name_rowids(aids=</span><span class="si">%r</span><span class="s1">, nids=</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... names = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span> <span class="s1">&#39;list must correspond&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">logger_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">log</span> <span class="o">=</span> <span class="n">logger_</span><span class="o">.</span><span class="n">info</span>
+                <span class="n">previous_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                <span class="n">new_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+                <span class="n">annot_uuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                <span class="n">annot_uuid_pair</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+                <span class="n">log</span><span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="s1">&#39;REVIEW_PAIR AS TRUE: (annot_uuid_pair=</span><span class="si">%r</span><span class="s1">) &#39;</span>
+                        <span class="s1">&#39;CHANGE NAME of </span><span class="si">%d</span><span class="s1"> (annot_uuids=</span><span class="si">%r</span><span class="s1">) &#39;</span>
+                        <span class="s1">&#39;WITH (previous_names=</span><span class="si">%r</span><span class="s1">) to (new_names=</span><span class="si">%r</span><span class="s1">)&#39;</span>
+                    <span class="p">)</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">annot_uuid_pair</span><span class="p">,</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuids</span><span class="p">),</span>
+                        <span class="n">annot_uuids</span><span class="p">,</span>
+                        <span class="n">previous_names</span><span class="p">,</span>
+                        <span class="n">new_names</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+        <span class="c1"># Return the new annots in this name</span>
+        <span class="n">_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+        <span class="n">_combo_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_aids</span> <span class="o">+</span> <span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="k">for</span> <span class="n">_aids</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_aids_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)]</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">_combo_aids_list</span>
+        <span class="k">return</span> <span class="n">status</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[marking_match] aid1 = </span><span class="si">%r</span><span class="s1">, aid2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+
+    <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...images already matched&#39;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logger_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">log</span> <span class="o">=</span> <span class="n">logger_</span><span class="o">.</span><span class="n">info</span>
+            <span class="n">annot_uuid_pair</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+            <span class="n">log</span><span class="p">(</span><span class="s1">&#39;REVIEW_PAIR AS TRUE: (annot_uuid_pair=</span><span class="si">%r</span><span class="s1">) NO CHANGE&#39;</span> <span class="o">%</span> <span class="n">annot_uuid_pair</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">isunknown1</span><span class="p">,</span> <span class="n">isunknown2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...match unknown1 to unknown2 into 1 new name&#39;</span><span class="p">)</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...merge known1 into known2&#39;</span><span class="p">)</span>
+            <span class="n">aid1_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">aid2_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">trivial_merge</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid2_and_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">trivial_merge</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">on_nontrivial_merge</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;no function is set up to handle nontrivial merges!&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">on_nontrivial_merge</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">_set_annot_name_rowids</span><span class="p">(</span>
+                <span class="n">aid1_and_groundtruth</span><span class="p">,</span> <span class="p">[</span><span class="n">nid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">isunknown2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...match unknown2 into known1&#39;</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="n">nid1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...match unknown1 into known2&#39;</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">nid2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;impossible state&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">status</span></div>
+
+
+<div class="viewcode-block" id="set_annot_pair_as_negative_match"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.set_annot_pair_as_negative_match">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">set_annot_pair_as_negative_match</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">on_nontrivial_split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger_</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: ELEVATE THIS FUNCTION</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aid1 (int):  annotation id</span>
+<span class="sd">        aid2 (int):  annotation id</span>
+<span class="sd">        dryrun (bool):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.annotmatch_funcs --test-set_annot_pair_as_negative_match</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annotmatch_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid1, aid2 = ibs.get_valid_aids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; dryrun = True</span>
+<span class="sd">        &gt;&gt;&gt; result = set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_names(ibs.get_valid_nids()[-1])  # clean up</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... _set_annot_name_rowids(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">logger_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">log</span> <span class="o">=</span> <span class="n">logger_</span><span class="o">.</span><span class="n">info</span>
+                <span class="n">previous_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                <span class="n">new_names</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+                <span class="n">annot_uuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                <span class="n">annot_uuid_pair</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+                <span class="n">log</span><span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="s1">&#39;REVIEW_PAIR AS FALSE: (annot_uuid_pair=</span><span class="si">%r</span><span class="s1">) &#39;</span>
+                        <span class="s1">&#39;CHANGE NAME of </span><span class="si">%d</span><span class="s1"> (annot_uuids=</span><span class="si">%r</span><span class="s1">) &#39;</span>
+                        <span class="s1">&#39;WITH (previous_names=</span><span class="si">%r</span><span class="s1">) to (new_names=</span><span class="si">%r</span><span class="s1">)&#39;</span>
+                    <span class="p">)</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">annot_uuid_pair</span><span class="p">,</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="n">annot_uuids</span><span class="p">),</span>
+                        <span class="n">annot_uuids</span><span class="p">,</span>
+                        <span class="n">previous_names</span><span class="p">,</span>
+                        <span class="n">new_names</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+
+    <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;images are marked as having the same name... we must tread carefully&#39;</span>
+        <span class="p">)</span>
+        <span class="n">aid1_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">aid1_groundtruth</span> <span class="o">==</span> <span class="p">[</span><span class="n">aid2</span><span class="p">]:</span>
+            <span class="c1"># this is the only safe case for same name split</span>
+            <span class="c1"># Change so the names are not the same</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">on_nontrivial_split</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;no function is set up to handle nontrivial splits!&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">on_nontrivial_split</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">isunknown1</span><span class="p">,</span> <span class="n">isunknown2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nomatch unknown1 and unknown2 into 2 new names&#39;</span><span class="p">)</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nomatch known1 and known2... nothing to do (yet)&#39;</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">logger_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">log</span> <span class="o">=</span> <span class="n">logger_</span><span class="o">.</span><span class="n">info</span>
+                <span class="n">annot_uuid_pair</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+                <span class="n">log</span><span class="p">(</span>
+                    <span class="s1">&#39;REVIEW_PAIR AS FALSE: (annot_uuid_pair=</span><span class="si">%r</span><span class="s1">) NO CHANGE&#39;</span>
+                    <span class="o">%</span> <span class="n">annot_uuid_pair</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">isunknown2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nomatch unknown2 -&gt; newname and known1&#39;</span><span class="p">)</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...nomatch unknown1 -&gt; newname and known2&#39;</span><span class="p">)</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;impossible state&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">status</span></div>
+
+
+<div class="viewcode-block" id="get_match_truth"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_match_truth">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_match_truth</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_match_truths</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="get_match_truths"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_match_truths">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_match_truths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uses NIDS to verify truth.</span>
+<span class="sd">    TODO: rectify with annotmatch table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aids1 (list):</span>
+<span class="sd">        aids2 (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list[int]: truth_codes - see</span>
+<span class="sd">            wbia.constants.EVIDENCE_DECISION.INT_TO_CODE for code definitions</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.other.ibsfuncs --test-get_match_truths</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annotmatch_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids1 = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; aids2 = ut.list_roll(ibs.get_valid_aids(), -1)</span>
+<span class="sd">        &gt;&gt;&gt; truth_codes = get_match_truths(ibs, aids1, aids2)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;truth_codes = %s&#39; % ut.repr2(truth_codes))</span>
+<span class="sd">        &gt;&gt;&gt; target = np.array([3, 1, 3, 3, 1, 0, 0, 3, 3, 3, 3, 0, 3])</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(truth_codes == target)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nids1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aids1</span><span class="p">))</span>
+    <span class="n">nids2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aids2</span><span class="p">))</span>
+    <span class="n">isunknowns1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="n">nids1</span><span class="p">))</span>
+    <span class="n">isunknowns2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="n">nids2</span><span class="p">))</span>
+    <span class="n">any_unknown</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">isunknowns1</span><span class="p">,</span> <span class="n">isunknowns2</span><span class="p">)</span>
+    <span class="n">truth_codes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">nids1</span> <span class="o">==</span> <span class="n">nids2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">truth_codes</span><span class="p">[</span><span class="n">any_unknown</span><span class="p">]</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">UNKNOWN</span>
+    <span class="k">return</span> <span class="n">truth_codes</span></div>
+
+
+<div class="viewcode-block" id="get_match_text"><a class="viewcode-back" href="../../api.html#wbia.annotmatch_funcs.get_match_text">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_match_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+    <span class="n">truth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_match_truth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">INT_TO_NICE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">truth</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

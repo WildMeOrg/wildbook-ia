@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.smk.vocab_indexer &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../smk.html">wbia.algo.smk</a> &raquo;</li>
+      <li>wbia.algo.smk.vocab_indexer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.smk.vocab_indexer</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">from</span> <span class="nn">vtool._pyflann_backend</span> <span class="kn">import</span> <span class="n">pyflann</span> <span class="k">as</span> <span class="n">pyflann</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">pickle_flann</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">register_preprocs</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">derived_attribute</span> <span class="o">=</span> <span class="n">register_preprocs</span><span class="p">[</span><span class="s1">&#39;annot&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="VocabConfig"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.vocab_indexer.VocabConfig">[docs]</a><span class="k">class</span> <span class="nc">VocabConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;algorithm&#39;</span><span class="p">,</span> <span class="s1">&#39;minibatch&#39;</span><span class="p">,</span> <span class="s1">&#39;alg&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;random_seed&#39;</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;num_words&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;n_init&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="VisualVocab"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.vocab_indexer.VisualVocab">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">VisualVocab</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class that maintains a list of visual words (cluster centers)</span>
+<span class="sd">    Also maintains a nearest neighbor index structure for finding words.</span>
+<span class="sd">    This class is build using the depcache</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">words</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span> <span class="o">=</span> <span class="n">words</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">vocab</span><span class="o">.</span><span class="n">flann_params</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">(</span><span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="n">flann_params</span><span class="p">[</span><span class="s1">&#39;checks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1024</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="n">flann_params</span><span class="p">[</span><span class="s1">&#39;trees&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="c1"># TODO: grab the depcache rowid and maybe config?</span>
+        <span class="c1"># make a dtool.Computable</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">vocab</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;nW=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">safelen</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="n">vocab</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="n">vocab</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="n">vocab</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;wx2_word&#39;</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+            <span class="n">state</span><span class="p">[</span><span class="s1">&#39;wx_to_word&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;wx2_word&#39;</span><span class="p">)</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;wordindex_bytes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span><span class="o">.</span><span class="n">dumps</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;wordflann&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">wordindex_bytes</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;wordindex_bytes&#39;</span><span class="p">)</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">flannclass</span> <span class="o">=</span> <span class="n">pickle_flann</span><span class="o">.</span><span class="n">PickleFLANN</span>
+        <span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span> <span class="o">=</span> <span class="n">flannclass</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">wordindex_bytes</span><span class="p">,</span> <span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Fixing vocab problem&#39;</span><span class="p">)</span>
+            <span class="n">vocab</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<div class="viewcode-block" id="VisualVocab.build"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.vocab_indexer.VisualVocab.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">num_vecs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">flannclass</span> <span class="o">=</span> <span class="n">pickle_flann</span><span class="o">.</span><span class="n">PickleFLANN</span>
+            <span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span> <span class="o">=</span> <span class="n">flannclass</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; ...build kdtree with </span><span class="si">%d</span><span class="s1"> points (may take a sec).&#39;</span> <span class="o">%</span> <span class="n">num_vecs</span><span class="p">)</span>
+            <span class="n">tt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tic</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s1">&#39;Building vocab index&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_vecs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;THIS MAY BE A SIGN OF A DEEPER ISSUE&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span><span class="o">.</span><span class="n">build_index</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="p">,</span> <span class="o">**</span><span class="n">vocab</span><span class="o">.</span><span class="n">flann_params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VisualVocab.nn_index"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.vocab_indexer.VisualVocab.nn_index">[docs]</a>    <span class="k">def</span> <span class="nf">nn_index</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">idx_to_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">checks</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_vec = depc.d.get_feat_vecs(aid_list)[0]</span>
+<span class="sd">        &gt;&gt;&gt; vocab = vocab</span>
+<span class="sd">        &gt;&gt;&gt; nAssign = 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Assign each vector to the nearest visual words</span>
+        <span class="k">assert</span> <span class="n">nAssign</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;cannot assign to 0 neighbors&#39;</span>
+        <span class="k">if</span> <span class="n">checks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">checks</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">flann_params</span><span class="p">[</span><span class="s1">&#39;checks&#39;</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">idx_to_vec</span> <span class="o">=</span> <span class="n">idx_to_vec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span><span class="o">.</span><span class="n">_FLANN__curindex_data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">_idx_to_wx</span><span class="p">,</span> <span class="n">_idx_to_wdist</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span>
+                <span class="n">idx_to_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">checks</span><span class="o">=</span><span class="n">checks</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">pyflann</span><span class="o">.</span><span class="n">FLANNException</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+                <span class="n">ex</span><span class="p">,</span>
+                <span class="s1">&#39;probably misread the cached flann_fpath=</span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">wordflann</span><span class="p">,</span> <span class="s1">&#39;flann_fpath&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),),</span>
+            <span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_idx_to_wx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">atleast_nd</span><span class="p">(</span><span class="n">_idx_to_wx</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">_idx_to_wdist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">atleast_nd</span><span class="p">(</span><span class="n">_idx_to_wdist</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_idx_to_wx</span><span class="p">,</span> <span class="n">_idx_to_wdist</span></div>
+
+<div class="viewcode-block" id="VisualVocab.render_vocab"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.vocab_indexer.VisualVocab.render_vocab">[docs]</a>    <span class="k">def</span> <span class="nf">render_vocab</span><span class="p">(</span><span class="n">vocab</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Renders the average patch of each word.</span>
+<span class="sd">        This is a quick visualization of the entire vocabulary.</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.smk.vocab_indexer render_vocab --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.smk.vocab_indexer import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; vocab = testdata_vocab(&#39;PZ_MTEST&#39;, num_words=64)</span>
+<span class="sd">            &gt;&gt;&gt; all_words = vocab.render_vocab()</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; pt.qt4ensure()</span>
+<span class="sd">            &gt;&gt;&gt; pt.imshow(all_words)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="n">wx_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)))</span>
+        <span class="c1"># wx_list = ut.strided_sample(wx_list, 64)</span>
+        <span class="n">wx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">strided_sample</span><span class="p">(</span><span class="n">wx_list</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+
+        <span class="n">word_patch_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">wx_list</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;building patches&#39;</span><span class="p">):</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+            <span class="n">word_patch</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">inverted_sift_patch</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+            <span class="n">word_patch</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">render_sift_on_patch</span><span class="p">(</span><span class="n">word_patch</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+            <span class="n">word_patch_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word_patch</span><span class="p">)</span>
+
+        <span class="n">all_words</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_square_images</span><span class="p">(</span><span class="n">word_patch_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">all_words</span></div></div>
+
+
+<div class="viewcode-block" id="compute_vocab"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.vocab_indexer.compute_vocab">[docs]</a><span class="nd">@derived_attribute</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;vocab&#39;</span><span class="p">,</span>
+    <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;feat*&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;words&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">VisualVocab</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">VocabConfig</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;visual_vocab&#39;</span><span class="p">,</span>
+    <span class="n">taggable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">vectorized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">compute_vocab</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Depcache method for computing a new visual vocab</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.core_annots --exec-compute_neighbor_index --show</span>
+<span class="sd">        python -m wbia show_depc_annot_table_input --show --tablename=neighbor_index</span>
+
+<span class="sd">        python -m wbia.algo.smk.vocab_indexer --exec-compute_vocab:0</span>
+<span class="sd">        python -m wbia.algo.smk.vocab_indexer --exec-compute_vocab:1</span>
+
+<span class="sd">        # FIXME make util_tests register</span>
+<span class="sd">        python -m wbia.algo.smk.vocab_indexer compute_vocab:0</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        &gt;&gt;&gt; # Lev Oxford Debug Example</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;Oxford&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc</span>
+<span class="sd">        &gt;&gt;&gt; table = depc[&#39;vocab&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; # Check what currently exists in vocab table</span>
+<span class="sd">        &gt;&gt;&gt; table.print_configs()</span>
+<span class="sd">        &gt;&gt;&gt; table.print_table()</span>
+<span class="sd">        &gt;&gt;&gt; table.print_internal_info()</span>
+<span class="sd">        &gt;&gt;&gt; # Grab aids used to compute vocab</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.expt.experiment_helpers import get_annotcfg_list</span>
+<span class="sd">        &gt;&gt;&gt; expanded_aids_list = get_annotcfg_list(ibs, [&#39;oxford&#39;])[1]</span>
+<span class="sd">        &gt;&gt;&gt; qaids, daids = expanded_aids_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; vocab_aids = daids</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;num_words&#39;: 64000}</span>
+<span class="sd">        &gt;&gt;&gt; exists = depc.check_rowids(&#39;vocab&#39;, [vocab_aids], config=config)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;exists = %r&#39; % (exists,))</span>
+<span class="sd">        &gt;&gt;&gt; vocab_rowid = depc.get_rowids(&#39;vocab&#39;, [vocab_aids], config=config)[0]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;vocab_rowid = %r&#39; % (vocab_rowid,))</span>
+<span class="sd">        &gt;&gt;&gt; vocab = table.get_row_data([vocab_rowid], &#39;words&#39;)[0]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;vocab = %r&#39; % (vocab,))</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.vocab_indexer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # Test depcache access</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = wbia.testdata_aids(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_annot</span>
+<span class="sd">        &gt;&gt;&gt; input_tuple = [aid_list]</span>
+<span class="sd">        &gt;&gt;&gt; rowid_kw = {}</span>
+<span class="sd">        &gt;&gt;&gt; tablename = &#39;vocab&#39;</span>
+<span class="sd">        &gt;&gt;&gt; vocabid_list = depc.get_rowids(tablename, input_tuple, **rowid_kw)</span>
+<span class="sd">        &gt;&gt;&gt; vocab = depc.get(tablename, input_tuple, &#39;words&#39;)[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert vocab.wordflann is not None</span>
+<span class="sd">        &gt;&gt;&gt; assert vocab.wordflann._FLANN__curindex_data is not None</span>
+<span class="sd">        &gt;&gt;&gt; assert vocab.wordflann._FLANN__curindex_data is vocab.wx_to_word</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.vocab_indexer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = wbia.testdata_aids(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_annot</span>
+<span class="sd">        &gt;&gt;&gt; fid_list = depc.get_rowids(&#39;feat&#39;, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; config = VocabConfig()</span>
+<span class="sd">        &gt;&gt;&gt; vocab, train_vecs = ut.exec_func_src(compute_vocab, keys=[&#39;vocab&#39;, &#39;train_vecs&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; idx_to_vec = depc.d.get_feat_vecs(aid_list)[0]</span>
+<span class="sd">        &gt;&gt;&gt; self = vocab</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; data = train_vecs</span>
+<span class="sd">        &gt;&gt;&gt; centroids = vocab.wx_to_word</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; vt.plot_centroids(data, centroids, num_pca_dims=2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &gt;&gt;&gt; #config = ibs.depc_annot[&#39;vocab&#39;].configclass()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[IBEIS] COMPUTE_VOCAB:&#39;</span><span class="p">)</span>
+    <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="s1">&#39;vecs&#39;</span><span class="p">)</span>
+    <span class="n">train_vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">num_words</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;num_words&#39;</span><span class="p">]</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[smk_index] Train Vocab(nWords=</span><span class="si">%d</span><span class="s1">) using </span><span class="si">%d</span><span class="s1"> annots and </span><span class="si">%d</span><span class="s1"> descriptors&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">num_words</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">fid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_vecs</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;kdtree&#39;</span><span class="p">:</span>
+        <span class="n">flann_params</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">(</span><span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+        <span class="n">kwds</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">max_iters</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">)</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">akmeans</span><span class="p">(</span><span class="n">train_vecs</span><span class="p">,</span> <span class="n">num_words</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;minibatch&#39;</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using minibatch kmeans&#39;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">sklearn.cluster</span>
+
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;random_seed&#39;</span><span class="p">])</span>
+        <span class="n">n_init</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;n_init&#39;</span><span class="p">]</span>
+        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+            <span class="n">init_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_words</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="n">n_batches</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_num_chunks</span><span class="p">(</span><span class="n">train_vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">)</span>
+            <span class="n">minibatch_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">n_clusters</span><span class="o">=</span><span class="n">num_words</span><span class="p">,</span>
+                <span class="n">init</span><span class="o">=</span><span class="s1">&#39;k-means++&#39;</span><span class="p">,</span>
+                <span class="n">init_size</span><span class="o">=</span><span class="n">init_size</span><span class="p">,</span>
+                <span class="n">n_init</span><span class="o">=</span><span class="n">n_init</span><span class="p">,</span>
+                <span class="n">max_iter</span><span class="o">=</span><span class="mi">30000</span> <span class="o">//</span> <span class="n">n_batches</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">tol</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">max_no_improvement</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                <span class="n">reassignment_ratio</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;minibatch_params = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr4</span><span class="p">(</span><span class="n">minibatch_params</span><span class="p">),))</span>
+            <span class="n">clusterer</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">MiniBatchKMeans</span><span class="p">(</span>
+                <span class="n">compute_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">rng</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">minibatch_params</span>
+            <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">clusterer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_vecs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">Exception</span><span class="p">,</span> <span class="ne">KeyboardInterrupt</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">clusterer</span><span class="o">.</span><span class="n">cluster_centers_</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finished clustering&#39;</span><span class="p">)</span>
+    <span class="c1"># if False:</span>
+    <span class="c1">#     flann_params[&#39;checks&#39;] = 64</span>
+    <span class="c1">#     flann_params[&#39;trees&#39;] = 4</span>
+    <span class="c1">#     num_words = 128</span>
+    <span class="c1">#     centroids = vt.initialize_centroids(num_words, train_vecs, &#39;akmeans++&#39;)</span>
+    <span class="c1">#     words, hist = vt.akmeans_iterations(</span>
+    <span class="c1">#         train_vecs, centroids, max_iters=1000, monitor=True,</span>
+    <span class="c1">#         flann_params=flann_params)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Constructing vocab&#39;</span><span class="p">)</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="n">VisualVocab</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building vocab index&#39;</span><span class="p">)</span>
+    <span class="n">vocab</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Returning vocab&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">vocab</span><span class="p">,)</span></div>
+
+
+<div class="viewcode-block" id="testdata_vocab"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.vocab_indexer.testdata_vocab">[docs]</a><span class="k">def</span> <span class="nf">testdata_vocab</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; from wbia.algo.smk.vocab_indexer import *  # NOQA</span>
+<span class="sd">    &gt;&gt;&gt; defaultdb=&#39;testdb1&#39;</span>
+<span class="sd">    &gt;&gt;&gt; kwargs = {&#39;num_words&#39;: 1000}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">kwargs</span>
+    <span class="c1"># vocab = new_load_vocab(ibs, aid_list, kwargs)</span>
+    <span class="c1"># Hack in depcache info to the loaded vocab class</span>
+    <span class="c1"># (maybe this becomes part of the depcache)</span>
+    <span class="n">rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span><span class="s1">&#39;vocab&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">aids</span><span class="p">],</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># rowid = 1</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">([</span><span class="n">rowid</span><span class="p">],</span> <span class="s1">&#39;words&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">vocab</span><span class="o">.</span><span class="n">rowid</span> <span class="o">=</span> <span class="n">rowid</span>
+    <span class="n">vocab</span><span class="o">.</span><span class="n">config_history</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_config_history</span><span class="p">([</span><span class="n">vocab</span><span class="o">.</span><span class="n">rowid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">vocab</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_configs</span><span class="p">([</span><span class="n">vocab</span><span class="o">.</span><span class="n">rowid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">vocab</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

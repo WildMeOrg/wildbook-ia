@@ -22,12 +22,12 @@ Engine:
 Collector:
     The collector accepts requests
     The collector can respond:
-        * <ResultContent>
-        * Results are ready.
-        * Results are not ready.
-        * Unknown jobid.
-        * Error computing results.
-        * Progress percent.
+    * <ResultContent>
+    * Results are ready.
+    * Results are not ready.
+    * Unknown jobid.
+    * Error computing results.
+    * Progress percent.
 
 References:
     Simple task farm, with routed replies in pyzmq
@@ -38,17 +38,17 @@ Notes:
     We are essentially goint to be spawning two processes.
     We can test these simultaniously using
 
-        python -m wbia.web.job_engine job_engine_tester
+    python -m wbia.web.job_engine job_engine_tester
 
     We can test these separately by first starting the background server
-        python -m wbia.web.job_engine job_engine_tester --bg
+    python -m wbia.web.job_engine job_engine_tester --bg
 
-        Alternative:
-            python -m wbia.web.job_engine job_engine_tester --bg --no-engine
-            python -m wbia.web.job_engine job_engine_tester --bg --only-engine --fg-engine
+    Alternative:
+    python -m wbia.web.job_engine job_engine_tester --bg --no-engine
+    python -m wbia.web.job_engine job_engine_tester --bg --only-engine --fg-engine
 
     And then running the forground process
-        python -m wbia.web.job_engine job_engine_tester --fg
+    python -m wbia.web.job_engine job_engine_tester --fg
 """
 # if False:
 #    import os

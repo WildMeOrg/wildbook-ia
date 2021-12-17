@@ -56,7 +56,7 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwa
         aid_list (list):  list of annotation rowids
         filter_kw (?):
 
-    KWargs::
+    Kwargs:
         has_none_annotmatch, any_match_annotmatch, has_all, is_known,
         any_match_annot, logic_annot, none_match_annotmatch,
         max_num_annotmatch, any_startswith_annot, has_any, require_quality,

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.web.appfuncs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.web.appfuncs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.web.appfuncs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">flask</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span><span class="p">,</span> <span class="n">url_for</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">jinja2</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">pynmea2</span>
+<span class="kn">import</span> <span class="nn">simplejson</span> <span class="k">as</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="n">DEFAULT_WEB_API_PORT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--port&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+<span class="n">TARGET_WIDTH</span> <span class="o">=</span> <span class="mf">1200.0</span>
+<span class="n">TARGET_HEIGHT</span> <span class="o">=</span> <span class="mf">800.0</span>
+<span class="n">PAGE_SIZE</span> <span class="o">=</span> <span class="mi">500</span>
+<span class="n">VALID_REVIEW_MODES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s1">&#39;review_viewpoint2&#39;</span><span class="p">,</span> <span class="s1">&#39;Annotation&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;review_viewpoint3&#39;</span><span class="p">,</span> <span class="s1">&#39;Viewpoint&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;review_quality&#39;</span><span class="p">,</span> <span class="s1">&#39;Quality&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;review_demographics&#39;</span><span class="p">,</span> <span class="s1">&#39;Demographics&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+
+
+<span class="n">ALLOW_STAGED</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">CANONICAL_PART_TYPE</span> <span class="o">=</span> <span class="s1">&#39;__CANONICAL__&#39;</span>
+
+
+<span class="n">VIEWPOINT_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kc">None</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;frontleft&#39;</span><span class="p">,</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;front&#39;</span><span class="p">,</span>
+    <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;frontright&#39;</span><span class="p">,</span>
+    <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span>
+    <span class="mi">5</span><span class="p">:</span> <span class="s1">&#39;backright&#39;</span><span class="p">,</span>
+    <span class="mi">6</span><span class="p">:</span> <span class="s1">&#39;back&#39;</span><span class="p">,</span>
+    <span class="mi">7</span><span class="p">:</span> <span class="s1">&#39;backleft&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">VIEWPOINT_MAPPING_INVERT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">VIEWPOINT_MAPPING</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="NavbarClass"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.NavbarClass">[docs]</a><span class="k">class</span> <span class="nc">NavbarClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
+        <span class="n">nav</span><span class="o">.</span><span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="c1"># (&#39;root&#39;, &#39;Home&#39;),</span>
+            <span class="p">(</span><span class="s1">&#39;upload&#39;</span><span class="p">,</span> <span class="s1">&#39;Upload&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="s1">&#39;View&#39;</span><span class="p">),</span>
+            <span class="c1"># (&#39;view_imagesets&#39;, &#39;ImageSets&#39;),</span>
+            <span class="c1"># (&#39;view_images&#39;, &#39;Images&#39;),</span>
+            <span class="c1"># (&#39;view_annotations&#39;, &#39;Annotations&#39;),</span>
+            <span class="c1"># (&#39;view_names&#39;, &#39;Names&#39;),</span>
+            <span class="p">(</span><span class="s1">&#39;view_graphs&#39;</span><span class="p">,</span> <span class="s1">&#39;Graphs&#39;</span><span class="p">),</span>
+            <span class="c1"># (&#39;action&#39;, &#39;Action&#39;),</span>
+            <span class="p">(</span><span class="s1">&#39;review&#39;</span><span class="p">,</span> <span class="s1">&#39;Review&#39;</span><span class="p">),</span>
+            <span class="c1"># (&#39;view_experiments&#39;, &#39;Experiments&#39;),</span>
+            <span class="p">(</span><span class="s1">&#39;view_jobs&#39;</span><span class="p">,</span> <span class="s1">&#39;Jobs&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">,</span> <span class="s1">&#39;Demo&#39;</span><span class="p">),</span>
+            <span class="c1"># (&#39;api_root&#39;,  &#39;API&#39;),</span>
+            <span class="c1"># (&#39;group_review&#39;,  &#39;Group Review&#39;),</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
+        <span class="n">_link</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">path</span>
+        <span class="k">for</span> <span class="n">link</span><span class="p">,</span> <span class="n">nice</span> <span class="ow">in</span> <span class="n">nav</span><span class="o">.</span><span class="n">item_list</span><span class="p">:</span>
+            <span class="n">active</span> <span class="o">=</span> <span class="n">_link</span> <span class="o">==</span> <span class="n">url_for</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
+            <span class="c1"># logger.info(_link, link, url_for(link))</span>
+            <span class="k">yield</span> <span class="n">active</span><span class="p">,</span> <span class="n">link</span><span class="p">,</span> <span class="n">nice</span></div>
+
+
+<div class="viewcode-block" id="resize_via_web_parameters"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.resize_via_web_parameters">[docs]</a><span class="k">def</span> <span class="nf">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="n">w_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_w&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_w&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">h_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_h&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_h&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">w_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_w&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_w&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">h_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_h&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_h&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">w_pix</span><span class="p">,</span>
+        <span class="n">h_pix</span><span class="p">,</span>
+        <span class="n">w_per</span><span class="p">,</span>
+        <span class="n">h_per</span><span class="p">,</span>
+        <span class="n">_pix</span><span class="p">,</span>
+        <span class="n">_per</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CHECKING RESIZING WITH </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1">, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1"> [</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="c1"># Check for nothing</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">w_pix</span> <span class="ow">or</span> <span class="n">h_pix</span> <span class="ow">or</span> <span class="n">w_per</span> <span class="ow">or</span> <span class="n">h_per</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">image</span>
+    <span class="c1"># Check for both pixels and images</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">w_pix</span> <span class="ow">or</span> <span class="n">h_pix</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">w_per</span> <span class="ow">or</span> <span class="n">h_per</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">_pix</span><span class="p">:</span>
+            <span class="n">w_per</span><span class="p">,</span> <span class="n">h_per</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">_per</span><span class="p">:</span>
+            <span class="n">w_pix</span><span class="p">,</span> <span class="n">h_pix</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot resize using pixels and percentages, pick one&#39;</span><span class="p">)</span>
+    <span class="c1"># Resize using percentages, transform to pixels</span>
+    <span class="k">if</span> <span class="n">w_per</span><span class="p">:</span>
+        <span class="n">w_pix</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">w_per</span><span class="p">)</span> <span class="o">*</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">h_per</span><span class="p">:</span>
+        <span class="n">h_pix</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">h_per</span><span class="p">)</span> <span class="o">*</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># Perform resize</span>
+    <span class="k">return</span> <span class="n">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="n">w_pix</span><span class="p">,</span> <span class="n">t_height</span><span class="o">=</span><span class="n">h_pix</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="embed_image_html"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.embed_image_html">[docs]</a><span class="k">def</span> <span class="nf">embed_image_html</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">target_width</span><span class="o">=</span><span class="n">TARGET_WIDTH</span><span class="p">,</span> <span class="n">target_height</span><span class="o">=</span><span class="n">TARGET_HEIGHT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates an image embedded in HTML base64 format.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+
+    <span class="k">if</span> <span class="n">target_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">_resize</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="n">target_width</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">target_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">_resize</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">t_height</span><span class="o">=</span><span class="n">target_height</span><span class="p">)</span>
+    <span class="n">imgRGB</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span>
+    <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">imgRGB</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">io</span>
+
+    <span class="n">byte_buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">pil_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">byte_buf</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;jpeg&#39;</span><span class="p">)</span>
+    <span class="n">byte_buf</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">img_bytes</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">byte_buf</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">img_bytes</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;data:image/jpeg;base64,&#39;</span> <span class="o">+</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="check_valid_function_name"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.check_valid_function_name">[docs]</a><span class="k">def</span> <span class="nf">check_valid_function_name</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">char</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="ow">or</span> <span class="n">char</span> <span class="o">==</span> <span class="s1">&#39;_&#39;</span> <span class="ow">or</span> <span class="n">char</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">string</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="encode_refer_url"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.encode_refer_url">[docs]</a><span class="k">def</span> <span class="nf">encode_refer_url</span><span class="p">(</span><span class="n">decoded</span><span class="p">):</span>
+    <span class="n">decoded</span> <span class="o">=</span> <span class="n">decoded</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+    <span class="n">encoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span><span class="n">decoded</span><span class="p">)</span>
+    <span class="n">encoded</span> <span class="o">=</span> <span class="n">encoded</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encoded</span></div>
+
+
+<div class="viewcode-block" id="decode_refer_url"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.decode_refer_url">[docs]</a><span class="k">def</span> <span class="nf">decode_refer_url</span><span class="p">(</span><span class="n">encoded</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">encoded</span>
+    <span class="k">if</span> <span class="n">encoded</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;b&#39;&quot;</span><span class="p">):</span>
+        <span class="n">encoded</span> <span class="o">=</span> <span class="n">encoded</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">encoded</span> <span class="o">=</span> <span class="n">encoded</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">encoded</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
+    <span class="n">decoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64decode</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
+    <span class="n">decoded</span> <span class="o">=</span> <span class="n">decoded</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">decoded</span></div>
+
+
+<div class="viewcode-block" id="template"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.template">[docs]</a><span class="k">def</span> <span class="nf">template</span><span class="p">(</span><span class="n">template_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">template_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">global_args</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;NAVBAR&#39;</span><span class="p">:</span> <span class="n">NavbarClass</span><span class="p">(),</span>
+        <span class="s1">&#39;YEAR&#39;</span><span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
+        <span class="s1">&#39;URL&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+        <span class="s1">&#39;REFER_SRC_STR&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_root</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;__login__&#39;</span><span class="p">:</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_rule</span><span class="o">.</span><span class="n">rule</span> <span class="o">==</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;__wrapper__&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;__wrapper_header__&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;__wrapper_footer__&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;__containerized__&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">,</span>
+        <span class="s1">&#39;__https__&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">https</span><span class="p">,</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_user</span><span class="p">(),</span>
+        <span class="s1">&#39;GOOGLE_MAPS_API_KEY&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;&lt;INSERT GOOGLE API KEY&gt;&gt;&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_SRC_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encode_refer_url</span><span class="p">(</span><span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_SRC_STR&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s1">&#39;refer&#39;</span> <span class="ow">in</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">refer</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;refer&#39;</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] REFER: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refer</span><span class="p">,))</span>
+        <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_DST_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refer</span>
+        <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_DST_STR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decode_refer_url</span><span class="p">(</span><span class="n">refer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">template_directory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">template_directory</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="c1"># template_directory = abspath(join(dirname(__file__), &#39;templates&#39;))</span>
+        <span class="c1"># template_directory = join(dirname(dirname(__file__)))</span>
+    <span class="k">if</span> <span class="n">template_filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">template_filename</span> <span class="o">=</span> <span class="s1">&#39;index&#39;</span>
+    <span class="n">template_</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">template_directory</span><span class="p">,</span> <span class="n">template_filename</span> <span class="o">+</span> <span class="s1">&#39;.html&#39;</span><span class="p">)</span>
+    <span class="c1"># Update global args with the template&#39;s args</span>
+    <span class="n">_global_args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">global_args</span><span class="p">)</span>
+    <span class="n">_global_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># logger.info(&#39;[appfuncs] template()&#39;)</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_flask_app</span><span class="p">()</span>
+    <span class="c1"># flask hates windows apparently</span>
+    <span class="n">template_</span> <span class="o">=</span> <span class="n">template_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="c1"># logger.info(&#39;[appfuncs.template] * app.template_folder = %r&#39; % (app.template_folder,))</span>
+    <span class="c1"># logger.info(&#39;[appfuncs.template] * template_directory = %r&#39; % (template_directory,))</span>
+    <span class="c1"># logger.info(&#39;[appfuncs.template] * template_filename = %r&#39; % (template_filename,))</span>
+    <span class="c1"># logger.info(&#39;[appfuncs.template] * template_ = %r&#39; % (template_,))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="n">template_</span><span class="p">,</span> <span class="o">**</span><span class="n">_global_args</span><span class="p">)</span>
+        <span class="c1"># ret = flask.render_template(full_template_fpath, **_global_args)</span>
+    <span class="k">except</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">TemplateNotFound</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Error template not found&#39;</span><span class="p">)</span>
+        <span class="n">full_template_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,</span> <span class="n">template_</span><span class="p">)</span>
+        <span class="c1"># logger.info(</span>
+        <span class="c1">#     &#39;[appfuncs.template] * full_template_fpath = %r&#39; % (full_template_fpath,)</span>
+        <span class="c1"># )</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">full_template_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Template error in appfuncs&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Error in appfuncs&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+<div class="viewcode-block" id="send_csv_file"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.send_csv_file">[docs]</a><span class="k">def</span> <span class="nf">send_csv_file</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">make_response</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;File Transfer&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Cache-Control&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;no-cache&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;text/csv&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Disposition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;attachment; filename=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="get_review_image_args"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.get_review_image_args">[docs]</a><span class="k">def</span> <span class="nf">get_review_image_args</span><span class="p">(</span><span class="n">is_reviewed_func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper to return gids in an imageset or a group review</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="k">def</span> <span class="nf">_ensureid</span><span class="p">(</span><span class="n">_id</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
+
+    <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;imgsetid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">_ensureid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;NOT GROUP_REVIEW&#39;</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">imgsetid</span><span class="o">=</span><span class="n">imgsetid</span><span class="p">)</span>
+    <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">is_reviewed_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">num_reviewed</span> <span class="o">=</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">num_reviewed</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),)</span>
+    <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;0.00&#39;</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;gid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">gid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+
+    <span class="n">previous</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;previous&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;gid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">progress</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">previous</span></div>
+
+
+<div class="viewcode-block" id="get_review_annot_args"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.get_review_annot_args">[docs]</a><span class="k">def</span> <span class="nf">get_review_annot_args</span><span class="p">(</span><span class="n">is_reviewed_func</span><span class="p">,</span> <span class="n">speed_hack</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper to return aids in an imageset or a group review</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+
+    <span class="k">def</span> <span class="nf">_ensureid</span><span class="p">(</span><span class="n">_id</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
+
+    <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;imgsetid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">src_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;src_ag&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">dst_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dst_ag&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">_ensureid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+    <span class="n">src_ag</span> <span class="o">=</span> <span class="n">_ensureid</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
+    <span class="n">dst_ag</span> <span class="o">=</span> <span class="n">_ensureid</span><span class="p">(</span><span class="n">dst_ag</span><span class="p">)</span>
+
+    <span class="n">group_review_flag</span> <span class="o">=</span> <span class="n">src_ag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dst_ag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">group_review_flag</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;NOT GROUP_REVIEW&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">speed_hack</span><span class="p">:</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">imgsetid</span><span class="o">=</span><span class="n">imgsetid</span><span class="p">)</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">is_reviewed_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">src_gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotgroup_gar_rowids</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
+        <span class="n">dst_gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotgroup_gar_rowids</span><span class="p">(</span><span class="n">dst_ag</span><span class="p">)</span>
+        <span class="n">src_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_gar_aid</span><span class="p">(</span><span class="n">src_gar_rowid_list</span><span class="p">)</span>
+        <span class="n">dst_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_gar_aid</span><span class="p">(</span><span class="n">dst_gar_rowid_list</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">src_aid_list</span>
+        <span class="n">reviewed_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">src_aid</span> <span class="ow">in</span> <span class="n">dst_aid_list</span> <span class="k">for</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">src_aid_list</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),)</span>
+    <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;0.00&#39;</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">group_review_flag</span><span class="p">:</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
+
+    <span class="n">previous</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;previous&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;aid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
+    <span class="c1"># logger.info(ut.repr2(ibs.get_annot_info(aid)))</span>
+    <span class="c1"># if aid is not None:</span>
+    <span class="c1">#     logger.info(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))</span>
+    <span class="k">return</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">src_ag</span><span class="p">,</span> <span class="n">dst_ag</span><span class="p">,</span> <span class="n">progress</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">previous</span></div>
+
+
+<div class="viewcode-block" id="movegroup_aid"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.movegroup_aid">[docs]</a><span class="k">def</span> <span class="nf">movegroup_aid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">src_ag</span><span class="p">,</span> <span class="n">dst_ag</span><span class="p">):</span>
+    <span class="n">gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gar_rowids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="n">annotgroup_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_gar_annotgroup_rowid</span><span class="p">(</span><span class="n">gar_rowid_list</span><span class="p">)</span>
+    <span class="n">src_index</span> <span class="o">=</span> <span class="n">annotgroup_rowid_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
+    <span class="n">src_gar_rowid</span> <span class="o">=</span> <span class="n">gar_rowid_list</span><span class="p">[</span><span class="n">src_index</span><span class="p">]</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">src_ag</span><span class="p">,</span> <span class="n">src_gar_rowid</span><span class="p">,</span> <span class="n">dst_ag</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Moving aid: </span><span class="si">%s</span><span class="s1"> from src_ag: </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) to dst_ag: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)</span>
+    <span class="c1"># ibs.delete_gar([src_gar_rowid])</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">add_gar</span><span class="p">([</span><span class="n">dst_ag</span><span class="p">],</span> <span class="p">[</span><span class="n">aid</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="default_species"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.default_species">[docs]</a><span class="k">def</span> <span class="nf">default_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c1"># hack function</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;CHTA_Master&#39;</span> <span class="ow">or</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;EWT_Cheetahs&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;cheetah&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;EWT_Lynx&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;lynx&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;ELPH_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;elephant_savanna&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;GIR_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;giraffe_reticulated&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;GZ_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;zebra_grevys&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;LION_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;lion&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;PZ_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;WD_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;wild_dog&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;NNP_MasterGIRM&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;giraffe_masai&#39;</span>
+    <span class="k">elif</span> <span class="s1">&#39;NNP_&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
+    <span class="k">elif</span> <span class="s1">&#39;GZC&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[web] DEFAULT SPECIES: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">default_species</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">default_species</span></div>
+
+
+<div class="viewcode-block" id="imageset_image_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_image_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_image_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">is_staged</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">reviews_required</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">is_staged</span><span class="p">:</span>
+        <span class="n">staged_user</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_user</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">staged_user</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">staged_user</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">staged_user_id</span> <span class="o">=</span> <span class="n">staged_user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">metadata_dict_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_metadata</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">update_reviewed_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">images_reviewed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">metadata_dict</span> <span class="ow">in</span> <span class="n">metadata_dict_list</span><span class="p">:</span>
+            <span class="n">staged</span> <span class="o">=</span> <span class="n">metadata_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;staged&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">sessions</span> <span class="o">=</span> <span class="n">staged</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sessions&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">user_ids</span> <span class="o">=</span> <span class="n">sessions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user_ids&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">user_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">user_ids</span><span class="p">))</span>
+
+            <span class="n">requirement_satisfied</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">user_ids</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">reviews_required</span>
+            <span class="n">update_reviewed</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">requirement_satisfied</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">update_reviewed_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">update_reviewed</span><span class="p">)</span>
+
+            <span class="n">reviewed</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">staged_user_id</span> <span class="ow">in</span> <span class="n">user_ids</span> <span class="k">else</span> <span class="n">requirement_satisfied</span>
+            <span class="n">images_reviewed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reviewed</span><span class="p">)</span>
+
+        <span class="c1"># ibs.set_image_reviewed(gid_list, update_reviewed_list)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">images_reviewed</span> <span class="o">=</span> <span class="p">[</span><span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">images_reviewed</span></div>
+
+
+<div class="viewcode-block" id="imageset_image_staged_progress"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_image_staged_progress">[docs]</a><span class="k">def</span> <span class="nf">imageset_image_staged_progress</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">reviews_required</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">metadata_dict_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_metadata</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">metadata_dict</span> <span class="ow">in</span> <span class="n">metadata_dict_list</span><span class="p">:</span>
+        <span class="n">staged</span> <span class="o">=</span> <span class="n">metadata_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;staged&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">sessions</span> <span class="o">=</span> <span class="n">staged</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sessions&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">user_ids</span> <span class="o">=</span> <span class="n">sessions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user_ids&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">user_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">user_ids</span><span class="p">))</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">user_ids</span><span class="p">)</span>
+
+    <span class="n">staged_progress</span> <span class="o">=</span> <span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="n">reviews_required</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">staged_progress</span></div>
+
+
+<div class="viewcode-block" id="imageset_annot_canonical"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_canonical">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_canonical</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">canonical_part_type</span><span class="o">=</span><span class="n">CANONICAL_PART_TYPE</span><span class="p">):</span>
+    <span class="n">part_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_part_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">part_types_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">,</span> <span class="n">part_rowids_list</span><span class="p">))</span>
+
+    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">part_type_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">aid_list</span><span class="p">,</span> <span class="n">part_rowids_list</span><span class="p">,</span> <span class="n">part_types_list</span>
+    <span class="p">):</span>
+        <span class="n">reviewed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">part_rowid</span><span class="p">,</span> <span class="n">part_type</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">part_type_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">part_type</span> <span class="o">==</span> <span class="n">canonical_part_type</span><span class="p">:</span>
+                <span class="n">reviewed</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+        <span class="n">annots_reviewed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reviewed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">annots_reviewed</span></div>
+
+
+<div class="viewcode-block" id="imageset_image_cameratrap_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_image_cameratrap_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_image_cameratrap_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">images_reviewed</span> <span class="o">=</span> <span class="p">[</span><span class="n">flag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_cameratrap</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">images_reviewed</span></div>
+
+
+<div class="viewcode-block" id="imageset_annot_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span><span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_reviewed</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">annots_reviewed</span></div>
+
+
+<div class="viewcode-block" id="imageset_annot_viewpoint_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_viewpoint_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_viewpoint_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">annots_reviewed</span></div>
+
+
+<div class="viewcode-block" id="imageset_annot_quality_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_quality_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_quality_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">annots_reviewed</span></div>
+
+
+<div class="viewcode-block" id="imageset_part_type_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_part_type_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_part_type_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">reviewed_flag_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">reviewed_flag_progress</span><span class="p">:</span>
+        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_reviewed</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">reviewed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="n">parts_reviewed</span></div>
+
+
+<div class="viewcode-block" id="imageset_part_contour_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_part_contour_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_part_contour_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">reviewed_flag_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">reviewed_flag_progress</span><span class="p">:</span>
+        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">reviewed</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">reviewed</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_reviewed</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">parts_reviewed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">contour_dict_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_contour</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">contour_dict</span> <span class="ow">in</span> <span class="n">contour_dict_list</span><span class="p">:</span>
+            <span class="n">contour</span> <span class="o">=</span> <span class="n">contour_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;contour&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">reviewed</span> <span class="o">=</span> <span class="n">contour</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">parts_reviewed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reviewed</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parts_reviewed</span></div>
+
+
+<div class="viewcode-block" id="imageset_annot_demographics_processed"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.imageset_annot_demographics_processed">[docs]</a><span class="k">def</span> <span class="nf">imageset_annot_demographics_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Check </span><span class="si">%d</span><span class="s1"> total annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
+
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
+    <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> named annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),))</span>
+
+    <span class="n">sex_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_sex</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
+    <span class="n">sex_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">sex</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">sex</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="n">sex_list</span><span class="p">)}</span>
+    <span class="n">value_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sex_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set sex annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
+
+    <span class="n">age_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">age_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">aid</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">age</span> <span class="ow">and</span> <span class="n">age</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">age</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">age_list</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">value_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">age_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> set age annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
+
+    <span class="n">annots_reviewed</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">sex_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">age_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span>
+    <span class="p">]</span>
+    <span class="n">value_list</span> <span class="o">=</span> <span class="n">annots_reviewed</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[demographics] Found </span><span class="si">%d</span><span class="s1"> reviewed annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">value_list</span><span class="p">),))</span>
+    <span class="k">return</span> <span class="n">annots_reviewed</span></div>
+
+
+<div class="viewcode-block" id="convert_nmea_to_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.convert_nmea_to_json">[docs]</a><span class="k">def</span> <span class="nf">convert_nmea_to_json</span><span class="p">(</span><span class="n">nmea_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">GMT_OFFSET</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">json_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.LOG&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="mi">2000</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
+    <span class="n">day</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">nmea_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;@&#39;</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">or</span> <span class="s1">&#39;GPRMC&#39;</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">pynmea2</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">timestamp</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">second</span><span class="p">)</span>
+        <span class="c1"># Gather values</span>
+        <span class="n">posix</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">))</span>
+        <span class="n">posix</span> <span class="o">+=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="n">GMT_OFFSET</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">latitude</span><span class="p">)</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">longitude</span><span class="p">)</span>
+        <span class="n">json_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">posix</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s1">&#39;track&#39;</span><span class="p">:</span> <span class="n">json_list</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="convert_tuple_to_viewpoint"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.convert_tuple_to_viewpoint">[docs]</a><span class="k">def</span> <span class="nf">convert_tuple_to_viewpoint</span><span class="p">(</span><span class="n">viewpoint_tuple</span><span class="p">):</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">viewpoint_tuple</span><span class="p">))))</span>
+
+    <span class="k">if</span> <span class="n">viewpoint_tuple</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">viewpoint_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="s1">&#39;__&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">))</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">_&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">viewpoint_text</span><span class="p">,)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_-1_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_0_&#39;</span><span class="p">,</span> <span class="s1">&#39;up&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_1_&#39;</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_2_&#39;</span><span class="p">,</span> <span class="s1">&#39;front&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_3_&#39;</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_4_&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_5_&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">viewpoint_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span>
+        <span class="p">),</span> <span class="s1">&#39;Value </span><span class="si">%r</span><span class="s1"> not in acceptable </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">viewpoint_text</span><span class="p">,</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">viewpoint_text</span></div>
+
+
+<div class="viewcode-block" id="convert_viewpoint_to_tuple"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.appfuncs.convert_viewpoint_to_tuple">[docs]</a><span class="k">def</span> <span class="nf">convert_viewpoint_to_tuple</span><span class="p">(</span><span class="n">viewpoint_text</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">viewpoint_text</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">viewpoint_text</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_INT</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">viewpoint_text</span> <span class="o">==</span> <span class="s1">&#39;unknown&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;up&#39;</span><span class="p">,</span> <span class="s1">&#39;_0_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;down&#39;</span><span class="p">,</span> <span class="s1">&#39;_1_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="s1">&#39;_2_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;back&#39;</span><span class="p">,</span> <span class="s1">&#39;_3_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;_4_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_text</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;_5_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">viewpoint_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">viewpoint_list</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewpoint_list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewpoint_list</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">3</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">viewpoint_list</span><span class="p">))</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewpoint_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">viewpoint_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">viewpoint_list</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t_height</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO:</span>
+<span class="sd">        # use vtool instead</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+        <span class="n">maxdims</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">t_width</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">t_height</span><span class="p">)))</span>
+        <span class="n">interpolation</span> <span class="o">=</span> <span class="s1">&#39;linear&#39;</span>
+        <span class="k">return</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize_to_maxdims</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">maxdims</span><span class="p">,</span> <span class="n">interpolation</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">cv2</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">))</span>
+        <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">image</span>
+        <span class="k">elif</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t_width</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_height</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t_height</span> <span class="o">=</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_width</span><span class="p">)</span>
+        <span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_width</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_height</span><span class="p">)</span>
+        <span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">t_width</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">t_height</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">t_width</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;target size too small&#39;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">t_width</span> <span class="o">&lt;=</span> <span class="n">width</span> <span class="o">*</span> <span class="mi">100</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="o">&lt;=</span> <span class="n">height</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="p">),</span> <span class="s1">&#39;target size too large (capped at 10,000%)&#39;</span>
+        <span class="c1"># interpolation = cv2.INTER_LANCZOS4</span>
+        <span class="n">interpolation</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LINEAR</span>
+        <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">interpolation</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

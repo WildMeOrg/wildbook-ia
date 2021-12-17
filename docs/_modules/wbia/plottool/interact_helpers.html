@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.interact_helpers &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.interact_helpers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.interact_helpers</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">custom_figure</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="c1"># (print, print_, printDBG, rrr, profile) = utool.inject(__name__,</span>
+<span class="c1">#                                                       &#39;[interact_helpers]&#39;,</span>
+<span class="c1">#                                                       DEBUG=False)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[interact_helpers]&#39;</span><span class="p">)</span>
+
+<span class="c1"># ==========================</span>
+<span class="c1"># HELPERS</span>
+<span class="c1"># ==========================</span>
+
+<span class="c1"># RCOS TODO: We should change the fnum, pnum figure layout into one managed by</span>
+<span class="c1"># gridspec.</span>
+
+
+<div class="viewcode-block" id="detect_keypress"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_helpers.detect_keypress">[docs]</a><span class="k">def</span> <span class="nf">detect_keypress</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_key_press</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;shift&#39;</span><span class="p">:</span>
+            <span class="n">shift_is_held</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># NOQA</span>
+
+    <span class="k">def</span> <span class="nf">on_key_release</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;shift&#39;</span><span class="p">:</span>
+            <span class="n">shift_is_held</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s1">&#39;key_press_event&#39;</span><span class="p">,</span> <span class="n">on_key_press</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s1">&#39;key_release_event&#39;</span><span class="p">,</span> <span class="n">on_key_release</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="clicked_inside_axis"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_helpers.clicked_inside_axis">[docs]</a><span class="k">def</span> <span class="nf">clicked_inside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="n">in_axis</span> <span class="o">=</span> <span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">inaxes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">in_axis</span><span class="p">:</span>
+        <span class="k">pass</span>
+        <span class="c1"># print(&#39; ...out of axis&#39;)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">pass</span>
+        <span class="c1"># print(&#39; ...in axis&#39;)</span>
+    <span class="k">return</span> <span class="n">in_axis</span></div>
+
+
+<div class="viewcode-block" id="clicked_outside_axis"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_helpers.clicked_outside_axis">[docs]</a><span class="k">def</span> <span class="nf">clicked_outside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="k">return</span> <span class="ow">not</span> <span class="n">clicked_inside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="begin_interaction"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_helpers.begin_interaction">[docs]</a><span class="k">def</span> <span class="nf">begin_interaction</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">fnum</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&lt;&lt;&lt;&lt;  BEGIN </span><span class="si">%s</span><span class="s1"> INTERACTION &gt;&gt;&gt;&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inter] starting </span><span class="si">%s</span><span class="s1"> interaction, fnum=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">fnum</span><span class="p">))</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">custom_figure</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">custom_figure</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">disconnect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="n">ax</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="disconnect_callback"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_helpers.disconnect_callback">[docs]</a><span class="k">def</span> <span class="nf">disconnect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">callback_type</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># print(&#39;[df2] disconnect %r callback&#39; % callback_type)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">_hs_viztype</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">cbid_type</span> <span class="o">=</span> <span class="n">callback_type</span> <span class="o">+</span> <span class="s1">&#39;_cbid&#39;</span>
+    <span class="n">cbfn_type</span> <span class="o">=</span> <span class="n">callback_type</span> <span class="o">+</span> <span class="s1">&#39;_func&#39;</span>
+    <span class="n">cbid</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cbid_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">cbfn</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cbfn_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cbid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_disconnect</span><span class="p">(</span><span class="n">cbid</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cbfn</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">fig</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">cbid_type</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">cbid</span><span class="p">,</span> <span class="n">cbfn</span></div>
+
+
+<div class="viewcode-block" id="connect_callback"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_helpers.connect_callback">[docs]</a><span class="k">def</span> <span class="nf">connect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">callback_type</span><span class="p">,</span> <span class="n">callback_fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    wrapper around fig.canvas.mpl_connect</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://matplotlib.org/users/event_handling.html</span>
+<span class="sd">        button_press_event</span>
+<span class="sd">        button_release_event</span>
+<span class="sd">        draw_event</span>
+<span class="sd">        key_press_event</span>
+<span class="sd">        key_release_event</span>
+<span class="sd">        motion_notify_event</span>
+<span class="sd">        pick_event</span>
+<span class="sd">        resize_event</span>
+<span class="sd">        scroll_event</span>
+<span class="sd">        figure_enter_event</span>
+<span class="sd">        figure_leave_event</span>
+<span class="sd">        axes_enter_event</span>
+<span class="sd">        axes_leave_event</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># printDBG(&#39;[ih] register %r callback&#39; % callback_type)</span>
+    <span class="k">if</span> <span class="n">callback_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="c1"># Store the callback in the figure diction so it doesnt lose scope</span>
+    <span class="n">cbid_type</span> <span class="o">=</span> <span class="n">callback_type</span> <span class="o">+</span> <span class="s1">&#39;_cbid&#39;</span>
+    <span class="n">cbfn_type</span> <span class="o">=</span> <span class="n">callback_type</span> <span class="o">+</span> <span class="s1">&#39;_func&#39;</span>
+    <span class="n">fig</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">cbid_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="n">callback_type</span><span class="p">,</span> <span class="n">callback_fn</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">cbfn_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback_fn</span></div>
+
+
+<span class="c1"># REGIESTERED_INTERACTIONS = []</span>
+
+
+<span class="c1"># def register_interaction(interaction):</span>
+<span class="c1">#    global REGIESTERED_INTERACTIONS</span>
+<span class="c1">#    REGIESTERED_INTERACTIONS.append(interaction)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

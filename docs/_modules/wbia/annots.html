@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.annots &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wbia.annots</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.annots</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">_wbia_object</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[annot]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">BASE_TYPE</span> <span class="o">=</span> <span class="nb">type</span>
+
+
+<div class="viewcode-block" id="annots"><a class="viewcode-back" href="../../api.html#wbia.annots.annots">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">uuids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Makes an Annots object&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">uuids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">aids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;specify one primary key&#39;</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">uuids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">aids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">aids</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;Annots&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">aids</span>
+    <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Annots</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="matches"><a class="viewcode-back" href="../../api.html#wbia.annots.matches">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">uuid_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Makes an Annots object&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">uuid_edges</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">ams</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;specify one primary key&#39;</span>
+        <span class="k">assert</span> <span class="n">edges</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;specify one primary key&#39;</span>
+        <span class="n">uuids1</span><span class="p">,</span> <span class="n">uuids2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">uuid_edges</span><span class="p">))</span>
+        <span class="n">aids1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">uuids1</span><span class="p">)</span>
+        <span class="n">aids2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">uuids2</span><span class="p">)</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">edges</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">ams</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;specify one primary key&#39;</span>
+        <span class="k">assert</span> <span class="n">uuid_edges</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;specify one primary key&#39;</span>
+        <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">))</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_undirected_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ams</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ams</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;AnnotMatches&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ams</span>
+    <span class="n">ams</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">AnnotMatches</span><span class="p">(</span><span class="n">ams</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_annot_groups</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">annots_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">AnnotGroups</span><span class="p">(</span><span class="n">annots_list</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+
+
+<span class="n">ANNOT_BASE_ATTRS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;aid&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;parent_aid&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;multiple&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;age_months_est_max&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;age_months_est_min&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sex&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sex_texts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;uuids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hashid_uuid&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;visual_uuids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hashid_visual_uuid&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;semantic_uuids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hashid_semantic_uuid&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;verts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;thetas&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bboxes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bbox_area&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;species_uuids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;species&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;species_rowids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;species_texts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;viewpoint_int&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;viewpoint_code&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;qualities&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;quality_texts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;exemplar_flags&#39;</span><span class="p">,</span>
+    <span class="c1"># DEPRICATE YAW</span>
+    <span class="s1">&#39;yaw_texts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;yaws&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;yaws_asfloat&#39;</span><span class="p">,</span>
+    <span class="c1"># Images</span>
+    <span class="c1"># &#39;image_rowids&#39;,</span>
+    <span class="s1">&#39;gids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;image_uuids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;image_gps&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;image_gps2&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;image_unixtimes_asfloat&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;image_datetime_str&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;image_contributor_tag&#39;</span><span class="p">,</span>
+    <span class="c1"># Names</span>
+    <span class="s1">&#39;nids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;names&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;name_uuids&#39;</span><span class="p">,</span>
+    <span class="c1"># Inferred from context attrs</span>
+    <span class="s1">&#39;contact_aids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;num_contact_aids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;groundfalse&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;groundtruth&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;num_groundtruth&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;has_groundtruth&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;otherimage_aids&#39;</span><span class="p">,</span>
+    <span class="c1"># Image Set</span>
+    <span class="s1">&#39;imgset_uuids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;imgsetids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;image_set_texts&#39;</span><span class="p">,</span>
+    <span class="c1"># Occurrence / Encounter</span>
+    <span class="s1">&#39;static_encounter&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;encounter_text&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;occurrence_text&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;primary_imageset&#39;</span><span class="p">,</span>
+    <span class="c1"># Tags</span>
+    <span class="s1">&#39;all_tags&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;case_tags&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;annotmatch_tags&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;notes&#39;</span><span class="p">,</span>
+    <span class="c1"># Processing State</span>
+    <span class="s1">&#39;reviewed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;reviewed_matching_aids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;has_reviewed_matching_aids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;num_reviewed_matching_aids&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;detect_confidence&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">ANNOT_SETTABLE_ATTRS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;age_months_est_max&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;age_months_est_min&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bboxes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;thetas&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;verts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;qualities&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;quality_texts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;viewpoint_int&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;viewpoint_code&#39;</span><span class="p">,</span>
+    <span class="c1"># DEPRICATE YAW</span>
+    <span class="s1">&#39;yaw_texts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;yaws&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sex&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sex_texts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;species&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;exemplar_flags&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;static_encounter&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;multiple&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;case_tags&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;detect_confidence&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;reviewed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;name_texts&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;names&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;notes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;parent_rowid&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">_AnnotPropInjector</span><span class="p">(</span><span class="n">BASE_TYPE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ignore:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia import _wbia_object</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; objname = &#39;annot&#39;</span>
+<span class="sd">        &gt;&gt;&gt; blacklist = [&#39;annot_pair&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; _wbia_object._find_wbia_attrs(ibs, objname, blacklist)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_AnnotPropInjector</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
+
+        <span class="n">attrs</span> <span class="o">=</span> <span class="n">ANNOT_BASE_ATTRS</span>
+
+        <span class="n">settable_attrs</span> <span class="o">=</span> <span class="n">ANNOT_SETTABLE_ATTRS</span>
+
+        <span class="n">configurable_attrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="c1"># Chip</span>
+            <span class="s1">&#39;chip_dlensqrd&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;chip_fpath&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;chip_sizes&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;chip_thumbpath&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;chip_thumbtup&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;chips&#39;</span><span class="p">,</span>
+            <span class="c1"># Feat / FeatWeight / Kpts / Desc</span>
+            <span class="s1">&#39;feat_rowids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;num_feats&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;featweight_rowids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;fgweights&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;fgweights_subset&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;kpts&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;kpts_distinctiveness&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;vecs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;vecs_cache&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;vecs_subset&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="c1"># misc = [</span>
+        <span class="c1">#    &#39;gar_rowids&#39;, &#39;alrids&#39;, &#39;alrids_oftype&#39;, &#39;lblannot_rowids&#39;,</span>
+        <span class="c1">#    &#39;lblannot_rowids_oftype&#39;, &#39;lblannot_value_of_lbltype&#39;, &#39;rows&#39;,</span>
+        <span class="c1">#    &#39;instancelist&#39;, &#39;lazy_dict&#39;, &#39;lazy_dict2&#39;, &#39;missing_uuid&#39;,</span>
+        <span class="c1">#    &#39;been_adjusted&#39;, &#39;class_labels&#39;,</span>
+        <span class="c1"># ]</span>
+        <span class="c1"># extra_attrs = [</span>
+        <span class="c1">#    # Age / Sex</span>
+        <span class="c1">#    &#39;age_months_est&#39;, &#39;age_months_est_max&#39;, &#39;age_months_est_max_texts&#39;,</span>
+        <span class="c1">#    &#39;age_months_est_min&#39;, &#39;age_months_est_min_texts&#39;,</span>
+        <span class="c1">#    &#39;age_months_est_texts&#39;, &#39;sex&#39;, &#39;sex_texts&#39;,</span>
+
+        <span class="c1">#    # Stats</span>
+        <span class="c1">#    &#39;stats_dict&#39;, &#39;per_name_stats&#39;, &#39;qual_stats&#39;, &#39;info&#39;, &#39;yaw_stats&#39;,</span>
+        <span class="c1">#    &#39;intermediate_viewpoint_stats&#39;,</span>
+        <span class="c1"># ]</span>
+        <span class="c1"># inverse_attrs = [</span>
+        <span class="c1">#    # External lookups via superkeys</span>
+        <span class="c1">#    &#39;aids_from_semantic_uuid&#39;,</span>
+        <span class="c1">#    &#39;aids_from_uuid&#39;,</span>
+        <span class="c1">#    &#39;aids_from_visual_uuid&#39;,</span>
+        <span class="c1">#    &#39;rowids_from_partial_vuuids&#39;,</span>
+        <span class="c1"># ]</span>
+
+        <span class="n">depcache_attrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;hog&#39;</span><span class="p">,</span> <span class="s1">&#39;hog&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;probchip&#39;</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+
+        <span class="n">aliased_attrs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="s1">&#39;image_unixtimes_asfloat&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;gps&#39;</span><span class="p">:</span> <span class="s1">&#39;image_gps2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;chip_size&#39;</span><span class="p">:</span> <span class="s1">&#39;chip_sizes&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;yaw&#39;</span><span class="p">:</span> <span class="s1">&#39;yaws_asfloat&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;qual&#39;</span><span class="p">:</span> <span class="s1">&#39;qualities&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;names&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;nid&#39;</span><span class="p">:</span> <span class="s1">&#39;nids&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;unary_tags&#39;</span><span class="p">:</span> <span class="s1">&#39;case_tags&#39;</span><span class="p">,</span>
+            <span class="c1"># DEPRICATE</span>
+            <span class="s1">&#39;rchip&#39;</span><span class="p">:</span> <span class="s1">&#39;chips&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;rchip_fpath&#39;</span><span class="p">:</span> <span class="s1">&#39;chip_fpath&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">objname</span> <span class="o">=</span> <span class="s1">&#39;annot&#39;</span>
+        <span class="n">_wbia_object</span><span class="o">.</span><span class="n">_inject_getter_attrs</span><span class="p">(</span>
+            <span class="n">metaself</span><span class="p">,</span>
+            <span class="n">objname</span><span class="p">,</span>
+            <span class="n">attrs</span><span class="p">,</span>
+            <span class="n">configurable_attrs</span><span class="p">,</span>
+            <span class="s1">&#39;depc_annot&#39;</span><span class="p">,</span>
+            <span class="n">depcache_attrs</span><span class="p">,</span>
+            <span class="n">settable_attrs</span><span class="p">,</span>
+            <span class="n">aliased_attrs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># TODO: incorporate dynamic setters</span>
+        <span class="c1"># def set_case_tags(self, tags):</span>
+        <span class="c1">#    self._ibs.append_annot_case_tags(self._rowids, tags)</span>
+        <span class="c1"># fget = metaself.case_tags.fget</span>
+        <span class="c1"># fset = set_case_tags</span>
+        <span class="c1"># setattr(metaself, &#39;case_tags&#39;, property(fget, fset))</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">_autogen_annot_base</span>
+
+    <span class="n">BASE</span> <span class="o">=</span> <span class="n">_autogen_annot_base</span><span class="o">.</span><span class="n">_annot_base_class</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">BASE</span> <span class="o">=</span> <span class="n">_wbia_object</span><span class="o">.</span><span class="n">ObjectList1D</span>
+
+
+<span class="c1"># @ut.reloadable_class</span>
+<div class="viewcode-block" id="Annots"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_AnnotPropInjector</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Annots</span><span class="p">(</span><span class="n">BASE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a group of annotations. Efficiently accesses properties from a</span>
+<span class="sd">    database using lazy evaluation.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.annots Annots</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; a = self = annots = Annots(aids, ibs)</span>
+<span class="sd">        &gt;&gt;&gt; a.preload(&#39;vecs&#39;, &#39;kpts&#39;, &#39;nids&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(Annots.mro())</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.depth_profile(a.vecs))</span>
+<span class="sd">        &gt;&gt;&gt; print(a)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; a = self = annots = Annots(aids, ibs)</span>
+<span class="sd">        &gt;&gt;&gt; a.preload(&#39;vecs&#39;, &#39;kpts&#39;, &#39;nids&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; a.disconnect()</span>
+<span class="sd">        &gt;&gt;&gt; assert &#39;vecs&#39; in a._internal_attrs.keys()</span>
+<span class="sd">        &gt;&gt;&gt; assert a._ibs is None</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_raises(KeyError, a._get_num_feats)</span>
+<span class="sd">        &gt;&gt;&gt; a._ibs = ibs</span>
+<span class="sd">        &gt;&gt;&gt; assert len(a._get_num_feats()) &gt; 0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># def __init__(self, aids, ibs, config=None, caching=False):</span>
+    <span class="c1">#    super(Annots, self).__init__(aids, ibs, config, caching)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">aids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span>
+
+<div class="viewcode-block" id="Annots.get_stats"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.get_stats">[docs]</a>    <span class="k">def</span> <span class="nf">get_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">get_annot_stats_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Annots.print_stats"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.print_stats">[docs]</a>    <span class="k">def</span> <span class="nf">print_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="c1"># @property</span>
+<div class="viewcode-block" id="Annots.get_speeds"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.get_speeds">[docs]</a>    <span class="k">def</span> <span class="nf">get_speeds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># import vtool as vt</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_aidpairs</span><span class="p">()</span>
+        <span class="n">speeds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">get_annotpair_speeds</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+        <span class="c1"># edges = vt.pdist_indicies(len(annots))</span>
+        <span class="c1"># speeds = self._ibs.get_unflat_annots_speeds_list([self.aids])[0]</span>
+        <span class="n">edge_to_speed</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">speeds</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">edge_to_speed</span></div>
+
+<div class="viewcode-block" id="Annots.get_name_image_closure"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.get_name_image_closure">[docs]</a>    <span class="k">def</span> <span class="nf">get_name_image_closure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aids</span>
+        <span class="n">old_aids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_aids</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">):</span>
+            <span class="n">old_aids</span> <span class="o">=</span> <span class="n">aids</span>
+            <span class="n">gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
+            <span class="n">other_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gids</span><span class="p">))))</span>
+            <span class="n">other_nids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">other_aids</span><span class="p">)))</span>
+            <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">other_nids</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">aids</span></div>
+
+<div class="viewcode-block" id="Annots.group2"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.group2">[docs]</a>    <span class="k">def</span> <span class="nf">group2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">by</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        self = annots</span>
+<span class="sd">        by = annots.static_encounter</span>
+<span class="sd">        encounters = annots.group2(annots.static_encounter)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">annots_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">by</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">AnnotGroups</span><span class="p">(</span><span class="n">annots_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Annots.get_aidpairs"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.get_aidpairs">[docs]</a>    <span class="k">def</span> <span class="nf">get_aidpairs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aids</span>
+        <span class="n">aid_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">aid_pairs</span></div>
+
+<div class="viewcode-block" id="Annots.get_am_rowids"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.get_am_rowids">[docs]</a>    <span class="k">def</span> <span class="nf">get_am_rowids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">internal</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        if `internal is True` returns am rowids only between</span>
+<span class="sd">        annotations in this Annots object, otherwise returns</span>
+<span class="sd">        any am rowid that contains any aid in this Annots object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span>
+        <span class="k">if</span> <span class="n">internal</span><span class="p">:</span>
+            <span class="n">ams</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_between</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ams</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ams</span></div>
+
+<div class="viewcode-block" id="Annots.matches"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.matches">[docs]</a>    <span class="k">def</span> <span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">internal</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_am_rowids</span><span class="p">(</span><span class="n">internal</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Annots.get_am_rowids_and_pairs"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.get_am_rowids_and_pairs">[docs]</a>    <span class="k">def</span> <span class="nf">get_am_rowids_and_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_am_rowids</span><span class="p">()</span>
+        <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aids</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span>
+        <span class="c1"># aid_pairs = self.get_aidpairs()</span>
+        <span class="c1"># aids1 = ut.take_column(aid_pairs, 0)</span>
+        <span class="c1"># aids2 = ut.take_column(aid_pairs, 1)</span>
+        <span class="c1"># ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)</span>
+        <span class="c1"># flags = ut.not_list(ut.flag_None_items(ams))</span>
+        <span class="c1"># ams = ut.compress(ams, flags)</span>
+        <span class="c1"># aid_pairs = ut.compress(aid_pairs, flags)</span>
+        <span class="k">return</span> <span class="n">ams</span><span class="p">,</span> <span class="n">aid_pairs</span></div>
+
+<div class="viewcode-block" id="Annots.get_am_aidpairs"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.get_am_aidpairs">[docs]</a>    <span class="k">def</span> <span class="nf">get_am_aidpairs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span>
+        <span class="n">ams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_am_rowids</span><span class="p">()</span>
+        <span class="n">aids1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid1</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span>
+        <span class="n">aids2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid2</span><span class="p">(</span><span class="n">ams</span><span class="p">)</span>
+        <span class="n">aid_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">aid_pairs</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hog_img</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">core_annots</span><span class="o">.</span><span class="n">make_hog_block_image</span><span class="p">(</span><span class="n">hog</span><span class="p">)</span> <span class="k">for</span> <span class="n">hog</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hog_hog</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Annots.append_tags"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.append_tags">[docs]</a>    <span class="k">def</span> <span class="nf">append_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tags</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">append_annot_case_tags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Annots.remove_tags"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.remove_tags">[docs]</a>    <span class="k">def</span> <span class="nf">remove_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tags</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">remove_annot_case_tags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowids</span><span class="p">,</span> <span class="n">tags</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">aids</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">aids</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">aids</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Annots.show"><a class="viewcode-back" href="../../api.html#wbia.annots.Annots.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Can only show one, got </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+        <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
+
+        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">_AnnotGroupPropInjector</span><span class="p">(</span><span class="n">BASE_TYPE</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_AnnotGroupPropInjector</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
+
+        <span class="c1"># TODO: move to wbia object as a group call</span>
+        <span class="k">def</span> <span class="nf">_make_unflat_getter</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
+            <span class="n">ibs_funcname</span> <span class="o">=</span> <span class="s1">&#39;get_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">ibs_unflat_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">ibs_callable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="p">,</span> <span class="n">ibs_funcname</span><span class="p">)</span>
+                <span class="n">rowids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowids_list</span>
+                <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span>
+                <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs_callable</span><span class="p">,</span> <span class="n">rowids</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="n">ut</span><span class="o">.</span><span class="n">set_funcname</span><span class="p">(</span><span class="n">ibs_unflat_getter</span><span class="p">,</span> <span class="s1">&#39;unflat_&#39;</span> <span class="o">+</span> <span class="n">ibs_funcname</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ibs_unflat_getter</span>
+
+        <span class="k">for</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="n">ANNOT_BASE_ATTRS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">attrname</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Cannot inject annot group attrname = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attrname</span><span class="p">,))</span>
+                <span class="k">continue</span>
+            <span class="n">ibs_unflat_getter</span> <span class="o">=</span> <span class="n">_make_unflat_getter</span><span class="p">(</span><span class="s1">&#39;annot&#39;</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="s1">&#39;_unflat_get_&#39;</span> <span class="o">+</span> <span class="n">attrname</span><span class="p">,</span> <span class="n">ibs_unflat_getter</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">attrname</span><span class="p">,</span> <span class="nb">property</span><span class="p">(</span><span class="n">ibs_unflat_getter</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="AnnotGroups"><a class="viewcode-back" href="../../api.html#wbia.annots.AnnotGroups">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_AnnotGroupPropInjector</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AnnotGroups</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Effciently handle operations on multiple groups of annotations&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annots_list</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span> <span class="o">=</span> <span class="n">annots_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rowids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">_rowids</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+        <span class="n">len_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">)</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">len_list</span><span class="p">)</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">len_list</span><span class="p">)</span>
+        <span class="n">nice</span> <span class="o">=</span> <span class="s1">&#39;(n=</span><span class="si">%r</span><span class="s1">, μ=</span><span class="si">%.1f</span><span class="s1">, σ=</span><span class="si">%.1f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nice</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">aids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">aids</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">annots_list</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">images</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gids</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">match_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;returns pairwise tags within the annotation group&quot;&quot;&quot;</span>
+        <span class="n">ams_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">get_unflat_am_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">get_annotmatch_case_tags</span><span class="p">,</span> <span class="n">ams_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tags</span></div>
+
+
+<span class="k">class</span> <span class="nc">_AnnotMatchPropInjector</span><span class="p">(</span><span class="n">BASE_TYPE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia import _wbia_object</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; objname = &#39;annotmatch&#39;</span>
+<span class="sd">        &gt;&gt;&gt; blacklist = []</span>
+<span class="sd">        &gt;&gt;&gt; tup = _wbia_object._find_wbia_attrs(ibs, objname, blacklist)</span>
+<span class="sd">        &gt;&gt;&gt; attrs, settable_attrs = tup</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;attrs = &#39; + ut.repr4(attrs))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;settable_attrs = &#39; + ut.repr4(settable_attrs))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_AnnotMatchPropInjector</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+        <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
+
+        <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;aid1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;aid2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;count&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;meta_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;posixtime_modified&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;reviewer&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;tag_text&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;case_tags&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">settable_attrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;count&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;evidence_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;meta_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;posixtime_modified&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;reviewer&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;tag_text&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="n">configurable_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">depcache_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">aliased_attrs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">objname</span> <span class="o">=</span> <span class="s1">&#39;annotmatch&#39;</span>
+        <span class="n">_wbia_object</span><span class="o">.</span><span class="n">_inject_getter_attrs</span><span class="p">(</span>
+            <span class="n">metaself</span><span class="p">,</span>
+            <span class="n">objname</span><span class="p">,</span>
+            <span class="n">attrs</span><span class="p">,</span>
+            <span class="n">configurable_attrs</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">depcache_attrs</span><span class="p">,</span>
+            <span class="n">settable_attrs</span><span class="p">,</span>
+            <span class="n">aliased_attrs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="AnnotMatches"><a class="viewcode-back" href="../../api.html#wbia.annots.AnnotMatches">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_AnnotMatchPropInjector</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AnnotMatches</span><span class="p">(</span><span class="n">BASE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a group of annotations. Efficiently accesses properties from a</span>
+<span class="sd">    database using lazy evaluation.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.annots Annots</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; annots = Annots(aids, ibs)</span>
+<span class="sd">        &gt;&gt;&gt; ams = annots.get_am_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; matches = self = ibs.matches()</span>
+<span class="sd">        &gt;&gt;&gt; ed1 = matches.evidence_decision</span>
+<span class="sd">        &gt;&gt;&gt; md2 = matches.meta_decision</span>
+<span class="sd">        &gt;&gt;&gt; table = ibs.db.get_table_as_pandas(&#39;annotmatch&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(table) == len(matches)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">confidence_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIDENCE</span><span class="o">.</span><span class="n">INT_TO_CODE</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">INT_TO_CODE</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">confidence</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">meta_decision_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">META_DECISION</span><span class="o">.</span><span class="n">INT_TO_CODE</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">INT_TO_CODE</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta_decision</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">evidence_decision_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">INT_TO_CODE</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">INT_TO_CODE</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">evidence_decision</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

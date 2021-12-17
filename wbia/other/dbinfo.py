@@ -105,7 +105,7 @@ def get_dbinfo(
         python -m wbia.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA
         python -m wbia.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA --loadbackup=0
 
-    Example1:
+    Example:
         >>> # SCRIPT
         >>> from wbia.other.dbinfo import *  # NOQA
         >>> import wbia
@@ -131,7 +131,7 @@ def get_dbinfo(
         >>> #aid_list = ibs.get_valid_aids()
         >>> # </HACK FOR FILTERING>
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.other.dbinfo import *  # NOQA
         >>> import wbia

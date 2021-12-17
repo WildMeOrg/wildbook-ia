@@ -73,7 +73,7 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
     CommandLine:
         python -m wbia.algo.hots.multi_index --test-request_wbia_mindexer:2
 
-    Example0:
+    Example:
         >>> # SLOW_DOCTEST
         >>> from wbia.algo.hots.multi_index import *  # NOQA
         >>> import wbia
@@ -85,7 +85,7 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
         >>> index_method = 'multi'
         >>> mxer = request_wbia_mindexer(qreq_, index_method)
 
-    Example1:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.algo.hots.multi_index import *  # NOQA
         >>> import wbia
@@ -97,7 +97,7 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
         >>> index_method = 'multi'
         >>> mxer = request_wbia_mindexer(qreq_, index_method)
 
-    Example2:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> # Test background reindex
         >>> from wbia.algo.hots.multi_index import *  # NOQA
@@ -275,7 +275,7 @@ class MultiNeighborIndex(object):
         CommandLine:
             python -m wbia.algo.hots.multi_index --test-knn:0
 
-        Example1:
+        Example:
             >>> # SLOW_DOCTEST
             >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> import numpy as np
@@ -287,7 +287,7 @@ class MultiNeighborIndex(object):
             >>> assert qfx2_imx.shape[1] == 18
             >>> ut.assert_inbounds(qfx2_imx.shape[0], 1073, 1079)
 
-        Example2:
+        Example:
             >>> # SLOW_DOCTEST
             >>> from wbia.algo.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()

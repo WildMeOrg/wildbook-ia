@@ -452,7 +452,7 @@ def ratio_fn(vdist, ndist):
     Returns:
         ndarray: out
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.nn_weights import *  # NOQA
         >>> vdist, ndist = testdata_vn_dists()

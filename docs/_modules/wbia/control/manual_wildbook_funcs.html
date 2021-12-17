@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_wildbook_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_wildbook_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_wildbook_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CommandLine;</span>
+<span class="sd">    # Reset IBEIS database (can skip if done)</span>
+<span class="sd">    python -m wbia.tests.reset_testdbs --reset_mtest</span>
+<span class="sd">    python -m wbia --tf reset_mtest</span>
+
+<span class="sd">Notes:</span>
+<span class="sd">    Moving components: java, tomcat, wildbook.war.</span>
+
+<span class="sd">    python -m utool.util_inspect check_module_usage --pat=&quot;manual_wildbook_funcs.py&quot;</span>
+
+
+<span class="sd">CommandLine;</span>
+<span class="sd">    # Start IA server</span>
+<span class="sd">    python -m wbia --web --db PZ_MTEST</span>
+
+<span class="sd">    # Reset Wildbook database</span>
+<span class="sd">    python -m wbia purge_local_wildbook</span>
+
+<span class="sd">    # Install Wildbook</span>
+<span class="sd">    python -m wbia install_wildbook</span>
+
+<span class="sd">    # Startup Wildbook</span>
+<span class="sd">    python -m wbia startup_wildbook_server</span>
+<span class="sd">    --show</span>
+
+<span class="sd">    # Poll wildbook info</span>
+<span class="sd">    python -m wbia get_wildbook_ia_url</span>
+
+<span class="sd">    # Login to wildbook (can skip)</span>
+<span class="sd">    python -m wbia test_wildbook_login</span>
+
+<span class="sd">    # Ship ImageSets to wildbook</span>
+<span class="sd">    python -m wbia wildbook_signal_imgsetid_list</span>
+
+<span class="sd">    # Change annotations names to a single name</span>
+<span class="sd">    python -m wbia wildbook_signal_annot_name_changes:1</span>
+
+<span class="sd">    # Change annotations names back to normal</span>
+<span class="sd">    python -m wbia wildbook_signal_annot_name_changes:2</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">wildbook_manager</span> <span class="k">as</span> <span class="n">wb_man</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+
+<span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="kn">import</span> <span class="n">WILDBOOK_TARGET</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">DISABLE_WILDBOOK_SIGNAL</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-wb-signal&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># PREFERED_BROWSER = &#39;chrome&#39;</span>
+<span class="c1"># webbrowser._tryorder</span>
+<span class="n">PREFERED_BROWSER</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;hyrule&#39;</span><span class="p">:</span>
+    <span class="n">PREFERED_BROWSER</span> <span class="o">=</span> <span class="s1">&#39;firefox&#39;</span>
+
+
+<div class="viewcode-block" id="get_wildbook_base_url"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.get_wildbook_base_url">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_wildbook_base_url</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">DISABLE_WILDBOOK_SIGNAL</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Wildbook signals are turned off via the command line&#39;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="n">wb_port</span> <span class="o">=</span> <span class="mi">8080</span>
+    <span class="n">wb_target</span> <span class="o">=</span> <span class="n">WILDBOOK_TARGET</span> <span class="k">if</span> <span class="n">wb_target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">wb_target</span>
+
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">containerized</span><span class="p">:</span>
+        <span class="n">wb_hostname</span> <span class="o">=</span> <span class="s1">&#39;nginx&#39;</span>
+        <span class="n">wb_target</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">wb_hostname</span> <span class="o">=</span> <span class="s1">&#39;127.0.0.1&#39;</span>
+
+    <span class="n">wb_hostname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_hostname</span><span class="p">)</span>
+    <span class="n">wb_port</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_port</span><span class="p">)</span>
+    <span class="n">wb_target</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+
+    <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wb_hostname</span><span class="p">,</span> <span class="n">wb_port</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
+    <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="n">wildbook_base_url</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;USING WB BASEURL: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wildbook_base_url</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">wildbook_base_url</span></div>
+
+
+<div class="viewcode-block" id="assert_ia_available_for_wb"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.assert_ia_available_for_wb">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">assert_ia_available_for_wb</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Test if we have a server alive</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ia_url</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_ia_url</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ia_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;Wildbook signals are turned off via the command line&#39;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.assert_ia_available_for_wb] Caught IOError, returning None&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Could not get IA url. BLINDLY CHARCHING FORWARD!&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">have_server</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">delayed_retry_gen</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">raise_</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rsp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ia_url</span> <span class="o">+</span> <span class="s1">&#39;/api/test/heartbeat/&#39;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">have_server</span> <span class="o">=</span> <span class="n">rsp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+                <span class="k">break</span>
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">have_server</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;The image analysis server is not started.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">have_server</span></div>
+
+
+<div class="viewcode-block" id="get_wildbook_ia_url"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.get_wildbook_ia_url">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_wildbook_ia_url</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Where does wildbook expect us to be?</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia get_wildbook_ia_url</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_wildbook_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ia_url = ibs.get_wildbook_ia_url()</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;ia_url = %r&#39; % (ia_url,))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">requests</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">wb_url</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_base_url</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.get_wildbook_ia_url] Caught IOError, returning None&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/ia?status&#39;</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">status</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Could not get IA status from wildbook&#39;</span><span class="p">)</span>
+    <span class="n">json_response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="n">ia_url</span> <span class="o">=</span> <span class="n">json_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iaURL&#39;</span><span class="p">)</span>
+    <span class="c1"># logger.info(&#39;response = %r&#39; % (response,))</span>
+    <span class="k">return</span> <span class="n">ia_url</span></div>
+
+
+<div class="viewcode-block" id="wildbook_signal_annot_name_changes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.wildbook_signal_annot_name_changes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wildbook/signal/annot/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">wildbook_signal_annot_name_changes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        aid_list (int):  list of annotation ids(default = None)</span>
+<span class="sd">        tomcat_dpath (None): (default = None)</span>
+<span class="sd">        wb_target (None): (default = None)</span>
+<span class="sd">        dryrun (bool): (default = False)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia wildbook_signal_annot_name_changes:0 --dryrun</span>
+<span class="sd">        python -m wbia wildbook_signal_annot_name_changes:1 --dryrun</span>
+<span class="sd">        python -m wbia wildbook_signal_annot_name_changes:1</span>
+<span class="sd">        python -m wbia wildbook_signal_annot_name_changes:2</span>
+
+<span class="sd">    Setup:</span>
+<span class="sd">        &gt;&gt;&gt; wb_target = None</span>
+<span class="sd">        &gt;&gt;&gt; dryrun = ut.get_argflag(&#39;--dryrun&#39;)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_wildbook_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #gid_list = ibs.get_valid_gids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[3:5]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ut.flatten(ibs.get_image_aids(gid_list))</span>
+<span class="sd">        &gt;&gt;&gt; # Test case where some names change, some do not. There are no new names.</span>
+<span class="sd">        &gt;&gt;&gt; old_nid_list = ibs.get_annot_name_rowids(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; new_nid_list = ut.list_roll(old_nid_list, 1)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_annot_name_rowids(aid_list, new_nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ibs.wildbook_signal_annot_name_changes(aid_list, wb_target, dryrun)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_annot_name_rowids(aid_list, old_nid_list)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_wildbook_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #gid_list = ibs.get_valid_gids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[3:5]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ut.flatten(ibs.get_image_aids(gid_list))</span>
+<span class="sd">        &gt;&gt;&gt; # Test case where all names change to one known name</span>
+<span class="sd">        &gt;&gt;&gt; #old_nid_list = ibs.get_annot_name_rowids(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; #new_nid_list = [old_nid_list[0]] * len(old_nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; old_nid_list = [1, 2]</span>
+<span class="sd">        &gt;&gt;&gt; new_nid_list = [1, 1]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;old_nid_list = %r&#39; % (old_nid_list,))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;new_nid_list = %r&#39; % (new_nid_list,))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_annot_name_rowids(aid_list, new_nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = ibs.wildbook_signal_annot_name_changes(aid_list, wb_target, dryrun)</span>
+<span class="sd">        &gt;&gt;&gt; # Undo changes here (not undone in wildbook)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs.set_annot_name_rowids(aid_list, old_nid_list)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_wildbook_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[3:5]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ut.flatten(ibs.get_image_aids(gid_list))</span>
+<span class="sd">        &gt;&gt;&gt; old_nid_list = [1, 2]</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_annot_name_rowids(aid_list, old_nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # Signal what currently exists (should put them back to normal)</span>
+<span class="sd">        &gt;&gt;&gt; result = ibs.wildbook_signal_annot_name_changes(aid_list, wb_target, dryrun)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook&#39;</span>
+    <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">wb_url</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_base_url</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[ibs.wildbook_signal_annot_name_changes] Caught IOError, returning None&#39;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">assert_ia_available_for_wb</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_known</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">annot_name_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">grouped_uuids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">annot_name_text_list</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/ia&#39;</span>
+    <span class="n">payloads</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;resolver&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;assignNameToAnnotations&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">new_name</span><span class="p">,</span>
+                    <span class="s1">&#39;annotationIds&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">annot_uuids</span><span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">new_name</span><span class="p">,</span> <span class="n">annot_uuids</span> <span class="ow">in</span> <span class="n">grouped_uuids</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">]</span>
+    <span class="n">status_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">json_payload</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">payloads</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;submitting URL&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[_send] URL=</span><span class="si">%r</span><span class="s1"> with json_payload=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json_payload</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">json_payload</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">status</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Failed to push new names&#39;</span><span class="p">)</span>
+                <span class="c1"># logger.info(response.text)</span>
+        <span class="n">status_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">status_list</span></div>
+
+
+<div class="viewcode-block" id="wildbook_signal_name_changes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.wildbook_signal_name_changes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wildbook/signal/name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">wildbook_signal_name_changes</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">,</span> <span class="n">new_name_list</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        nid_list (int):  list of name ids</span>
+<span class="sd">        new_name_list (str):  list of corresponding names</span>
+<span class="sd">        wb_target (None): (default = None)</span>
+<span class="sd">        dryrun (bool): (default = False)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia wildbook_signal_name_changes:0 --dryrun</span>
+<span class="sd">        python -m wbia wildbook_signal_name_changes:1 --dryrun</span>
+<span class="sd">        python -m wbia wildbook_signal_name_changes:1</span>
+<span class="sd">        python -m wbia wildbook_signal_name_changes:2</span>
+
+<span class="sd">    Setup:</span>
+<span class="sd">        &gt;&gt;&gt; wb_target = None</span>
+<span class="sd">        &gt;&gt;&gt; dryrun = ut.get_argflag(&#39;--dryrun&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.wildbook_signal_name_changes] signaling name changes to wildbook&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">wb_url</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_base_url</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.wildbook_signal_name_changes] Caught IOError, returning None&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">assert_ia_available_for_wb</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">current_name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">new_name_list</span><span class="p">,</span> <span class="n">current_name_list</span><span class="p">)),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/ia&#39;</span>
+    <span class="n">json_payload</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;resolver&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;renameIndividuals&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;new&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">combined_list</span><span class="p">],</span>
+                <span class="s1">&#39;old&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">combined_list</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">status_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[_send] URL=</span><span class="si">%r</span><span class="s1"> with json_payload=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json_payload</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">json_payload</span><span class="p">)</span>
+        <span class="n">response_json</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">response_json</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">status</span><span class="p">:</span>
+            <span class="n">status_list</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Failed to update names&#39;</span><span class="p">)</span>
+            <span class="c1"># logger.info(response.text)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name_response</span> <span class="ow">in</span> <span class="n">response_json</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]:</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="n">name_response</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">]</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">name_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="n">status</span> <span class="ow">or</span> <span class="s1">&#39;unknown MarkedIndividual&#39;</span> <span class="ow">in</span> <span class="n">error</span>
+                <span class="n">status_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="c1"># ut.embed()</span>
+    <span class="k">return</span> <span class="n">status_list</span></div>
+
+
+<div class="viewcode-block" id="wildbook_get_existing_names"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.wildbook_get_existing_names">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">wildbook_get_existing_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[ibs.wildbook_get_existing_names] getting existing names out of wildbook&#39;</span>
+    <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">wb_url</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_base_url</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.wildbook_get_existing_names] Caught IOError, returning None&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">assert_ia_available_for_wb</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/rest/org.ecocean.MarkedIndividual&#39;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">response_json</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">wildbook_existing_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span><span class="p">[</span><span class="s1">&#39;individualID&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">response_json</span><span class="p">]</span>
+        <span class="n">wildbook_existing_name_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wildbook_existing_name_list</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">wildbook_existing_name_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="n">wildbook_existing_name_list</span></div>
+
+
+<div class="viewcode-block" id="wildbook_signal_imgsetid_list"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.wildbook_signal_imgsetid_list">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wildbook/signal/imageset/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">wildbook_signal_imgsetid_list</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">imgsetid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">set_shipped_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">open_url_on_complete</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exports specified imagesets to wildbook. This is a synchronous call.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        imgsetid_list (list): (default = None)</span>
+<span class="sd">        set_shipped_flag (bool): (default = True)</span>
+<span class="sd">        open_url_on_complete (bool): (default = True)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/wildbook/signal/imageset/</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        cd $CODE_DIR/Wildbook/tmp</span>
+
+<span class="sd">        # Ensure IA server is up</span>
+<span class="sd">        python -m wbia --web --db PZ_MTEST</span>
+
+<span class="sd">        # Reset IBEIS database</span>
+<span class="sd">        python -m wbia.tests.reset_testdbs --reset_mtest</span>
+<span class="sd">        python -m wbia  reset_mtest</span>
+
+<span class="sd">        # Completely remove Wildbook database</span>
+<span class="sd">        python -m wbia  purge_local_wildbook</span>
+
+<span class="sd">        # Install Wildbook</span>
+<span class="sd">        python -m wbia  install_wildbook</span>
+
+<span class="sd">        # Startup Wildbook</span>
+<span class="sd">        python -m wbia  startup_wildbook_server</span>
+
+<span class="sd">        # Login to wildbook</span>
+<span class="sd">        python -m wbia  test_wildbook_login</span>
+
+<span class="sd">        # Ship ImageSets to wildbook</span>
+<span class="sd">        python -m wbia  wildbook_signal_imgsetid_list</span>
+
+<span class="sd">        # Change annotations names to a single name</span>
+<span class="sd">        python -m wbia  wildbook_signal_annot_name_changes:1</span>
+
+<span class="sd">        # Change annotations names back to normal</span>
+<span class="sd">        python -m wbia  wildbook_signal_annot_name_changes:2</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia wildbook_signal_imgsetid_list</span>
+<span class="sd">        python -m wbia wildbook_signal_imgsetid_list --dryrun</span>
+<span class="sd">        python -m wbia wildbook_signal_imgsetid_list --break</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        ~/local/build_scripts/init_wildbook.sh</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_wildbook_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; dryrun = ut.get_argflag(&#39;--dryrun&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; wb_target = None</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # Need to start a web server for wildbook to hook into</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;PZ_MTEST&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; #gid_list = ibs.get_valid_gids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[3:6]</span>
+<span class="sd">        &gt;&gt;&gt; new_imgsetid = ibs.create_new_imageset_from_images(gid_list)  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid = new_imgsetid</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;new imageset uuid = %r&#39; % (ibs.get_imageset_uuid(new_imgsetid),))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;new imageset text = %r&#39; % (ibs.get_imageset_text(new_imgsetid),))</span>
+<span class="sd">        &gt;&gt;&gt; imgsetid_list = [new_imgsetid]</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_imageset_processed_flags([new_imgsetid], [1])</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_imageset_gids(new_imgsetid)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_image_reviewed(gid_list, [1] * len(gid_list))</span>
+<span class="sd">        &gt;&gt;&gt; set_shipped_flag = True</span>
+<span class="sd">        &gt;&gt;&gt; open_url_on_complete = True</span>
+<span class="sd">        &gt;&gt;&gt; if ut.get_argflag(&#39;--bg&#39;):</span>
+<span class="sd">        &gt;&gt;&gt;     with wbia.opendb_bg_web(defaultdb, managed=True) as web_ibs:</span>
+<span class="sd">        ...         result = web_ibs.wildbook_signal_imgsetid_list(imgsetid_list, set_shipped_flag, open_url_on_complete, wb_target, dryrun)</span>
+<span class="sd">        &gt;&gt;&gt; else:</span>
+<span class="sd">        ...     result = ibs.wildbook_signal_imgsetid_list(imgsetid_list, set_shipped_flag, open_url_on_complete, wb_target, dryrun)</span>
+<span class="sd">        &gt;&gt;&gt; # cleanup</span>
+<span class="sd">        &gt;&gt;&gt; #ibs.delete_imagesets(new_imgsetid)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">wb_url</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_base_url</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs.wildbook_signal_imgsetid_list] Caught IOError, returning None&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">assert_ia_available_for_wb</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">imgsetid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
+
+    <span class="c1"># Check to make sure imagesets are ok:</span>
+    <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span><span class="p">:</span>
+        <span class="c1"># First, check if imageset can be pushed</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">),</span> <span class="s1">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s1"> cannot be shipped with0 annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,)</span>
+        <span class="n">unknown_flags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">unnamed_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">unknown_flags</span><span class="p">)</span>
+        <span class="n">unnamed_ok_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">unnamed_aid_list</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;ok&#39;</span><span class="p">)</span>
+        <span class="n">nUnnamedOk</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">unnamed_ok_aid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">nUnnamedOk</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s1">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s1">1 cannot be shipped becuase &#39;</span>
+            <span class="s1">&#39;annotation(s) </span><span class="si">%r</span><span class="s1"> with an identifiable quality have &#39;</span>
+            <span class="s1">&#39;not been named&#39;</span>
+        <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">unnamed_ok_aid_list</span><span class="p">)</span>
+
+    <span class="c1"># Call Wildbook url to signal update</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = </span><span class="si">%r</span><span class="s1"> to wildbook&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,)</span>
+    <span class="p">)</span>
+    <span class="n">imageset_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuid</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = </span><span class="si">%r</span><span class="s1"> to wildbook&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">imageset_uuid_list</span><span class="p">,)</span>
+    <span class="p">)</span>
+
+    <span class="n">url</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/ia&#39;</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()</span>
+    <span class="n">occur_url_fmt</span> <span class="o">=</span> <span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/occurrence.jsp?number=</span><span class="si">{uuid}</span><span class="s1">&amp;dbname=</span><span class="si">{dbname}</span><span class="s1">&#39;</span>
+    <span class="c1"># enc_url_fmt = (wb_url + &#39;/encounters/encounter.jsp?number={uuid}&#39;)</span>
+
+    <span class="c1"># Check and push &#39;done&#39; imagesets</span>
+    <span class="n">status_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">imageset_uuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">imageset_uuid_list</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[_send] URL=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
+        <span class="n">json_payload</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;resolver&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fromIAImageSet&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">imageset_uuid</span><span class="p">)}}</span>
+        <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">json_payload</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;response = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="p">,))</span>
+            <span class="k">if</span> <span class="n">set_shipped_flag</span><span class="p">:</span>
+                <span class="n">ibs</span><span class="o">.</span><span class="n">set_imageset_shipped_flags</span><span class="p">([</span><span class="n">imgsetid</span><span class="p">],</span> <span class="p">[</span><span class="n">status</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="n">open_url_on_complete</span><span class="p">:</span>
+                    <span class="n">view_occur_url</span> <span class="o">=</span> <span class="n">occur_url_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">uuid</span><span class="o">=</span><span class="n">imageset_uuid</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span>
+                    <span class="p">)</span>
+                    <span class="n">_browser</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_prefered_browser</span><span class="p">(</span><span class="n">PREFERED_BROWSER</span><span class="p">)</span>
+                    <span class="n">_browser</span><span class="o">.</span><span class="n">open_new_tab</span><span class="p">(</span><span class="n">view_occur_url</span><span class="p">)</span>
+        <span class="n">status_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">update_special_imagesets</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">notify_observers</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">status_list</span></div>
+
+
+<div class="viewcode-block" id="get_wildbook_image_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.get_wildbook_image_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_wildbook_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+    <span class="kn">import</span> <span class="nn">uuid</span>
+    <span class="kn">import</span> <span class="nn">pytz</span>
+
+    <span class="n">PST</span> <span class="o">=</span> <span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="s1">&#39;US/Pacific&#39;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">WILDBOOK_TARGET</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://</span><span class="si">%s</span><span class="s1">/acmIdSync.jsp&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">WILDBOOK_TARGET</span><span class="p">,)</span>
+
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">PST</span><span class="p">)</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-00-00&#39;</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;wildbook.image.admid.</span><span class="si">%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,)</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">file_content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">file_json</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Loaded </span><span class="si">%d</span><span class="s1"> Image ACM string UUIDs from Wildbook: </span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">file_json</span><span class="p">),</span>
+            <span class="n">url</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">uuid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">uuid_str</span> <span class="ow">in</span> <span class="n">file_json</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">uuid_</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">uuid_str</span><span class="p">)</span>
+            <span class="n">uuid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uuid_</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Validated </span><span class="si">%d</span><span class="s1"> Image UUIDs from Wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">),))</span>
+    <span class="n">wildbook_image_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;Validated </span><span class="si">%d</span><span class="s1"> de-duplicated Image UUIDs from Wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">),)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">wildbook_image_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="delete_wildbook_orphaned_image_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.delete_wildbook_orphaned_image_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">delete_wildbook_orphaned_image_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">auto_delete</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">wildbook_image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_image_uuids</span><span class="p">()</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">local_image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">unknown_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wildbook_image_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">local_image_uuid_list</span><span class="p">))</span>
+    <span class="n">candidate_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">local_image_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">wildbook_image_uuid_list</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Image UUIDs in Wildbook that are not here&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unknown_uuid_list</span><span class="p">),)</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Image UUIDs in here that are not in Wildbook&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">),)</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">auto_delete</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">candidate_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">candidate_gid_list</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_images</span><span class="p">(</span><span class="n">candidate_gid_list</span><span class="p">,</span> <span class="n">trash_images</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">candidate_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_wildbook_annot_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.get_wildbook_annot_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_wildbook_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">filter_match_against_on</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+    <span class="kn">import</span> <span class="nn">uuid</span>
+    <span class="kn">import</span> <span class="nn">pytz</span>
+
+    <span class="n">PST</span> <span class="o">=</span> <span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="s1">&#39;US/Pacific&#39;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">WILDBOOK_TARGET</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://</span><span class="si">%s</span><span class="s1">/acmIdSync.jsp?annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">WILDBOOK_TARGET</span><span class="p">,)</span>
+
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">PST</span><span class="p">)</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-00-00&#39;</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;wildbook.annot.admid.</span><span class="si">%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,)</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">file_content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">file_json</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;Loaded </span><span class="si">%d</span><span class="s1"> Annot ACM string UUIDs from Wildbook: </span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">file_json</span><span class="p">),</span>
+            <span class="n">url</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># KEY = &#39;species&#39;</span>
+    <span class="n">SPECIES_KEY</span> <span class="o">=</span> <span class="s1">&#39;iaClass&#39;</span>
+
+    <span class="n">bad_mapping</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;None,whale_fluke&#39;</span><span class="p">:</span> <span class="s1">&#39;whale_fluke&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dolphin_bottlenose+fin_dorsal,tursiops_truncatus&#39;</span><span class="p">:</span> <span class="s1">&#39;dolphin_bottlenose+fin_dorsal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dolphin_bottlenose_fin,tursiops_truncatus&#39;</span><span class="p">:</span> <span class="s1">&#39;dolphin_bottlenose_fin&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dolphin_spotted,stenella_frontalis&#39;</span><span class="p">:</span> <span class="s1">&#39;dolphin_spotted&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;tursiops_truncatus,whale_orca+fin_dorsal&#39;</span><span class="p">:</span> <span class="s1">&#39;whale_orca+fin_dorsal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;turtle_hawksbill,turtle_hawksbill+head&#39;</span><span class="p">:</span> <span class="s1">&#39;turtle_hawksbill+head&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">bad_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">uuid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">uuid_str</span> <span class="ow">in</span> <span class="n">file_json</span><span class="p">:</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">file_json</span><span class="p">[</span><span class="n">uuid_str</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">uuid_</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">uuid_str</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">match</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;match&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SPECIES_KEY</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">match</span><span class="p">,</span> <span class="n">species</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">match_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+            <span class="n">species_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">match_</span><span class="p">)</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">species_</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">match_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+            <span class="n">species_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="p">[</span><span class="nb">any</span><span class="p">(</span><span class="n">match_</span><span class="p">)]</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">species_</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">species</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">filter_match_against_on</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">match</span> <span class="o">==</span> <span class="n">filter_match_against_on</span><span class="p">:</span>
+                <span class="n">uuid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uuid_</span><span class="p">)</span>
+                <span class="n">species_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">species_</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;None&#39;</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">val</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>
+            <span class="n">species_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">species_</span><span class="p">)</span>
+            <span class="n">species_</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">species_</span><span class="p">)</span>
+            <span class="n">bad_species</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species_</span><span class="p">)</span>
+            <span class="n">fixed_species</span> <span class="o">=</span> <span class="n">bad_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">bad_species</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fixed_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">filter_match_against_on</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">match</span> <span class="o">==</span> <span class="n">filter_match_against_on</span><span class="p">:</span>
+                    <span class="n">uuid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uuid_</span><span class="p">)</span>
+                    <span class="n">species_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fixed_species</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">match</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+                <span class="n">bad_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bad_species</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found bad species: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">bad_list</span><span class="p">),))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Validated </span><span class="si">%d</span><span class="s1"> Annotation UUIDs from Wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">),))</span>
+
+    <span class="n">wildbook_annot_uuid_list</span> <span class="o">=</span> <span class="n">uuid_list</span>
+    <span class="n">wildbook_annot_species_list</span> <span class="o">=</span> <span class="n">species_list</span>
+
+    <span class="k">return</span> <span class="n">wildbook_annot_uuid_list</span><span class="p">,</span> <span class="n">wildbook_annot_species_list</span></div>
+
+
+<div class="viewcode-block" id="delete_wildbook_orphaned_annot_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.delete_wildbook_orphaned_annot_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">delete_wildbook_orphaned_annot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">auto_delete</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+
+    <span class="p">(</span>
+        <span class="n">wildbook_annot_uuid_list</span><span class="p">,</span>
+        <span class="n">wildbook_annot_species_list</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_annot_uuids</span><span class="p">()</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">local_annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">unknown_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wildbook_annot_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">local_annot_uuid_list</span><span class="p">))</span>
+    <span class="n">candidate_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">local_annot_uuid_list</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">wildbook_annot_uuid_list</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Annot UUIDs in Wildbook that are not here&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unknown_uuid_list</span><span class="p">),)</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> Annot UUIDs in here that are not in Wildbook&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">),)</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">auto_delete</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">candidate_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">candidate_uuid_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">candidate_aid_list</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">candidate_aid_list</span><span class="p">)</span>
+
+    <span class="c1"># Update species</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">local_annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="n">known_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wildbook_annot_uuid_list</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">local_annot_uuid_list</span><span class="p">))</span>
+    <span class="n">known_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">known_uuid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_aid_list</span>
+
+    <span class="n">wildbook_species_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">wildbook_annot_uuid_list</span><span class="p">,</span> <span class="n">wildbook_annot_species_list</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">known_species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">known_aid_list</span><span class="p">)</span>
+
+    <span class="n">wildbook_species_mapping</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;humpback_whale&#39;</span><span class="p">:</span> <span class="s1">&#39;megaptera_novaeangliae&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;tursiops_sp.&#39;</span><span class="p">:</span> <span class="s1">&#39;tursiops_sp&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">update_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">update_aid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">update_species_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">known_aid</span><span class="p">,</span> <span class="n">known_uuid</span><span class="p">,</span> <span class="n">known_species</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="n">known_aid_list</span><span class="p">,</span> <span class="n">known_uuid_list</span><span class="p">,</span> <span class="n">known_species_list</span>
+    <span class="p">):</span>
+        <span class="n">wildbook_species</span> <span class="o">=</span> <span class="n">wildbook_species_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">known_uuid</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wildbook_species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">wildbook_species</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
+        <span class="k">assert</span> <span class="n">wildbook_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">wildbook_species</span> <span class="o">=</span> <span class="n">wildbook_species</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">wildbook_species</span> <span class="o">=</span> <span class="n">wildbook_species</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">wildbook_species</span> <span class="o">=</span> <span class="n">wildbook_species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">wildbook_species</span><span class="p">,</span> <span class="n">wildbook_species</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">known_species</span> <span class="o">!=</span> <span class="n">wildbook_species</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">wildbook_species</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="ow">and</span> <span class="n">known_species</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">update_aid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">known_aid</span><span class="p">)</span>
+            <span class="n">update_species_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wildbook_species</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">known_species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">update_dict</span><span class="p">:</span>
+                <span class="n">update_dict</span><span class="p">[</span><span class="n">known_species</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">wildbook_species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">update_dict</span><span class="p">[</span><span class="n">known_species</span><span class="p">]:</span>
+                <span class="n">update_dict</span><span class="p">[</span><span class="n">known_species</span><span class="p">][</span><span class="n">wildbook_species</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">update_dict</span><span class="p">[</span><span class="n">known_species</span><span class="p">][</span><span class="n">wildbook_species</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">update_aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">update_species_list</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">update_dict</span><span class="p">))</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">update_aid_list</span><span class="p">,</span> <span class="n">update_species_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">candidate_uuid_list</span><span class="p">,</span> <span class="n">update_dict</span></div>
+
+
+<div class="viewcode-block" id="wildbook_sync"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wildbook_funcs.wildbook_sync">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wildbook/sync/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">wildbook_sync</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">candidate_image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">delete_wildbook_orphaned_image_uuids</span><span class="p">()</span>
+    <span class="n">candidate_annot_uuid_list</span><span class="p">,</span> <span class="n">update_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">delete_wildbook_orphaned_annot_uuids</span><span class="p">()</span>
+
+    <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;deleted_images&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_image_uuid_list</span><span class="p">),</span>
+        <span class="s1">&#39;deleted_annots&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_annot_uuid_list</span><span class="p">),</span>
+        <span class="s1">&#39;species_update&#39;</span><span class="p">:</span> <span class="n">update_dict</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">result_dict</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

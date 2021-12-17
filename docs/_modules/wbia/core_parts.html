@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.core_parts &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wbia.core_parts</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.core_parts</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Extracts parts chips from image and applies optional image normalizations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">register_preprocs</span><span class="p">,</span> <span class="n">register_subprops</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
+<span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="kn">import</span> <span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">PART_TABLE</span>  <span class="c1"># NOQA</span>
+
+<span class="c1"># from wbia.constants import ANNOTATION_TABLE, PART_TABLE</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">derived_attribute</span> <span class="o">=</span> <span class="n">register_preprocs</span><span class="p">[</span><span class="s1">&#39;part&#39;</span><span class="p">]</span>
+<span class="n">register_subprop</span> <span class="o">=</span> <span class="n">register_subprops</span><span class="p">[</span><span class="s1">&#39;part&#39;</span><span class="p">]</span>
+
+
+<span class="n">PartChipConfig</span> <span class="o">=</span> <span class="n">core_annots</span><span class="o">.</span><span class="n">ChipConfig</span>
+<span class="n">PartChipImgType</span> <span class="o">=</span> <span class="n">core_annots</span><span class="o">.</span><span class="n">ChipImgType</span>
+
+
+<div class="viewcode-block" id="compute_part_chip"><a class="viewcode-back" href="../../api.html#wbia.core_parts.compute_part_chip">[docs]</a><span class="nd">@derived_attribute</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;pchips&#39;</span><span class="p">,</span>
+    <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;parts&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">PartChipImgType</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">PartChipConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;partchipcache4&#39;</span><span class="p">,</span>
+    <span class="n">rm_extern_on_delete</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">compute_part_chip</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts the part chip from the bounding box</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (wbia.depends_cache.DependencyCache):</span>
+<span class="sd">        part_rowid_list (list):  list of part rowids</span>
+<span class="sd">        config (dict): (default = None)</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        (uri, int, int): tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        wbia --tf compute_part_chip</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.core_parts import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import random</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_part</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;dim_size&#39;: None}</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = aid_list[:10]</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = ibs.get_annot_bboxes(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     (xtl + 100, ytl + 100, w - 100, h - 100)</span>
+<span class="sd">        &gt;&gt;&gt;     for xtl, ytl, w, h in bbox_list</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)</span>
+<span class="sd">        &gt;&gt;&gt; chips = depc.get_property(&#39;pchips&#39;, part_rowid_list, &#39;img&#39;, config=config)</span>
+<span class="sd">        &gt;&gt;&gt; for (xtl, ytl, w, h), chip in zip(bbox_list, chips):</span>
+<span class="sd">        &gt;&gt;&gt;     assert chip.shape == (h, w, 3)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_parts(part_rowid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Preprocess Part Chips&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_aids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_bboxes</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+    <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_thetas</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="n">core_annots</span><span class="o">.</span><span class="n">gen_chip_configure_and_compute</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">config</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">result</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done Preprocessing Part Chips&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

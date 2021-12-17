@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.plot_helpers &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.plot_helpers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.plot_helpers</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># from . import draw_func2 as df2</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
+
+<span class="c1"># from wbia.plottool import custom_figure</span>
+<span class="c1"># from wbia.plottool import custom_constants</span>
+<span class="c1"># from os.path import join</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[plot_helpers]&#39;</span><span class="p">)</span>
+<span class="c1"># (print, print_, printDBG, rrr, profile) = ut.inject(__name__, &#39;[plot_helpers]&#39;, DEBUG=False)</span>
+
+
+<span class="n">SIFT_OR_VECFIELD</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--vecfield&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="draw"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.draw">[docs]</a><span class="k">def</span> <span class="nf">draw</span><span class="p">():</span>
+    <span class="n">fig_presenter</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+
+<span class="c1"># def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2,</span>
+<span class="c1">#                   reset=True):</span>
+<span class="c1">#    &quot;&quot;&quot; Dumps figure to disk based on the figurename &quot;&quot;&quot;</span>
+<span class="c1">#    if quality is True:</span>
+<span class="c1">#        custom_constants.FIGSIZE = custom_constants.golden_wh2(14)</span>
+<span class="c1">#        #custom_constants.DPI = 120</span>
+<span class="c1">#        custom_constants.DPI = 120</span>
+<span class="c1">#        #custom_constants.FIGSIZE = custom_constants.golden_wh2(12)</span>
+<span class="c1">#        #custom_constants.DPI = 120</span>
+<span class="c1">#        custom_constants.FONTS.figtitle = custom_constants.FONTS.small</span>
+<span class="c1">#    elif quality is False:</span>
+<span class="c1">#        #custom_constants.FIGSIZE = custom_constants.golden_wh2(8)</span>
+<span class="c1">#        #custom_constants.FIGSIZE = custom_constants.golden_wh2(14)</span>
+<span class="c1">#        #custom_constants.DPI = 100</span>
+<span class="c1">#        custom_constants.FIGSIZE = custom_constants.golden_wh2(8)</span>
+<span class="c1">#        custom_constants.DPI = 90</span>
+<span class="c1">#        custom_constants.FONTS.figtitle = custom_constants.FONTS.smaller</span>
+<span class="c1">#    fpath = dumpdir</span>
+<span class="c1">#    if subdir is not None:</span>
+<span class="c1">#        fpath = join(fpath, subdir)</span>
+<span class="c1">#        ut.ensurepath(fpath)</span>
+<span class="c1">#    fpath_clean = custom_figure.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite, verbose=verbose)</span>
+<span class="c1">#    return fpath_clean</span>
+
+
+<div class="viewcode-block" id="get_square_row_cols"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.get_square_row_cols">[docs]</a><span class="k">def</span> <span class="nf">get_square_row_cols</span><span class="p">(</span><span class="n">nSubplots</span><span class="p">,</span> <span class="n">max_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        nSubplots (?):</span>
+<span class="sd">        max_cols (None):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (None, None)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.plot_helpers --test-get_square_row_cols</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.plot_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; nSubplots = 9</span>
+<span class="sd">        &gt;&gt;&gt; nSubplots_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]</span>
+<span class="sd">        &gt;&gt;&gt; max_cols = None</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; rc_list = [get_square_row_cols(nSubplots, fix=True) for nSubplots in nSubplots_list]</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = repr(np.array(rc_list).T)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        array([[1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3],</span>
+<span class="sd">               [1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">nSubplots</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">inclusive</span><span class="p">:</span>
+        <span class="n">rounder</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rounder</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span>
+    <span class="k">if</span> <span class="n">fix</span><span class="p">:</span>
+        <span class="c1"># This function is very broken, but it might have dependencies</span>
+        <span class="c1"># this is the correct version</span>
+        <span class="n">nCols</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rounder</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nSubplots</span><span class="p">)))</span>
+        <span class="n">nRows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rounder</span><span class="p">(</span><span class="n">nSubplots</span> <span class="o">/</span> <span class="n">nCols</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># This is the clamped num cols version</span>
+        <span class="c1"># probably used in wbia.viz</span>
+        <span class="k">if</span> <span class="n">max_cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_cols</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="k">if</span> <span class="n">nSubplots</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span>
+                <span class="n">max_cols</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">nSubplots</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
+                <span class="n">max_cols</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">if</span> <span class="n">nSubplots</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span>
+                <span class="n">max_cols</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">nCols</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">nSubplots</span><span class="p">,</span> <span class="n">max_cols</span><span class="p">))</span>
+        <span class="c1"># nCols = int(min(rounder(np.sqrt(nrids)), 5))</span>
+        <span class="n">nRows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rounder</span><span class="p">(</span><span class="n">nSubplots</span> <span class="o">/</span> <span class="n">nCols</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span></div>
+
+
+<div class="viewcode-block" id="get_plotdat"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.get_plotdat">[docs]</a><span class="k">def</span> <span class="nf">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;returns internal property from a matplotlib axis&quot;&quot;&quot;</span>
+    <span class="n">_plotdat</span> <span class="o">=</span> <span class="n">get_plotdat_dict</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">_plotdat</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">val</span></div>
+
+
+<div class="viewcode-block" id="set_plotdat"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.set_plotdat">[docs]</a><span class="k">def</span> <span class="nf">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;sets internal property to a matplotlib axis&quot;&quot;&quot;</span>
+    <span class="n">_plotdat</span> <span class="o">=</span> <span class="n">get_plotdat_dict</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">_plotdat</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span></div>
+
+
+<div class="viewcode-block" id="del_plotdat"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.del_plotdat">[docs]</a><span class="k">def</span> <span class="nf">del_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;sets internal property to a matplotlib axis&quot;&quot;&quot;</span>
+    <span class="n">_plotdat</span> <span class="o">=</span> <span class="n">get_plotdat_dict</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_plotdat</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">_plotdat</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="get_plotdat_dict"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.get_plotdat_dict">[docs]</a><span class="k">def</span> <span class="nf">get_plotdat_dict</span><span class="p">(</span><span class="n">ax</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;sets internal property to a matplotlib axis&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;_plotdat&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;_plotdat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">plotdat_dict</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;_plotdat&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">plotdat_dict</span></div>
+
+
+<div class="viewcode-block" id="get_bbox_centers"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.get_bbox_centers">[docs]</a><span class="k">def</span> <span class="nf">get_bbox_centers</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">):</span>
+    <span class="n">bbox_centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">y</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)])</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bbox_list</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">bbox_centers</span></div>
+
+
+<div class="viewcode-block" id="qt4ensure"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.qt4ensure">[docs]</a><span class="k">def</span> <span class="nf">qt4ensure</span><span class="p">():</span>
+    <span class="n">qtensure</span><span class="p">()</span></div>
+    <span class="c1"># if ut.inIPython():</span>
+    <span class="c1">#     import IPython</span>
+    <span class="c1">#     #IPython.get_ipython().magic(&#39;pylab qt4&#39;)</span>
+    <span class="c1">#     IPython.get_ipython().magic(&#39;pylab qt4 --no-import-all&#39;)</span>
+
+
+<div class="viewcode-block" id="qtensure"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.qtensure">[docs]</a><span class="k">def</span> <span class="nf">qtensure</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">wbia.guitool</span> <span class="k">as</span> <span class="nn">gt</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">inIPython</span><span class="p">():</span>
+        <span class="kn">import</span> <span class="nn">IPython</span>
+
+        <span class="n">ipython</span> <span class="o">=</span> <span class="n">IPython</span><span class="o">.</span><span class="n">get_ipython</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ipython</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># we must have exited ipython at some point</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">gt</span><span class="o">.</span><span class="n">__PYQT__</span><span class="o">.</span><span class="n">GUITOOL_PYQT_VERSION</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            sudo apt-get install python3-pyqt5.qtsvg</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># import os</span>
+            <span class="c1"># os.environ[&#39;QT_API&#39;] = &#39;pyqt5&#39;</span>
+            <span class="c1"># import matplotlib</span>
+            <span class="c1"># matplotlib.use(&#39;Qt5Agg&#39;)</span>
+            <span class="c1"># IPython.get_ipython().magic(&#39;matplotlib qt5&#39;)</span>
+            <span class="c1"># IPython.get_ipython().magic(&#39;pylab qt4&#39;)</span>
+            <span class="n">ipython</span><span class="o">.</span><span class="n">magic</span><span class="p">(</span><span class="s1">&#39;pylab qt5 --no-import-all&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># IPython.get_ipython().magic(&#39;pylab qt4&#39;)</span>
+            <span class="n">ipython</span><span class="o">.</span><span class="n">magic</span><span class="p">(</span><span class="s1">&#39;pylab qt4 --no-import-all&#39;</span><span class="p">)</span></div>
+
+
+<span class="n">ensureqt</span> <span class="o">=</span> <span class="n">qt4ensure</span>
+
+<span class="c1"># ==========================#</span>
+<span class="c1">#  --- TESTING FUNCS ---   #</span>
+<span class="c1"># ==========================#</span>
+
+
+<div class="viewcode-block" id="kp_info"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.plot_helpers.kp_info">[docs]</a><span class="k">def</span> <span class="nf">kp_info</span><span class="p">(</span><span class="n">kp</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">vtool.keypoint</span> <span class="k">as</span> <span class="nn">ktool</span>
+
+    <span class="n">kpts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">kp</span><span class="p">])</span>
+    <span class="n">xy_str</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_xy_strs</span><span class="p">(</span><span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">shape_str</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_shape_strs</span><span class="p">(</span><span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ori_</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_oris</span><span class="p">(</span><span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ori_str</span> <span class="o">=</span> <span class="s1">&#39;ori=</span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ori_</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_scales</span><span class="p">(</span><span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">xy_str</span><span class="p">,</span> <span class="n">shape_str</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">ori_str</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

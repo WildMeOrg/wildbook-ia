@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.custom_figure &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.custom_figure</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.custom_figure</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">split</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">custom_constants</span>
+<span class="kn">import</span> <span class="nn">matplotlib.gridspec</span> <span class="k">as</span> <span class="nn">gridspec</span>  <span class="c1"># NOQA</span>
+
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[customfig]&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># LABEL_SIZE = ut.get_argval(&#39;--labelsize&#39;, default=None)</span>
+<span class="c1"># TITLE_SIZE = ut.get_argval(&#39;--titlesize&#39;, default=None)</span>
+<span class="c1"># FIGTITLE_SIZE = ut.get_argval(&#39;--figtitlesize&#39;, default=None) # figure.titlesize</span>
+<span class="c1"># LEGEND_SIZE = ut.get_argval(&#39;--legendsize&#39;, default=None)</span>
+<span class="c1"># TICK_SIZE = ut.get_argval(&#39;--ticksize&#39;, default=None)</span>
+
+<span class="c1"># CUSTOM_RC = {</span>
+<span class="c1">#     &#39;legend.fontsize&#39;: LEGEND_SIZE,</span>
+<span class="c1">#     &#39;axes.titlesize&#39;: TITLE_SIZE,</span>
+<span class="c1">#     &#39;axes.labelsize&#39;: LABEL_SIZE,</span>
+<span class="c1">#     # &#39;legend.facecolor&#39;: &#39;w&#39;,</span>
+<span class="c1">#     # &#39;font.family&#39;: &#39;DejaVu Sans&#39;,</span>
+<span class="c1">#     &#39;xtick.labelsize&#39;: TICK_SIZE,</span>
+<span class="c1">#     &#39;ytick.labelsize&#39;: TICK_SIZE,</span>
+<span class="c1"># }</span>
+<span class="c1"># for key, val in CUSTOM_RC.items():</span>
+<span class="c1">#     print(key)</span>
+<span class="c1">#     print(val)</span>
+<span class="c1">#     if val is not None:</span>
+<span class="c1">#         mpl.rcParams[key] = val</span>
+
+
+<div class="viewcode-block" id="customize_figure"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.customize_figure">[docs]</a><span class="k">def</span> <span class="nf">customize_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">docla</span><span class="p">):</span>
+    <span class="c1"># if &#39;user_stat_list&#39; not in fig.__dict__.keys() or docla:</span>
+    <span class="c1">#    fig.user_stat_list = []</span>
+    <span class="c1">#    fig.user_notes = []</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">df2_closed</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">pt_save</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">save_figure</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">pt_save_and_view</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">pt_save</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gcf"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.gcf">[docs]</a><span class="k">def</span> <span class="nf">gcf</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="gca"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.gca">[docs]</a><span class="k">def</span> <span class="nf">gca</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="cla"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.cla">[docs]</a><span class="k">def</span> <span class="nf">cla</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">plt</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="clf"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.clf">[docs]</a><span class="k">def</span> <span class="nf">clf</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_fig"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.get_fig">[docs]</a><span class="k">def</span> <span class="nf">get_fig</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPRICATE use ensure_fig</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">custom_constants</span><span class="o">.</span><span class="n">FIGSIZE</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">custom_constants</span><span class="o">.</span><span class="n">DPI</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">gcf</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;1 in get_fig&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="o">**</span><span class="n">fig_kwargs</span><span class="p">)</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">number</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="o">**</span><span class="n">fig_kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;2 in get_fig&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">gcf</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="ensure_fig"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.ensure_fig">[docs]</a><span class="k">def</span> <span class="nf">ensure_fig</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">gcf</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">gcf</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="get_ax"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.get_ax">[docs]</a><span class="k">def</span> <span class="nf">get_ax</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ax</span></div>
+
+
+<span class="k">def</span> <span class="nf">_convert_pnum_int_to_tup</span><span class="p">(</span><span class="n">int_pnum</span><span class="p">):</span>
+    <span class="c1"># Convert pnum to tuple format if in integer format</span>
+    <span class="n">nr</span> <span class="o">=</span> <span class="n">int_pnum</span> <span class="o">//</span> <span class="mi">100</span>
+    <span class="n">nc</span> <span class="o">=</span> <span class="n">int_pnum</span> <span class="o">//</span> <span class="mi">10</span> <span class="o">-</span> <span class="p">(</span><span class="n">nr</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">px</span> <span class="o">=</span> <span class="n">int_pnum</span> <span class="o">-</span> <span class="p">(</span><span class="n">nr</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">nc</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="n">nr</span><span class="p">,</span> <span class="n">nc</span><span class="p">,</span> <span class="n">px</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pnum</span>
+
+
+<span class="k">def</span> <span class="nf">_pnum_to_subspec</span><span class="p">(</span><span class="n">pnum</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pnum</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pnum</span><span class="p">)</span>
+    <span class="n">nrow</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">plotnum</span> <span class="o">=</span> <span class="n">pnum</span>
+    <span class="c1"># if kwargs.get(&#39;use_gridspec&#39;, True):</span>
+    <span class="c1"># Convert old pnums to gridspec</span>
+    <span class="n">gs</span> <span class="o">=</span> <span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plotnum</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="n">subspec</span> <span class="o">=</span> <span class="n">gs</span><span class="p">[</span><span class="n">plotnum</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">subspec</span> <span class="o">=</span> <span class="n">gs</span><span class="p">[</span><span class="n">plotnum</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">subspec</span><span class="p">,)</span>
+    <span class="c1"># else:</span>
+    <span class="c1">#     return (nrow, ncols, plotnum)</span>
+
+
+<div class="viewcode-block" id="figure"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.figure">[docs]</a><span class="k">def</span> <span class="nf">figure</span><span class="p">(</span>
+    <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">docla</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">figtitle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">doclf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">projection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    http://matplotlib.org/users/gridspec.html</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fnum (int): fignum = figure number</span>
+<span class="sd">        pnum (int, str, or tuple(int, int, int)): plotnum = plot tuple</span>
+<span class="sd">        docla (bool): (default = False)</span>
+<span class="sd">        title (str):  (default = None)</span>
+<span class="sd">        figtitle (None): (default = None)</span>
+<span class="sd">        doclf (bool): (default = False)</span>
+<span class="sd">        projection (None): (default = None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: fig</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.custom_figure --exec-figure:0 --show</span>
+<span class="sd">        python -m wbia.plottool.custom_figure --exec-figure:1 --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.custom_figure import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 1</span>
+<span class="sd">        &gt;&gt;&gt; fig = figure(fnum, (2, 2, 1))</span>
+<span class="sd">        &gt;&gt;&gt; gca().text(0.5, 0.5, &quot;ax1&quot;, va=&quot;center&quot;, ha=&quot;center&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; fig = figure(fnum, (2, 2, 2))</span>
+<span class="sd">        &gt;&gt;&gt; gca().text(0.5, 0.5, &quot;ax2&quot;, va=&quot;center&quot;, ha=&quot;center&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.custom_figure import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 1</span>
+<span class="sd">        &gt;&gt;&gt; fig = figure(fnum, (2, 2, 1))</span>
+<span class="sd">        &gt;&gt;&gt; gca().text(0.5, 0.5, &quot;ax1&quot;, va=&quot;center&quot;, ha=&quot;center&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; fig = figure(fnum, (2, 2, 2))</span>
+<span class="sd">        &gt;&gt;&gt; gca().text(0.5, 0.5, &quot;ax2&quot;, va=&quot;center&quot;, ha=&quot;center&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; fig = figure(fnum, (2, 4, (1, slice(1, None))))</span>
+<span class="sd">        &gt;&gt;&gt; gca().text(0.5, 0.5, &quot;ax3&quot;, va=&quot;center&quot;, ha=&quot;center&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># mpl.pyplot.xkcd()</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">ensure_fig</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">axes_list</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">get_axes</span><span class="p">()</span>
+    <span class="c1"># Ensure my customized settings</span>
+    <span class="n">customize_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">docla</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fig</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_int</span><span class="p">(</span><span class="n">pnum</span><span class="p">):</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="n">_convert_pnum_int_to_tup</span><span class="p">(</span><span class="n">pnum</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doclf</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">docla</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">axes_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">pnum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">pnum</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;nRows must be &gt; 0: pnum=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pnum</span><span class="p">,)</span>
+            <span class="k">assert</span> <span class="n">pnum</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;nCols must be &gt; 0: pnum=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pnum</span><span class="p">,)</span>
+            <span class="n">subspec</span> <span class="o">=</span> <span class="n">_pnum_to_subspec</span><span class="p">(</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="o">*</span><span class="n">subspec</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">projection</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">docla</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">pnum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">subspec</span> <span class="o">=</span> <span class="n">_pnum_to_subspec</span><span class="p">(</span><span class="n">pnum</span><span class="p">)</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="o">*</span><span class="n">subspec</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+    <span class="c1"># Set the title / figtitle</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+        <span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">figtitle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">incanvas</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="prepare_figure_for_save"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.prepare_figure_for_save">[docs]</a><span class="k">def</span> <span class="nf">prepare_figure_for_save</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;so bad&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># HACK; doesnt set DPI this might cause issues</span>
+        <span class="k">if</span> <span class="n">dpi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">set_dpi</span><span class="p">(</span><span class="n">dpi</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># Enforce inches and DPI</span>
+            <span class="n">figw</span><span class="p">,</span> <span class="n">figh</span> <span class="o">=</span> <span class="n">figsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">figsize</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;fig w,h (inches) = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">figw</span><span class="p">,</span> <span class="n">figh</span><span class="p">))</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="n">figw</span><span class="p">,</span> <span class="n">figh</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">fig</span><span class="o">.</span><span class="n">number</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dpi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dpi</span> <span class="o">=</span> <span class="n">custom_constants</span><span class="o">.</span><span class="n">DPI</span>
+        <span class="k">if</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">figsize</span> <span class="o">=</span> <span class="n">custom_constants</span><span class="o">.</span><span class="n">FIGSIZE</span>
+        <span class="c1"># Resizes the figure for quality saving</span>
+        <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">gcf</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+        <span class="c1"># Enforce inches and DPI</span>
+        <span class="k">if</span> <span class="n">figsize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">figw</span><span class="p">,</span> <span class="n">figh</span> <span class="o">=</span> <span class="n">figsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">figsize</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="n">figw</span><span class="p">,</span> <span class="n">figh</span><span class="p">)</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">number</span>
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">fnum</span></div>
+
+
+<div class="viewcode-block" id="sanitize_img_fname"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.sanitize_img_fname">[docs]</a><span class="k">def</span> <span class="nf">sanitize_img_fname</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Removes bad characters from images fnames&quot;&quot;&quot;</span>
+    <span class="c1"># Replace bad chars</span>
+    <span class="n">fname_clean</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;slash&#39;</span><span class="p">)</span>
+    <span class="n">search_replace_list</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">search_replace_list</span><span class="p">:</span>
+        <span class="n">fname_clean</span> <span class="o">=</span> <span class="n">fname_clean</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fname_clean</span></div>
+
+
+<div class="viewcode-block" id="sanitize_img_ext"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.sanitize_img_ext">[docs]</a><span class="k">def</span> <span class="nf">sanitize_img_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">defaultext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Find good ext</span>
+    <span class="k">if</span> <span class="n">defaultext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mpl</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;pdf&#39;</span><span class="p">:</span>
+            <span class="n">defaultext</span> <span class="o">=</span> <span class="s1">&#39;.pdf&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">defaultext</span> <span class="o">=</span> <span class="s1">&#39;.jpg&#39;</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">IMG_EXTENSIONS</span> <span class="ow">and</span> <span class="n">ext</span> <span class="o">!=</span> <span class="s1">&#39;.pdf&#39;</span><span class="p">:</span>
+        <span class="n">ext</span> <span class="o">+=</span> <span class="n">defaultext</span>
+    <span class="k">return</span> <span class="n">ext</span></div>
+
+
+<div class="viewcode-block" id="prepare_figure_fpath"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.prepare_figure_fpath">[docs]</a><span class="k">def</span> <span class="nf">prepare_figure_fpath</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">usetitle</span><span class="p">,</span> <span class="n">defaultext</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">dpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">fpath</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">usetitle</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fig</span><span class="o">.</span><span class="n">_suptitle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># safer than using the canvas window title</span>
+            <span class="c1"># that only works in qt</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;fig(</span><span class="si">%r</span><span class="s1">) &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">number</span><span class="p">,)</span> <span class="o">+</span> <span class="n">fig</span><span class="o">.</span><span class="n">_suptitle</span><span class="o">.</span><span class="n">get_text</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">get_window_title</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">fpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="n">sanitize_img_fname</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">usetitle</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">sanitize_img_fname</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+    <span class="c1"># Split into dpath, fname, and extension</span>
+    <span class="n">dpath_</span><span class="p">,</span> <span class="n">fname_</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dpath</span> <span class="o">=</span> <span class="n">dpath_</span>
+    <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">fname_</span><span class="p">)</span>
+    <span class="c1"># Add the extension back if it wasnt a real extension</span>
+    <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">IMG_EXTENSIONS</span> <span class="ow">and</span> <span class="n">ext</span> <span class="o">!=</span> <span class="s1">&#39;.pdf&#39;</span><span class="p">:</span>
+        <span class="n">fname</span> <span class="o">+=</span> <span class="n">ext</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="c1"># Add in DPI information</span>
+    <span class="c1"># size_suffix = &#39;DPI=%r_WH=%d,%d&#39; % (custom_constants.DPI, custom_constants.FIGSIZE[0], custom_constants.FIGSIZE[1])</span>
+    <span class="n">add_render_suffix</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">add_render_suffix</span><span class="p">:</span>
+        <span class="n">size_suffix</span> <span class="o">=</span> <span class="s1">&#39;DPI=</span><span class="si">%r</span><span class="s1">_WH=</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">dpi</span><span class="p">,</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">get_figwidth</span><span class="p">()),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">get_figheight</span><span class="p">()),</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">size_suffix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="c1"># Sanatize</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">sanitize_img_fname</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">sanitize_img_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">defaultext</span><span class="p">)</span>
+    <span class="c1"># Format safely</span>
+    <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{fname}</span><span class="s1">_</span><span class="si">{size_suffix}{ext}</span><span class="s1">&#39;</span>
+    <span class="n">fmt_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span> <span class="n">size_suffix</span><span class="o">=</span><span class="n">size_suffix</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[custom_figure] Formating long name&#39;</span><span class="p">)</span>
+    <span class="n">fname_clean</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">long_fname_format</span><span class="p">(</span>
+        <span class="n">fname_fmt</span><span class="p">,</span> <span class="n">fmt_dict</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;size_suffix&#39;</span><span class="p">,</span> <span class="s1">&#39;fname&#39;</span><span class="p">],</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">155</span><span class="p">,</span> <span class="n">hashlen</span><span class="o">=</span><span class="mi">8</span>
+    <span class="p">)</span>
+    <span class="c1"># Normalize extension</span>
+    <span class="n">fpath_clean</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname_clean</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fpath_clean</span></div>
+
+
+<div class="viewcode-block" id="get_image_from_figure"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.get_image_from_figure">[docs]</a><span class="k">def</span> <span class="nf">get_image_from_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    saves figure data to an ndarray</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/7821518/save-plot-to-numpy-array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">get_width_height</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)</span>
+    <span class="n">imgRGB</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">tostring_rgb</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">imgRGB</span> <span class="o">=</span> <span class="n">imgRGB</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">imgRGB</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2BGR</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">imgBGR</span></div>
+
+
+<div class="viewcode-block" id="save_figure"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.save_figure">[docs]</a><span class="k">def</span> <span class="nf">save_figure</span><span class="p">(</span>
+    <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fpath_strict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">usetitle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">defaultext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">saveax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">dpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper to save the figure image to disk. Tries to be smart about filename</span>
+<span class="sd">    lengths, extensions, overwrites, etc...</span>
+
+<span class="sd">    DEPCIATE</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fnum (int):  figure number</span>
+<span class="sd">        fpath (str): file path string</span>
+<span class="sd">        fpath_strict (str): uses this exact path</span>
+<span class="sd">        usetitle (bool): uses title as the fpath</span>
+<span class="sd">        overwrite (bool): default=True</span>
+<span class="sd">        defaultext (str): default extension</span>
+<span class="sd">        verbose (int):  verbosity flag</span>
+<span class="sd">        dpi (int): dots per inch</span>
+<span class="sd">        figsize (tuple(int, int)): figure size</span>
+<span class="sd">        saveax (bool or Axes): specifies if the axes should be saved instead of</span>
+<span class="sd">            the figure</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        for saving only a specific Axes</span>
+<span class="sd">        http://stackoverflow.com/questions/4325733/save-a-subplot-in-matplotlib</span>
+<span class="sd">        http://robotics.usc.edu/~ampereir/wordpress/?p=626</span>
+<span class="sd">        http://stackoverflow.com/questions/1271023/resize-a-figure-automatically-in-matplotlib</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dpi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">custom_constants</span><span class="o">.</span><span class="n">DPI</span>
+
+    <span class="k">if</span> <span class="n">defaultext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mpl</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;pdf&#39;</span><span class="p">:</span>
+            <span class="n">defaultext</span> <span class="o">=</span> <span class="s1">&#39;.pdf&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">defaultext</span> <span class="o">=</span> <span class="s1">&#39;.jpg&#39;</span>
+    <span class="c1"># print(&#39;figsize = %r&#39; % (figsize,))</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">fnum</span> <span class="o">=</span> <span class="n">prepare_figure_for_save</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="n">dpi</span><span class="p">,</span> <span class="n">figsize</span><span class="p">,</span> <span class="n">fig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fpath_strict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fpath_clean</span> <span class="o">=</span> <span class="n">prepare_figure_fpath</span><span class="p">(</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">usetitle</span><span class="p">,</span> <span class="n">defaultext</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">dpath</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fpath_clean</span> <span class="o">=</span> <span class="n">fpath_strict</span>
+    <span class="n">savekw</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dpi&#39;</span><span class="p">:</span> <span class="n">dpi</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># print(&#39;verbose = %r&#39; % (verbose,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.save_figure] saveax = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">saveax</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="n">extent</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">extract_axes_extents</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="n">savekw</span><span class="p">[</span><span class="s1">&#39;bbox_inches&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">extent</span>
+
+    <span class="k">if</span> <span class="n">saveax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">saveax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[pt.save_figure] SAVING ONLY EXTENT saveax=</span><span class="si">%r</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">saveax</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">saveax</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">saveax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="c1"># ut.embed()</span>
+        <span class="c1"># saveax.set_aspect(&#39;auto&#39;)</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+        <span class="n">xy</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_axis_xy_width_height</span><span class="p">(</span><span class="n">saveax</span><span class="p">)</span>
+        <span class="n">ar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="n">h</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.save_figure] saveax xywh = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">xy</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.save_figure] saveax ar = </span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ar</span><span class="p">,))</span>
+        <span class="n">saveax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+        <span class="c1"># extent is bbox in the form [[x0, y0], [x1, y1]]</span>
+        <span class="n">extent</span> <span class="o">=</span> <span class="n">saveax</span><span class="o">.</span><span class="n">get_window_extent</span><span class="p">()</span><span class="o">.</span><span class="n">transformed</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">dpi_scale_trans</span><span class="o">.</span><span class="n">inverted</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;[pt.save_figure] bbox ar = </span><span class="si">%.2f</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">extent</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="n">extent</span><span class="o">.</span><span class="n">height</span><span class="p">,))</span>
+            <span class="p">)</span>
+        <span class="c1"># extent = saveax.get_window_extent().transformed(fig.transFigure.inverted())</span>
+        <span class="c1"># print(&#39;[df2] bbox ar = %.2f&#39; % np.abs((extent.width / extent.height,)))</span>
+        <span class="n">savekw</span><span class="p">[</span><span class="s1">&#39;bbox_inches&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">extent</span><span class="o">.</span><span class="n">expanded</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.save_figure] savekw = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">savekw</span><span class="p">))</span>
+        <span class="c1"># ut.embed()</span>
+
+    <span class="c1"># fname_clean = split(fpath_clean)[1]</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">overwrite</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">fpath_clean</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.save_figure] save_figure() full=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath_clean</span><span class="p">,))</span>
+            <span class="k">elif</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">fpathndir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">path_ndir_split</span><span class="p">(</span><span class="n">fpath_clean</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.save_figure] save_figure() ndir=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpathndir</span><span class="p">))</span>
+            <span class="c1"># fig.savefig(fpath_clean)</span>
+            <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;]pt.save_figure] fpath_clean = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath_clean</span><span class="p">,))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.save_figure] savekw = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">savekw</span><span class="p">))</span>
+            <span class="c1"># savekw[&#39;bbox_inches&#39;] = &#39;tight&#39;</span>
+            <span class="c1"># print(&#39;savekw = %r&#39; % (savekw,))</span>
+            <span class="k">if</span> <span class="n">fpath_clean</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.png&#39;</span><span class="p">):</span>
+                <span class="n">savekw</span><span class="p">[</span><span class="s1">&#39;transparent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">savekw</span><span class="p">[</span><span class="s1">&#39;edgecolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+                <span class="c1"># savekw[&#39;axes.edgecolor&#39;] = &#39;none&#39;</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fpath_clean</span><span class="p">,</span> <span class="o">**</span><span class="n">savekw</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt.save_figure] not overwriteing&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fpath_clean</span></div>
+
+
+<div class="viewcode-block" id="set_ticks"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.set_ticks">[docs]</a><span class="k">def</span> <span class="nf">set_ticks</span><span class="p">(</span><span class="n">xticks</span><span class="p">,</span> <span class="n">yticks</span><span class="p">):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xticks</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">yticks</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_xticks"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.set_xticks">[docs]</a><span class="k">def</span> <span class="nf">set_xticks</span><span class="p">(</span><span class="n">tick_set</span><span class="p">):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">tick_set</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_yticks"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.set_yticks">[docs]</a><span class="k">def</span> <span class="nf">set_yticks</span><span class="p">(</span><span class="n">tick_set</span><span class="p">):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">tick_set</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="customize_fontprop"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.customize_fontprop">[docs]</a><span class="k">def</span> <span class="nf">customize_fontprop</span><span class="p">(</span><span class="n">font_prop</span><span class="p">,</span> <span class="o">**</span><span class="n">fontkw</span><span class="p">):</span>
+    <span class="n">font_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+    <span class="n">valid_keys</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_keysubset</span><span class="p">(</span><span class="n">fontkw</span><span class="p">,</span> <span class="n">font_keys</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">font_prop2</span> <span class="o">=</span> <span class="n">font_prop</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_keys</span><span class="p">:</span>
+            <span class="n">setter</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">font_prop</span><span class="p">,</span> <span class="s1">&#39;set_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">)</span>
+            <span class="n">setter</span><span class="p">(</span><span class="n">fontkw</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">font_prop2</span> <span class="o">=</span> <span class="n">font_prop</span>
+    <span class="k">return</span> <span class="n">font_prop2</span></div>
+
+
+<div class="viewcode-block" id="set_title"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.set_title">[docs]</a><span class="k">def</span> <span class="nf">set_title</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">fontkw</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">fontkw</span><span class="p">:</span>
+        <span class="n">fontsize</span> <span class="o">=</span> <span class="n">fontkw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fontsize&#39;</span><span class="p">,</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.titlesize&#39;</span><span class="p">])</span>
+        <span class="n">titlesize</span> <span class="o">=</span> <span class="n">fontkw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;titlesize&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="p">)</span>
+        <span class="n">titlekw</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;fontproperties&#39;</span><span class="p">:</span> <span class="n">mpl</span><span class="o">.</span><span class="n">font_manager</span><span class="o">.</span><span class="n">FontProperties</span><span class="p">(</span>
+                <span class="n">weight</span><span class="o">=</span><span class="n">fontkw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;weight&#39;</span><span class="p">,</span> <span class="s1">&#39;light&#39;</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">titlesize</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">titlekw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="o">**</span><span class="n">titlekw</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_xlabel"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.set_xlabel">[docs]</a><span class="k">def</span> <span class="nf">set_xlabel</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        lbl (?):</span>
+<span class="sd">        ax (None): (default = None)</span>
+<span class="sd">        **kwargs:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.custom_figure set_xlabel</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.custom_figure import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; fig = pt.figure()</span>
+<span class="sd">        &gt;&gt;&gt; pt.adjust_subplots(fig=fig, bottom=.5)</span>
+<span class="sd">        &gt;&gt;&gt; ax = pt.gca()</span>
+<span class="sd">        &gt;&gt;&gt; lbl = &#39;a\nab\nabc&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result = set_xlabel(lbl, ax)</span>
+<span class="sd">        &gt;&gt;&gt; xaxis = ax.get_xaxis()</span>
+<span class="sd">        &gt;&gt;&gt; xlabel = xaxis.get_label()</span>
+<span class="sd">        &gt;&gt;&gt; xlabel.set_horizontalalignment(&#39;left&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; xlabel.set_x(0)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+    <span class="c1"># labelsize = kwargs.get(&#39;labelsize&#39;, mpl.rcParams[&#39;axes.labelsize&#39;])</span>
+    <span class="n">fontkw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">labelkw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="s1">&#39;labelsize&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">fontkw</span><span class="p">[</span><span class="s1">&#39;labelsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;labelsize&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;weight&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">fontkw</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;weight&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fontkw</span><span class="p">:</span>
+        <span class="n">labelkw</span><span class="p">[</span><span class="s1">&#39;fontproperties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">font_manager</span><span class="o">.</span><span class="n">FontProperties</span><span class="p">(</span><span class="o">**</span><span class="n">fontkw</span><span class="p">)</span>
+    <span class="c1"># Have to strip for tex output to work with mpl. uggg</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">lbl</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">),</span> <span class="o">**</span><span class="n">labelkw</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_ylabel"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.set_ylabel">[docs]</a><span class="k">def</span> <span class="nf">set_ylabel</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+    <span class="c1"># labelsize = kwargs.get(&#39;labelsize&#39;, mpl.rcParams[&#39;axes.labelsize&#39;])</span>
+    <span class="c1"># labelkw = {</span>
+    <span class="c1">#     &#39;fontproperties&#39;: mpl.font_manager.FontProperties(</span>
+    <span class="c1">#         weight=kwargs.get(&#39;weight&#39;, &#39;light&#39;), size=labelsize)</span>
+    <span class="c1"># }</span>
+    <span class="n">fontkw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">labelkw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="s1">&#39;labelsize&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">fontkw</span><span class="p">[</span><span class="s1">&#39;labelsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;labelsize&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;weight&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">fontkw</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;weight&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fontkw</span><span class="p">:</span>
+        <span class="n">labelkw</span><span class="p">[</span><span class="s1">&#39;fontproperties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">font_manager</span><span class="o">.</span><span class="n">FontProperties</span><span class="p">(</span><span class="o">**</span><span class="n">fontkw</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="o">**</span><span class="n">labelkw</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_figtitle"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.custom_figure.set_figtitle">[docs]</a><span class="k">def</span> <span class="nf">set_figtitle</span><span class="p">(</span>
+    <span class="n">figtitle</span><span class="p">,</span>
+    <span class="n">subtitle</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="n">forcefignum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">incanvas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fontfamily</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fontweight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">font</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        figtitle (?):</span>
+<span class="sd">        subtitle (str): (default = &#39;&#39;)</span>
+<span class="sd">        forcefignum (bool): (default = True)</span>
+<span class="sd">        incanvas (bool): (default = True)</span>
+<span class="sd">        fontfamily (None): (default = None)</span>
+<span class="sd">        fontweight (None): (default = None)</span>
+<span class="sd">        size (None): (default = None)</span>
+<span class="sd">        fig (None): (default = None)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.custom_figure set_figtitle --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.custom_figure import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; fig = pt.figure(fnum=1, doclf=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = pt.set_figtitle(figtitle=&#39;figtitle&#39;, fig=fig)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># if size is None:</span>
+    <span class="c1">#     size = FIGTITLE_SIZE</span>
+    <span class="k">if</span> <span class="n">font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING set_figtitle font kwarg is DEPRICATED&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">figtitle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">gcf</span><span class="p">()</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_unicode</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
+    <span class="n">subtitle</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_unicode</span><span class="p">(</span><span class="n">subtitle</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">incanvas</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">subtitle</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">subtitle</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">subtitle</span>
+        <span class="n">prop</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;family&#39;</span><span class="p">:</span> <span class="n">fontfamily</span><span class="p">,</span>
+            <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">fontweight</span><span class="p">,</span>
+            <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="n">size</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">prop</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="n">sup</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">figtitle</span> <span class="o">+</span> <span class="n">subtitle</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">prop</span><span class="p">:</span>
+            <span class="n">fontproperties</span> <span class="o">=</span> <span class="n">sup</span><span class="o">.</span><span class="n">get_fontproperties</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">fontproperties</span><span class="p">,</span> <span class="s1">&#39;set_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">)(</span><span class="n">val</span><span class="p">)</span>
+            <span class="n">sup</span><span class="o">.</span><span class="n">set_fontproperties</span><span class="p">(</span><span class="n">fontproperties</span><span class="p">)</span>
+            <span class="c1"># fontproperties = mpl.font_manager.FontProperties(**prop)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1"># Set title in the window</span>
+    <span class="n">window_figtitle</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;fig(</span><span class="si">%d</span><span class="s1">) &#39;</span> <span class="o">%</span> <span class="n">fig</span><span class="o">.</span><span class="n">number</span><span class="p">)</span> <span class="o">+</span> <span class="n">figtitle</span>
+    <span class="n">window_figtitle</span> <span class="o">=</span> <span class="n">window_figtitle</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">set_window_title</span><span class="p">(</span><span class="n">window_figtitle</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

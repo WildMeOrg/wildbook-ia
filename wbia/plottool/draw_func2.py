@@ -2603,7 +2603,7 @@ def scores_to_color(
     CommandLine:
         python -m wbia.plottool.draw_func2 scores_to_color --show
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.plottool.draw_func2 import *  # NOQA
         >>> import wbia.plottool as pt

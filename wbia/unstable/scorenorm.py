@@ -997,7 +997,7 @@ def get_training_desc_dist(
         >>> result = ut.repr2((tp_fsv.T, tn_fsv.T), nl=1)
         >>> print(result)
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.unstable.scorenorm import *  # NOQA
         >>> import wbia

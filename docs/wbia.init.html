@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.init package &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="wbia.other package" href="wbia.other.html" />
+    <link rel="prev" title="wbia.guitool.tests package" href="wbia.guitool.tests.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wbia.algo.html">wbia.algo package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.control.html">wbia.control package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.dbio.html">wbia.dbio package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.detecttools.html">wbia.detecttools package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.dtool.html">wbia.dtool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.expt.html">wbia.expt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.gui.html">wbia.gui package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.guitool.html">wbia.guitool package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">wbia.init package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-wbia.init.filter_annots">wbia.init.filter_annots module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wbia-init-main-commands-module">wbia.init.main_commands module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-wbia.init.main_helpers">wbia.init.main_helpers module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-wbia.init.sysres">wbia.init.sysres module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-wbia.init">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.other.html">wbia.other package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.plottool.html">wbia.plottool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.scripts.html">wbia.scripts package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.templates.html">wbia.templates package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.viz.html">wbia.viz package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.web.html">wbia.web package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-main">wbia.__main__</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-devcmds-wbia">wbia._devcmds_wbia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-devscript">wbia._devscript</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia._wbia_object">wbia._wbia_object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.annotmatch_funcs">wbia.annotmatch_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.annots">wbia.annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.constants">wbia.constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_annots">wbia.core_annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_images">wbia.core_images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_parts">wbia.core_parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-demodata">wbia.demodata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-dev">wbia.dev</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-filter-configs">wbia.filter_configs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.images">wbia.images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.params">wbia.params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.tag_funcs">wbia.tag_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="api.html">API</a> &raquo;</li>
+      <li>wbia.init package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/wbia.init.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wbia-init-package">
+<h1>wbia.init package<a class="headerlink" href="#wbia-init-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.init.filter_annots">
+<span id="wbia-init-filter-annots-module"></span><h2>wbia.init.filter_annots module<a class="headerlink" href="#module-wbia.init.filter_annots" title="Permalink to this headline"></a></h2>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<ul class="simple">
+<li><p>cross validation</p></li>
+<li><p>encounter vs database (time filtering)</p></li>
+</ul>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.annot_crossval">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">annot_crossval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_qaids_per_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_daids_per_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confusors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#annot_crossval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.annot_crossval" title="Permalink to this definition"></a></dt>
+<dd><p>Stratified sampling per name size</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n_splits</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – number of query/database splits to create.
+note, some names may not be big enough to split this many times.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.filter_annots annot_crossval</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_qaids_per_name</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_daids_per_name</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">debug</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_splits</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">annot_crossval</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">n_qaids_per_name</span><span class="p">,</span> <span class="n">n_daids_per_name</span><span class="p">,</span> <span class="n">rng</span><span class="p">,</span> <span class="n">debug</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">n_splits</span><span class="p">,</span> <span class="n">confusors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;expanded_aids_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.crossval_helper">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">crossval_helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nid_to_sample_pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perquery</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perdatab</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_need</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rebalance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#crossval_helper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.crossval_helper" title="Permalink to this definition"></a></dt>
+<dd><p>does sampling based on some grouping (or no grouping) of annots</p>
+<p>perquery = 2
+perdatab = 2</p>
+<dl class="simple">
+<dt>nid_to_sample_pool = {</dt><dd><p>1: [1, 2, 3, 4],
+2: [6, 7, 8, 9],</p>
+</dd>
+</dl>
+<p>}</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.encounter_crossval">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">encounter_crossval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qenc_per_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">denc_per_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enc_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confusors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annots_per_enc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rebalance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#encounter_crossval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.encounter_crossval" title="Permalink to this definition"></a></dt>
+<dd><p>Constructs a list of [ (qaids, daids) ] where there are <cite>qenc_per_name</cite> and
+<cite>denc_per_name</cite> for each individual in the datasets respectively.
+<cite>enc_labels</cite> specifies custom encounter labels.</p>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.filter_annots encounter_crossval</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs, aids = wbia.testdata_aids(</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#    defaultdb=&#39;WWF_Lynx_Copy&#39;,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#    a=&#39;default:minqual=good,require_timestamp=True,view=left&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                <span class="n">a</span><span class="o">=</span><span class="s1">&#39;default:require_timestamp=True&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_helpers</span><span class="o">.</span><span class="n">monkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qenc_per_name</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">denc_per_name</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">confusors</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;denc_per_name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">denc_per_name</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;qenc_per_name = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qenc_per_name</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_splits</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expanded_aids</span> <span class="o">=</span> <span class="n">encounter_crossval</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="n">n_splits</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                   <span class="n">qenc_per_name</span><span class="o">=</span><span class="n">qenc_per_name</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                   <span class="n">denc_per_name</span><span class="o">=</span><span class="n">denc_per_name</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                   <span class="n">confusors</span><span class="o">=</span><span class="n">confusors</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ensure stats agree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">per_vp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">per_multiple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">combo_dists</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>               <span class="n">per_name</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">per_enc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_hist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="n">expanded_aids</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">stats</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotconfig_stats</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="o">**</span><span class="n">cfgargs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">del</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;confusor_daid_stats&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strkeys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">denc_stats</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;matchable_daid_stats&#39;</span><span class="p">][</span><span class="s1">&#39;denc_per_name&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">qenc_stats</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;qaid_stats&#39;</span><span class="p">][</span><span class="s1">&#39;qenc_per_name&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">assert</span> <span class="n">denc_stats</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">denc_stats</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">assert</span> <span class="n">denc_stats</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">denc_per_name</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">assert</span> <span class="n">qenc_stats</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">qenc_stats</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">assert</span> <span class="n">qenc_stats</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">qenc_per_name</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Restore state</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_helpers</span><span class="o">.</span><span class="n">unmonkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#qaids, daids = expanded_aids[0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.ensure_flatiterable">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">ensure_flatiterable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#ensure_flatiterable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.ensure_flatiterable" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.ensure_flatlistlike">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">ensure_flatlistlike</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#ensure_flatlistlike"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.ensure_flatlistlike" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.expand_acfgs">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">expand_acfgs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aidcfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hack_exclude_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_aids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#expand_acfgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.expand_acfgs" title="Permalink to this definition"></a></dt>
+<dd><p>Main multi-expansion function. Expands an annot config dict into qaids and
+daids.  New version of this function based on a configuration dictionary
+built from command line argumetns</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>IBEISController</em>) – wbia controller object</p></li>
+<li><p><strong>aidcfg</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – configuration of the annotation filter</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – verbosity flag(default = False)</p></li>
+<li><p><strong>use_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – turns on disk based caching(default = None)</p></li>
+<li><p><strong>hack_exclude_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – (default = None)</p></li>
+<li><p><strong>initial_aids</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – (default = None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>expanded_aids=(qaid_list, daid_list) - expanded list of aids</dt><dd><p>that meet the criteria of the aidcfg filter</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a></p>
+</dd>
+</dl>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>The database should be created first in most circumstances, then
+the queries should be filtered to meet the database restrictions?
+I’m not sure Sometimes you need to set the query aids constant, but
+sometimes you need to set the data aids constant. Seems to depend.</p>
+<p>This function very much needs the idea of filter chains</p>
+<dl class="simple">
+<dt>OkNewIdea:</dt><dd><dl class="simple">
+<dt>3 filters:</dt><dd><ul class="simple">
+<li><p>Common sampling - takes care of things like min time delta,</p></li>
+<li><p>species, quality viewpoint etc.</p></li>
+<li><p>query sampling</p></li>
+<li><p>database sampling</p></li>
+</ul>
+</dd>
+<dt>Basic idea is</dt><dd><ul class="simple">
+<li><p>Sample large pool</p></li>
+<li><p>Partition pool into query and database</p></li>
+</ul>
+</dd>
+<dt>Requires:</dt><dd><ul class="simple">
+<li><p>base sampling params</p></li>
+<li><p>partition1 params</p></li>
+<li><p>partition2 params</p></li>
+<li><p>inter partition params?</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</div>
+<dl>
+<dt>CommandLine:</dt><dd><p>python -m wbia.dev -e print_acfg  -a timectrl:qsize=10,dsize=10  –db PZ_MTEST –veryverbtd –nocache-aid
+python -m wbia.dev -e print_acfg  -a timectrl:qminqual=good,qsize=10,dsize=10  –db PZ_MTEST –veryverbtd –nocache-aid</p>
+<p>python -m wbia.dev -e print_acfg  -a timectrl –db PZ_MTEST –verbtd –nocache-aid
+python -m wbia.dev -e print_acfg  -a timectrl –db PZ_Master1 –verbtd –nocache-aid
+python -m wbia.dev -e print_acfg  -a timequalctrl –db PZ_Master1 –verbtd –nocache-aid</p>
+<p>python -m wbia.dev -e rank_cmc   -a controlled:qsize=10,dsize=10,dper_name=2 -t default –db PZ_MTEST
+python -m wbia.dev -e rank_cmc   -a controlled:qsize=10,dsize=20,dper_name=2 -t default –db PZ_MTEST
+python -m wbia.dev -e print      -a controlled:qsize=10,dsize=10             -t default –db PZ_MTEST –verbtd –nocache-aid</p>
+<p>python -m wbia.dev -e latexsum -t candinvar -a viewpoint_compare  –db NNP_Master3 –acfginfo
+utprof.py -m wbia.dev -e print -t candk -a varysize  –db PZ_MTEST –acfginfo
+utprof.py -m wbia.dev -e latexsum -t candk -a controlled  –db PZ_Master0 –acfginfo</p>
+<p>python -m wbia –tf get_annotcfg_list:0 –db NNP_Master3 -a viewpoint_compare –nocache-aid –verbtd</p>
+<dl class="simple">
+<dt>python -m wbia –tf get_annotcfg_list  –db PZ_Master1 </dt><dd><p>-a timectrl:qhas_any=(needswork,correctable,mildviewpoint),qhas_none=(viewpoint,photobomb,error:viewpoint,quality) –acfginfo –veryverbtd  –veryverbtd</p>
+</dd>
+<dt>python -m wbia –tf draw_rank_cmc –db PZ_Master1 –show -t best </dt><dd><p>-a timectrl:qhas_any=(needswork,correctable,mildviewpoint),qhas_none=(viewpoint,photobomb,error:viewpoint,quality) –acfginfo –veryverbtd</p>
+</dd>
+</dl>
+<p>python -m wbia –tf get_annotcfg_list  –db Oxford -a default:qhas_any=(query,),dpername=2,exclude_reference=True –acfginfo –verbtd  –veryverbtd –nocache-aid</p>
+</dd>
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.filter_annots –exec-expand_acfgs –show</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;qcfg&#39;</span><span class="p">][</span><span class="s1">&#39;species&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;primary&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">initial_aids</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expanded_aids</span> <span class="o">=</span> <span class="n">expand_acfgs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">expanded_aids</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nobr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[1, 2, 3, 4, 5, 6],</span>
+<span class="go">[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.expand_acfgs_consistently">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">expand_acfgs_consistently</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acfg_combo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_aids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#expand_acfgs_consistently"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.expand_acfgs_consistently" title="Permalink to this definition"></a></dt>
+<dd><p>Expands a set of configurations such that they are comparable</p>
+<dl>
+<dt>CommandLine:</dt><dd><dl class="simple">
+<dt>python -m wbia –tf parse_acfg_combo_list  </dt><dd><p>-a varysize</p>
+</dd>
+</dl>
+<p>wbia –tf get_annotcfg_list –db PZ_Master1 -a varysize
+#wbia –tf get_annotcfg_list –db lynx -a default:hack_imageset=True
+wbia –tf get_annotcfg_list –db PZ_Master1 -a varysize:qsize=None
+wbia –tf get_annotcfg_list –db PZ_Master0 –nofilter-dups  -a varysize
+wbia –tf get_annotcfg_list –db PZ_MTEST -a varysize –nofilter-dups
+wbia –tf get_annotcfg_list –db PZ_Master0 –verbtd </p>
+<blockquote>
+<div><p>–nofilter-dups -a varysize</p>
+</div></blockquote>
+<dl class="simple">
+<dt>wbia –tf get_annotcfg_list –db PZ_Master1 -a viewpoint_compare </dt><dd><p>–verbtd –nofilter-dups</p>
+</dd>
+<dt>wbia –tf get_annotcfg_list -a timectrl –db GZ_Master1 –verbtd </dt><dd><p>–nofilter-dups</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt.experiment_helpers</span> <span class="kn">import</span> <span class="n">parse_acfg_combo_list</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#acfg_name_list = [&#39;timectrl:dpername=[1,2]&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;default:crossval_enc=True,require_timestamp=True&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_helpers</span><span class="o">.</span><span class="n">monkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_combo_list</span> <span class="o">=</span> <span class="n">parse_acfg_combo_list</span><span class="p">(</span><span class="n">acfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_combo</span> <span class="o">=</span> <span class="n">acfg_combo_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">initial_aids</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">use_cache</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expanded_aids_combo_list</span> <span class="o">=</span> <span class="n">expand_acfgs_consistently</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_combo</span><span class="p">,</span> <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Restore state</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_helpers</span><span class="o">.</span><span class="n">unmonkeypatch_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">expanded_aids_combo_list</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.expand_single_acfg">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">expand_single_acfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aidcfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#expand_single_acfg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.expand_single_acfg" title="Permalink to this definition"></a></dt>
+<dd><p>for main_helpers</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.expand_species">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">expand_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avail_aids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#expand_species"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.expand_species" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.filter_annots_general">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">filter_annots_general</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aid_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#filter_annots_general"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.filter_annots_general" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>IBEISController</em>) – wbia controller object</p></li>
+<li><p><strong>aid_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – list of annotation rowids</p></li>
+<li><p><strong>filter_kw</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>Kwargs:</dt><dd><p>has_none_annotmatch, any_match_annotmatch, has_all, is_known,
+any_match_annot, logic_annot, none_match_annotmatch,
+max_num_annotmatch, any_startswith_annot, has_any, require_quality,
+species, any_match, view_ext, has_any_annotmatch, view_pername,
+max_num_annot, min_timedelta, any_startswith, max_numfeat,
+any_startswith_annotmatch, been_adjusted, any_endswith_annot,
+require_viewpoint, logic, has_any_annot, min_num_annotmatch, min_num,
+min_num_annot, has_all_annot, has_none, min_pername,
+any_endswith_annotmatch, any_endswith, require_timestamp, none_match,
+contributor_contains, has_all_annotmatch, logic_annotmatch, min_numfeat,
+none_match_annot, view_ext1, view_ext2, max_num, has_none_annot,
+minqual, view</p>
+</dd>
+<dt>CommandLine:</dt><dd><p>python -m wbia –tf filter_annots_general
+python -m wbia –tf filter_annots_general –db PZ_Master1 </p>
+<blockquote>
+<div><p>–has_any=[needswork,correctable,mildviewpoint] –has_none=[viewpoint,photobomb,error:viewpoint,quality] –show</p>
+</div></blockquote>
+<dl class="simple">
+<dt>python -m wbia –tf filter_annots_general –db=GZ_Master1  </dt><dd><p>–max-numfeat=300 –show –minqual=junk –species=None</p>
+</dd>
+<dt>python -m wbia –tf filter_annots_general –db=lynx </dt><dd><p>–been_adjusted=True</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_kw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">get_default_annot_filter_form</span><span class="p">(),</span>
+<span class="gp">&gt;&gt;&gt; </span>                             <span class="n">type_hint</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">has_any</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                                <span class="n">has_none</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                                <span class="n">logic</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;filter_kw = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">filter_kw</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#filter_kw = dict(is_known=True, min_num=1, has_any=&#39;viewpoint&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#filter_kw = dict(is_known=True, min_num=1, any_match=&#39;.*error.*&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list_</span> <span class="o">=</span> <span class="n">filter_annots_general</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">filter_kw</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;len(aid_list_) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">all_tags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_all_tags</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filtered_tag_hist</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">all_tags</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">print_dict</span><span class="p">(</span><span class="n">filtered_tag_hist</span><span class="p">,</span> <span class="n">key_order_metric</span><span class="o">=</span><span class="s1">&#39;val&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">print_dict</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_stats_dict</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),</span> <span class="s1">&#39;annot_stats&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.viz.interact</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wbia</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">interact</span><span class="o">.</span><span class="n">interact_chip</span><span class="o">.</span><span class="n">interact_multichips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.filter_annots_independent">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">filter_annots_independent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avail_aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aidcfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">withpre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#filter_annots_independent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.filter_annots_independent" title="Permalink to this definition"></a></dt>
+<dd><p>Filtering that doesn’t have to do with a reference set of aids</p>
+<p>TODO make filterflags version</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>IBEISController</em>) – wbia controller object</p></li>
+<li><p><strong>avail_aids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – </p></li>
+<li><p><strong>aidcfg</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – </p></li>
+<li><p><strong>prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (default = ‘’)</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – verbosity flag(default = False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>avail_aids</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia –tf filter_annots_independent –veryverbtd</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">input_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;dcfg&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;require_timestamp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;require_quality&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;is_known&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                       <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;avail_aids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl>
+<dt>Ignore:</dt><dd><p># Testing tag features
+python -m wbia –tf draw_rank_cmc –db PZ_Master1 –show -t best </p>
+<blockquote>
+<div><p>-a timectrl:qhas_any=(needswork,correctable,mildviewpoint),qhas_none=(viewpoint,photobomb,error:viewpoint,quality) —acfginfo –veryverbtd</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.filter_annots_intragroup">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">filter_annots_intragroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avail_aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aidcfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">withpre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#filter_annots_intragroup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.filter_annots_intragroup" title="Permalink to this definition"></a></dt>
+<dd><p>This filters annots using information about the relationships
+between the annotations in the <code class="docutils literal notranslate"><span class="pre">avail_aids</span></code> group. This function is not
+independent and a second consecutive call may yield new results.
+Thus, the order in which this filter is applied matters.</p>
+<dl>
+<dt>CommandLine:</dt><dd><dl class="simple">
+<dt>wbia –tf get_annotcfg_list </dt><dd><p>-a default:qsame_imageset=True,been_adjusted=True,excluderef=True –db lynx –veryverbtd –nocache-aid</p>
+</dd>
+</dl>
+</dd>
+<dt>Ignore:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;min_timedelta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;min_pername&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.filterannots_by_tags">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">filterannots_by_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_kw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#filterannots_by_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.filterannots_by_tags" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>IBEISController</em>) – wbia controller object</p></li>
+<li><p><strong>aid_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – list of annotation rowids</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia –tf filterannots_by_tags
+utprof.py -m wbia –tf filterannots_by_tags</p>
+</dd>
+<dt>SeeAlso:</dt><dd><p>filter_annotmatch_by_tags</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_Master1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">has_any</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--tags&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                        <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SceneryMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;Photobomb&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">min_num</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--min_num&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">has_any</span><span class="o">=</span><span class="n">has_any</span><span class="p">,</span> <span class="n">min_num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list_</span> <span class="o">=</span> <span class="n">filterannots_by_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">filter_kw</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;aid_list_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list_</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># TODO: show special annot group in GUI</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.get_acfg_cacheinfo">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">get_acfg_cacheinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aidcfg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#get_acfg_cacheinfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.get_acfg_cacheinfo" title="Permalink to this definition"></a></dt>
+<dd><p>Returns location and name of the ~~annot~~ data cache</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.get_annot_tag_filterflags">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">get_annot_tag_filterflags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_kw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_defaultkw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#get_annot_tag_filterflags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.get_annot_tag_filterflags" title="Permalink to this definition"></a></dt>
+<dd><p>Filters annotations by tags including those that is belongs to in a pair</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.get_default_annot_filter_form">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">get_default_annot_filter_form</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#get_default_annot_filter_form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.get_default_annot_filter_form" title="Permalink to this definition"></a></dt>
+<dd><p>Returns dictionary containing defaults for all valid filter parameters</p>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia –tf get_default_annot_filter_form</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_kw</span> <span class="o">=</span> <span class="n">get_default_annot_filter_form</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">filter_kw</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filter_kw</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.get_reference_preference_order">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">get_reference_preference_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gt_ref_grouped_aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gt_avl_grouped_aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_getter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmp_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggfn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#get_reference_preference_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.get_reference_preference_order" title="Permalink to this definition"></a></dt>
+<dd><p>Orders preference for sampling based on some metric</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.hack_extra">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">hack_extra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expanded_aids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#hack_extra"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.hack_extra" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.hack_remove_label_errors">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">hack_remove_label_errors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expanded_aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#hack_remove_label_errors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.hack_remove_label_errors" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.multi_sampled_seaturtle_queries">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">multi_sampled_seaturtle_queries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#multi_sampled_seaturtle_queries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.multi_sampled_seaturtle_queries" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.sample_annots">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">sample_annots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avail_aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aidcfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#sample_annots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.sample_annots" title="Permalink to this definition"></a></dt>
+<dd><p>Sampling preserves input sample structure and thust does not always return
+exact values</p>
+<dl>
+<dt>CommandLine:</dt><dd><p>python -m wbia –tf sample_annots –veryverbtd</p>
+<dl class="simple">
+<dt>python -m wbia –tf get_annotcfg_list –db seaturtles </dt><dd><p>-a default:qhas_any=(left,right),sample_occur=True,exclude_reference=True,sample_offset=0,num_names=1 –acfginfo</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">input_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">[</span><span class="s1">&#39;dcfg&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;sample_per_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;sample_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;min_pername&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                       <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">sample_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                           <span class="n">prefix</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;avail_aids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">avail_aids</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db</span> <span class="o">=</span> <span class="s1">&#39;seaturtles&#39;</span>  <span class="c1"># &#39;testdb1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">db</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">default</span><span class="p">)[</span><span class="s1">&#39;qcfg&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aidcfg</span><span class="p">[</span><span class="s1">&#39;sample_occur&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">initial_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">withpre</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">filter_annots_independent</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ibs</span><span class="p">,</span> <span class="n">initial_aids</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;has_any&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">]},</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">sample_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">avail_aids</span><span class="p">,</span> <span class="n">aidcfg</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">avail_aids</span> <span class="o">=</span> <span class="n">initial_aids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ref_aids</span> <span class="o">=</span> <span class="n">qaids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dcfg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">exclude_reference</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sample_occur</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">sample_annots_wrt_ref</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">initial_aids</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annotconfig_stats</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">enc_per_name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">per_enc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.sample_annots_general">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">sample_annots_general</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aid_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#sample_annots_general"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.sample_annots_general" title="Permalink to this definition"></a></dt>
+<dd><p>filter + sampling</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.sample_annots_wrt_ref">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">sample_annots_wrt_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avail_aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aidcfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#sample_annots_wrt_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.sample_annots_wrt_ref" title="Permalink to this definition"></a></dt>
+<dd><p>Sampling when a reference set is given</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.subindex_annots">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">subindex_annots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avail_aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aidcfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_aids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#subindex_annots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.subindex_annots" title="Permalink to this definition"></a></dt>
+<dd><p>Returns exact subindex of annotations</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.time_filter_annots">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">time_filter_annots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#time_filter_annots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.time_filter_annots" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>python -m wbia.init.filter_annots time_filter_annots </dt><dd><p>–db PZ_Master1 -a ctrl:qmingt=2 –profile</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.filter_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">time_filter_annots</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.filter_annots.verb_context">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.filter_annots.</span></span><span class="sig-name descname"><span class="pre">verb_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filtertype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aidcfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/filter_annots.html#verb_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.filter_annots.verb_context" title="Permalink to this definition"></a></dt>
+<dd><p>closure helper</p>
+</dd></dl>
+
+</section>
+<section id="wbia-init-main-commands-module">
+<h2>wbia.init.main_commands module<a class="headerlink" href="#wbia-init-main-commands-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.init.main_helpers">
+<span id="wbia-init-main-helpers-module"></span><h2>wbia.init.main_helpers module<a class="headerlink" href="#module-wbia.init.main_helpers" title="Permalink to this headline"></a></h2>
+<p>This module defines helper functions to access common input needed to test many
+functions. These functions give a rich command line interface to specifically
+select subsets of annotations, pipeline configurations, and other filters.</p>
+<p>TODO: standardize function signatures</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.monkeypatch_encounters">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">monkeypatch_encounters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#monkeypatch_encounters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.monkeypatch_encounters" title="Permalink to this definition"></a></dt>
+<dd><p>Hacks in a temporary custom definition of encounters for this controller</p>
+<p>50 days for PZ_MTEST
+kwargs = dict(days=50)</p>
+<dl>
+<dt>if False:</dt><dd><p>name_mindeltas = []
+for name in annots.group_items(annots.nids).values():</p>
+<blockquote>
+<div><p>times = name.image_unixtimes_asfloat
+deltas = [ut.unixtime_to_timedelta(np.abs(t1 - t2))</p>
+<blockquote>
+<div><p>for t1, t2 in ut.combinations(times, 2)]</p>
+</div></blockquote>
+<dl class="simple">
+<dt>if deltas:</dt><dd><p>name_mindeltas.append(min(deltas))</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>logger.info(ut.repr3(ut.lmap(ut.get_timedelta_str,</dt><dd><p>sorted(name_mindeltas))))</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.testdata_aids">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">testdata_aids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaultdb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adefault</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_acfg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_aids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'qcfg'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#testdata_aids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.testdata_aids" title="Permalink to this definition"></a></dt>
+<dd><p>Grabs default testdata for functions, but is command line overrideable</p>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia testdata_aids –verbtd –db PZ_ViewPoints
+python -m wbia testdata_aids –verbtd –db NNP_Master3 -a is_known=True,view_pername=’#primary&gt;0&amp;#primary1&gt;=1’
+python -m wbia testdata_aids –verbtd –db PZ_Master1 -a default:is_known=True,view_pername=’#primary&gt;0&amp;#primary1&gt;=1’
+python -m wbia testdata_aids –verbtd –db PZ_Master1 -a default:species=primary,minqual=ok –verbtd
+python -m wbia.other.dbinfo –test-latex_dbstats –dblist
+python -m wbia testdata_aids –show</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs = wbia.opendb(defaultdb=&#39;PZ_ViewPoints&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adefault</span> <span class="o">=</span> <span class="s1">&#39;default:is_known=True&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span><span class="p">,</span> <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">testdata_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">adefault</span><span class="o">=</span><span class="n">adefault</span><span class="p">,</span> <span class="n">return_acfg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> RESULT:&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">print_acfg</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">per_name_vpedge</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.testdata_cm">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">testdata_cm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaultdb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_qaids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_daids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#testdata_cm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.testdata_cm" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.main_helpers –test-testdata_cm
+python -m wbia.init.main_helpers –test-testdata_cm –show</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_cm</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="o">.</span><span class="n">print_csv</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="o">.</span><span class="n">show_single_annotmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.testdata_cmlist">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">testdata_cmlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaultdb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_qaids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_daids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#testdata_cmlist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.testdata_cmlist" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>cm_list, <a href="#id3"><span class="problematic" id="id4">qreq_</span></a></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>, wbia.QueryRequest</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.testdata_expanded_aids">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">testdata_expanded_aids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaultdb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_qaids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_daids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qaid_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daid_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_annot_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#testdata_expanded_aids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.testdata_expanded_aids" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>default_qaids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – (default = [1])</p></li>
+<li><p><strong>default_daids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (default = ‘all’)</p></li>
+<li><p><strong>defaultdb</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (default = ‘testdb1’)</p></li>
+<li><p><strong>ibs</strong> (<em>IBEISController</em>) – wbia controller object(default = None)</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – verbosity flag(default = False)</p></li>
+<li><p><strong>return_annot_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – (default = False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ibs, qaid_list, daid_list, annot_info</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.main_helpers testdata_expanded_aids
+python -m wbia.init.main_helpers testdata_expanded_aids –db PZ_MTEST –acfg default:index=0:25 –verbose-testdata
+python -m wbia.init.main_helpers testdata_expanded_aids –db PZ_MTEST –qaid 3
+python -m wbia.init.main_helpers testdata_expanded_aids –db GZ_ALL –acfg ctrl –verbose-testdata</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">aidcfg</span> <span class="o">=</span> <span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">return_annot_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Printing annot config&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">print_acfg</span><span class="p">(</span><span class="n">aidcfg</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Printing annotconfig stats&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annotconfig_stats</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Combined annotconfig stats&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">qaid_list</span> <span class="o">+</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">viewcode_isect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;qaid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">,))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.testdata_expts">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">testdata_expts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaultdb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'testdb1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_acfgstr_name_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['default:qindex=0:10:4,dindex=0:20']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_test_cfg_name_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['default']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qaid_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daid_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_aids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#testdata_expts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.testdata_expts" title="Permalink to this definition"></a></dt>
+<dd><p>Use this if you want data from an experiment.
+Command line interface to quickly get testdata for test_results.</p>
+<p>Command line flags can be used to specify db, aidcfg, pipecfg, qaid
+override, daid override (and maybe initial aids).</p>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.main_helpers testdata_expts</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.other.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">testres</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_expts</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;pz_mtest&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                    <span class="n">a</span><span class="o">=</span><span class="s1">&#39;timectrl:qsize=2&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                    <span class="n">t</span><span class="o">=</span><span class="s1">&#39;invar:ai=[false],ri=false&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                    <span class="n">use_cache</span><span class="o">=</span><span class="n">false</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;testres = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">testres</span><span class="p">,))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.testdata_filtcfg">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">testdata_filtcfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#testdata_filtcfg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.testdata_filtcfg" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.testdata_pipecfg">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">testdata_pipecfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ibs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#testdata_pipecfg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.testdata_pipecfg" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>pcfgdict</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia testdata_pipecfg
+python -m wbia testdata_pipecfg -t default:AI=False</p>
+</dd>
+<dt>Ignore:</dt><dd><p>from jedi.evaluate import docstrings
+script = jedi.Script(ut.readfrom(main_helpers.__file__))
+mod = script._get_module()
+func = mod.names_dict[‘testdata_pipecfg’][0].parent
+docstrings.find_return_types(script._evaluator, func)</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pcfgdict</span> <span class="o">=</span> <span class="n">testdata_pipecfg</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;pcfgdict = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">pcfgdict</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.testdata_qreq_">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">testdata_qreq_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_qaids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_daids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_nid_lookup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#testdata_qreq_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.testdata_qreq_" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – (default = None)</p></li>
+<li><p><strong>a</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – (default = None)</p></li>
+<li><p><strong>t</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – (default = None)</p></li>
+<li><p><strong>default_qaids</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – (default = None)</p></li>
+<li><p><strong>default_daids</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – (default = None)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><p>defaultdb, ibs, qaid_override, daid_override, return_annot_info,
+verbose, use_cache</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><a href="#id5"><span class="problematic" id="id6">qreq_</span></a> -  query request object with hyper-parameters</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wbia.QueryRequest</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia <a href="#id7"><span class="problematic" id="id8">testdata_qreq_</span></a> –show –qaid 3</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;qreq_ = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">qreq_</span><span class="p">),))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.main_helpers.unmonkeypatch_encounters">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.main_helpers.</span></span><span class="sig-name descname"><span class="pre">unmonkeypatch_encounters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/main_helpers.html#unmonkeypatch_encounters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.main_helpers.unmonkeypatch_encounters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-wbia.init.sysres">
+<span id="wbia-init-sysres-module"></span><h2>wbia.init.sysres module<a class="headerlink" href="#module-wbia.init.sysres" title="Permalink to this headline"></a></h2>
+<p>sysres.py == system_resources
+Module for dealing with system resoureces in the context of IBEIS
+but without the need for an actual IBEIS Controller</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.copy_wbiadb">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">copy_wbiadb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_dbdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_dbdir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#copy_wbiadb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.copy_wbiadb" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.db_to_dbdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">db_to_dbdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_newdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_workdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#db_to_dbdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.db_to_dbdir" title="Permalink to this definition"></a></dt>
+<dd><p>Implicitly gets dbdir. Searches for db inside of workdir</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.delete_dbdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">delete_dbdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#delete_dbdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.delete_dbdir" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_db_from_url">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_db_from_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zipped_db_url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_db_from_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_db_from_url" title="Permalink to this definition"></a></dt>
+<dd><p>SeeAlso wbia.init.sysres</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_nauts">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_nauts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_nauts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_nauts" title="Permalink to this definition"></a></dt>
+<dd><p>Ensures that you have the NAUT_test dataset</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_pz_mtest">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_pz_mtest</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_pz_mtest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_pz_mtest" title="Permalink to this definition"></a></dt>
+<dd><p>Ensures that you have the PZ_MTEST dataset</p>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.sysres –exec-ensure_pz_mtest
+python -m wbia –tf ensure_pz_mtest</p>
+</dd>
+<dt>Ignore:</dt><dd><p>from wbia.sysres import delete_dbdir
+delete_dbdir(‘PZ_MTEST’)</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_pz_mtest_batchworkflow_test">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_pz_mtest_batchworkflow_test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_pz_mtest_batchworkflow_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_pz_mtest_batchworkflow_test" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.sysres –test-ensure_pz_mtest_batchworkflow_test
+python -m wbia.init.sysres –test-ensure_pz_mtest_batchworkflow_test –reset
+python -m wbia.init.sysres –test-ensure_pz_mtest_batchworkflow_test –reset</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ensure_pz_mtest_batchworkflow_test</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_pz_mtest_mergesplit_test">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_pz_mtest_mergesplit_test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_pz_mtest_mergesplit_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_pz_mtest_mergesplit_test" title="Permalink to this definition"></a></dt>
+<dd><p>Make a test database for MERGE and SPLIT cases</p>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.sysres –test-ensure_pz_mtest_mergesplit_test</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ensure_pz_mtest_mergesplit_test</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_testdb2">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_testdb2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_testdb2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_testdb2" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_testdb_assigner">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_testdb_assigner</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_testdb_assigner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_testdb_assigner" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_testdb_curvrank">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_testdb_curvrank</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_testdb_curvrank"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_testdb_curvrank" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_testdb_identification_example">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_testdb_identification_example</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_testdb_identification_example"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_testdb_identification_example" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_testdb_kaggle7">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_testdb_kaggle7</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_testdb_kaggle7"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_testdb_kaggle7" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_testdb_orientation">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_testdb_orientation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_testdb_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_testdb_orientation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_wd_peter2">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_wd_peter2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_wd_peter2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_wd_peter2" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.ensure_wilddogs">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">ensure_wilddogs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#ensure_wilddogs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.ensure_wilddogs" title="Permalink to this definition"></a></dt>
+<dd><p>Ensures that you have the NAUT_test dataset</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_args_dbdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_args_dbdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaultdb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_newdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_args_dbdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_args_dbdir" title="Permalink to this definition"></a></dt>
+<dd><p>Machinery for finding a database directory using the following priorities.
+The function first defaults to the specified function arguments.  If those
+are not specified, then command line arguments are used.  In all other
+circumstances the defaultdb is used. If defaultdb=’cache’ then the most
+recently used database directory is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>defaultdb</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – database return if none other is specified</p></li>
+<li><p><strong>allow_newdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – raises error if True and directory not found</p></li>
+<li><p><strong>db</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – specification using workdir priority</p></li>
+<li><p><strong>dbdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – specification using normal directory priority</p></li>
+<li><p><strong>cache_priority</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – (default = False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dbdir</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.sysres get_args_dbdir</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dir1</span> <span class="o">=</span> <span class="n">get_args_dbdir</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dir1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dir1</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dir2</span> <span class="o">=</span> <span class="n">get_args_dbdir</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dir1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dir2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dir2</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">get_args_dbdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dir3 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dir2</span><span class="p">,))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_available_databases">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_available_databases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.init.sysres.get_available_databases" title="Permalink to this definition"></a></dt>
+<dd><p>Lists the available valid wbia databases inside of a work directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>ibsdb_list -  wbia controller object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>IBEISController</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.sysres –test-get_ibsdb_list</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibsdb_list</span> <span class="o">=</span> <span class="n">get_ibsdb_list</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_dbalias_dict">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_dbalias_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_dbalias_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_dbalias_dict" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_default_dbdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_default_dbdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_default_dbdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_default_dbdir" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_global_distinctiveness_modeldir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_global_distinctiveness_modeldir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ensure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_global_distinctiveness_modeldir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_global_distinctiveness_modeldir" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_ibsdb_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_ibsdb_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_ibsdb_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_ibsdb_list" title="Permalink to this definition"></a></dt>
+<dd><p>Lists the available valid wbia databases inside of a work directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>ibsdb_list -  wbia controller object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>IBEISController</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.sysres –test-get_ibsdb_list</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibsdb_list</span> <span class="o">=</span> <span class="n">get_ibsdb_list</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_logdir_global">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_logdir_global</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_logdir_global"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_logdir_global" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_rawdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_rawdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_rawdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_rawdir" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the standard raw data directory</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_wbia_db_uri">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_wbia_db_uri</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_wbia_db_uri"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_wbia_db_uri" title="Permalink to this definition"></a></dt>
+<dd><p>Central location to acquire the database URI value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>db_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – colloquial “dbdir” (default: None)</p>
+</dd>
+</dl>
+<p>The <code class="docutils literal notranslate"><span class="pre">db_dir</span></code> argument is only to be used in testing.
+This function is monkeypatched by the testing environment
+(see <code class="docutils literal notranslate"><span class="pre">wbia.conftest</span></code> for that code).
+The monkeypatching is done because two or more instances of a controller
+(i.e. <code class="docutils literal notranslate"><span class="pre">IBEISController</span></code>) could be running in the same test.
+In that scenario more than one URI may need to be defined,
+which is not the case in production
+and why the body of this function is kept fairly simple.
+We ask the caller to supply the <code class="docutils literal notranslate"><span class="pre">db_dir</span></code> value
+in order to match up the corresponding URI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_wbia_resource_dir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_wbia_resource_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_wbia_resource_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_wbia_resource_dir" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.get_workdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">get_workdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">allow_gui</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#get_workdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.get_workdir" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the work directory set for this computer.  If allow_gui is true,
+a dialog will ask a user to specify the workdir if it does not exist.</p>
+<p>python -c “import wbia; print(wbia.get_workdir())”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>allow_gui</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – (default = True)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>work_dir</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.sysres get_workdir</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allow_gui</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">work_dir</span> <span class="o">=</span> <span class="n">get_workdir</span><span class="p">(</span><span class="n">allow_gui</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;work_dir = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">work_dir</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.guiselect_workdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">guiselect_workdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#guiselect_workdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.guiselect_workdir" title="Permalink to this definition"></a></dt>
+<dd><p>Prompts the user to specify a work directory</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.is_wbiadb">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">is_wbiadb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#is_wbiadb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.is_wbiadb" title="Permalink to this definition"></a></dt>
+<dd><p>Checks to see if path contains the IBEIS internal dir</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.list_dbs">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">list_dbs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.init.sysres.list_dbs" title="Permalink to this definition"></a></dt>
+<dd><p>Lists the available valid wbia databases inside of a work directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>ibsdb_list -  wbia controller object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>IBEISController</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.init.sysres –test-get_ibsdb_list</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibsdb_list</span> <span class="o">=</span> <span class="n">get_ibsdb_list</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.lookup_dbdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">lookup_dbdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_newdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_workdirs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.init.sysres.lookup_dbdir" title="Permalink to this definition"></a></dt>
+<dd><p>Implicitly gets dbdir. Searches for db inside of workdir</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.reset_mtest_graph">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">reset_mtest_graph</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#reset_mtest_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.reset_mtest_graph" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the annotmatch and stating table</p>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia reset_mtest_graph</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reset_mtest_graph</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.set_default_dbdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">set_default_dbdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbdir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#set_default_dbdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.set_default_dbdir" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.set_logdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">set_logdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#set_logdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.set_logdir" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.init.sysres.set_workdir">
+<span class="sig-prename descclassname"><span class="pre">wbia.init.sysres.</span></span><span class="sig-name descname"><span class="pre">set_workdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">work_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_gui</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/init/sysres.html#set_workdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.init.sysres.set_workdir" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the workdirectory for this computer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>work_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – (default = None)</p></li>
+<li><p><strong>allow_gui</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – (default = True)</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>CommandLine:</dt><dd><p>python -c “import wbia; wbia.sysres.set_workdir(‘/raid/work2’)”
+python -c “import wbia; wbia.sysres.set_workdir(‘/raid/work’)”</p>
+<p>python -m wbia.init.sysres set_workdir</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;current_work_dir = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">get_workdir</span><span class="p">(</span><span class="kc">False</span><span class="p">)),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">work_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--workdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allow_gui</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">set_workdir</span><span class="p">(</span><span class="n">work_dir</span><span class="p">,</span> <span class="n">allow_gui</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-wbia.init">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-wbia.init" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wbia.guitool.tests.html" class="btn btn-neutral float-left" title="wbia.guitool.tests package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wbia.other.html" class="btn btn-neutral float-right" title="wbia.other package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

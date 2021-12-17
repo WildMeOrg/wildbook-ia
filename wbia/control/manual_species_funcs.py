@@ -371,7 +371,7 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
         [1, 2, 3, 6]
         ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_species_funcs import *  # NOQA
         >>> import wbia

@@ -2236,7 +2236,7 @@ class DependencyCacheTable(
             parent_ids_ = [(UUID('356a192b-7913-b04c-5457-4d18c28d46e6'),)]
             preproc_args = [[1, 2, 3]]
 
-        Example1:
+        Example:
             >>> from wbia.dtool.depcache_table import *  # NOQA
             >>> from wbia.dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()

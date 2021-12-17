@@ -66,14 +66,14 @@ def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
         utprof.py -m wbia.algo.hots.name_scoring --test-compute_fmech_score:2
         utprof.py -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> cm = testdata_chipmatch()
         >>> nsum_score_list = compute_fmech_score(cm)
         >>> assert np.all(nsum_score_list == [ 4.,  7.,  5.])
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
@@ -89,7 +89,7 @@ def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
         >>> assert max_true > max_false, 'is this truely a hard case?'
         >>> assert max_true > 1.2, 'score=%r should be higher for aid=18' % (max_true,)
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18], cfgdict=dict(query_rotation_heuristic=True))
@@ -98,7 +98,7 @@ def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
 
-    Example3:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.algo.hots.name_scoring import *  # NOQA
         >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])

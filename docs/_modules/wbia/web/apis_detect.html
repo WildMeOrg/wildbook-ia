@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.web.apis_detect &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.web.apis_detect</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.web.apis_detect</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Dependencies: flask, tornado.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">simplejson</span> <span class="k">as</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span>
+<span class="kn">from</span> <span class="nn">wbia.constants</span> <span class="kn">import</span> <span class="n">KEY_DEFAULTS</span><span class="p">,</span> <span class="n">SPECIES_KEY</span>
+<span class="kn">from</span> <span class="nn">wbia.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_route</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="wic_cnn"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.wic_cnn">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wic/cnn/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">wic_cnn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="s1">&#39;cnn&#39;</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="s1">&#39;candidacy&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;classifier_two_algo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">algo</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;classifier_two_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
+
+    <span class="k">if</span> <span class="n">testing</span><span class="p">:</span>
+        <span class="n">depc</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;classifier_two&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;classifier_two&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+        <span class="n">scores</span><span class="p">,</span> <span class="n">classes</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output_list</span></div>
+
+
+<div class="viewcode-block" id="wic_cnn_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.wic_cnn_json">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">wic_cnn_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">wic_cnn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span></div>
+
+
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># @accessor_decors.getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/detect/randomforest/&#39;, methods=[&#39;PUT&#39;, &#39;GET&#39;])</span>
+<span class="c1"># def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):</span>
+<span class="c1">#     &quot;&quot;&quot;Run animal detection in each image. Adds annotations to the database as they are found.</span>
+
+<span class="c1">#     Args:</span>
+<span class="c1">#         gid_list (list): list of image ids to run detection on</span>
+<span class="c1">#         species (str): string text of the species to identify</span>
+
+<span class="c1">#     Returns:</span>
+<span class="c1">#         aids_list (list): list of lists of annotation ids detected in each</span>
+<span class="c1">#             image</span>
+
+<span class="c1">#     CommandLine:</span>
+<span class="c1">#         python -m wbia.web.apis_detect --test-detect_random_forest --show</span>
+
+<span class="c1">#     RESTful:</span>
+<span class="c1">#         Method: PUT, GET</span>
+<span class="c1">#         URL:    /api/detect/randomforest/</span>
+
+<span class="c1">#     Example:</span>
+<span class="c1">#         &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="c1">#         &gt;&gt;&gt; from wbia.web.apis_detect import *  # NOQA</span>
+<span class="c1">#         &gt;&gt;&gt; import wbia</span>
+<span class="c1">#         &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="c1">#         &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:2]</span>
+<span class="c1">#         &gt;&gt;&gt; species = wbia.const.TEST_SPECIES.ZEB_PLAIN</span>
+<span class="c1">#         &gt;&gt;&gt; aids_list = ibs.detect_random_forest(gid_list, species)</span>
+<span class="c1">#         &gt;&gt;&gt; # Visualize results</span>
+<span class="c1">#         &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="c1">#         &gt;&gt;&gt;     import wbia.plottool as pt</span>
+<span class="c1">#         &gt;&gt;&gt;     from wbia.viz import viz_image</span>
+<span class="c1">#         &gt;&gt;&gt;     for fnum, gid in enumerate(gid_list):</span>
+<span class="c1">#         &gt;&gt;&gt;         viz_image.show_image(ibs, gid, fnum=fnum)</span>
+<span class="c1">#         &gt;&gt;&gt;     pt.show_if_requested()</span>
+<span class="c1">#         &gt;&gt;&gt; # Remove newly detected annotations</span>
+<span class="c1">#         &gt;&gt;&gt; ibs.delete_annots(ut.flatten(aids_list))</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     # TODO: Return confidence here as well</span>
+<span class="c1">#     depc = ibs.depc_image</span>
+<span class="c1">#     config = {</span>
+<span class="c1">#         &#39;algo&#39;: &#39;rf&#39;,</span>
+<span class="c1">#         &#39;species&#39;: species,</span>
+<span class="c1">#         &#39;sensitivity&#39;: 0.2,</span>
+<span class="c1">#         &#39;nms&#39;: True,</span>
+<span class="c1">#         &#39;nms_thresh&#39;: 0.4,</span>
+<span class="c1">#     }</span>
+<span class="c1">#     results_list = depc.get_property(&#39;localizations&#39;, gid_list, None, config=config)</span>
+<span class="c1">#     if commit:</span>
+<span class="c1">#         aids_list = ibs.commit_localization_results(</span>
+<span class="c1">#             gid_list, results_list, note=&#39;pyrfdetect&#39;</span>
+<span class="c1">#         )</span>
+<span class="c1">#         return aids_list</span>
+
+<span class="c1">#     # results_list = depc.get_property(&#39;detections&#39;, gid_list, None, config=config)</span>
+<span class="c1">#     # if commit:</span>
+<span class="c1">#     #     aids_list = ibs.commit_detection_results(gid_list, results_list, note=&#39;pyrfdetect&#39;)</span>
+<span class="c1">#     #     return aids_list</span>
+
+
+<div class="viewcode-block" id="review_detection_test"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.review_detection_test">[docs]</a><span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/test/review/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">review_detection_test</span><span class="p">(</span>
+    <span class="n">image_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">result_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+    <span class="n">callback_detailed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="k">if</span> <span class="n">image_uuid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">result_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">results_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detection_yolo_test</span><span class="p">()</span>
+        <span class="n">image_uuid</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="s1">&#39;image_uuid_list&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="s1">&#39;results_list&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">callback_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">callback_url</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;callback_url&#39;</span><span class="p">,</span> <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;process_detection_html&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">callback_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">callback_method</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;callback_method&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">)</span>
+    <span class="n">template_html</span> <span class="o">=</span> <span class="n">review_detection_html</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid</span><span class="p">,</span> <span class="n">result_list</span><span class="p">,</span> <span class="n">callback_url</span><span class="p">,</span> <span class="n">callback_method</span><span class="p">,</span> <span class="n">include_jquery</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">template_html</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        &lt;script src=&quot;http://code.jquery.com/jquery-2.2.1.min.js&quot; ia-dependency=&quot;javascript&quot;&gt;&lt;/script&gt;</span>
+<span class="s2">        </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">    &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">template_html</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">template_html</span></div>
+
+
+<div class="viewcode-block" id="detection_yolo_test"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detection_yolo_test">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/test/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">detection_yolo_test</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">shuffle</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">shuffle</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">results_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_yolo_json</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results_dict</span></div>
+
+
+<div class="viewcode-block" id="detection_lightnet_test"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detection_lightnet_test">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/test/detect/cnn/lightnet/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">detection_lightnet_test</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">shuffle</span>  <span class="c1"># NOQA</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">shuffle</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">results_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_lightnet_json</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results_dict</span></div>
+
+
+<div class="viewcode-block" id="review_detection_html"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.review_detection_html">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">review_detection_html</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">image_uuid</span><span class="p">,</span>
+    <span class="n">result_list</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="p">,</span>
+    <span class="n">callback_method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+    <span class="n">include_jquery</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the detection review interface for a particular image UUID and a list of results for that image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uuid (UUID): the UUID of the image you want to review detections for</span>
+<span class="sd">        result_list (list of dict): list of detection results returned by the detector</span>
+<span class="sd">        callback_url (str): URL that the review form will submit to (action) when</span>
+<span class="sd">            the user is complete with their review</span>
+<span class="sd">        callback_method (str): HTTP method the review form will submit to (method).</span>
+<span class="sd">            Defaults to &#39;POST&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        template (html): json response with the detection web interface in html</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/detect/cnn/yolo/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="o">=</span><span class="p">[</span><span class="n">image_uuid</span><span class="p">])</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;INVALID IMAGE UUID&#39;</span>
+
+    <span class="n">default_config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;autointerest&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;interest_bypass&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_viewpoint&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_quality&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_flags&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_flags_aoi&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_flags_multiple&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_species&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_label&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;metadata_quickhelp&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;parts&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;modes_rectangle&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;modes_diagonal&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;modes_diagonal2&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;staged&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">ensure_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+    <span class="n">image_src</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">width</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">width</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">height</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">image_uuid</span><span class="p">,</span>
+            <span class="n">width</span><span class="p">,</span>
+            <span class="n">height</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+            <span class="s1">&#39;Image </span><span class="si">%r</span><span class="s1"> for review has either no width or no height (w = </span><span class="si">%s</span><span class="s1">, h = </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">vals</span>
+        <span class="p">)</span>
+
+    <span class="n">annotation_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+        <span class="n">quality</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;quality&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">quality</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+            <span class="n">quality</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">quality</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">quality</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">quality</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">quality</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="n">viewpoint1</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint1&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">viewpoint2</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint2&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">viewpoint3</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint3&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">viewpoint1</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">viewpoint2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">viewpoint3</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">viewpoint</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">viewpoint1</span><span class="p">,</span> <span class="n">viewpoint2</span><span class="p">,</span> <span class="n">viewpoint3</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">convert_viewpoint_to_tuple</span><span class="p">(</span>
+                <span class="n">viewpoint</span>
+            <span class="p">)</span>
+
+        <span class="n">annotation_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">width</span><span class="p">),</span>
+                <span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">height</span><span class="p">),</span>
+                <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">width</span><span class="p">),</span>
+                <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">height</span><span class="p">),</span>
+                <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;class&#39;</span><span class="p">]),</span>
+                <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                <span class="s1">&#39;viewpoint1&#39;</span><span class="p">:</span> <span class="n">viewpoint1</span><span class="p">,</span>
+                <span class="s1">&#39;viewpoint2&#39;</span><span class="p">:</span> <span class="n">viewpoint2</span><span class="p">,</span>
+                <span class="s1">&#39;viewpoint3&#39;</span><span class="p">:</span> <span class="n">viewpoint3</span><span class="p">,</span>
+                <span class="s1">&#39;quality&#39;</span><span class="p">:</span> <span class="n">quality</span><span class="p">,</span>
+                <span class="s1">&#39;multiple&#39;</span><span class="p">:</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;multiple&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;interest&#39;</span><span class="p">:</span> <span class="s1">&#39;true&#39;</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interest&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="n">species</span> <span class="o">=</span> <span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">SPECIES_KEY</span><span class="p">]</span>
+
+    <span class="n">root_path</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+    <span class="n">css_file_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;include&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery-ui&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery-ui.min.css&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;include&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery.ui.rotatable&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery.ui.rotatable.css&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;css&#39;</span><span class="p">,</span> <span class="s1">&#39;style.css&#39;</span><span class="p">],</span>
+    <span class="p">]</span>
+    <span class="n">json_file_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;include&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery-ui&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery-ui.min.js&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;include&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery.ui.rotatable&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery.ui.rotatable.min.js&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;include&#39;</span><span class="p">,</span> <span class="s1">&#39;bbox_annotator_percent.js&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;javascript&#39;</span><span class="p">,</span> <span class="s1">&#39;script.js&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;javascript&#39;</span><span class="p">,</span> <span class="s1">&#39;review-detection.js&#39;</span><span class="p">],</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">include_jquery</span><span class="p">:</span>
+        <span class="n">json_file_list</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;javascript&#39;</span><span class="p">,</span> <span class="s1">&#39;jquery.min.js&#39;</span><span class="p">]]</span> <span class="o">+</span> <span class="n">json_file_list</span>
+
+    <span class="n">EMBEDDED_CSS</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">EMBEDDED_JAVASCRIPT</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="n">css_template_fmtstr</span> <span class="o">=</span> <span class="s1">&#39;&lt;style type=&quot;text/css&quot; ia-dependency=&quot;css&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/style&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">json_template_fmtstr</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;&lt;script type=&quot;text/javascript&quot; ia-dependency=&quot;javascript&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/script&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">css_file</span> <span class="ow">in</span> <span class="n">css_file_list</span><span class="p">:</span>
+        <span class="n">css_filepath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">root_path</span><span class="p">,</span> <span class="s1">&#39;static&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">css_file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">css_filepath_list</span><span class="p">))</span> <span class="k">as</span> <span class="n">css_file</span><span class="p">:</span>
+            <span class="n">EMBEDDED_CSS</span> <span class="o">+=</span> <span class="n">css_template_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">css_file</span><span class="o">.</span><span class="n">read</span><span class="p">(),)</span>
+
+    <span class="k">for</span> <span class="n">json_file</span> <span class="ow">in</span> <span class="n">json_file_list</span><span class="p">:</span>
+        <span class="n">json_filepath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">root_path</span><span class="p">,</span> <span class="s1">&#39;static&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">json_file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">json_filepath_list</span><span class="p">))</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+            <span class="n">EMBEDDED_JAVASCRIPT</span> <span class="o">+=</span> <span class="n">json_template_fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_file</span><span class="o">.</span><span class="n">read</span><span class="p">(),)</span>
+
+    <span class="n">species_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_species_rowids</span><span class="p">()</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_nice</span><span class="p">(</span><span class="n">species_rowids</span><span class="p">)</span>
+
+    <span class="n">combined_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_rowids</span><span class="p">))</span>
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">combined</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">combined</span> <span class="ow">in</span> <span class="n">combined_list</span><span class="p">]</span>
+    <span class="n">species_rowids</span> <span class="o">=</span> <span class="p">[</span><span class="n">combined</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">combined</span> <span class="ow">in</span> <span class="n">combined_list</span><span class="p">]</span>
+
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">species_rowids</span><span class="p">)</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">))</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;Unspecified&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">)]</span> <span class="o">+</span> <span class="n">species_list</span>
+
+    <span class="c1"># Collect mapping of species to parts</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">part_species_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">part_species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">part_species_rowid_list</span><span class="p">)</span>
+    <span class="n">part_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_part_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">part_types_list</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">,</span> <span class="n">part_rowids_list</span><span class="p">)</span>
+
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">part_species_text_list</span><span class="p">,</span> <span class="n">part_types_list</span><span class="p">))</span>
+    <span class="n">species_part_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span> <span class="nb">set</span><span class="p">([])}</span>
+    <span class="k">for</span> <span class="n">part_species_text</span><span class="p">,</span> <span class="n">part_type_list</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">part_species_text</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_part_dict</span><span class="p">:</span>
+            <span class="n">species_part_dict</span><span class="p">[</span><span class="n">part_species_text</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">part_type</span> <span class="ow">in</span> <span class="n">part_type_list</span><span class="p">:</span>
+            <span class="n">species_part_dict</span><span class="p">[</span><span class="n">part_species_text</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">part_type</span><span class="p">)</span>
+            <span class="n">species_part_dict</span><span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">part_type</span><span class="p">)</span>
+    <span class="c1"># Add any images that did not get added because they aren&#39;t assigned any annotations</span>
+    <span class="k">for</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">species_text_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">species_text</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_part_dict</span><span class="p">:</span>
+            <span class="n">species_part_dict</span><span class="p">[</span><span class="n">species_text</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">species_part_dict</span><span class="p">:</span>
+        <span class="n">species_part_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_part_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
+    <span class="n">species_part_dict_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">species_part_dict</span><span class="p">)</span>
+
+    <span class="n">orientation_flag</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
+    <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;zebra&#39;</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+        <span class="n">orientation_flag</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
+
+    <span class="n">settings_key_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;ia-detection-setting-orientation&#39;</span><span class="p">,</span> <span class="n">orientation_flag</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;ia-detection-setting-parts-assignments&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;ia-detection-setting-toggle-annotations&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;ia-detection-setting-toggle-parts&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;ia-detection-setting-parts-show&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;ia-detection-setting-parts-hide&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">settings</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">settings_key</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">settings_key</span><span class="p">,</span> <span class="n">settings_default</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">settings_key</span><span class="p">,</span> <span class="n">settings_default</span><span class="p">)</span> <span class="ow">in</span> <span class="n">settings_key_list</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">template</span><span class="p">(</span>
+        <span class="s1">&#39;review&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;detection_insert&#39;</span><span class="p">,</span>
+        <span class="n">gid</span><span class="o">=</span><span class="n">gid</span><span class="p">,</span>
+        <span class="n">refer_aid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
+        <span class="n">image_path</span><span class="o">=</span><span class="n">gpath</span><span class="p">,</span>
+        <span class="n">image_src</span><span class="o">=</span><span class="n">image_src</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">default_config</span><span class="p">,</span>
+        <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span>
+        <span class="n">annotation_list</span><span class="o">=</span><span class="n">annotation_list</span><span class="p">,</span>
+        <span class="n">species_list</span><span class="o">=</span><span class="n">species_list</span><span class="p">,</span>
+        <span class="n">species_part_dict_json</span><span class="o">=</span><span class="n">species_part_dict_json</span><span class="p">,</span>
+        <span class="n">callback_url</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">callback_method</span><span class="o">=</span><span class="n">callback_method</span><span class="p">,</span>
+        <span class="n">EMBEDDED_CSS</span><span class="o">=</span><span class="n">EMBEDDED_CSS</span><span class="p">,</span>
+        <span class="n">EMBEDDED_JAVASCRIPT</span><span class="o">=</span><span class="n">EMBEDDED_JAVASCRIPT</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="process_detection_html"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.process_detection_html">[docs]</a><span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">process_detection_html</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Process the return from the detection review interface.  Pass the POST result from the detection review form directly to this function unmodified.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        detection results (dict): Same format as `func:start_detect_image`</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/review/detect/cnn/yolo/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;detection-gid&#39;</span><span class="p">])</span>
+    <span class="n">image_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+    <span class="c1"># Get aids</span>
+    <span class="n">annotation_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;ia-detection-data&#39;</span><span class="p">])</span>
+
+    <span class="n">viewpoint1_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint1&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+    <span class="p">]</span>
+    <span class="n">viewpoint2_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint2&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+    <span class="p">]</span>
+    <span class="n">viewpoint3_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;viewpoint3&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">annot</span> <span class="ow">in</span> <span class="n">annotation_list</span>
+    <span class="p">]</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">viewpoint1_list</span><span class="p">,</span> <span class="n">viewpoint2_list</span><span class="p">,</span> <span class="n">viewpoint3_list</span><span class="p">))</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">appf</span><span class="o">.</span><span class="n">convert_tuple_to_viewpoint</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">]</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;xtl&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;left&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;ytl&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;top&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;left&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;top&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;percent&#39;</span><span class="p">][</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">annot</span><span class="p">[</span><span class="s1">&#39;angles&#39;</span><span class="p">][</span><span class="s1">&#39;theta&#39;</span><span class="p">]),</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">viewpoint</span><span class="p">,</span>
+            <span class="s1">&#39;quality&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;quality&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;multiple&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;multiple&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;interest&#39;</span><span class="p">:</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;highlighted&#39;</span><span class="p">],</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">annot</span><span class="p">,</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">annotation_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">))</span>
+    <span class="p">]</span>
+    <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;image_uuid_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">image_uuid</span><span class="p">],</span>
+        <span class="s1">&#39;results_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">result_list</span><span class="p">],</span>
+        <span class="s1">&#39;score_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">result_dict</span></div>
+
+
+<span class="c1"># this is where the aids_list response from commit_localization_results is packaged &amp; returned in json</span>
+<div class="viewcode-block" id="detect_cnn_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_json">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">detect_cnn_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">detect_func</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run animal detection in each image and returns json-ready formatted results, does not return annotations.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list): list of image ids to run detection on</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        results_dict (list): dict of detection results (not annotations)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.web.apis_detect --test-detect_cnn_yolo_json</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_detect import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; results_dict = ibs.detect_cnn_yolo_json(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(results_dict)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Return confidence here as well</span>
+    <span class="k">def</span> <span class="nf">_json_result</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">aid</span><span class="p">,</span>
+            <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+            <span class="s1">&#39;xtl&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;ytl&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+            <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_detect_confidence</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+            <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+            <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+            <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+            <span class="s1">&#39;quality&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+            <span class="s1">&#39;multiple&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_multiple</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+            <span class="s1">&#39;interest&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="c1"># Get detections from depc --- this output will be affected by assigner</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">detect_func</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">has_assignments</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">:</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>  <span class="c1"># we have an assignment</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">_json_result</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="n">has_assignments</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">aid</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_json_result</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+            <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_list</span><span class="p">)</span>
+
+    <span class="n">score_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="c1"># Wrap up results with other information</span>
+    <span class="n">results_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;image_uuid_list&#39;</span><span class="p">:</span> <span class="n">image_uuid_list</span><span class="p">,</span>
+        <span class="s1">&#39;results_list&#39;</span><span class="p">:</span> <span class="n">results_list</span><span class="p">,</span>
+        <span class="s1">&#39;score_list&#39;</span><span class="p">:</span> <span class="n">score_list</span><span class="p">,</span>
+        <span class="s1">&#39;has_assignments&#39;</span><span class="p">:</span> <span class="n">has_assignments</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">results_dict</span></div>
+
+
+<div class="viewcode-block" id="detect_cnn_json_wrapper"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_json_wrapper">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">detect_cnn_json_wrapper</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">detect_func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Detect with CNN (general).</span>
+
+<span class="sd">    REST:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL: /api/detect/cnn/yolo/json/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_uuid_list (list) : list of image uuids to detect on.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.web.apis_engine</span> <span class="kn">import</span> <span class="n">ensure_uuid_list</span>
+
+    <span class="c1"># Check UUIDs</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">web_check_uuids</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="o">=</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ensure_uuid_list</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">detect_func</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="detect_cnn_yolo_json_wrapper"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_yolo_json_wrapper">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/cnn/yolo/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">detect_cnn_yolo_json_wrapper</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">detect_cnn_json_wrapper</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_yolo_json</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="detect_cnn_yolo_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_yolo_json">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">detect_cnn_yolo_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">detect_cnn_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_yolo</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="detect_cnn_yolo"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_yolo">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">detect_cnn_yolo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run animal detection in each image. Adds annotations to the database as they are found.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list): list of image ids to run detection on</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        aids_list (list): list of lists of annotation ids detected in each</span>
+<span class="sd">            image</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.web.apis_detect --test-detect_cnn_yolo --show</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT, GET</span>
+<span class="sd">        URL:    /api/detect/cnn/yolo/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_detect import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[:5]</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = ibs.detect_cnn_yolo(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">        &gt;&gt;&gt;     import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt;     from wbia.viz import viz_image</span>
+<span class="sd">        &gt;&gt;&gt;     for fnum, gid in enumerate(gid_list):</span>
+<span class="sd">        &gt;&gt;&gt;         viz_image.show_image(ibs, gid, fnum=fnum)</span>
+<span class="sd">        &gt;&gt;&gt;     pt.show_if_requested()</span>
+<span class="sd">        &gt;&gt;&gt; # Remove newly detected annotations</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_annots(ut.flatten(aids_list))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Return confidence here as well</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;grid&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;yolo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sensitivity&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;config_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
+
+    <span class="n">config_str_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;config_filepath&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">config_str</span> <span class="ow">in</span> <span class="n">config_str_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">config_str</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">config_str</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">config_str</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">testing</span><span class="p">:</span>
+        <span class="n">depc</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">commit</span><span class="p">:</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_localization_results</span><span class="p">(</span>
+            <span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;cnnyolodetect&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">aids_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">results_list</span></div>
+
+    <span class="c1"># results_list = depc.get_property(&#39;detections&#39;, gid_list, None, config=config)</span>
+    <span class="c1"># if commit:</span>
+    <span class="c1">#     aids_list = ibs.commit_detection_results(gid_list, results_list, note=&#39;cnnyolodetect&#39;)</span>
+    <span class="c1">#     return aids_list</span>
+
+
+<div class="viewcode-block" id="models_cnn_lightnet"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.models_cnn_lightnet">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/api/models/cnn/lightnet/&#39;</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span>
+    <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">models_cnn_lightnet</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the models (and their labels) for the YOLO CNN detector</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT, GET</span>
+<span class="sd">        URL:    /api/labels/cnn/lightnet/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">identity</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect.lightnet</span> <span class="kn">import</span> <span class="n">CONFIG_URL_DICT</span><span class="p">,</span> <span class="n">_parse_class_list</span>
+
+    <span class="n">model_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">models_cnn</span><span class="p">(</span><span class="n">CONFIG_URL_DICT</span><span class="p">,</span> <span class="n">identity</span><span class="p">,</span> <span class="n">_parse_class_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_dict</span></div>
+
+
+<div class="viewcode-block" id="models_cnn_yolo"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.models_cnn_yolo">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/api/models/cnn/yolo/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">models_cnn_yolo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the models (and their labels) for the YOLO CNN detector</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT, GET</span>
+<span class="sd">        URL:    /api/labels/cnn/yolo/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pydarknet._pydarknet</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">CONFIG_URL_DICT</span><span class="p">,</span>
+        <span class="n">_parse_classes_from_cfg</span><span class="p">,</span>
+        <span class="n">_parse_class_list</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">model_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">models_cnn</span><span class="p">(</span>
+        <span class="n">CONFIG_URL_DICT</span><span class="p">,</span> <span class="n">_parse_classes_from_cfg</span><span class="p">,</span> <span class="n">_parse_class_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_dict</span></div>
+
+
+<div class="viewcode-block" id="models_cnn"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.models_cnn">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">models_cnn</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">config_dict</span><span class="p">,</span>
+    <span class="n">parse_classes_func</span><span class="p">,</span>
+    <span class="n">parse_line_func</span><span class="p">,</span>
+    <span class="n">check_hash</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">hidden_models</span><span class="o">=</span><span class="p">[],</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">urllib</span>
+
+    <span class="n">model_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">config_tag</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">config_tag</span> <span class="ow">in</span> <span class="n">hidden_models</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">config_url</span> <span class="o">=</span> <span class="n">config_dict</span><span class="p">[</span><span class="n">config_tag</span><span class="p">]</span>
+            <span class="n">classes_url</span> <span class="o">=</span> <span class="n">parse_classes_func</span><span class="p">(</span><span class="n">config_url</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">classes_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span>
+                    <span class="n">classes_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="n">check_hash</span>
+                <span class="p">)</span>
+                <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">,</span> <span class="ne">AssertionError</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="n">classes_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">)</span>
+            <span class="n">line_list</span> <span class="o">=</span> <span class="n">parse_line_func</span><span class="p">(</span><span class="n">classes_filepath</span><span class="p">)</span>
+            <span class="n">model_dict</span><span class="p">[</span><span class="n">config_tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">line_list</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">model_dict</span></div>
+
+
+<div class="viewcode-block" id="labeler_cnn"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.labeler_cnn">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/labeler/cnn/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">labeler_cnn</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="s1">&#39;pipeline&#39;</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="s1">&#39;candidacy&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">algo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_algo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">algo</span>
+    <span class="k">if</span> <span class="n">model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
+
+    <span class="k">if</span> <span class="n">testing</span><span class="p">:</span>
+        <span class="n">depc</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+        <span class="n">score</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">orientation</span><span class="p">,</span> <span class="n">probs</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span>
+                <span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">species</span><span class="p">,</span>
+                <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">viewpoint</span><span class="p">,</span>
+                <span class="s1">&#39;species_nice&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_nice_mapping</span><span class="p">(</span><span class="n">species</span><span class="p">),</span>
+                <span class="s1">&#39;viewpoint_nice&#39;</span><span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEW</span><span class="o">.</span><span class="n">CODE_TO_NICE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output_list</span></div>
+
+
+<div class="viewcode-block" id="aoi_cnn"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.aoi_cnn">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/aoi/cnn/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">aoi_cnn</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="s1">&#39;candidacy&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;aoi_two_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
+
+    <span class="k">if</span> <span class="n">testing</span><span class="p">:</span>
+        <span class="n">depc</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;aoi_two&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;aoi_two&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">output_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+        <span class="n">score</span><span class="p">,</span> <span class="n">class_</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="n">output_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span> <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">class_</span><span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">output_list</span></div>
+
+
+<div class="viewcode-block" id="detect_cnn_yolo_exists"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_yolo_exists">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/cnn/yolo/exists/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">detect_cnn_yolo_exists</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check to see if a detection has been completed.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list): list of image ids to run detection on</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        flag_list (list): list of flags for if the detection has been run on</span>
+<span class="sd">            the image</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.web.apis_detect --test-detect_cnn_yolo_exists</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/detect/cnn/yolo/exists/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_detect import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_image</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = ibs.detect_cnn_yolo(gid_list[:3], testing=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = ibs.detect_cnn_yolo_exists(gid_list[:5])</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_annots(ut.flatten(aids_list))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [True, True, True, False, False]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;yolo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sensitivity&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+        <span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span>
+    <span class="p">)</span>
+    <span class="c1"># score_list = depc.get_property(&#39;detections&#39;, gid_list, &#39;score&#39;, ensure=False, config=config)</span>
+    <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">score_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">flag_list</span></div>
+
+
+<div class="viewcode-block" id="detect_cnn_lightnet_json_wrapper"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_lightnet_json_wrapper">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/cnn/lightnet/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">detect_cnn_lightnet_json_wrapper</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">detect_cnn_json_wrapper</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_lightnet_json</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="detect_cnn_lightnet_image_uris_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_lightnet_image_uris_json">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">detect_cnn_lightnet_image_uris_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uris</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">image_uris</span><span class="p">,</span> <span class="n">auto_localize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_lightnet_json</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="detect_cnn_lightnet_json"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_lightnet_json">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">detect_cnn_lightnet_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">detect_cnn_json</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">detect_cnn_lightnet</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="detect_cnn_lightnet"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_cnn_lightnet">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/cnn/lightnet/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">detect_cnn_lightnet</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">commit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">testing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run animal detection in each image. Adds annotations to the database as they are found.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list): list of image ids to run detection on</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        aids_list (list): list of lists of annotation ids detected in each</span>
+<span class="sd">            image</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.web.apis_detect --test-detect_cnn_lightnet --show</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT, GET</span>
+<span class="sd">        URL:    /api/detect/cnn/lightnet/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.web.apis_detect import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[:5]</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = ibs.detect_cnn_lightnet(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">        &gt;&gt;&gt;     import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt;     from wbia.viz import viz_image</span>
+<span class="sd">        &gt;&gt;&gt;     for fnum, gid in enumerate(gid_list):</span>
+<span class="sd">        &gt;&gt;&gt;         viz_image.show_image(ibs, gid, fnum=fnum)</span>
+<span class="sd">        &gt;&gt;&gt;     pt.show_if_requested()</span>
+<span class="sd">        &gt;&gt;&gt; # Remove newly detected annotations</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_annots(ut.flatten(aids_list))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Return confidence here as well</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;lightnet&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sensitivity&#39;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+        <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+        <span class="s1">&#39;nms_aware&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;config_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_tag</span>
+
+    <span class="n">config_str_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;config_filepath&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_filepath&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">config_str</span> <span class="ow">in</span> <span class="n">config_str_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">config_str</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">config_str</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">config_str</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">testing</span><span class="p">:</span>
+        <span class="n">depc</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">commit</span><span class="p">:</span>
+        <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">commit_localization_results</span><span class="p">(</span>
+            <span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;cnnlightnetdetect&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">aids_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">results_list</span></div>
+
+
+<div class="viewcode-block" id="commit_localization_results"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.commit_localization_results">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">commit_localization_results</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">gid_list</span><span class="p">,</span>
+    <span class="n">results_list</span><span class="p">,</span>
+    <span class="n">note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">labeler_algo</span><span class="o">=</span><span class="s1">&#39;pipeline&#39;</span><span class="p">,</span>
+    <span class="n">labeler_model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">viewpoint_model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_labeler_species</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">orienter_algo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">orienter_model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">assigner_algo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">assigner_model_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">apply_nms_post_use_labeler_species</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">global_gid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">global_bbox_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">global_theta_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">global_class_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">global_conf_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">global_notes_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">results</span> <span class="ow">in</span> <span class="n">zipped_list</span><span class="p">:</span>
+        <span class="n">score</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">,</span> <span class="n">class_list</span> <span class="o">=</span> <span class="n">results</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+        <span class="n">gid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
+        <span class="n">notes_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">note</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
+
+        <span class="n">global_gid_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+        <span class="n">global_bbox_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+        <span class="n">global_theta_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">theta_list</span><span class="p">)</span>
+        <span class="n">global_class_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">class_list</span><span class="p">)</span>
+        <span class="n">global_conf_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">conf_list</span><span class="p">)</span>
+        <span class="n">global_notes_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">notes_list</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_bbox_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_theta_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_class_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_conf_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_notes_list</span><span class="p">)</span>
+
+    <span class="n">global_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
+        <span class="n">global_gid_list</span><span class="p">,</span>
+        <span class="n">global_bbox_list</span><span class="p">,</span>
+        <span class="n">global_theta_list</span><span class="p">,</span>
+        <span class="n">global_class_list</span><span class="p">,</span>
+        <span class="n">detect_confidence_list</span><span class="o">=</span><span class="n">global_conf_list</span><span class="p">,</span>
+        <span class="n">notes_list</span><span class="o">=</span><span class="n">global_notes_list</span><span class="p">,</span>
+        <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">global_aid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">global_aid_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">aid</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list_</span> <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">global_aid_set</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid_list_</span> <span class="ow">in</span> <span class="n">aids_list</span>
+    <span class="p">]</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">viewpoint_model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">labeler_model_tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">labeler_model_tag</span> <span class="o">=</span> <span class="n">viewpoint_model_tag</span>
+
+    <span class="k">if</span> <span class="n">labeler_model_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">labeler_config</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">labeler_config</span><span class="p">[</span><span class="s1">&#39;labeler_algo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labeler_algo</span>
+        <span class="n">labeler_config</span><span class="p">[</span><span class="s1">&#39;labeler_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labeler_model_tag</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+            <span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">labeler_config</span>
+        <span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_labeler_species</span><span class="p">:</span>
+            <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+                <span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">labeler_config</span>
+            <span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">apply_nms_post_use_labeler_species</span><span class="p">:</span>
+                <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">nms_aids</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list_</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+                <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">orienter_algo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">orienter_config</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">orienter_config</span><span class="p">[</span><span class="s1">&#39;orienter_algo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orienter_algo</span>
+        <span class="n">orienter_config</span><span class="p">[</span><span class="s1">&#39;orienter_weight_filepath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orienter_model_tag</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+            <span class="s1">&#39;orienter&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">orienter_config</span>
+        <span class="p">)</span>
+        <span class="n">xtl_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">))))</span>
+        <span class="n">ytl_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">))))</span>
+        <span class="n">w_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">))))</span>
+        <span class="n">h_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">3</span><span class="p">))))</span>
+        <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xtl_list</span><span class="p">,</span> <span class="n">ytl_list</span><span class="p">,</span> <span class="n">w_list</span><span class="p">,</span> <span class="n">h_list</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="o">=</span><span class="n">theta_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">assigner_algo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># aids_list is a list of lists of aids, now we want a list of lists of &lt;tuples or singletons of aids&gt;</span>
+        <span class="n">all_assignments</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">:</span>
+            <span class="n">assigned</span><span class="p">,</span> <span class="n">unassigned</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">assign_parts_one_image</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+            <span class="c1"># unassigned aids should also be tuples to indicate they went through the assigner</span>
+            <span class="n">unassigned</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">unassigned</span><span class="p">]</span>
+            <span class="n">all_assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assigned</span> <span class="o">+</span> <span class="n">unassigned</span><span class="p">)</span>
+            <span class="n">aids_list</span> <span class="o">=</span> <span class="n">all_assignments</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_clean_species</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">update_json_log</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">log_detections</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="c1"># list of list of ints</span>
+    <span class="k">return</span> <span class="n">aids_list</span></div>
+
+
+<div class="viewcode-block" id="commit_detection_results"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.commit_detection_results">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">commit_detection_results</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
+    <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">))</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span>
+        <span class="n">gid</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">),</span>
+    <span class="p">)</span> <span class="ow">in</span> <span class="n">zipped_list</span><span class="p">:</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+        <span class="n">notes_list</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">note</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span><span class="p">,</span>
+            <span class="n">bbox_list</span><span class="p">,</span>
+            <span class="n">theta_list</span><span class="p">,</span>
+            <span class="n">species_list</span><span class="p">,</span>
+            <span class="n">detect_confidence_list</span><span class="o">=</span><span class="n">conf_list</span><span class="p">,</span>
+            <span class="n">notes_list</span><span class="o">=</span><span class="n">notes_list</span><span class="p">,</span>
+            <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+        <span class="c1"># TODO ibs.set_annot_viewpoint_code(aid_list, viewpoint_list)</span>
+        <span class="n">aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_clean_species</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">update_json_log</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">log_detections</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aids_list</span></div>
+
+
+<div class="viewcode-block" id="commit_detection_results_filtered"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.commit_detection_results_filtered">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">commit_detection_results_filtered</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">gid_list</span><span class="p">,</span>
+    <span class="n">filter_species_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">filter_viewpoint_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">update_json_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
+    <span class="n">results_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;detections&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_list</span><span class="p">))</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span>
+        <span class="n">gid</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">),</span>
+    <span class="p">)</span> <span class="ow">in</span> <span class="n">zipped_list</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">conf</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">filter_species_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">filter_species_list</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">filter_viewpoint_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">filter_viewpoint_list</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">note_</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">note</span><span class="p">]</span>
+            <span class="n">temp_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">gid</span><span class="p">],</span>
+                <span class="p">[</span><span class="n">bbox</span><span class="p">],</span>
+                <span class="p">[</span><span class="n">theta</span><span class="p">],</span>
+                <span class="p">[</span><span class="n">species</span><span class="p">],</span>
+                <span class="n">detect_confidence_list</span><span class="o">=</span><span class="p">[</span><span class="n">conf</span><span class="p">],</span>
+                <span class="n">notes_list</span><span class="o">=</span><span class="n">note_</span><span class="p">,</span>
+                <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">skip_cleaning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="n">temp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_viewpoints</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">viewpoint</span><span class="p">])</span>
+            <span class="c1"># TODO ibs.set_annot_viewpoint_code([aid], [viewpoint])</span>
+            <span class="n">aid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="n">aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">_clean_species</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">update_json_log</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">log_detections</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aids_list</span></div>
+
+
+<div class="viewcode-block" id="log_detections"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.log_detections">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">log_detections</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+
+    <span class="n">json_log_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_logdir_local</span><span class="p">()</span>
+    <span class="n">json_log_filename</span> <span class="o">=</span> <span class="s1">&#39;detections.json&#39;</span>
+    <span class="n">json_log_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">json_log_path</span><span class="p">,</span> <span class="n">json_log_filename</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Logging detections added to: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Log has never been made, create one</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">):</span>
+            <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;updates&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="p">}</span>
+            <span class="n">json_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">pretty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_log_file</span><span class="p">:</span>
+                <span class="n">json_log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+        <span class="c1"># Get current log state</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_log_file</span><span class="p">:</span>
+            <span class="n">json_str</span> <span class="o">=</span> <span class="n">json_log_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">json_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+        <span class="c1"># Get values</span>
+        <span class="n">db_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_name</span><span class="p">()</span>
+        <span class="n">db_init_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()</span>
+        <span class="c1"># Zip all the updates together and write to updates list in dictionary</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+            <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;updates&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s1">&#39;time_unixtime&#39;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
+                    <span class="s1">&#39;db_name&#39;</span><span class="p">:</span> <span class="n">db_name</span><span class="p">,</span>
+                    <span class="s1">&#39;db_init_uuid&#39;</span><span class="p">:</span> <span class="n">db_init_uuid</span><span class="p">,</span>
+                    <span class="s1">&#39;image_rowid&#39;</span><span class="p">:</span> <span class="n">gid</span><span class="p">,</span>
+                    <span class="s1">&#39;annot_rowid&#39;</span><span class="p">:</span> <span class="n">aid</span><span class="p">,</span>
+                    <span class="s1">&#39;annot_bbox&#39;</span><span class="p">:</span> <span class="n">bbox</span><span class="p">,</span>
+                    <span class="s1">&#39;annot_theta&#39;</span><span class="p">:</span> <span class="n">theta</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="c1"># Write new log state</span>
+        <span class="n">json_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">pretty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_log_file</span><span class="p">:</span>
+            <span class="n">json_log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fallback</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WRITE DETECTION.JSON FAILED - ATTEMPTING FALLBACK&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">json_log_filepath</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">log_detections</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WRITE DETECTION.JSON FAILED - FALLBACK FAILED&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="has_species_detector"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.has_species_detector">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/species/enabled/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">has_species_detector</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species_text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: extend to use non-constant species.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/detect/species/enabled/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: infer this</span>
+    <span class="k">return</span> <span class="n">species_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_WITH_DETECTORS</span></div>
+
+
+<div class="viewcode-block" id="get_species_with_detectors"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.get_species_with_detectors">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/species/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_species_with_detectors</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get valid species for detection.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/detect/species/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: infer this</span>
+    <span class="k">return</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_WITH_DETECTORS</span></div>
+
+
+<div class="viewcode-block" id="get_working_species"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.get_working_species">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/species/working/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_working_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get working species for detection.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/detect/species/working/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-allspecies&#39;</span><span class="p">)</span>
+
+    <span class="n">species_nice_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_all_species_nice</span><span class="p">()</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_all_species_texts</span><span class="p">()</span>
+    <span class="n">species_tup_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span><span class="p">:</span>
+        <span class="n">working_species_tups</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">species_tup</span>
+            <span class="k">for</span> <span class="n">species_tup</span> <span class="ow">in</span> <span class="n">species_tup_list</span>
+            <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">has_species_detector</span><span class="p">(</span><span class="n">species_tup</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">working_species_tups</span> <span class="o">=</span> <span class="n">species_tup_list</span>
+    <span class="k">return</span> <span class="n">working_species_tups</span></div>
+
+
+<div class="viewcode-block" id="detect_ws_injury"><a class="viewcode-back" href="../../../wbia.web.html#wbia.web.apis_detect.detect_ws_injury">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/detect/whaleSharkInjury/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">detect_ws_injury</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Classify if a whale shark is injured.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list): list of image ids to run classification on</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        result_list (dictionary): predictions is list of strings representing a possible tag.</span>
+<span class="sd">            confidences is a list of floats of correspoinding cofidence to the prediction</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.scripts</span> <span class="kn">import</span> <span class="n">labelShark</span>
+
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">labelShark</span><span class="o">.</span><span class="n">classifyShark</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">labels</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

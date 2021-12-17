@@ -94,7 +94,7 @@ def fix_pz_master():
 def myquery():
     r"""
 
-    BUG::
+    BUG:
         THERE IS A BUG SOMEWHERE: HOW IS THIS POSSIBLE?
         if everything is weightd ) how di the true positive even get a score
         while the true negative did not

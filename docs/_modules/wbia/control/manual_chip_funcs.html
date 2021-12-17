@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_chip_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_chip_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_chip_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">ANNOT_ROWID</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid&#39;</span>
+<span class="n">CHIP_ROWID</span> <span class="o">=</span> <span class="s1">&#39;chip_rowid&#39;</span>
+<span class="n">FEAT_VECS</span> <span class="o">=</span> <span class="s1">&#39;feature_vecs&#39;</span>
+<span class="n">FEAT_KPTS</span> <span class="o">=</span> <span class="s1">&#39;feature_keypoints&#39;</span>
+<span class="n">FEAT_NUM_FEAT</span> <span class="o">=</span> <span class="s1">&#39;feature_num_feats&#39;</span>
+<span class="n">CONFIG_ROWID</span> <span class="o">=</span> <span class="s1">&#39;config_rowid&#39;</span>
+
+<span class="c1"># ---------------------</span>
+<span class="c1"># ROOT LEAF FUNCTIONS</span>
+<span class="c1"># ---------------------</span>
+
+<span class="n">NEW_DEPC</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="get_annot_chip_fpath"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.get_annot_chip_fpath">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># register_api(&#39;/api/chip/fpath/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_annot_chip_fpath</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">aid_list</span><span class="p">,</span>
+    <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">check_external_storage</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">num_retries</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the cached chip uri based off of the current</span>
+<span class="sd">    configuration.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        chip_fpath_list (list): cfpaths defined by ANNOTATIONs</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/chip/fpath/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annot_chips"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.get_annot_chips">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/chip/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_annot_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aid_list (int):  list of annotation ids</span>
+<span class="sd">        ensure (bool):  eager evaluation if True</span>
+<span class="sd">        config2_ (QueryRequest):  query request object with hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: chip_list</span>
+
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_chip_funcs get_annot_chips</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/chip/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_chip_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = {&#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; chip_list = get_annot_chips(ibs, aid_list, config2_)</span>
+<span class="sd">        &gt;&gt;&gt; chip_sum_list = [chip.sum() for chip in chip_list]</span>
+<span class="sd">        &gt;&gt;&gt; target = [96053684, 65140000, 67223205, 109367378, 73995663]</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_almost_eq(chip_sum_list, target, 15000)</span>
+<span class="sd">        &gt;&gt;&gt; print(chip_sum_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annot_chip_sizes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.get_annot_chip_sizes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @cache_getter(const.ANNOTATION_TABLE, &#39;chipsizes&#39;)</span>
+<span class="c1"># @register_api(&#39;/api/chip/sizes/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_annot_chip_sizes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aid_list (int):  list of annotation ids</span>
+<span class="sd">        ensure (bool):  eager evaluation if True</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: chipsz_list - the (width, height) of computed annotation chips.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_chip_funcs get_annot_chip_sizes</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_chip_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; ensure = True</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = {&#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; chipsz_list = get_annot_chip_sizes(ibs, aid_list, ensure, config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(chipsz_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [(545, 372), (603, 336), (520, 390)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">),</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_annot_chip_dlensqrd"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.get_annot_chip_dlensqrd">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annot_chip_dlensqrd</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: topx2_dlen_sqrd</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_chip_funcs get_annot_chip_dlensqrd</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/chip/dlensqrd/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_chip_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = {&#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; topx2_dlen_sqrd = ibs.get_annot_chip_dlensqrd(aid_list, config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(topx2_dlen_sqrd)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [435409, 476505, 422500, 422500, 422500, 437924, 405000, 405000, 447805, 420953, 405008, 406265, 512674]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">topx2_dlen_sqrd</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">((</span><span class="n">w</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_sizes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">topx2_dlen_sqrd</span></div>
+
+
+<div class="viewcode-block" id="get_annot_chip_thumbpath"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.get_annot_chip_thumbpath">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/chip/thumbpath/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_annot_chip_thumbpath</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    just constructs the path. does not compute it. that is done by</span>
+<span class="sd">    api_thumb_delegate</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/chip/thumbpath/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">thumbsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_size</span>
+    <span class="n">thumb_dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">thumb_dpath</span>
+    <span class="n">thumb_suffix</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">thumbsize</span><span class="p">)</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">CHIP_THUMB_SUFFIX</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">join</span><span class="p">(</span><span class="n">thumb_dpath</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="p">)</span> <span class="o">+</span> <span class="n">thumb_suffix</span><span class="p">)</span> <span class="k">for</span> <span class="n">uuid</span> <span class="ow">in</span> <span class="n">annot_uuid_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">thumbpath_list</span></div>
+
+
+<div class="viewcode-block" id="get_annot_chip_thumbtup"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.get_annot_chip_thumbtup">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/chip/thumbtup/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_annot_chip_thumbtup</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get chip thumb info</span>
+<span class="sd">    The return type of this is interpreted and computed in</span>
+<span class="sd">    ~/code/guitool/guitool/api_thumb_delegate.py</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        aid_list  (list):</span>
+<span class="sd">        thumbsize (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_chip_funcs --test-get_annot_chip_thumbtup</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/chip/thumbtup/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_chip_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[1:2]</span>
+<span class="sd">        &gt;&gt;&gt; thumbsize = 128</span>
+<span class="sd">        &gt;&gt;&gt; result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># isiterable = isinstance(aid_list, (list, tuple, np.ndarray))</span>
+    <span class="c1"># if not isiterable:</span>
+    <span class="c1">#   aid_list = [aid_list]</span>
+    <span class="c1"># HACK TO MAKE CHIPS COMPUTE</span>
+    <span class="c1"># cid_list = ibs.get _annot_chip_rowids(aid_list, ensure=True)  # NOQA</span>
+    <span class="c1"># thumbsize = 256</span>
+    <span class="k">if</span> <span class="n">thumbsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_size</span>
+    <span class="n">thumb_gpaths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_thumbpath</span><span class="p">(</span>
+        <span class="n">aid_list</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="n">thumbsize</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span>
+    <span class="p">)</span>
+    <span class="c1"># logger.info(thumb_gpaths)</span>
+    <span class="n">chip_paths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">chipsize_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_sizes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">thumbtup_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">thumb_path</span><span class="p">,</span> <span class="n">chip_path</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[])</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">thumb_path</span><span class="p">,</span> <span class="n">chip_path</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">thumb_gpaths</span><span class="p">,</span> <span class="n">chip_paths</span><span class="p">,</span> <span class="n">chipsize_list</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c1"># if not isiterable:</span>
+    <span class="c1">#    return thumbtup_list[0]</span>
+    <span class="k">return</span> <span class="n">thumbtup_list</span></div>
+
+
+<div class="viewcode-block" id="get_annot_chip_thumb_path2"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.get_annot_chip_thumb_path2">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_annot_chip_thumb_path2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get chip thumb info</span>
+<span class="sd">    The return type of this is interpreted and computed in</span>
+<span class="sd">    ~/code/guitool/guitool/api_thumb_delegate.py</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        aid_list  (list):</span>
+<span class="sd">        thumbsize (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_chip_funcs --test-get_annot_chip_thumbtup</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/chip/thumbtup/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_chip_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[1:2]</span>
+<span class="sd">        &gt;&gt;&gt; thumbsize = 128</span>
+<span class="sd">        &gt;&gt;&gt; result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">thumbsize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">config</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;thumbsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">thumbsize</span>
+    <span class="n">imgpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;chipthumb&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">imgpath_list</span></div>
+
+
+<div class="viewcode-block" id="delete_annot_chips"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.delete_annot_chips">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">deleter</span>
+<span class="c1"># @register_api(&#39;/api/chip/&#39;, methods=[&#39;DELETE&#39;])</span>
+<span class="k">def</span> <span class="nf">delete_annot_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Clears annotation data (does not remove the annotation)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: DELETE</span>
+<span class="sd">        URL:    /api/chip/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: Should config2_ be passed down?</span>
+    <span class="c1"># Not sure why it isn&#39;t currently</span>
+    <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_thumbpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="c1"># logger.info(thumbpath_list)</span>
+    <span class="c1"># ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl=&#39;chip_thumbs&#39;)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">remove_existing_fpaths</span><span class="p">(</span><span class="n">thumbpath_list</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;chip_thumbs&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+
+    <span class="c1"># Fallback</span>
+    <span class="k">if</span> <span class="n">fallback</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">delete_property_all</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="get_part_chips"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.get_part_chips">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/pchip/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="k">def</span> <span class="nf">get_part_chips</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        part_rowid_list (int):  list of part ids</span>
+<span class="sd">        ensure (bool):  eager evaluation if True</span>
+<span class="sd">        config2_ (QueryRequest):  query request object with hyper-parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: chip_list</span>
+
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_chip_funcs get_part_chips</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/pchip/</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_chip_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = aid_list[:10]</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = ibs.get_annot_bboxes(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     (xtl + 100, ytl + 100, w - 100, h - 100)</span>
+<span class="sd">        &gt;&gt;&gt;     for xtl, ytl, w, h in bbox_list</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; part_rowid_list = ibs.add_parts(aid_list, bbox_list=bbox_list)</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = {&#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; chip_list = get_part_chips(ibs, part_rowid_list, config2_)</span>
+<span class="sd">        &gt;&gt;&gt; chip_sum_list = [chip.sum() for chip in chip_list]</span>
+<span class="sd">        &gt;&gt;&gt; target = [86765003, 62005000, 61333186, 111424764, 63590900, 51397198, 139395045, 84100000, 41254190, 89657450]</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_almost_eq(chip_sum_list, target, 50000)</span>
+<span class="sd">        &gt;&gt;&gt; print(chip_sum_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_part</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;pchips&#39;</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="delete_part_chips"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.delete_part_chips">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">deleter</span>
+<span class="c1"># @register_api(&#39;/api/chip/&#39;, methods=[&#39;DELETE&#39;])</span>
+<span class="k">def</span> <span class="nf">delete_part_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Clears part data</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: DELETE</span>
+<span class="sd">        URL:    /api/pchip/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">depc_part</span><span class="o">.</span><span class="n">delete_property</span><span class="p">(</span><span class="s1">&#39;pchips&#39;</span><span class="p">,</span> <span class="n">part_rowid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_chip_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">config2_</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

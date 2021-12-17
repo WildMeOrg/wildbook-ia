@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.__MPL_INIT__ &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.__MPL_INIT__</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.__MPL_INIT__</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Notes:</span>
+<span class="sd">    To use various backends certian packages are required</span>
+
+<span class="sd">    PyQt</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    Tk</span>
+<span class="sd">    pip install</span>
+<span class="sd">    sudo apt-get install tk</span>
+<span class="sd">    sudo apt-get install tk-dev</span>
+
+<span class="sd">    Wx</span>
+<span class="sd">    pip install wxPython</span>
+
+<span class="sd">    GTK</span>
+<span class="sd">    pip install PyGTK</span>
+<span class="sd">    pip install pygobject</span>
+<span class="sd">    pip install pygobject</span>
+
+<span class="sd">    Cairo</span>
+<span class="sd">    pip install pycairo</span>
+<span class="sd">    pip install py2cairo</span>
+<span class="sd">    pip install cairocffi</span>
+<span class="sd">    sudo apt-get install libcairo2-dev</span>
+
+
+<span class="sd">CommandLine:</span>
+<span class="sd">    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=GTKAgg</span>
+<span class="sd">    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=TkAgg</span>
+<span class="sd">    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=WxAgg</span>
+<span class="sd">    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=WebAgg</span>
+<span class="sd">    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=gdk</span>
+<span class="sd">    python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=cairo</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[plottool.__MPL_INIT__]&#39;</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">builtins</span>
+
+    <span class="n">profile</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">builtins</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+
+<div class="viewcode-block" id="profile"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.__MPL_INIT__.profile">[docs]</a>    <span class="k">def</span> <span class="nf">profile</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">func</span></div>
+
+
+<span class="n">__IS_INITIALIZED__</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">__WHO_INITIALIZED__</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="n">VERBOSE_MPLINIT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verb-mpl&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbose&#39;</span><span class="p">))</span>
+<span class="n">TARGET_BACKEND</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+    <span class="p">(</span><span class="s1">&#39;--mpl-backend&#39;</span><span class="p">,</span> <span class="s1">&#39;--mplbe&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;MPL_BACKEND&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">FALLBACK_BACKEND</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+    <span class="p">(</span><span class="s1">&#39;--mpl-fallback-backend&#39;</span><span class="p">,</span> <span class="s1">&#39;--mplfbbe&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;agg&#39;</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="print_all_backends"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.__MPL_INIT__.print_all_backends">[docs]</a><span class="k">def</span> <span class="nf">print_all_backends</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.rcsetup</span> <span class="k">as</span> <span class="nn">rcsetup</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">rcsetup</span><span class="o">.</span><span class="n">all_backends</span><span class="p">)</span>
+    <span class="n">valid_backends</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;GTK&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GTKAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GTKCairo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;MacOSX&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Qt4Agg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Qt5Agg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;TkAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;WX&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;WXAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;CocoaAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GTK3Cairo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GTK3Agg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;WebAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nbAgg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;agg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cairo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;emf&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;gdk&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pdf&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pgf&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ps&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;svg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;template&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">del</span> <span class="n">valid_backends</span></div>
+
+
+<div class="viewcode-block" id="get_pyqt"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.__MPL_INIT__.get_pyqt">[docs]</a><span class="k">def</span> <span class="nf">get_pyqt</span><span class="p">():</span>
+    <span class="n">have_guitool</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">check_module_installed</span><span class="p">(</span><span class="s1">&#39;guitool&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">have_guitool</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">wbia.guitool</span> <span class="kn">import</span> <span class="n">__PYQT__</span> <span class="k">as</span> <span class="n">PyQt</span>  <span class="c1"># NOQA</span>
+
+            <span class="n">pyqt_version</span> <span class="o">=</span> <span class="n">PyQt</span><span class="o">.</span><span class="n">_internal</span><span class="o">.</span><span class="n">GUITOOL_PYQT_VERSION</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">PyQt5</span> <span class="k">as</span> <span class="nn">PyQt</span>
+
+                <span class="n">pyqt_version</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">PyQt4</span> <span class="k">as</span> <span class="nn">PyQt</span>
+
+                <span class="n">pyqt_version</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">PyQt</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">pyqt_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">PyQt</span><span class="p">,</span> <span class="n">pyqt_version</span></div>
+
+
+<div class="viewcode-block" id="get_target_backend"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.__MPL_INIT__.get_target_backend">[docs]</a><span class="k">def</span> <span class="nf">get_target_backend</span><span class="p">():</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;win32&#39;</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;darwin&#39;</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DISPLAY&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="c1"># Write to files if we cannot display</span>
+        <span class="c1"># target_backend = &#39;PDF&#39;</span>
+        <span class="n">target_backend</span> <span class="o">=</span> <span class="n">FALLBACK_BACKEND</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">target_backend</span> <span class="o">=</span> <span class="n">TARGET_BACKEND</span>
+        <span class="k">if</span> <span class="n">target_backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">PyQt</span><span class="p">,</span> <span class="n">pyqt_version</span> <span class="o">=</span> <span class="n">get_pyqt</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">pyqt_version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!plotttool] WARNING backend fallback to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">FALLBACK_BACKEND</span><span class="p">,))</span>
+                <span class="n">target_backend</span> <span class="o">=</span> <span class="n">FALLBACK_BACKEND</span>
+            <span class="k">elif</span> <span class="n">pyqt_version</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">target_backend</span> <span class="o">=</span> <span class="s1">&#39;Qt4Agg&#39;</span>
+            <span class="k">elif</span> <span class="n">pyqt_version</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="n">target_backend</span> <span class="o">=</span> <span class="s1">&#39;Qt5Agg&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown pyqt version </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pyqt_version</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">target_backend</span></div>
+
+
+<span class="k">def</span> <span class="nf">_init_mpl_rcparams</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">style</span>
+
+    <span class="c1"># http://matplotlib.org/users/style_sheets.html</span>
+    <span class="n">nogg</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nogg&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">nogg</span><span class="p">:</span>
+        <span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;ggplot&#39;</span><span class="p">)</span>
+    <span class="c1"># style.use([&#39;ggplot&#39;])</span>
+    <span class="c1"># print(&#39;style.available = %r&#39; % (style.available,))</span>
+    <span class="c1"># style.use([&#39;bmh&#39;])</span>
+    <span class="c1"># style.use([&#39;classic&#39;])</span>
+    <span class="c1"># import utool</span>
+    <span class="c1"># utool.embed()</span>
+    <span class="c1"># style.use([&#39;ggplot&#39;, &#39;dark_background&#39;])</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--notoolbar&#39;</span><span class="p">):</span>
+        <span class="n">toolbar</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">toolbar</span> <span class="o">=</span> <span class="s1">&#39;toolbar2&#39;</span>
+    <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;toolbar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">toolbar</span>
+    <span class="c1"># mpl.rc(&#39;text&#39;, usetex=False)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--usetex&#39;</span><span class="p">):</span>
+        <span class="c1"># mpl.rc(&#39;text&#39;, usetex=True)</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;text.usetex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># matplotlib.rcParams[&#39;text.latex.preamble&#39;]=[r&quot;\usepackage{amsmath}&quot;]</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;text.latex.unicode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">mpl_keypress_shortcuts</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;keymap&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">mpl_keypress_shortcuts</span><span class="p">:</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="n">CUSTOM_GGPLOT</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">CUSTOM_GGPLOT</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">nogg</span><span class="p">:</span>
+        <span class="n">ggplot_style</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">library</span><span class="p">[</span><span class="s1">&#39;ggplot&#39;</span><span class="p">]</span>  <span class="c1"># NOQA</span>
+        <span class="c1"># print(&#39;ggplot_style = %r&#39; % (ggplot_style,))</span>
+        <span class="n">custom_gg</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;axes.axisbelow&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="c1"># &#39;axes.edgecolor&#39;: &#39;white&#39;,</span>
+            <span class="s1">&#39;axes.facecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;#E5E5E5&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;axes.edgecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span>
+            <span class="c1"># &#39;axes.facecolor&#39;: &#39;white&#39;,</span>
+            <span class="s1">&#39;axes.grid&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;axes.labelcolor&#39;</span><span class="p">:</span> <span class="s1">&#39;#555555&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;axes.labelsize&#39;</span><span class="p">:</span> <span class="s1">&#39;large&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;axes.linewidth&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s1">&#39;axes.titlesize&#39;</span><span class="p">:</span> <span class="s1">&#39;x-large&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;figure.edgecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;0.50&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;figure.facecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">,</span>
+            <span class="s1">&#39;grid.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;grid.linestyle&#39;</span><span class="p">:</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;patch.antialiased&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;patch.edgecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;#EEEEEE&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;patch.facecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;#348ABD&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;patch.linewidth&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+            <span class="s1">&#39;xtick.color&#39;</span><span class="p">:</span> <span class="s1">&#39;#555555&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;xtick.direction&#39;</span><span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ytick.color&#39;</span><span class="p">:</span> <span class="s1">&#39;#555555&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ytick.direction&#39;</span><span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;axes.prop_cycle&#39;</span><span class="p">:</span> <span class="n">mpl</span><span class="o">.</span><span class="n">cycler</span><span class="p">(</span>
+                <span class="s1">&#39;color&#39;</span><span class="p">,</span>
+                <span class="p">[</span>
+                    <span class="s1">&#39;#E24A33&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#348ABD&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#988ED5&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#777777&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#FBC15E&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#8EBA42&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;#FFB5B8&#39;</span><span class="p">,</span>
+                <span class="p">],</span>
+            <span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">custom_gg</span><span class="p">)</span>
+
+    <span class="n">NICE_DARK_BG</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">NICE_DARK_BG</span><span class="p">:</span>
+        <span class="n">dark_style</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;axes.edgecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;axes.facecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;axes.labelcolor&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;figure.edgecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;figure.facecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;grid.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;lines.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;patch.edgecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;savefig.edgecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;savefig.facecolor&#39;</span><span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;text.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;xtick.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ytick.color&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dark_style</span><span class="p">)</span>
+    <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.subplot.top&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.8</span>
+    <span class="c1"># mpl.rcParams[&#39;text&#39;].usetex = False</span>
+    <span class="c1"># for key in mpl_keypress_shortcuts:</span>
+    <span class="c1">#    print(&#39;%s = %s&#39; % (key, mpl.rcParams[key]))</span>
+    <span class="c1"># Disable mpl shortcuts</span>
+    <span class="c1">#    mpl.rcParams[&#39;toolbar&#39;] = &#39;None&#39;</span>
+    <span class="c1">#    mpl.rcParams[&#39;interactive&#39;] = True</span>
+
+    <span class="c1"># import matplotlib.pyplot as plt</span>
+    <span class="c1"># plt.xkcd()</span>
+
+
+<span class="k">def</span> <span class="nf">_mpl_set_backend</span><span class="p">(</span><span class="n">target_backend</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--leave-mpl-backend-alone&#39;</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] LEAVE THE BACKEND ALONE !!! was specified&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] not changing mpl backend&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># mpl.use(target_backend, force=True)</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">target_backend</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">current_backend</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] current backend is: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">current_backend</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_init_mpl_mainprocess</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_MPLINIT</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">__IS_INITIALIZED__</span>
+    <span class="k">global</span> <span class="n">__WHO_INITIALIZED__</span>
+    <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
+    <span class="c1"># mpl.interactive(True)</span>
+    <span class="n">current_backend</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>
+    <span class="n">target_backend</span> <span class="o">=</span> <span class="n">get_target_backend</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">__IS_INITIALIZED__</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;[!plottool] matplotlib has already been initialized.  backend=</span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="n">current_backend</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[!plottool] Initially initialized by </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">__WHO_INITIALIZED__</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;[!plottool] Trying to be init by </span><span class="si">%r</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)))</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">__IS_INITIALIZED__</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[plottool] matplotlib initialized by </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">__WHO_INITIALIZED__</span><span class="p">)</span>
+        <span class="n">__WHO_INITIALIZED__</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- INIT MPL---&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] current backend is: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">current_backend</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] mpl.use(</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">target_backend</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">current_backend</span> <span class="o">!=</span> <span class="n">target_backend</span><span class="p">:</span>
+        <span class="n">_mpl_set_backend</span><span class="p">(</span><span class="n">target_backend</span><span class="p">)</span>
+    <span class="n">_init_mpl_rcparams</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="init_matplotlib"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.__MPL_INIT__.init_matplotlib">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">init_matplotlib</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_MPLINIT</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">():</span>
+        <span class="n">PyQt</span><span class="p">,</span> <span class="n">pyqt_version</span> <span class="o">=</span> <span class="n">get_pyqt</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">_init_mpl_mainprocess</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

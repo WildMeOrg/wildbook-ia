@@ -16,7 +16,7 @@ def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
         python -m wbia.algo.hots.scoring --test-score_chipmatch_list:1
         python -m wbia.algo.hots.scoring --test-score_chipmatch_list:0 --show
 
-    Example0:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # xdoctest: +SKIP
         >>> # (IMPORTANT)
@@ -30,7 +30,7 @@ def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
         >>> cm.show_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
 
-    Example1:
+    Example:
         >>> # SLOW_DOCTEST
         >>> # (IMPORTANT)
         >>> from wbia.algo.hots.scoring import *  # NOQA

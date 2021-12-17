@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.preproc.preproc_image &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../preproc.html">wbia.algo.preproc</a> &raquo;</li>
+      <li>wbia.algo.preproc.preproc_image</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.preproc.preproc_image</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">isabs</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">vtool.exif</span> <span class="k">as</span> <span class="nn">vtexif</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">vtool.exif</span> <span class="kn">import</span> <span class="n">ORIENTATION_DICT_INVERSE</span><span class="p">,</span> <span class="n">ORIENTATION_UNDEFINED</span><span class="p">,</span> <span class="n">ORIENTATION_000</span>
+<span class="kn">from</span> <span class="nn">wbia.utils</span> <span class="kn">import</span> <span class="n">call_houston</span>
+
+
+<span class="n">EXIF_UNDEFINED</span> <span class="o">=</span> <span class="n">ORIENTATION_DICT_INVERSE</span><span class="p">[</span><span class="n">ORIENTATION_UNDEFINED</span><span class="p">]</span>
+<span class="n">EXIF_NORMAL</span> <span class="o">=</span> <span class="n">ORIENTATION_DICT_INVERSE</span><span class="p">[</span><span class="n">ORIENTATION_000</span><span class="p">]</span>
+
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="parse_exif"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_image.parse_exif">[docs]</a><span class="k">def</span> <span class="nf">parse_exif</span><span class="p">(</span><span class="n">pil_img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Image EXIF helper&quot;&quot;&quot;</span>
+    <span class="n">exif_dict</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_exif_dict</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
+    <span class="c1"># TODO: More tags</span>
+    <span class="c1"># (mainly the orientation tag)</span>
+    <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_lat_lon</span><span class="p">(</span><span class="n">exif_dict</span><span class="p">)</span>
+    <span class="n">orient</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_orientation</span><span class="p">(</span><span class="n">exif_dict</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_unixtime</span><span class="p">(</span><span class="n">exif_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">orient</span></div>
+
+
+<div class="viewcode-block" id="get_standard_ext"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_image.get_standard_ext">[docs]</a><span class="k">def</span> <span class="nf">get_standard_ext</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns standardized image extension&quot;&quot;&quot;</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="s1">&#39;.jpg&#39;</span> <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.jpeg&#39;</span> <span class="k">else</span> <span class="n">ext</span></div>
+
+
+<div class="viewcode-block" id="parse_imageinfo"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_image.parse_imageinfo">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">parse_imageinfo</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Worker function: gpath must be in UNIX-PATH format!</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gpath (str): image path</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: param_tup -</span>
+<span class="sd">            if successful returns a tuple of image parameters which are values</span>
+<span class="sd">            for SQL columns on else returns None</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.preproc.preproc_image --exec-parse_imageinfo</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.preproc.preproc_image import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; gpath = ut.grab_test_imgpath(&#39;patsy.jpg&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; param_tup = parse_imageinfo(gpath)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;param_tup = %s&#39; % (str(param_tup),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; uuid = param_tup[0]</span>
+<span class="sd">        &gt;&gt;&gt; assert str(uuid) == &#39;16008058-788c-2d48-cd50-f6029f726cbf&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Try to open the image</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+    <span class="kn">import</span> <span class="nn">tempfile</span>
+    <span class="kn">import</span> <span class="nn">requests</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+
+    <span class="kn">import</span> <span class="nn">urllib</span>
+
+    <span class="k">if</span> <span class="n">gpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">urlsplit</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlsplit</span>
+    <span class="n">urlquote</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">quote</span>
+    <span class="n">urlunquote</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span>
+
+    <span class="n">gpath</span> <span class="o">=</span> <span class="n">gpath</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="n">url_protos</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="s1">&#39;http://&#39;</span><span class="p">]</span>
+    <span class="n">s3_proto</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;s3://&#39;</span><span class="p">]</span>
+    <span class="n">houston_proto</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;houston+&#39;</span><span class="p">]</span>
+    <span class="n">valid_protos</span> <span class="o">=</span> <span class="n">s3_proto</span> <span class="o">+</span> <span class="n">url_protos</span> <span class="o">+</span> <span class="n">houston_proto</span>
+
+    <span class="k">def</span> <span class="nf">isproto</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">valid_protos</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">gpath</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">proto</span><span class="p">)</span> <span class="k">for</span> <span class="n">proto</span> <span class="ow">in</span> <span class="n">valid_protos</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">islocal</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="n">isabs</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">isproto</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">valid_protos</span><span class="p">))</span>
+
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">isproto</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">valid_protos</span><span class="p">):</span>
+                <span class="c1"># suffix = &#39;.%s&#39; % (basename(gpath), )</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                <span class="c1"># base = filename</span>
+                <span class="n">base</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_nonce</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+                <span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;.</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
+                <span class="n">temp_file</span><span class="p">,</span> <span class="n">temp_filepath</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">gpath</span><span class="p">,</span>
+                    <span class="n">temp_filepath</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s1">&#39;[preproc] Caching remote </span><span class="si">%s</span><span class="s1"> file to temporary file </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">isproto</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">s3_proto</span><span class="p">):</span>
+                    <span class="n">s3_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">s3_str_decode_to_dict</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">grab_s3_contents</span><span class="p">(</span><span class="n">temp_filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">s3_dict</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">isproto</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">url_protos</span><span class="p">):</span>
+                    <span class="c1"># Ensure that the Unicode string is properly encoded for web requests</span>
+                    <span class="n">uri_</span> <span class="o">=</span> <span class="n">urlunquote</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+                    <span class="n">uri_</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="n">uri_</span><span class="p">,</span> <span class="n">allow_fragments</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">uri_path</span> <span class="o">=</span> <span class="n">urlquote</span><span class="p">(</span><span class="n">uri_</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">))</span>
+                    <span class="n">uri_</span> <span class="o">=</span> <span class="n">uri_</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">uri_path</span><span class="p">)</span>
+                    <span class="n">uri_</span> <span class="o">=</span> <span class="n">uri_</span><span class="o">.</span><span class="n">geturl</span><span class="p">()</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri_</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="k">assert</span> <span class="p">(</span>
+                            <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+                        <span class="p">),</span> <span class="s1">&#39;200 code not received on download&#39;</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="n">parts</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="n">uri_</span><span class="p">,</span> <span class="n">allow_fragments</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="n">uri_</span> <span class="o">=</span> <span class="n">uri_</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="n">scheme</span><span class="p">,))</span> <span class="p">:]</span>
+                        <span class="n">hostname</span> <span class="o">=</span> <span class="n">urlquote</span><span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="n">hostname</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">parts</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
+                            <span class="n">hostname</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">parts</span><span class="o">.</span><span class="n">port</span><span class="si">}</span><span class="s1">&#39;</span>
+                        <span class="n">uri_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="n">scheme</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">parts</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+                        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri_</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="k">assert</span> <span class="p">(</span>
+                            <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+                        <span class="p">),</span> <span class="s1">&#39;200 code not received on download&#39;</span>
+
+                    <span class="c1"># Save</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">temp_filepath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp_file_</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">1024</span><span class="p">):</span>
+                            <span class="n">temp_file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">isproto</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">houston_proto</span><span class="p">):</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">call_houston</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+                    <span class="k">assert</span> <span class="p">(</span>
+                        <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+                    <span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;200 code not received on download: </span><span class="si">{</span><span class="n">gpath</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">temp_filepath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp_file_</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">1024</span><span class="p">):</span>
+                            <span class="n">temp_file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+                <span class="n">gpath_</span> <span class="o">=</span> <span class="n">temp_filepath</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">temp_file</span><span class="p">,</span> <span class="n">temp_filepath</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+                <span class="n">gpath_</span> <span class="o">=</span> <span class="n">gpath</span>
+        <span class="k">except</span> <span class="p">(</span>
+            <span class="ne">AssertionError</span><span class="p">,</span>
+            <span class="ne">IOError</span><span class="p">,</span>
+            <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">,</span>
+            <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">,</span>
+            <span class="n">Image</span><span class="o">.</span><span class="n">DecompressionBombError</span><span class="p">,</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="c1"># ut.embed()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[preproc] IOError: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),))</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># for warn in w:</span>
+            <span class="c1">#     warnings.showwarning(warn.message, warn.category,</span>
+            <span class="c1">#                          warn.filename, warn.lineno, warn.file,</span>
+            <span class="c1">#                          warn.line)</span>
+            <span class="c1">#     warnstr = warnings.formatwarning</span>
+            <span class="c1">#     logger.info(warnstr)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> warnings issued by </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">),</span> <span class="n">gpath</span><span class="p">))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Open image with EXIF support to get time, GPS, and the original orientation</span>
+        <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">gpath_</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Convert 16-bit RGBA images on disk to 8-bit RGB</span>
+        <span class="k">if</span> <span class="n">pil_img</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;RGBA&#39;</span><span class="p">:</span>
+            <span class="n">pil_img</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+            <span class="n">canvas</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">,</span> <span class="n">pil_img</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+            <span class="n">canvas</span><span class="o">.</span><span class="n">paste</span><span class="p">(</span><span class="n">pil_img</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">pil_img</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">])</span>  <span class="c1"># 3 is the alpha channel</span>
+            <span class="n">canvas</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">gpath_</span><span class="p">)</span>
+            <span class="n">pil_img</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="c1"># Reload image</span>
+            <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">gpath_</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
+        <span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">orient</span> <span class="o">=</span> <span class="n">parse_exif</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>  <span class="c1"># Read exif tags</span>
+        <span class="n">pil_img</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># OpenCV &gt;= 3.1 supports EXIF tags, which will load correctly</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath_</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">img</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">orient</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">EXIF_UNDEFINED</span><span class="p">,</span> <span class="n">EXIF_NORMAL</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Sanitize weird behavior and standardize EXIF orientation to 1</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">gpath_</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="n">EXIF_NORMAL</span>
+            <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Parse out the data</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># Read width, height</span>
+
+    <span class="c1"># We cannot use pixel data as libjpeg is not deterministic (even for reads!)</span>
+    <span class="n">image_uuid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_file_uuid</span><span class="p">(</span><span class="n">gpath_</span><span class="p">)</span>  <span class="c1"># Read file ]-hash-&gt; guid = gid</span>
+
+    <span class="c1"># orig_gpath = gpath</span>
+    <span class="n">orig_gname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">get_standard_ext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+    <span class="n">notes</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="c1"># Build parameters tuple</span>
+    <span class="n">param_tup</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">image_uuid</span><span class="p">,</span>
+        <span class="n">gpath</span><span class="p">,</span>
+        <span class="n">gpath</span><span class="p">,</span>
+        <span class="n">orig_gname</span><span class="p">,</span>
+        <span class="c1"># orig_gpath,</span>
+        <span class="n">ext</span><span class="p">,</span>
+        <span class="n">width</span><span class="p">,</span>
+        <span class="n">height</span><span class="p">,</span>
+        <span class="n">time</span><span class="p">,</span>
+        <span class="n">lat</span><span class="p">,</span>
+        <span class="n">lon</span><span class="p">,</span>
+        <span class="n">orient</span><span class="p">,</span>
+        <span class="n">notes</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">temp_filepath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">temp_file</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">temp_filepath</span><span class="p">)</span>
+    <span class="c1"># logger.info(&#39;[ginfo] %r %r&#39; % (image_uuid, orig_gname))</span>
+    <span class="k">return</span> <span class="n">param_tup</span></div>
+
+
+<span class="c1"># def add_images_params_gen(gpath_list):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     generates values for add_images sqlcommands asychronously</span>
+
+<span class="c1">#     Args:</span>
+<span class="c1">#         gpath_list (list):</span>
+
+<span class="c1">#     Kwargs:</span>
+<span class="c1">#         ordered, force_serial, chunksize, prog, verbose, quiet, nTasks, freq,</span>
+<span class="c1">#         adjust</span>
+
+<span class="c1">#     Returns:</span>
+<span class="c1">#         generator: params_gen</span>
+
+<span class="c1">#     CommandLine:</span>
+<span class="c1">#         python -m wbia.algo.preproc.preproc_image --exec-add_images_params_gen</span>
+
+<span class="c1">#     Example:</span>
+<span class="c1">#         &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="c1">#         &gt;&gt;&gt; from wbia.algo.preproc.preproc_image import *   # NOQA</span>
+<span class="c1">#         &gt;&gt;&gt; from vtool.tests import grabdata</span>
+<span class="c1">#         &gt;&gt;&gt; gpath_list = grabdata.get_test_gpaths(ndata=3) + [&#39;doesnotexist.jpg&#39;]</span>
+<span class="c1">#         &gt;&gt;&gt; params_list = list(add_images_params_gen(gpath_list))</span>
+<span class="c1">#         &gt;&gt;&gt; assert str(params_list[0][0]) == &#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;, &#39;UUID gen method changed&#39;</span>
+<span class="c1">#         &gt;&gt;&gt; assert str(params_list[0][3]) == &#39;easy1.JPG&#39;, &#39;orig name is different&#39;</span>
+<span class="c1">#         &gt;&gt;&gt; assert params_list[3] is None</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     params_gen = ut.generate2(parse_imageinfo, zip(gpath_list), adjust=True,</span>
+<span class="c1">#                               force_serial=True)</span>
+<span class="c1">#     return params_gen</span>
+
+
+<div class="viewcode-block" id="on_delete"><a class="viewcode-back" href="../../../../wbia.algo.preproc.html#wbia.algo.preproc.preproc_image.on_delete">[docs]</a><span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">featweight_rowid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Warning: Not Implemented&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

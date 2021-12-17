@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.detect.lightnet &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../detect.html">wbia.algo.detect</a> &raquo;</li>
+      <li>wbia.algo.detect.lightnet</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.detect.lightnet</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Interface to Lightnet object proposals.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">splitext</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[lightnet]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-lightnet&#39;</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">torch</span>
+        <span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">transforms</span> <span class="k">as</span> <span class="n">tf</span>
+        <span class="kn">import</span> <span class="nn">lightnet</span> <span class="k">as</span> <span class="nn">ln</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;WARNING Failed to import lightnet. &#39;</span>
+            <span class="s1">&#39;PyDarknet YOLO detection is unavailable&#39;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
+            <span class="k">raise</span>
+
+
+<span class="n">VERBOSE_LN</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--verbln&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
+
+
+<span class="n">CONFIG_URL_DICT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;hammerhead&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.shark_hammerhead.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lynx&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.lynx.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;manta&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.manta_ray_giant.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;seaturtle&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.sea_turtle.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;rightwhale&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;rightwhale_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;rightwhale_v2&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v2.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;rightwhale_v3&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v3.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;rightwhale_v4&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v4.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;rightwhale_v5&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.rightwhale.v5.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;jaguar_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.jaguar.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;jaguar_v2&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.jaguar.v2.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;jaguar&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.jaguar.v2.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;giraffe_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.giraffe.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;zebra_mountain_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.zebra_mountain.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hendrik_elephant&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.hendrik.elephant.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hendrik_elephant_ears&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.hendrik.elephant.ears.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hendrik_elephant_ears_left&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.hendrik.elephant.ears.left.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hendrik_dorsal&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.hendrik.dorsal.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;humpback_dorsal&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_humpback.dorsal.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;orca_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_orca.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_sperm_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_sperm.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fins_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fins_v1_fluke&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fins_v1_dorsal&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fins_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;nassau_grouper_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.grouper_nassau.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;nassau_grouper_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.grouper_nassau.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;nassau_grouper_v2&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.grouper_nassau.v2.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;nassau_grouper_v3&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.grouper_nassau.v3.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;salanader_fire_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.salanader_fire.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;spotted_dolphin_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.dolphin_spotted.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;spotted_skunk_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.skunk_spotted.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;spotted_skunk_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.skunk_spotted.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;spotted_dolphin_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.dolphin_spotted.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;seadragon_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.seadragon.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;seadragon_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.seadragon.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;iot_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.iot.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wilddog_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.wild_dog.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;leopard_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.leopard.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;cheetah_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.cheetah.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;cheetah_v2&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.cheetah.v2.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hyaena_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.hyaena.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wild_horse_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.wild_horse.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;kitsci_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.kitsci.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;monk_seal_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.mediterranean_monk_seal.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;candidacy&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ggr2&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.ggr2.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;snow_leopard_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.snow_leopard.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;megan_argentina_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.megan.argentina.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;megan_kenya_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.megan.kenya.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;megan_argentina_v2&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.megan.argentina.v2.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;megan_kenya_v2&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.megan.kenya.v2.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;grey_whale_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_grey.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;beluga_whale_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_beluga.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;beluga_whale_v1&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_beluga.v1.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;seals_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.seals.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sea_turtle_v4&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.sea_turtle.v4.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;spotted_eagle_ray_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.spotted_eagle_ray.v0.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;yellow_bellied_toad_v0&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.yellow_bellied_toad.v0.py&#39;</span><span class="p">,</span>
+    <span class="kc">None</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;training_kit&#39;</span><span class="p">:</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_download_training_kit</span><span class="p">():</span>
+    <span class="n">training_kit_url</span> <span class="o">=</span> <span class="n">CONFIG_URL_DICT</span><span class="p">[</span><span class="s1">&#39;training_kit&#39;</span><span class="p">]</span>
+    <span class="n">training_kit_path</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_zipped_url</span><span class="p">(</span><span class="n">training_kit_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;lightnet&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">training_kit_path</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_weights_from_cfg</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">,</span> <span class="s1">&#39;.weights&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_class_list</span><span class="p">(</span><span class="n">config_filepath</span><span class="p">):</span>
+    <span class="c1"># Load classes from file into the class list</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">ln</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">HyperParameters</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">config_filepath</span><span class="p">)</span>
+    <span class="n">class_list</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">class_label_map</span>
+    <span class="k">return</span> <span class="n">class_list</span>
+
+
+<div class="viewcode-block" id="detect_gid_list"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.lightnet.detect_gid_list">[docs]</a><span class="k">def</span> <span class="nf">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_LN</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Detect gid_list with lightnet.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list of int): the list of IBEIS image_rowids that need detection</span>
+
+<span class="sd">    Kwargs (optional): refer to the Lightnet documentation for configuration settings</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (wbia.IBEISController):  image analysis api</span>
+<span class="sd">        gid_list (list of int): the list of IBEIS image_rowids that need detection</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        detector, config_filepath, weight_filepath, verbose</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        tuple: (gid, gpath, result_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get new gpaths if downsampling</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="c1"># Run detection</span>
+    <span class="n">results_iter</span> <span class="o">=</span> <span class="n">detect</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># Upscale the results</span>
+    <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">results_iter</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
+        <span class="c1"># Upscale the results back up to the original image size</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">],</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">],</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">]</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">bbox_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_create_network</span><span class="p">(</span>
+    <span class="n">config_filepath</span><span class="p">,</span> <span class="n">weight_filepath</span><span class="p">,</span> <span class="n">conf_thresh</span><span class="p">,</span> <span class="n">nms_thresh</span><span class="p">,</span> <span class="n">multi</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create the lightnet network.&quot;&quot;&quot;</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[lightnet] CUDA enabled&#39;</span><span class="p">)</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[lightnet] CUDA not available&#39;</span><span class="p">)</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="n">ln</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">HyperParameters</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">config_filepath</span><span class="p">)</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">weight_filepath</span><span class="p">)</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+    <span class="c1"># Update conf_thresh and nms_thresh in postpsocess</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">postprocess</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">conf_thresh</span> <span class="o">=</span> <span class="n">conf_thresh</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">postprocess</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">nms_thresh</span> <span class="o">=</span> <span class="n">nms_thresh</span>
+
+    <span class="k">if</span> <span class="n">multi</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+        <span class="kn">import</span> <span class="nn">lightnet.data</span> <span class="k">as</span> <span class="nn">lnd</span>
+
+        <span class="c1"># Add serialization to Brambox Detections for DataParallel</span>
+        <span class="n">postprocess_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">postprocess</span><span class="p">)</span>
+        <span class="n">postprocess_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lnd</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">SerializeBrambox</span><span class="p">())</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">postprocess</span> <span class="o">=</span> <span class="n">lnd</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span><span class="n">postprocess_list</span><span class="p">)</span>
+
+        <span class="c1"># Make mult-GPU</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">DataParallel</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">network</span><span class="p">)</span>
+
+    <span class="n">params</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">params</span>
+
+
+<span class="k">def</span> <span class="nf">_detect</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform a detection.&quot;&quot;&quot;</span>
+    <span class="c1"># Load image</span>
+    <span class="n">imgs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">img_sizes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">img_h</span><span class="p">,</span> <span class="n">img_w</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">img_size</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">img_w</span><span class="p">,</span>
+            <span class="n">img_h</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">img_sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img_size</span><span class="p">)</span>
+
+        <span class="n">img</span> <span class="o">=</span> <span class="n">ln</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">Letterbox</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">input_dimension</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()(</span><span class="n">img</span><span class="p">)</span>
+        <span class="n">imgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+    <span class="n">imgs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">imgs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">imgs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">imgs</span><span class="o">.</span><span class="n">unsqueeze_</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">imgs</span> <span class="o">=</span> <span class="n">imgs</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+
+    <span class="c1"># ut.embed()</span>
+
+    <span class="c1"># Run detector</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;0.3&#39;</span><span class="p">):</span>
+        <span class="n">imgs_tf</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">imgs</span><span class="p">,</span> <span class="n">volatile</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="n">imgs_tf</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="n">imgs</span><span class="p">)</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">result</span><span class="p">,</span> <span class="n">img_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">img_sizes</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ln</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">ReverseLetterbox</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">result</span><span class="p">],</span> <span class="n">params</span><span class="o">.</span><span class="n">input_dimension</span><span class="p">,</span> <span class="n">img_size</span>
+        <span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result_list</span><span class="p">,</span> <span class="n">img_sizes</span>
+
+
+<div class="viewcode-block" id="detect"><a class="viewcode-back" href="../../../../wbia.algo.detect.html#wbia.algo.detect.lightnet.detect">[docs]</a><span class="k">def</span> <span class="nf">detect</span><span class="p">(</span>
+    <span class="n">gpath_list</span><span class="p">,</span>
+    <span class="n">config_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">weight_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">classes_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">sensitivity</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_LN</span><span class="p">,</span>
+    <span class="n">flip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Detect image filepaths with lightnet.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gpath_list (list of str): the list of image paths that need proposal candidates</span>
+
+<span class="sd">    Kwargs (optional): refer to the Lightnet documentation for configuration settings</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        iter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get correct weight if specified with shorthand</span>
+    <span class="n">config_url</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">config_filepath</span> <span class="ow">in</span> <span class="n">CONFIG_URL_DICT</span><span class="p">:</span>
+        <span class="n">config_url</span> <span class="o">=</span> <span class="n">CONFIG_URL_DICT</span><span class="p">[</span><span class="n">config_filepath</span><span class="p">]</span>
+        <span class="n">config_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span>
+            <span class="n">config_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Get correct weights if specified with shorthand</span>
+    <span class="k">if</span> <span class="n">weight_filepath</span> <span class="ow">in</span> <span class="n">CONFIG_URL_DICT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">weight_filepath</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">config_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config_url_</span> <span class="o">=</span> <span class="n">config_url</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config_url_</span> <span class="o">=</span> <span class="n">CONFIG_URL_DICT</span><span class="p">[</span><span class="n">weight_filepath</span><span class="p">]</span>
+        <span class="n">weight_url</span> <span class="o">=</span> <span class="n">_parse_weights_from_cfg</span><span class="p">(</span><span class="n">config_url_</span><span class="p">)</span>
+        <span class="n">weight_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span>
+            <span class="n">weight_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;lightnet&#39;</span><span class="p">,</span> <span class="n">check_hash</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">config_filepath</span><span class="p">)</span>
+    <span class="n">config_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">config_filepath</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">weight_filepath</span><span class="p">)</span>
+    <span class="n">weight_filepath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">weight_filepath</span><span class="p">)</span>
+
+    <span class="n">conf_thresh</span> <span class="o">=</span> <span class="n">sensitivity</span>
+    <span class="n">nms_thresh</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># Turn off NMS</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="n">_create_network</span><span class="p">(</span><span class="n">config_filepath</span><span class="p">,</span> <span class="n">weight_filepath</span><span class="p">,</span> <span class="n">conf_thresh</span><span class="p">,</span> <span class="n">nms_thresh</span><span class="p">)</span>
+
+    <span class="c1"># Execute detector for each image</span>
+    <span class="n">results_list_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gpath_batch_list</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">))):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result_list</span><span class="p">,</span> <span class="n">img_sizes</span> <span class="o">=</span> <span class="n">_detect</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">gpath_batch_list</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="n">flip</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">cv2</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="n">result_list</span><span class="p">,</span> <span class="n">img_sizes</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">result</span><span class="p">,</span> <span class="n">img_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">result_list</span><span class="p">,</span> <span class="n">img_sizes</span><span class="p">):</span>
+            <span class="n">img_w</span><span class="p">,</span> <span class="n">img_h</span> <span class="o">=</span> <span class="n">img_size</span>
+
+            <span class="n">result_list_</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+                <span class="n">xtl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">x_top_left</span><span class="p">)))</span>
+                <span class="n">ytl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">y_top_left</span><span class="p">)))</span>
+                <span class="n">xbr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">x_top_left</span> <span class="o">+</span> <span class="n">output</span><span class="o">.</span><span class="n">width</span><span class="p">)))</span>
+                <span class="n">ybr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">y_top_left</span> <span class="o">+</span> <span class="n">output</span><span class="o">.</span><span class="n">height</span><span class="p">)))</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="n">xbr</span> <span class="o">-</span> <span class="n">xtl</span>
+                <span class="n">height</span> <span class="o">=</span> <span class="n">ybr</span> <span class="o">-</span> <span class="n">ytl</span>
+                <span class="n">class_</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">class_label</span>
+                <span class="n">conf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">confidence</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
+                    <span class="n">xtl</span> <span class="o">=</span> <span class="n">img_w</span> <span class="o">-</span> <span class="n">xbr</span>
+                <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;xtl&#39;</span><span class="p">:</span> <span class="n">xtl</span><span class="p">,</span>
+                    <span class="s1">&#39;ytl&#39;</span><span class="p">:</span> <span class="n">ytl</span><span class="p">,</span>
+                    <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">width</span><span class="p">,</span>
+                    <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">height</span><span class="p">,</span>
+                    <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">class_</span><span class="p">,</span>
+                    <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="n">conf</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">result_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_dict</span><span class="p">)</span>
+            <span class="n">results_list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_list_</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_list_</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Lightnet did not return valid data&#39;</span><span class="p">)</span>
+
+    <span class="n">results_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">results_list_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results_list</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

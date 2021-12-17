@@ -87,7 +87,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
     CommandLine:
         python -m wbia.control.accessor_decors --test-cache_getter
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.accessor_decors import *  # NOQA
         >>> import wbia
@@ -122,7 +122,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
         >>> wrp_cache_invalidator(ibs, rowid_list1)
         >>> print(ut.repr2(ibs.table_cache))
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.accessor_decors import *  # NOQA
         >>> import wbia

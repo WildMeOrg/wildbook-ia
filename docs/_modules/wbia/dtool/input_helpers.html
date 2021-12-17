@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.dtool.input_helpers &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.dtool.input_helpers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.dtool.input_helpers</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>  <span class="c1"># NOQA</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[depc_input_helpers]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia.dtool&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BranchId"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.BranchId">[docs]</a><span class="k">class</span> <span class="nc">BranchId</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">HashComparable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">_id</span><span class="p">,</span> <span class="n">accum_ids</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">parent_colx</span><span class="p">):</span>
+        <span class="n">_id</span><span class="o">.</span><span class="n">accum_ids</span> <span class="o">=</span> <span class="n">accum_ids</span>
+        <span class="c1"># hack in multi-edge id</span>
+        <span class="n">_id</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="n">_id</span><span class="o">.</span><span class="n">parent_colx</span> <span class="o">=</span> <span class="n">parent_colx</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="n">_id</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">_id</span><span class="o">.</span><span class="n">accum_ids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="n">_id</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_id</span><span class="o">.</span><span class="n">accum_ids</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="n">_id</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;[&#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_id</span><span class="o">.</span><span class="n">accum_ids</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span></div>
+
+
+<div class="viewcode-block" id="ExiNode"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.ExiNode">[docs]</a><span class="k">class</span> <span class="nc">ExiNode</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">HashComparable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Expanded Input Node</span>
+
+<span class="sd">    helps distinguish nodes and branch_ids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">branch_id</span><span class="p">):</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="n">branch_id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">node_id</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">branch_id</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="n">tablename</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">id_</span> <span class="o">=</span> <span class="s1">&#39;[&#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+        <span class="k">return</span> <span class="n">tablename</span> <span class="o">+</span> <span class="n">id_</span>
+
+    <span class="fm">__str__</span> <span class="o">=</span> <span class="fm">__repr__</span></div>
+
+
+<div class="viewcode-block" id="make_expanded_input_graph"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.make_expanded_input_graph">[docs]</a><span class="k">def</span> <span class="nf">make_expanded_input_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Starting from the `target` property we trace all possible paths in the</span>
+<span class="sd">    `graph` back to all sources.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        graph (nx.DiMultiGraph): the dependency graph with a single source.</span>
+<span class="sd">        target (str): a single target node in graph</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        Each edge in the graph must have a `local_input_id` that defines the</span>
+<span class="sd">        type of edge it is: (eg one-to-many, one-to-one, nwise/multi).</span>
+
+<span class="sd">        # Step 1: Extracting the Relevant Subgraph</span>
+<span class="sd">        We start by searching for all sources of the graph (we assume there is</span>
+<span class="sd">        only one). Then we extract the subgraph defined by all edges between</span>
+<span class="sd">        the sources and the target.  We augment this graph with a dummy super</span>
+<span class="sd">        source `s` and super sink `t`. This allows us to associate an edge with</span>
+<span class="sd">        the real source and sink.</span>
+
+<span class="sd">        # Step 2: Trace all paths from `s` to `t`.</span>
+<span class="sd">        Create a set of all paths from the source to the sink and accumulate</span>
+<span class="sd">        the `local_input_id` of each edge along the path. This will uniquely</span>
+<span class="sd">        identify each path. We use a hack to condense the accumualated ids in</span>
+<span class="sd">        order to display them nicely.</span>
+
+<span class="sd">        # Step 3: Create the new `exi_graph`</span>
+<span class="sd">        Using the traced paths with ids we construct a new graph representing</span>
+<span class="sd">        expanded inputs. The nodes in the original graph will be copied for each</span>
+<span class="sd">        unique path that passes through the node. We identify these nodes using</span>
+<span class="sd">        the accumulated ids built along the edges in our path set.  For each</span>
+<span class="sd">        path starting from the target we add each node augmented with the</span>
+<span class="sd">        accumulated ids on its output(?) edge. We also add the edges along</span>
+<span class="sd">        these paths which results in the final `exi_graph`.</span>
+
+<span class="sd">        # Step 4: Identify valid inputs candidates</span>
+<span class="sd">        The purpose of this graph is to identify which inputs are needed</span>
+<span class="sd">        to compute dependant properties. One valid set of inputs is all</span>
+<span class="sd">        sources of the graph. However, sometimes it is preferable to specify</span>
+<span class="sd">        a model that may have been trained from many inputs. Therefore any</span>
+<span class="sd">        node with a one-to-many input edge may also be specified as an input.</span>
+
+<span class="sd">        # Step 5: Identify root-most inputs</span>
+<span class="sd">        The user will only specify one possible set of the inputs. We refer  to</span>
+<span class="sd">        this set as the &quot;root-most&quot; inputs. This is a set of candiate nodes</span>
+<span class="sd">        such that all paths from the sink to the super source are blocked.  We</span>
+<span class="sd">        default to the set of inputs which results in the fewest dependency</span>
+<span class="sd">        computations. However this is arbitary.</span>
+
+<span class="sd">        The last step that is not represented here is to compute the order that</span>
+<span class="sd">        the branches must be specified in when given to the depcache for a</span>
+<span class="sd">        computation.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        nx.DiGraph: exi_graph: the expanded input graph</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        All * nodes are defined to be distinct.</span>
+<span class="sd">        TODO: To make a * node non-distinct it must be suffixed with an</span>
+<span class="sd">        identifier.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.input_helpers make_expanded_input_graph --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.input_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.example_depcache2 import * # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; depc = testdata_depc3()</span>
+<span class="sd">        &gt;&gt;&gt; table = depc[&#39;smk_match&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; table = depc[&#39;vsone&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; graph = table.depc.explicit_graph.copy()</span>
+<span class="sd">        &gt;&gt;&gt; target = table.tablename</span>
+<span class="sd">        &gt;&gt;&gt; exi_graph = make_expanded_input_graph(graph, target)</span>
+<span class="sd">        &gt;&gt;&gt; x = list(exi_graph.nodes())[0]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;x = %r&#39; % (x,))</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--show)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_nx(graph, fnum=1, pnum=(1, 2, 1))</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_nx(exi_graph, fnum=1, pnum=(1, 2, 2))</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME: this does not work correctly when</span>
+    <span class="c1"># The nesting of non-1-to-1 dependencies is greater than 2 (I think)</span>
+    <span class="c1"># algorithm for finding inputs does not work.</span>
+
+    <span class="c1"># FIXME: two vocabs have the same edge id, they should be the same in the</span>
+    <span class="c1"># Expanded Input Graph as well. Their accum_id needs to be changed.</span>
+
+    <span class="k">def</span> <span class="nf">condense_accum_ids</span><span class="p">(</span><span class="n">rinput_path_id</span><span class="p">):</span>
+        <span class="c1"># Hack to condense and consolidate graph sources</span>
+        <span class="n">prev</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">compressed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">rinput_path_id</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span> <span class="ow">and</span> <span class="n">prev</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c1"># done append ones</span>
+            <span class="k">elif</span> <span class="n">item</span> <span class="o">!=</span> <span class="n">prev</span><span class="p">:</span>
+                <span class="n">compressed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="n">prev</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="c1"># if len(compressed) &gt; 1 and compressed[0] in [&#39;1&#39;, &#39;*&#39;]:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">compressed</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">compressed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
+            <span class="n">compressed</span> <span class="o">=</span> <span class="n">compressed</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">compressed</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">compressed</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">compressed</span>
+
+    <span class="n">BIG_HACK</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1"># BIG_HACK = False</span>
+
+    <span class="k">def</span> <span class="nf">condense_accum_ids_stars</span><span class="p">(</span><span class="n">rinput_path_id</span><span class="p">):</span>
+        <span class="c1"># Hack to condense and consolidate graph sources</span>
+        <span class="n">rcompressed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">has_star</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Remove all but the final star (this is a really bad hack)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">rinput_path_id</span><span class="p">):</span>
+            <span class="n">is_star</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">item</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_star</span> <span class="ow">and</span> <span class="n">has_star</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">has_star</span><span class="p">:</span>
+                    <span class="n">rcompressed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="n">has_star</span> <span class="o">=</span> <span class="n">has_star</span> <span class="ow">or</span> <span class="n">is_star</span>
+        <span class="n">compressed</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">rcompressed</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">compressed</span>
+
+    <span class="k">def</span> <span class="nf">accumulate_input_ids</span><span class="p">(</span><span class="n">edge_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        python -m dtool.example_depcache2 testdata_depc4 --show</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">edge_data</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">edge_list</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="c1"># We are accumulating local input ids</span>
+        <span class="n">toaccum_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_column</span><span class="p">(</span><span class="n">edge_data</span><span class="p">,</span> <span class="s1">&#39;local_input_id&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">BIG_HACK</span> <span class="ow">and</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">v_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">edge_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># show the local_input_ids at the entire level</span>
+            <span class="n">pred_ids</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;local_input_id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">pred</span><span class="p">[</span><span class="n">node</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">pred</span><span class="p">[</span><span class="n">node</span><span class="p">])</span>
+                <span class="k">else</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">v_list</span>
+            <span class="p">]</span>
+            <span class="n">toaccum_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">toaccum_list_</span><span class="p">,</span> <span class="n">pred_ids</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">toaccum_list</span> <span class="o">=</span> <span class="n">toaccum_list_</span>
+
+        <span class="c1"># Default dumb accumulation</span>
+        <span class="n">accum_ids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">toaccum_list</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">())</span>
+        <span class="n">accum_ids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">condense_accum_ids</span><span class="p">,</span> <span class="n">accum_ids_</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">BIG_HACK</span><span class="p">:</span>
+            <span class="n">accum_ids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">condense_accum_ids_stars</span><span class="p">,</span> <span class="n">accum_ids</span><span class="p">)</span>
+            <span class="n">accum_ids</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;t&#39;</span><span class="p">,)</span> <span class="o">+</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">accum_ids</span><span class="p">]</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">dict_set_column</span><span class="p">(</span><span class="n">edge_data</span><span class="p">,</span> <span class="s1">&#39;accum_id&#39;</span><span class="p">,</span> <span class="n">accum_ids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">accum_ids</span>
+
+    <span class="n">sources</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_source_nodes</span><span class="p">(</span><span class="n">graph</span><span class="p">))</span>
+    <span class="c1"># logger.info(sources)</span>
+    <span class="c1"># assert len(sources) == 1, &#39;expected a unique source&#39;</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_all_nodes_between</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c1"># Remove superfluous data</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_edge_attr</span><span class="p">(</span>
+        <span class="n">graph</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="s1">&#39;edge_type&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;isnwise&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;nwise_idx&#39;</span><span class="p">,</span>
+            <span class="c1"># &#39;parent_colx&#39;,</span>
+            <span class="s1">&#39;ismulti&#39;</span><span class="p">,</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Make all &#39;*&#39; edges have distinct local_input_id&#39;s.</span>
+    <span class="c1"># TODO: allow non-distinct suffixes</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">dat</span> <span class="o">=</span> <span class="n">edge</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;local_input_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+            <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;local_input_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="nb">chr</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+            <span class="n">dat</span><span class="p">[</span><span class="s1">&#39;taillabel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="nb">chr</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># Augment with dummy super source/sink nodes</span>
+    <span class="n">source_input</span> <span class="o">=</span> <span class="s1">&#39;source_input&#39;</span>
+    <span class="n">target_output</span> <span class="o">=</span> <span class="s1">&#39;target_output&#39;</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">source_input</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">local_input_id</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">taillabel</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">target_output</span><span class="p">,</span> <span class="n">local_input_id</span><span class="o">=</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">taillabel</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Find all paths from the table to the source.</span>
+    <span class="n">paths_to_source</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">all_multi_paths</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">source_input</span><span class="p">,</span> <span class="n">target_output</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Build expanded input graph</span>
+    <span class="c1"># The inputs to this table can be derived from this graph.</span>
+    <span class="c1"># The output is a new expanded input graph.</span>
+    <span class="n">exi_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths_to_source</span><span class="p">:</span>
+        <span class="c1"># Accumlate unique identifiers along the reversed path</span>
+        <span class="n">edge_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">reverse_path_edges</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">accumulate_input_ids</span><span class="p">(</span><span class="n">edge_list</span><span class="p">)</span>
+
+        <span class="c1"># A node&#39;s output(?) on this path determines its expanded branch id</span>
+        <span class="n">exi_nodes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ExiNode</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">BranchId</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;accum_id&#39;</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parent_colx&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">edge_list</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="n">exi_node_to_label</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">node</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;[&#39;</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">node</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">exi_nodes</span>
+        <span class="p">}</span>
+        <span class="n">exi_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">exi_nodes</span><span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">exi_node_to_label</span><span class="p">)</span>
+
+        <span class="c1"># Undo any accumulation ordering and remove dummy nodes</span>
+        <span class="n">old_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">reverse_path_edges</span><span class="p">(</span><span class="n">edge_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">new_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">reverse_path_edges</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">itertwo</span><span class="p">(</span><span class="n">exi_nodes</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">new_edge</span><span class="p">,</span> <span class="n">old_edge</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">new_edges</span><span class="p">,</span> <span class="n">old_edges</span><span class="p">):</span>
+            <span class="n">u2</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">new_edge</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">old_edge</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">taillabel</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;taillabel&#39;</span><span class="p">]</span>
+            <span class="n">parent_colx</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parent_colx&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exi_graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">u2</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+                <span class="n">exi_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">u2</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">taillabel</span><span class="o">=</span><span class="n">taillabel</span><span class="p">,</span> <span class="n">parent_colx</span><span class="o">=</span><span class="n">parent_colx</span><span class="p">)</span>
+
+    <span class="n">sink_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_sink_nodes</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">))</span>
+    <span class="n">source_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_source_nodes</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">sink_nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;expected a unique sink&#39;</span>
+    <span class="n">sink_node</span> <span class="o">=</span> <span class="n">sink_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># First identify if a node is root_specifiable</span>
+    <span class="n">node_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_node_dict</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">exi_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+        <span class="n">root_specifiable</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># for edge in exi_graph.in_edges(node, keys=True):</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">exi_graph</span><span class="o">.</span><span class="n">in_edges</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+            <span class="c1"># key = edge[-1]</span>
+            <span class="c1"># assert key == 0, &#39;multi di graph is necessary&#39;</span>
+            <span class="n">edata</span> <span class="o">=</span> <span class="n">exi_graph</span><span class="o">.</span><span class="n">get_edge_data</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">edata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;taillabel&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">node</span> <span class="o">!=</span> <span class="n">sink_node</span><span class="p">:</span>
+                    <span class="n">root_specifiable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">exi_graph</span><span class="o">.</span><span class="n">in_degree</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">root_specifiable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;root_specifiable&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">root_specifiable</span>
+
+    <span class="c1"># Need to specify any combo of red nodes such that</span>
+    <span class="c1"># 1) for each path from a (leaf) to the (root) there is exactly one red</span>
+    <span class="c1"># node along that path.  This garentees that all inputs are gievn.</span>
+    <span class="n">path_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">all_simple_paths</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">source_node</span><span class="p">,</span> <span class="n">sink_node</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">source_node</span> <span class="ow">in</span> <span class="n">source_nodes</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">rootmost_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">path_list</span><span class="p">:</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;root_specifiable&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">path</span><span class="p">]</span>
+        <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">rootmost_nodes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">valid_nodes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="c1"># Rootmost nodes are the ones specifiable by default when computing the</span>
+    <span class="c1"># normal property.</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">rootmost_nodes</span><span class="p">:</span>
+        <span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;rootmost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># We actually need to hack away any root-most nodes that have another</span>
+    <span class="c1"># rootmost node as the parent.  Otherwise, this would cause constraints in</span>
+    <span class="c1"># what the user could specify as valid input combinations.</span>
+    <span class="c1"># ie: specify a vocab and an index, but the index depends on the vocab.</span>
+    <span class="c1"># this forces the user to specify the vocab that was the parent of the index</span>
+    <span class="c1"># the user should either just specify the index and have the vocab inferred</span>
+    <span class="c1"># or for now, we just dont allow this to happen.</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="s1">&#39;rootmost&#39;</span><span class="p">)</span>
+
+    <span class="n">recolor_exi_graph</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">rootmost_nodes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">exi_graph</span></div>
+
+
+<div class="viewcode-block" id="recolor_exi_graph"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.recolor_exi_graph">[docs]</a><span class="k">def</span> <span class="nf">recolor_exi_graph</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">rootmost_nodes</span><span class="p">):</span>
+    <span class="n">node_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_node_dict</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">exi_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;root_specifiable&#39;</span><span class="p">]:</span>
+            <span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">rootmost_nodes</span><span class="p">:</span>
+        <span class="n">node_dict</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span></div>
+
+
+<span class="c1"># @ut.reloadable_class</span>
+<div class="viewcode-block" id="RootMostInput"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.RootMostInput">[docs]</a><span class="k">class</span> <span class="nc">RootMostInput</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">HashComparable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">rmi</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">):</span>
+        <span class="n">rmi</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="n">node</span>
+        <span class="n">rmi</span><span class="o">.</span><span class="n">sink</span> <span class="o">=</span> <span class="n">sink</span>
+        <span class="n">rmi</span><span class="o">.</span><span class="n">tablename</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">rmi</span><span class="o">.</span><span class="n">input_id</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">rmi</span><span class="o">.</span><span class="n">exi_graph</span> <span class="o">=</span> <span class="n">exi_graph</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="n">rmi</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+<div class="viewcode-block" id="RootMostInput.parent_level"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.RootMostInput.parent_level">[docs]</a>    <span class="k">def</span> <span class="nf">parent_level</span><span class="p">(</span><span class="n">rmi</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns rootmost inputs above this node</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache2 import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; depc = testdata_depc4()</span>
+<span class="sd">            &gt;&gt;&gt; inputs = depc[&#39;smk_match&#39;].rootmost_inputs</span>
+<span class="sd">            &gt;&gt;&gt; rmi = inputs.rmi_list[1]</span>
+<span class="sd">            &gt;&gt;&gt; assert len(rmi.parent_level()) == 2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">yield_if</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+            <span class="n">node_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_node_dict</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">node_dict</span><span class="p">[</span><span class="n">child</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_specifiable&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">continue_if</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">edge</span><span class="p">):</span>
+            <span class="n">node_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_node_dict</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+            <span class="k">return</span> <span class="ow">not</span> <span class="n">node_dict</span><span class="p">[</span><span class="n">child</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_specifiable&#39;</span><span class="p">)</span>
+
+        <span class="n">bfs_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">bfs_conditional</span><span class="p">(</span>
+            <span class="n">rmi</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">,</span>
+            <span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">,</span>
+            <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">yield_if</span><span class="o">=</span><span class="n">yield_if</span><span class="p">,</span>
+            <span class="n">continue_if</span><span class="o">=</span><span class="n">continue_if</span><span class="p">,</span>
+            <span class="n">yield_source</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">yield_nodes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">bfs_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bfs_iter</span><span class="p">)</span>
+        <span class="n">parent_level</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">rmi</span><span class="o">.</span><span class="n">sink</span><span class="p">,</span> <span class="n">rmi</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">bfs_iter</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">parent_level</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ismulti</span><span class="p">(</span><span class="n">rmi</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">([</span><span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">rmi</span><span class="o">.</span><span class="n">input_id</span><span class="p">])</span>
+
+<div class="viewcode-block" id="RootMostInput.compute_order"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.RootMostInput.compute_order">[docs]</a>    <span class="k">def</span> <span class="nf">compute_order</span><span class="p">(</span><span class="n">rmi</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns order of computation from this input node to the sink</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># graph, source, target = rmi.exi_graph, rmi.node, rmi.sink</span>
+        <span class="n">node_order_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_all_nodes_between</span><span class="p">(</span><span class="n">rmi</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="n">rmi</span><span class="o">.</span><span class="n">sink</span><span class="p">))</span>
+        <span class="n">node_rank</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_dag_node_rank</span><span class="p">(</span><span class="n">rmi</span><span class="o">.</span><span class="n">exi_graph</span><span class="o">.</span><span class="n">reverse</span><span class="p">(),</span> <span class="n">node_order_</span><span class="p">)</span>
+        <span class="n">node_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">node_order_</span><span class="p">))</span>
+        <span class="c1"># lexsort via names to break ties for consistent ordering</span>
+        <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">node_rank</span><span class="p">,</span> <span class="n">node_names</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># sortx = ut.argsort(node_rank)[::-1]</span>
+        <span class="n">node_order</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">node_order_</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">node_order</span></div>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="n">rmi</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="n">rmi</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+        <span class="c1"># rmi.tablename + &#39;[&#39; + &#39;, &#39;.join(rmi.input_id) + &#39;]&#39;</span>
+
+    <span class="fm">__str__</span> <span class="o">=</span> <span class="fm">__repr__</span></div>
+
+
+<div class="viewcode-block" id="sort_rmi_list"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.sort_rmi_list">[docs]</a><span class="k">def</span> <span class="nf">sort_rmi_list</span><span class="p">(</span><span class="n">rmi_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.input_helpers sort_rmi_list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.input_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.example_depcache2 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; depc =testdata_custom_annot_depc([</span>
+<span class="sd">        ...    dict(tablename=&#39;Notch_Tips&#39;, parents=[&#39;annot&#39;]),</span>
+<span class="sd">        ...    dict(tablename=&#39;chips&#39;, parents=[&#39;annot&#39;]),</span>
+<span class="sd">        ...    dict(tablename=&#39;Cropped_Chips&#39;, parents=[&#39;chips&#39;, &#39;Notch_Tips&#39;]),</span>
+<span class="sd">        ... ])</span>
+<span class="sd">        &gt;&gt;&gt; table = depc[&#39;Cropped_Chips&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; inputs = exi_inputs = table.rootmost_inputs</span>
+<span class="sd">        &gt;&gt;&gt; compute_rmi_edges = exi_inputs.flat_compute_rmi_edges()</span>
+<span class="sd">        &gt;&gt;&gt; input_rmis = compute_rmi_edges[-1][0]</span>
+<span class="sd">        &gt;&gt;&gt; rmi_list = input_rmis[::-1]</span>
+<span class="sd">        &gt;&gt;&gt; rmi_list = sort_rmi_list(rmi_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert rmi_list[0].node[0] == &#39;chips&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Order the input rmis via declaration</span>
+    <span class="n">reverse_compute_branches</span> <span class="o">=</span> <span class="p">[</span><span class="n">rmi</span><span class="o">.</span><span class="n">compute_order</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">rmi_list</span><span class="p">]</span>
+    <span class="c1"># logger.info(&#39;rmi_list = %r&#39; % (rmi_list,))</span>
+    <span class="c1"># rmi = rmi_list[0]  # hack</span>
+    <span class="c1"># reverse_compute_branches = [path[::-1] for path in nx.all_simple_paths(rmi.exi_graph, rmi.node, rmi.sink)]</span>
+    <span class="n">sort_keys</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">tuple</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">branch_id</span><span class="o">.</span><span class="n">parent_colx</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">])</span> <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">reverse_compute_branches</span>
+    <span class="p">]</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sort_keys</span><span class="p">)</span>
+    <span class="n">rmi_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rmi_list</span></div>
+
+
+<div class="viewcode-block" id="TableInput"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">TableInput</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Specifies a set of inputs that can validly compute the output of a table in</span>
+<span class="sd">    the dependency graph</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">rmi_list</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">reorder</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># The order of the RMI list defines the expect input order</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span> <span class="o">=</span> <span class="n">rmi_list</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span> <span class="o">=</span> <span class="n">exi_graph</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span>
+        <span class="c1"># if reorder:</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">_order_rmi_list</span><span class="p">(</span><span class="n">reorder</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_order_rmi_list</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">reorder</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempts to put the required inputs in the correct order as specified</span>
+<span class="sd">        by the order of declared dependencies the user specified during the</span>
+<span class="sd">        depcache declaration (in the user defined decorators).</span>
+<span class="sd">        for 1-to-1 properties this is just the root_ids.</span>
+
+<span class="sd">        For vsone, it should be root1, root2</span>
+<span class="sd">        For vsmany it should be root1, root2*</span>
+
+<span class="sd">        Ok, here is the measure:</span>
+<span class="sd">        Order is primarily determined by your parent input order as given in</span>
+<span class="sd">        the table definition. If one parent expands in to multiple parents then</span>
+<span class="sd">        the secondary ordering inherits from the parents. If the two paths</span>
+<span class="sd">        merge, then there is no problem. There is only one parent.</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.input_helpers _order_rmi_list --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache2 import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; depc = testdata_depc3()</span>
+<span class="sd">            &gt;&gt;&gt; exi_inputs1 = depc[&#39;vsone&#39;].rootmost_inputs.total_expand()</span>
+<span class="sd">            &gt;&gt;&gt; assert exi_inputs1.rmi_list[0] != exi_inputs1.rmi_list[1]</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;exi_inputs1 = %r&#39; % (exi_inputs1,))</span>
+<span class="sd">            &gt;&gt;&gt; exi_inputs2 = depc[&#39;neighbs&#39;].rootmost_inputs.total_expand()</span>
+<span class="sd">            &gt;&gt;&gt; assert &#39;*&#39; not in str(exi_inputs2.rmi_list[0])</span>
+<span class="sd">            &gt;&gt;&gt; assert &#39;*&#39; in str(exi_inputs2.rmi_list[1])</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;exi_inputs2 = %r&#39; % (exi_inputs2,))</span>
+<span class="sd">            &gt;&gt;&gt; exi_inputs3 = depc[&#39;meta_labeler&#39;].rootmost_inputs.total_expand()</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;exi_inputs3 = %r&#39; % (exi_inputs3,))</span>
+<span class="sd">            &gt;&gt;&gt; exi_inputs4 = depc[&#39;smk_match&#39;].rootmost_inputs.total_expand()</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;exi_inputs4 = %r&#39; % (exi_inputs4,))</span>
+<span class="sd">            &gt;&gt;&gt; # xdoctest: +REQUIRES(--show)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.plottool.interactions import ExpandableInteraction</span>
+<span class="sd">            &gt;&gt;&gt; inter = ExpandableInteraction(nCols=2)</span>
+<span class="sd">            &gt;&gt;&gt; depc[&#39;vsone&#39;].show_dep_subgraph(inter)</span>
+<span class="sd">            &gt;&gt;&gt; exi_inputs1.show_exi_graph(inter)</span>
+<span class="sd">            &gt;&gt;&gt; depc[&#39;neighbs&#39;].show_dep_subgraph(inter)</span>
+<span class="sd">            &gt;&gt;&gt; exi_inputs2.show_exi_graph(inter)</span>
+<span class="sd">            &gt;&gt;&gt; depc[&#39;meta_labeler&#39;].show_dep_subgraph(inter)</span>
+<span class="sd">            &gt;&gt;&gt; exi_inputs3.show_exi_graph(inter)</span>
+<span class="sd">            &gt;&gt;&gt; depc[&#39;smk_match&#39;].show_dep_subgraph(inter)</span>
+<span class="sd">            &gt;&gt;&gt; exi_inputs4.show_exi_graph(inter)</span>
+<span class="sd">            &gt;&gt;&gt; inter.start()</span>
+<span class="sd">            &gt;&gt;&gt; #depc[&#39;viewpoint_classification&#39;].show_input_graph()</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># hack for labels</span>
+        <span class="n">rmi_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">)</span>
+        <span class="n">rootmost_exi_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">rmi</span><span class="o">.</span><span class="n">node</span> <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">rmi_list</span><span class="p">]</span>
+
+        <span class="c1"># Ensure that nodes form a complete rootmost set</span>
+        <span class="c1"># Remove over-complete nodes</span>
+        <span class="n">sink_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_sink_nodes</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">))</span>
+        <span class="n">source_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_source_nodes</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">sink_nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;can only have one sink node&#39;</span>
+        <span class="n">sink_node</span> <span class="o">=</span> <span class="n">sink_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">path_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">all_simple_paths</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">source_node</span><span class="p">,</span> <span class="n">sink_node</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">source_node</span> <span class="ow">in</span> <span class="n">source_nodes</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">rootmost_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="n">rootmost_candidates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">rootmost_exi_nodes</span><span class="p">)</span>
+        <span class="n">rootmost_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">path_list</span><span class="p">:</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="ow">in</span> <span class="n">rootmost_candidates</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">path</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">flags</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Missing RMI on path=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,))</span>
+            <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+            <span class="n">rootmost_nodes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">valid_nodes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">reorder</span><span class="p">:</span>
+            <span class="c1"># This re-orders the parent input specs based on the declared order</span>
+            <span class="c1"># input defined by the user. This ordering is represented by the</span>
+            <span class="c1"># parent_colx property from the table.parents()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span> <span class="o">=</span> <span class="n">sort_rmi_list</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="ow">in</span> <span class="n">rootmost_nodes</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">]</span>
+            <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TableInput.is_single_inputs"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.is_single_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">is_single_inputs</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="TableInput.expected_input_depth"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.expected_input_depth">[docs]</a>    <span class="k">def</span> <span class="nf">expected_input_depth</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.input_helpers import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache2 import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; depc = testdata_depc4()</span>
+<span class="sd">            &gt;&gt;&gt; inputs = depc[&#39;neighbs&#39;].rootmost_inputs</span>
+<span class="sd">            &gt;&gt;&gt; index = &#39;indexer&#39;</span>
+<span class="sd">            &gt;&gt;&gt; inputs = inputs.expand_input(index)</span>
+<span class="sd">            &gt;&gt;&gt; size = inputs.expected_input_depth()</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;size = %r&#39; % (size,))</span>
+<span class="sd">            &gt;&gt;&gt; inputs = depc[&#39;feat&#39;].rootmost_inputs</span>
+<span class="sd">            &gt;&gt;&gt; size = inputs.expected_input_depth()</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;size = %r&#39; % (size,))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">0</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">rmi</span><span class="o">.</span><span class="n">ismulti</span> <span class="k">else</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TableInput.total_expand"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.total_expand">[docs]</a>    <span class="k">def</span> <span class="nf">total_expand</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="n">source_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_source_nodes</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">))</span>
+        <span class="n">sink</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_sink_nodes</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">rmi_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">source_nodes</span><span class="p">]</span>
+        <span class="n">exi_graph</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">table</span>
+        <span class="n">reorder</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">new_inputs</span> <span class="o">=</span> <span class="n">TableInput</span><span class="p">(</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">reorder</span><span class="o">=</span><span class="n">reorder</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_inputs</span></div>
+
+<div class="viewcode-block" id="TableInput.expand_input"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.expand_input">[docs]</a>    <span class="k">def</span> <span class="nf">expand_input</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pushes the rootmost inputs all the way up to the sources of the graph</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.input_helpers expand_input</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.input_helpers import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache2 import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; depc = testdata_depc4()</span>
+<span class="sd">            &gt;&gt;&gt; inputs = depc[&#39;smk_match&#39;].rootmost_inputs</span>
+<span class="sd">            &gt;&gt;&gt; inputs = depc[&#39;neighbs&#39;].rootmost_inputs</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;(pre-expand)  inputs  = %r&#39; % (inputs,))</span>
+<span class="sd">            &gt;&gt;&gt; index = &#39;indexer&#39;</span>
+<span class="sd">            &gt;&gt;&gt; inputs2 = inputs.expand_input(index)</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;(post-expand) inputs2 = %r&#39; % (inputs2,))</span>
+<span class="sd">            &gt;&gt;&gt; assert &#39;indexer&#39; in str(inputs), &#39;missing indexer1&#39;</span>
+<span class="sd">            &gt;&gt;&gt; assert &#39;indexer&#39; not in str(inputs2), (</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;(2) unexpected indexer in %s&#39; % (inputs2,))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">index_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where</span><span class="p">([</span><span class="n">rmi</span><span class="o">.</span><span class="n">tablename</span> <span class="o">==</span> <span class="n">index</span> <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">index_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">rmi</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">parent_level</span> <span class="o">=</span> <span class="n">rmi</span><span class="o">.</span><span class="n">parent_level</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parent_level</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># raise AssertionError(&#39;no parents to expand&#39;)</span>
+            <span class="n">new_rmi_list</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">[:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_rmi_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">insert_values</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">parent_level</span><span class="p">,</span> <span class="n">inplace</span><span class="p">)</span>
+            <span class="n">new_rmi_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">new_rmi_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span> <span class="o">=</span> <span class="n">new_rmi_list</span>
+            <span class="n">new_inputs</span> <span class="o">=</span> <span class="n">inputs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_inputs</span> <span class="o">=</span> <span class="n">TableInput</span><span class="p">(</span><span class="n">new_rmi_list</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_inputs</span></div>
+
+<div class="viewcode-block" id="TableInput.exi_nodes"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.exi_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">exi_nodes</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">rmi</span><span class="o">.</span><span class="n">node</span> <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TableInput.flat_compute_order"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.flat_compute_order">[docs]</a>    <span class="k">def</span> <span class="nf">flat_compute_order</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is basically the scheduler</span>
+
+<span class="sd">        TODO:</span>
+<span class="sd">            We need to verify the correctness of this logic. It seems to</span>
+<span class="sd">            not be deterministic between versions of python.</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.input_helpers flat_compute_order</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # xdoctest: +REQUIRES(--fixme)</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.input_helpers import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache2 import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; depc = testdata_depc4()</span>
+<span class="sd">            &gt;&gt;&gt; inputs = depc[&#39;feat&#39;].rootmost_inputs.total_expand()</span>
+<span class="sd">            &gt;&gt;&gt; flat_compute_order = inputs.flat_compute_order()</span>
+<span class="sd">            &gt;&gt;&gt; result = ut.repr2(flat_compute_order)</span>
+<span class="sd">            ...</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            [chip[t, t:1, 1:1], probchip[t, t:1, 1:1], feat[t, t:1]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Compute the order in which all noes must be evaluated</span>
+        <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>  <span class="c1"># NOQA</span>
+
+        <span class="n">ordered_compute_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">rmi</span><span class="o">.</span><span class="n">compute_order</span><span class="p">()</span> <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">]</span>
+        <span class="n">flat_node_order_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ordered_compute_nodes</span><span class="p">))</span>
+
+        <span class="n">rgraph</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">toprank</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_topsort_rank</span><span class="p">(</span><span class="n">rgraph</span><span class="p">,</span> <span class="n">flat_node_order_</span><span class="p">)</span>
+        <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">toprank</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">flat_compute_order</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">flat_node_order_</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+        <span class="c1"># Inputs are pre-computed.</span>
+        <span class="k">for</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">flat_compute_order</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;something is wrong&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rmi.node&#39;</span><span class="p">])</span>
+                <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">flat_compute_order</span></div>
+
+<div class="viewcode-block" id="TableInput.flat_compute_rmi_edges"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.flat_compute_rmi_edges">[docs]</a>    <span class="k">def</span> <span class="nf">flat_compute_rmi_edges</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Defines order of computation that maps input_ids to target_ids.</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.input_helpers flat_compute_rmi_edges</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: compute_edges</span>
+<span class="sd">                Each item is a tuple of input/output RootMostInputs</span>
+<span class="sd">                    ([parent_1, ..., parent_n], node_i)</span>
+<span class="sd">                All parents should be known before you reach the i-th item in</span>
+<span class="sd">                the list.</span>
+<span class="sd">                Results of the the i-th item may be used in subsequent item</span>
+<span class="sd">                computations.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.input_helpers import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache2 import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; depc =testdata_custom_annot_depc([</span>
+<span class="sd">            ...    dict(tablename=&#39;chips&#39;, parents=[&#39;annot&#39;]),</span>
+<span class="sd">            ...    dict(tablename=&#39;Notch_Tips&#39;, parents=[&#39;annot&#39;]),</span>
+<span class="sd">            ...    dict(tablename=&#39;Cropped_Chips&#39;, parents=[&#39;chips&#39;, &#39;Notch_Tips&#39;]),</span>
+<span class="sd">            ... ])</span>
+<span class="sd">            &gt;&gt;&gt; table = depc[&#39;Cropped_Chips&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; inputs = exi_inputs = table.rootmost_inputs.total_expand()</span>
+<span class="sd">            &gt;&gt;&gt; compute_rmi_edges = exi_inputs.flat_compute_rmi_edges()</span>
+<span class="sd">            &gt;&gt;&gt; input_rmis = compute_rmi_edges[-1][0]</span>
+<span class="sd">            &gt;&gt;&gt; result = ut.repr2(input_rmis)</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            [chips[t, t:1, 1:1], Notch_Tips[t, t:1, 1:1]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sink</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_sink_nodes</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">exi_graph</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span>
+        <span class="n">compute_rmi_edges</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">flat_compute_order</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">flat_compute_order</span><span class="p">()</span>
+        <span class="n">exi_graph</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span>
+        <span class="k">for</span> <span class="n">output_node</span> <span class="ow">in</span> <span class="n">flat_compute_order</span><span class="p">:</span>
+            <span class="n">input_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">exi_graph</span><span class="o">.</span><span class="n">predecessors</span><span class="p">(</span><span class="n">output_node</span><span class="p">))</span>
+            <span class="c1"># input_edges = [(node, output_node, node.branch_id.k) for node in input_nodes]</span>
+            <span class="n">input_edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">node</span><span class="p">,</span> <span class="n">output_node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">input_nodes</span><span class="p">]</span>
+
+            <span class="c1"># another sorting strategy. maybe this is correct.</span>
+            <span class="n">sortx</span> <span class="o">=</span> <span class="p">[</span><span class="n">exi_graph</span><span class="o">.</span><span class="n">get_edge_data</span><span class="p">(</span><span class="o">*</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parent_colx&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">input_edges</span><span class="p">]</span>
+            <span class="n">sortx_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span>
+            <span class="n">input_nodes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">input_nodes</span><span class="p">,</span> <span class="n">sortx_</span><span class="p">)</span>
+
+            <span class="n">input_rmis</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">input_nodes</span><span class="p">]</span>
+
+            <span class="c1"># input_rmis = sort_rmi_list(input_rmis)</span>
+
+            <span class="n">output_rmis</span> <span class="o">=</span> <span class="n">RootMostInput</span><span class="p">(</span><span class="n">output_node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">)</span>
+            <span class="n">edge</span> <span class="o">=</span> <span class="p">(</span><span class="n">input_rmis</span><span class="p">,</span> <span class="n">output_rmis</span><span class="p">)</span>
+            <span class="n">compute_rmi_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">compute_rmi_edges</span></div>
+
+    <span class="c1"># def get_node_to_branch_ids(inputs):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Nodes may belong to several computation branches (paths)</span>
+    <span class="c1">#     This returns a mapping from a node to each branch it belongs to</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     sources = ut.nx_source_nodes(inputs.exi_graph)</span>
+    <span class="c1">#     sinks = ut.nx_sink_nodes(inputs.exi_graph)</span>
+    <span class="c1">#     _node_branchid_pairs = [</span>
+    <span class="c1">#         (s[1], node)</span>
+    <span class="c1">#         for s, t in ut.product(sources, sinks)</span>
+    <span class="c1">#         for node in ut.nx_all_nodes_between(inputs.exi_graph, s, t)</span>
+    <span class="c1">#     ]</span>
+    <span class="c1">#     branch_ids = ut.take_column(_node_branchid_pairs, 0)</span>
+    <span class="c1">#     node_ids = ut.take_column(_node_branchid_pairs, 1)</span>
+    <span class="c1">#     node_to_branchids_ = ut.group_items(branch_ids, node_ids)</span>
+    <span class="c1">#     node_to_branchids = ut.map_dict_vals(tuple, node_to_branchids_)</span>
+    <span class="c1">#     return node_to_branchids</span>
+
+    <span class="c1"># def get_input_branch_ids(inputs):</span>
+    <span class="c1">#     &quot;&quot;&quot; Return what branches the inputs are used in &quot;&quot;&quot;</span>
+    <span class="c1">#     # Get node to branch-id mapping</span>
+    <span class="c1">#     node_to_branchids = inputs.get_node_to_branch_ids()</span>
+    <span class="c1">#     # Map input nodes to branch-ids</span>
+    <span class="c1">#     exi_nodes = inputs.exi_nodes()</span>
+    <span class="c1">#     rootmost_exi_branches = ut.dict_take(node_to_branchids, exi_nodes)</span>
+    <span class="c1">#     rootmost_tables = ut.take_column(exi_nodes, 0)</span>
+    <span class="c1">#     input_compute_ids = list(zip(rootmost_tables, rootmost_exi_branches))</span>
+    <span class="c1">#     return input_compute_ids</span>
+
+<div class="viewcode-block" id="TableInput.show_exi_graph"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.TableInput.show_exi_graph">[docs]</a>    <span class="k">def</span> <span class="nf">show_exi_graph</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">inter</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m dtool.input_helpers TableInput.show_exi_graph --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.input_helpers import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.dtool.example_depcache2 import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; depc = testdata_depc3()</span>
+<span class="sd">            &gt;&gt;&gt; # table = depc[&#39;smk_match&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; table = depc[&#39;neighbs&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; inputs = table.rootmost_inputs</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;inputs = %r&#39; % (inputs,))</span>
+<span class="sd">            &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.plottool.interactions import ExpandableInteraction</span>
+<span class="sd">            &gt;&gt;&gt; inter = ExpandableInteraction(nCols=1)</span>
+<span class="sd">            &gt;&gt;&gt; inputs.show_exi_graph(inter=inter)</span>
+<span class="sd">            &gt;&gt;&gt; # FIXME; Expanding inputs can overspecify inputs</span>
+<span class="sd">            &gt;&gt;&gt; #inputs = inputs.expand_input(2)</span>
+<span class="sd">            &gt;&gt;&gt; #print(&#39;inputs = %r&#39; % (inputs,))</span>
+<span class="sd">            &gt;&gt;&gt; #inputs.show_exi_graph(inter=inter)</span>
+<span class="sd">            &gt;&gt;&gt; #inputs = inputs.expand_input(1)</span>
+<span class="sd">            &gt;&gt;&gt; #inputs = inputs.expand_input(3)</span>
+<span class="sd">            &gt;&gt;&gt; #inputs = inputs.expand_input(2)</span>
+<span class="sd">            &gt;&gt;&gt; #inputs = inputs.expand_input(2)</span>
+<span class="sd">            &gt;&gt;&gt; #inputs = inputs.expand_input(1)</span>
+<span class="sd">            &gt;&gt;&gt; #print(&#39;inputs = %r&#39; % (inputs,))</span>
+<span class="sd">            &gt;&gt;&gt; #inputs.show_exi_graph(inter=inter)</span>
+<span class="sd">            &gt;&gt;&gt; inter.start()</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool.interactions</span> <span class="kn">import</span> <span class="n">ExpandableInteraction</span>
+
+        <span class="n">autostart</span> <span class="o">=</span> <span class="n">inter</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">inter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">inter</span> <span class="o">=</span> <span class="n">ExpandableInteraction</span><span class="p">()</span>
+        <span class="n">tablename</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">tablename</span>
+
+        <span class="n">exi_graph</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">recolor_exi_graph</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">exi_nodes</span><span class="p">())</span>
+
+        <span class="c1"># Add numbering to indicate the input order</span>
+        <span class="n">node_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_node_dict</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">rmi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">rmi</span><span class="o">.</span><span class="n">ismulti</span><span class="p">:</span>
+                <span class="n">node_dict</span><span class="p">[</span><span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39; #</span><span class="si">%d</span><span class="s1">*&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">node_dict</span><span class="p">[</span><span class="n">rmi</span><span class="o">.</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39; #</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,)</span>
+
+        <span class="n">plot_kw</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fontname&#39;</span><span class="p">:</span> <span class="s1">&#39;Ubuntu&#39;</span><span class="p">}</span>
+        <span class="c1"># inter.append_plot(</span>
+        <span class="c1">#    ut.partial(pt.show_nx, G, title=&#39;Dependency Subgraph (%s)&#39; % (tablename), **plot_kw))</span>
+        <span class="n">inter</span><span class="o">.</span><span class="n">append_plot</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+                <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">,</span>
+                <span class="n">exi_graph</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Expanded Input (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,),</span>
+                <span class="o">**</span><span class="n">plot_kw</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">autostart</span><span class="p">:</span>
+            <span class="n">inter</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">inter</span></div></div>
+
+
+<div class="viewcode-block" id="get_rootmost_inputs"><a class="viewcode-back" href="../../../wbia.dtool.html#wbia.dtool.input_helpers.get_rootmost_inputs">[docs]</a><span class="k">def</span> <span class="nf">get_rootmost_inputs</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.input_helpers get_rootmost_inputs --show</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        exi_graph (nx.Graph): made from make_expanded_input_graph(graph, target)</span>
+<span class="sd">        table (dtool.Table):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m dtool.input_helpers get_rootmost_inputs</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.input_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.dtool.example_depcache2 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; depc = testdata_depc3()</span>
+<span class="sd">        &gt;&gt;&gt; tablename = &#39;smk_match&#39;</span>
+<span class="sd">        &gt;&gt;&gt; table = depc[tablename]</span>
+<span class="sd">        &gt;&gt;&gt; exi_graph = table.expanded_input_graph</span>
+<span class="sd">        &gt;&gt;&gt; inputs_ = get_rootmost_inputs(exi_graph, table)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;inputs_ = %r&#39; % (inputs_,))</span>
+<span class="sd">        &gt;&gt;&gt; inputs = inputs_.expand_input(1)</span>
+<span class="sd">        &gt;&gt;&gt; rmi = inputs.rmi_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;inputs = %s&#39; % (inputs,)) + &#39;\n&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result += (&#39;compute_edges = %s&#39; % (ut.repr2(inputs.flat_compute_rmi_edges(), nl=1)))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Take out the shallowest (wrt target) rootmost nodes</span>
+    <span class="c1"># attrs = nx.get_node_attributes(exi_graph, &#39;rootmost&#39;)</span>
+    <span class="n">attrs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_get_default_node_attributes</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">,</span> <span class="s1">&#39;rootmost&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">rootmost_exi_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">]</span>
+    <span class="n">sink</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_sink_nodes</span><span class="p">(</span><span class="n">exi_graph</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">rmi_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">RootMostInput</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">rootmost_exi_nodes</span><span class="p">]</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">TableInput</span><span class="p">(</span><span class="n">rmi_list</span><span class="p">,</span> <span class="n">exi_graph</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">reorder</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># x = inmputs.parent_level()[0].parent_level()[0]  # NOQA</span>
+    <span class="k">return</span> <span class="n">inputs</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

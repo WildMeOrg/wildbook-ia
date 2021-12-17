@@ -82,7 +82,7 @@ def read_thumb_as_qimg(thumb_path):
         >>> #guitool.qtapp_loop()
         >>> # verify results
 
-    Timeit::
+    Timeit:
         %timeit np.dstack((npimg, np.full(npimg.shape[0:2], 255, dtype=np.uint8)))
         %timeit cv2.cvtColor(npimg, cv2.COLOR_BGR2BGRA)
         npimg1 = np.dstack((npimg, np.full(npimg.shape[0:2], 255, dtype=np.uint8)))

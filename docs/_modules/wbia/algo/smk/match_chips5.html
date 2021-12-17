@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.smk.match_chips5 &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../smk.html">wbia.algo.smk</a> &raquo;</li>
+      <li>wbia.algo.smk.match_chips5</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.smk.match_chips5</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO: semantic_uuids should be replaced with PCC-like hashes pertaining to</span>
+<span class="sd">annotation clusters if any form of name scoring is used.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[mc5]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EstimatorRequest"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest">[docs]</a><span class="k">class</span> <span class="nc">EstimatorRequest</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">use_single_cache</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">use_bulk_cache</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">min_bulk_size</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">chunksize</span> <span class="o">=</span> <span class="mi">256</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EstimatorRequest.execute"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prog_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># assert qaids is None</span>
+        <span class="k">if</span> <span class="n">qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">qreq_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">execute_bulk</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute_pipeline</span><span class="p">()</span>
+        <span class="c1"># cm_list = qreq_.execute_pipeline()</span>
+        <span class="k">return</span> <span class="n">cm_list</span></div>
+
+<div class="viewcode-block" id="EstimatorRequest.shallowcopy"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.shallowcopy">[docs]</a>    <span class="k">def</span> <span class="nf">shallowcopy</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a copy of qreq with the same qparams object and a subset of</span>
+<span class="sd">        the qx and dx objects.  used to generate chunks of vsone and vsmany</span>
+<span class="sd">        queries</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.smk.match_chips5 import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.smk.smk_pipeline import testdata_smk</span>
+<span class="sd">            &gt;&gt;&gt; import wbia</span>
+<span class="sd">            &gt;&gt;&gt; wbia, smk, qreq_ = testdata_smk()</span>
+<span class="sd">            &gt;&gt;&gt; qreq2_ = qreq_.shallowcopy(qaids=1)</span>
+<span class="sd">            &gt;&gt;&gt; assert qreq_.daids is qreq2_.daids, &#39;should be the same&#39;</span>
+<span class="sd">            &gt;&gt;&gt; assert len(qreq_.qaids) != len(qreq2_.qaids), &#39;should be diff&#39;</span>
+<span class="sd">            &gt;&gt;&gt; #assert qreq_.metadata is not qreq2_.metadata</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># qreq2_ = qreq_.__class__()</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="n">qreq2_</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">qreq2_</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+        <span class="n">qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">),</span> <span class="s1">&#39;not a subset&#39;</span>
+        <span class="n">qreq2_</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
+        <span class="k">return</span> <span class="n">qreq2_</span></div>
+
+<div class="viewcode-block" id="EstimatorRequest.get_pipe_hashid"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.get_pipe_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_pipe_hashid</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">stack_config</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="EstimatorRequest.get_pipe_cfgstr"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.get_pipe_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_pipe_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="n">pipe_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">stack_config</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">pipe_cfgstr</span></div>
+
+<div class="viewcode-block" id="EstimatorRequest.get_data_hashid"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.get_data_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_data_hashid</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data_hashid</span></div>
+
+<div class="viewcode-block" id="EstimatorRequest.get_query_hashid"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.get_query_hashid">[docs]</a>    <span class="k">def</span> <span class="nf">get_query_hashid</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="c1"># TODO: SYSTEM : semantic should only be used if name scoring is on</span>
+        <span class="n">query_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;Q&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">query_hashid</span></div>
+
+<div class="viewcode-block" id="EstimatorRequest.get_cfgstr"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span>
+        <span class="n">qreq_</span><span class="p">,</span> <span class="n">with_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hash_pipe</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">with_input</span><span class="p">:</span>
+            <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_query_hashid</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">with_data</span><span class="p">:</span>
+            <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">with_pipe</span><span class="p">:</span>
+            <span class="n">pipe_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_pipe_cfgstr</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">hash_pipe</span><span class="p">:</span>
+                <span class="n">pipe_cfgstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">pipe_cfgstr</span><span class="p">)</span>
+            <span class="n">cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pipe_cfgstr</span><span class="p">)</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cfgstr</span></div>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_nice_parts</span><span class="p">())</span>
+
+<div class="viewcode-block" id="EstimatorRequest.get_chipmatch_fpaths"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.get_chipmatch_fpaths">[docs]</a>    <span class="k">def</span> <span class="nf">get_chipmatch_fpaths</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Efficient function to get a list of chipmatch paths</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pipe</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">qauuid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+        <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">chip_match</span><span class="o">.</span><span class="n">get_chipmatch_fname</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qauuid</span><span class="o">=</span><span class="n">qauuid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="n">cfgstr</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qauuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">qauuid_list</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">dpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">((</span><span class="n">qreq_</span><span class="o">.</span><span class="n">cachedir</span><span class="p">,</span> <span class="s1">&#39;mc5_cms&#39;</span><span class="p">))</span>
+        <span class="n">fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span> <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fname_list</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">fpath_list</span></div>
+
+<div class="viewcode-block" id="EstimatorRequest.get_nice_parts"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.get_nice_parts">[docs]</a>    <span class="k">def</span> <span class="nf">get_nice_parts</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">())</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;nQ=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">))</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;nD=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">))</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_pipe_hashid</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">parts</span></div>
+
+    <span class="c1"># Hacked in functions</span>
+
+<div class="viewcode-block" id="EstimatorRequest.ensure_nids"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.ensure_nids">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_nids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="c1"># Hacked over from hotspotter, seriously hacky</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">unique_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">union1d</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">unique_aids</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">aid_to_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">unique_aids</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EstimatorRequest.get_qreq_annot_nids"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.get_qreq_annot_nids">[docs]</a>    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+    <span class="k">def</span> <span class="nf">get_qreq_annot_nids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="c1"># uses own internal state to grab name rowids instead of using wbia.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;aid_to_idx&#39;</span><span class="p">):</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">ensure_nids</span><span class="p">()</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">aid_to_idx</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
+        <span class="n">nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">unique_nids</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nids</span></div>
+
+<div class="viewcode-block" id="EstimatorRequest.get_qreq_annot_gids"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.EstimatorRequest.get_qreq_annot_gids">[docs]</a>    <span class="nd">@ut</span><span class="o">.</span><span class="n">accepts_numpy</span>
+    <span class="k">def</span> <span class="nf">get_qreq_annot_gids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="c1"># Hack uses own internal state to grab name rowids</span>
+        <span class="c1"># instead of using wbia.</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dnids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;TODO: save dnids in qreq_ state&quot;&quot;&quot;</span>
+        <span class="c1"># return qreq_.dannots.nids</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">qnids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;TODO: save qnids in qreq_ state&quot;&quot;&quot;</span>
+        <span class="c1"># return qreq_.qannots.nids</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_qreq_annot_nids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">extern_query_config2</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">extern_data_config2</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span></div>
+
+
+<div class="viewcode-block" id="execute_bulk"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.execute_bulk">[docs]</a><span class="k">def</span> <span class="nf">execute_bulk</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="c1"># Do not use bulk single queries</span>
+    <span class="n">bulk_on</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">use_bulk_cache</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">min_bulk_size</span>
+    <span class="k">if</span> <span class="n">bulk_on</span><span class="p">:</span>
+        <span class="c1"># Try and load directly from a big cache</span>
+        <span class="n">bc_dpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">((</span><span class="n">qreq_</span><span class="o">.</span><span class="n">cachedir</span><span class="p">,</span> <span class="s1">&#39;bulk_mc5&#39;</span><span class="p">))</span>
+        <span class="n">bc_fname</span> <span class="o">=</span> <span class="s1">&#39;bulk_mc5_&#39;</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_nice_parts</span><span class="p">())</span>
+        <span class="n">bc_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">with_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... bulk cache hit </span><span class="si">%r</span><span class="s1">/</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+            <span class="c1"># Fallback to smallcache</span>
+            <span class="n">cm_list</span> <span class="o">=</span> <span class="n">execute_singles</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">save_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Fallback to smallcache</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">execute_singles</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cm_list</span></div>
+
+
+<span class="k">def</span> <span class="nf">_load_singles</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="c1"># Find existing cached chip matches</span>
+    <span class="c1"># Try loading as many as possible</span>
+    <span class="n">fpath_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_chipmatch_fpaths</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span>
+    <span class="n">exists_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">fpath_list</span><span class="p">]</span>
+    <span class="n">qaids_hit</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">exists_flags</span><span class="p">)</span>
+    <span class="n">fpaths_hit</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">,</span> <span class="n">exists_flags</span><span class="p">)</span>
+    <span class="c1"># First, try a fast reload assuming no errors</span>
+    <span class="n">fpath_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span>
+        <span class="n">fpaths_hit</span><span class="p">,</span>
+        <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">),</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;loading cache hits&#39;</span><span class="p">,</span>
+        <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">qaid_to_hit</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">qaid</span><span class="p">:</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="o">.</span><span class="n">load_from_fpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids_hit</span><span class="p">,</span> <span class="n">fpath_iter</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="k">except</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">NeedRecomputeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="c1"># Fallback to a slow reload</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Some cached results need to recompute&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">qaid_to_hit</span> <span class="o">=</span> <span class="n">_load_singles_fallback</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid_to_hit</span>
+
+
+<span class="k">def</span> <span class="nf">_load_singles_fallback</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">):</span>
+    <span class="n">fpath_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span>
+        <span class="n">fpaths_hit</span><span class="p">,</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;checking chipmatch cache&#39;</span><span class="p">,</span>
+        <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Recompute those that fail loading</span>
+    <span class="n">qaid_to_hit</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">fpath_iter</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="o">.</span><span class="n">load_from_fpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">NeedRecomputeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qaid_to_hit</span><span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">cm</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> cached matches need to be recomputed&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_to_hit</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpaths_hit</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid_to_hit</span>
+
+
+<div class="viewcode-block" id="execute_singles"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.execute_singles">[docs]</a><span class="k">def</span> <span class="nf">execute_singles</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">use_single_cache</span><span class="p">:</span>
+        <span class="n">qaid_to_hit</span> <span class="o">=</span> <span class="n">_load_singles</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">qaid_to_hit</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">hit_all</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_to_hit</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span>
+    <span class="n">hit_any</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_to_hit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">hit_all</span><span class="p">:</span>
+        <span class="n">qaid_to_cm</span> <span class="o">=</span> <span class="n">qaid_to_hit</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hit_any</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;... partial cm cache hit </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qaid_to_hit</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)))</span>
+            <span class="n">hit_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid_to_hit</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">miss_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">hit_aids</span><span class="p">)</span>
+            <span class="n">qreq_miss</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">miss_aids</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qreq_miss</span> <span class="o">=</span> <span class="n">qreq_</span>
+        <span class="c1"># Compute misses</span>
+        <span class="n">qreq_miss</span><span class="o">.</span><span class="n">ensure_data</span><span class="p">()</span>
+        <span class="n">qaid_to_cm</span> <span class="o">=</span> <span class="n">execute_and_save</span><span class="p">(</span><span class="n">qreq_miss</span><span class="p">)</span>
+        <span class="c1"># Merge misses with hits</span>
+        <span class="k">if</span> <span class="n">hit_any</span><span class="p">:</span>
+            <span class="n">qaid_to_cm</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qaid_to_hit</span><span class="p">)</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qaid_to_cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cm_list</span></div>
+
+
+<div class="viewcode-block" id="execute_and_save"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.match_chips5.execute_and_save">[docs]</a><span class="k">def</span> <span class="nf">execute_and_save</span><span class="p">(</span><span class="n">qreq_miss</span><span class="p">):</span>
+    <span class="c1"># Iterate over vsone queries in chunks.</span>
+    <span class="n">total_chunks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_num_chunks</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qreq_miss</span><span class="o">.</span><span class="n">qaids</span><span class="p">),</span> <span class="n">qreq_miss</span><span class="o">.</span><span class="n">chunksize</span><span class="p">)</span>
+    <span class="n">qaid_chunk_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">qreq_miss</span><span class="o">.</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_miss</span><span class="o">.</span><span class="n">chunksize</span><span class="p">)</span>
+    <span class="n">_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span>
+        <span class="n">length</span><span class="o">=</span><span class="n">total_chunks</span><span class="p">,</span>
+        <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;[mc5] query chunk: &#39;</span><span class="p">,</span>
+        <span class="n">prog_hook</span><span class="o">=</span><span class="n">qreq_miss</span><span class="o">.</span><span class="n">prog_hook</span><span class="p">,</span>
+        <span class="n">bs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">qaid_chunk_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">_prog</span><span class="p">(</span><span class="n">qaid_chunk_iter</span><span class="p">))</span>
+
+    <span class="n">qaid_to_cm</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">qaids</span> <span class="ow">in</span> <span class="n">qaid_chunk_iter</span><span class="p">:</span>
+        <span class="n">sub_qreq</span> <span class="o">=</span> <span class="n">qreq_miss</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qaids</span><span class="o">=</span><span class="n">qaids</span><span class="p">)</span>
+        <span class="n">cm_batch</span> <span class="o">=</span> <span class="n">sub_qreq</span><span class="o">.</span><span class="n">execute_pipeline</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm_batch</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">),</span> <span class="s1">&#39;bad alignment&#39;</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">qaid</span> <span class="o">==</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span> <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">cm</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">cm_batch</span><span class="p">)])</span>
+
+        <span class="c1"># TODO: we already computed the fpaths</span>
+        <span class="c1"># should be able to pass them in</span>
+        <span class="n">fpath_list</span> <span class="o">=</span> <span class="n">sub_qreq</span><span class="o">.</span><span class="n">get_chipmatch_fpaths</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
+        <span class="n">_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span>
+            <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_batch</span><span class="p">),</span>
+            <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;saving chip matches&#39;</span><span class="p">,</span>
+            <span class="n">bs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">cm</span><span class="p">,</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cm_batch</span><span class="p">,</span> <span class="n">fpath_list</span><span class="p">)):</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">save_to_fpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">qaid_to_cm</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">:</span> <span class="n">cm</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_batch</span><span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">qaid_to_cm</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

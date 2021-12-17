@@ -35,6 +35,9 @@ from wbia.dtool.types import initialize_postgresql_types
 import tqdm
 
 
+TYPE_INITIALIZED_CACHE = {}
+
+
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia.dtool')
 
@@ -561,14 +564,33 @@ class SQLDatabaseController(object):
             schema = None
         return schema
 
+    def ensure_postgresql_types(self, conn):
+        """Create a connection instance to wrap a SQL execution block as a context manager"""
+        if not self.is_using_postgres:
+            return
+
+        global TYPE_INITIALIZED_CACHE
+
+        type_cache_tag = (
+            self.uri,
+            self.schema_name,
+        )
+        type_cache_flag = True
+        if type_cache_tag not in TYPE_INITIALIZED_CACHE:
+            try:
+                conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema_name}')
+                conn.execute(text('SET SCHEMA :schema'), schema=self.schema_name)
+                initialize_postgresql_types(conn, self.schema_name)
+            except Exception:
+                type_cache_flag = False
+
+        TYPE_INITIALIZED_CACHE[type_cache_tag] = type_cache_flag
+
     @contextmanager
     def connect(self):
         """Create a connection instance to wrap a SQL execution block as a context manager"""
         with self._engine.connect() as conn:
-            if self.is_using_postgres:
-                conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema_name}')
-                conn.execute(text('SET SCHEMA :schema'), schema=self.schema_name)
-                initialize_postgresql_types(conn, self.schema_name)
+            self.ensure_postgresql_types(conn)
             yield conn
 
     @profile
@@ -2533,7 +2555,7 @@ class SQLDatabaseController(object):
             python -m wbia --tf get_table_superkey_colnames --db PZ_Master0 --tablename=annotations
             python -m wbia --tf get_table_superkey_colnames --db PZ_Master0 --tablename=contributors  # NOQA
 
-        Example0:
+        Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
             >>> from wbia.dtool.example_depcache import testdata_depc
@@ -2564,7 +2586,7 @@ class SQLDatabaseController(object):
         CommandLine:
             python -m dtool.sql_control --exec-get_table_docstr
 
-        Example0:
+        Example:
             >>> # ENABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
             >>> from wbia.dtool.example_depcache import testdata_depc
@@ -3012,7 +3034,7 @@ class SQLDatabaseController(object):
             python -m dtool.sql_control --test-merge_databases_new:0
             python -m dtool.sql_control --test-merge_databases_new:2
 
-        Example0:
+        Example:
             >>> # DISABLE_DOCTEST
             >>> # xdoctest: +REQUIRES(module:wbia)
             >>> from wbia.dtool.sql_control import *  # NOQA
@@ -3029,7 +3051,7 @@ class SQLDatabaseController(object):
             >>> # execute function
             >>> db.merge_databases_new(db_src)
 
-        Example1:
+        Example:
             >>> # DISABLE_DOCTEST
             >>> # xdoctest: +REQUIRES(module:wbia)
             >>> from wbia.dtool.sql_control import *  # NOQA
@@ -3046,7 +3068,7 @@ class SQLDatabaseController(object):
             >>> # execute function
             >>> db.merge_databases_new(db_src, ignore_tables=ignore_tables)
 
-        Example2:
+        Example:
             >>> # DISABLE_DOCTEST
             >>> # xdoctest: +REQUIRES(module:wbia)
             >>> from wbia.dtool.sql_control import *  # NOQA

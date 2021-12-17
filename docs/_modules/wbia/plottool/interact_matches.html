@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.interact_matches &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.interact_matches</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.interact_matches</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Unfinished non-wbia dependent version of interact matches</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">abstract_interaction</span>
+
+<span class="n">BASE_CLASS</span> <span class="o">=</span> <span class="n">abstract_interaction</span><span class="o">.</span><span class="n">AbstractInteraction</span>
+
+
+<span class="c1"># TODO: move to plottool and decouple with IBEIS</span>
+<span class="c1"># TODO: abstract interaction</span>
+<div class="viewcode-block" id="MatchInteraction2"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_matches.MatchInteraction2">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">MatchInteraction2</span><span class="p">(</span><span class="n">BASE_CLASS</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: replace functional version with this class</span>
+
+<span class="sd">    Plots a chip result and sets up callbacks for interaction.</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        wbia.viz.interact.interact_matches.MatchInteraction</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.interact_matches --test-MatchInteraction2 --show</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(module:wbia, --slow)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.interact_matches import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict(query_rotation_heuristic=True))</span>
+<span class="sd">        &gt;&gt;&gt; cm = qreq_.execute()[0]</span>
+<span class="sd">        &gt;&gt;&gt; qaid = cm.qaid</span>
+<span class="sd">        &gt;&gt;&gt; daid = cm.get_top_aids()[0]</span>
+<span class="sd">        &gt;&gt;&gt; rchip1 = ibs.get_annot_chips([qaid], config2_=qreq_.extern_query_config2)[0]</span>
+<span class="sd">        &gt;&gt;&gt; rchip2 = ibs.get_annot_chips([daid], config2_=qreq_.extern_data_config2)[0]</span>
+<span class="sd">        &gt;&gt;&gt; kpts1 = ibs.get_annot_kpts([qaid], config2_=qreq_.extern_query_config2)[0]</span>
+<span class="sd">        &gt;&gt;&gt; kpts2 = ibs.get_annot_kpts([daid], config2_=qreq_.extern_data_config2)[0]</span>
+<span class="sd">        &gt;&gt;&gt; vecs1 = ibs.get_annot_vecs([qaid], config2_=qreq_.extern_query_config2)[0]</span>
+<span class="sd">        &gt;&gt;&gt; vecs2 = ibs.get_annot_vecs([daid], config2_=qreq_.extern_data_config2)[0]</span>
+<span class="sd">        &gt;&gt;&gt; fm = cm.aid2_fm[daid]</span>
+<span class="sd">        &gt;&gt;&gt; fs = cm.aid2_fs[daid]</span>
+<span class="sd">        &gt;&gt;&gt; fsv = cm.aid2_fsv[daid]</span>
+<span class="sd">        &gt;&gt;&gt; H1 = cm.aid2_H[daid]</span>
+<span class="sd">        &gt;&gt;&gt; self = MatchInteraction2(rchip1, rchip2, kpts1, kpts2, fm, fs, fsv,</span>
+<span class="sd">        &gt;&gt;&gt;                          vecs1, vecs2, H1)</span>
+<span class="sd">        &gt;&gt;&gt; self.show_page()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rchip1</span><span class="p">,</span>
+        <span class="n">rchip2</span><span class="p">,</span>
+        <span class="n">kpts1</span><span class="p">,</span>
+        <span class="n">kpts2</span><span class="p">,</span>
+        <span class="n">fm</span><span class="p">,</span>
+        <span class="n">fs</span><span class="p">,</span>
+        <span class="n">fsv</span><span class="p">,</span>
+        <span class="n">vecs1</span><span class="p">,</span>
+        <span class="n">vecs2</span><span class="p">,</span>
+        <span class="n">H1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">H2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Drawing Data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rchip1</span> <span class="o">=</span> <span class="n">rchip1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rchip2</span> <span class="o">=</span> <span class="n">rchip2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kpts1</span> <span class="o">=</span> <span class="n">kpts1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kpts2</span> <span class="o">=</span> <span class="n">kpts2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fm</span> <span class="o">=</span> <span class="n">fm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fk</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;fk&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fsv</span> <span class="o">=</span> <span class="n">fsv</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vecs1</span> <span class="o">=</span> <span class="n">vecs1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vecs2</span> <span class="o">=</span> <span class="n">vecs2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">H1</span> <span class="o">=</span> <span class="n">H1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">H2</span> <span class="o">=</span> <span class="n">H2</span>
+
+        <span class="c1"># Drawing settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warp_homog</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mx</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;mx&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vert</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;vert&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">same_fig</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;same_fig&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_fx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># self.figtitle = kwargs.get(&#39;figtitle&#39;, &#39;Inspect Matches&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xywh2</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fnum2</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">truth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;truth&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># self.fnum2 = pt.next_fnum()</span>
+
+        <span class="c1"># if BASE_CLASS is not object:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;interaction_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;matches&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatchInteraction2</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># self.begin(**kwargs)</span>
+
+<div class="viewcode-block" id="MatchInteraction2.plot"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_matches.MatchInteraction2.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chipmatch_view</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MatchInteraction2.chipmatch_view"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_matches.MatchInteraction2.chipmatch_view">[docs]</a>    <span class="k">def</span> <span class="nf">chipmatch_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        just visualizes the matches using some type of lines</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+
+        <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fnum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">verbose</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-- CHIPMATCH VIEW --&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ichipmatch_view] self.mode = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,))</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">kwargs_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">draw_ell</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">&gt;=</span> <span class="mi">1</span>
+        <span class="n">draw_lines</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ichipmatch_view] draw_lines = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">draw_lines</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[ichipmatch_view] draw_ell = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">draw_ell</span><span class="p">,))</span>
+        <span class="c1"># pt.figure(fnum=fnum, docla=True, doclf=True)</span>
+        <span class="c1"># NOTE: i remove the clf here. might cause issues</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># show_matches_kw = self.__dict__.copy()</span>
+        <span class="n">show_matches_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># fnum=fnum, pnum=pnum,</span>
+            <span class="n">draw_lines</span><span class="o">=</span><span class="n">draw_lines</span><span class="p">,</span>
+            <span class="n">draw_ell</span><span class="o">=</span><span class="n">draw_ell</span><span class="p">,</span>
+            <span class="n">colorbar_</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">vert</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vert</span><span class="p">,</span>
+            <span class="n">white_background</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">show_matches_kw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs_</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;self.warp_homog = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">warp_homog</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warp_homog</span><span class="p">:</span>
+            <span class="n">show_matches_kw</span><span class="p">[</span><span class="s1">&#39;H1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H1</span>
+            <span class="n">show_matches_kw</span><span class="p">[</span><span class="s1">&#39;H2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H2</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;show_matches_kw = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">show_matches_kw</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
+
+        <span class="c1"># tup = show_matches(fm, fs, **show_matches_kw)</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">show_chipmatch2</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rchip1</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rchip2</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kpts1</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kpts2</span><span class="p">,</span>
+            <span class="n">fm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fm</span><span class="p">,</span>
+            <span class="n">fs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fs</span><span class="p">,</span>
+            <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">show_matches_kw</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xywh2</span> <span class="o">=</span> <span class="n">xywh2</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;matches&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">truth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">truth</span><span class="p">:</span>
+            <span class="n">truth_color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">TRUE_BLUE</span>  <span class="c1"># if  else pt.FALSE_RED</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">truth_color</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span></div>
+        <span class="c1"># pt.set_figtitle(figtitle + &#39; &#39; + vh.get_vsstr(qaid, aid))</span>
+
+    <span class="c1"># Draw clicked selection</span>
+<div class="viewcode-block" id="MatchInteraction2.select_ith_match"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_matches.MatchInteraction2.select_ith_match">[docs]</a>    <span class="k">def</span> <span class="nf">select_ith_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Selects the ith match and visualizes and prints information concerning</span>
+<span class="sd">        features weights, keypoint details, and sift descriptions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">viz_featrow</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
+
+        <span class="n">fnum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>
+        <span class="n">same_fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">same_fig</span>
+        <span class="n">rchip1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rchip1</span>
+        <span class="n">rchip2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rchip2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mx</span> <span class="o">=</span> <span class="n">mx</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;+--- SELECT --- &#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... selecting mx-th=</span><span class="si">%r</span><span class="s1"> feature match&#39;</span> <span class="o">%</span> <span class="n">mx</span><span class="p">)</span>
+        <span class="n">fsv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fsv</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;score stats:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">fsv</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;fsv[mx] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fsv</span><span class="p">[</span><span class="n">mx</span><span class="p">],))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;fs[mx] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="n">mx</span><span class="p">],))</span>
+        <span class="c1"># ----------------------</span>
+        <span class="c1"># Get info for the select_ith_match plot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="c1"># Get the mx-th feature match</span>
+        <span class="n">fx1</span><span class="p">,</span> <span class="n">fx2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">mx</span><span class="p">]</span>
+
+        <span class="c1"># Older info</span>
+        <span class="n">fscore2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs</span><span class="p">[</span><span class="n">mx</span><span class="p">]</span>
+        <span class="n">fk2</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fk</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">fk</span><span class="p">[</span><span class="n">mx</span><span class="p">]</span>
+        <span class="n">kp1</span><span class="p">,</span> <span class="n">kp2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts1</span><span class="p">[</span><span class="n">fx1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts2</span><span class="p">[</span><span class="n">fx2</span><span class="p">]</span>
+        <span class="n">vecs1</span><span class="p">,</span> <span class="n">vecs2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vecs1</span><span class="p">[</span><span class="n">fx1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vecs2</span><span class="p">[</span><span class="n">fx2</span><span class="p">]</span>
+        <span class="n">info1</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">query&#39;</span>
+        <span class="n">info2</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">k=</span><span class="si">%r</span><span class="s1"> fscore=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fk2</span><span class="p">,</span> <span class="n">fscore2</span><span class="p">)</span>
+        <span class="c1"># self.last_fx = fx1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_fx</span> <span class="o">=</span> <span class="n">fx1</span>
+
+        <span class="c1"># Extracted keypoints to draw</span>
+        <span class="n">extracted_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">rchip1</span><span class="p">,</span> <span class="n">kp1</span><span class="p">,</span> <span class="n">vecs1</span><span class="p">,</span> <span class="n">fx1</span><span class="p">,</span> <span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="n">info1</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">rchip2</span><span class="p">,</span> <span class="n">kp2</span><span class="p">,</span> <span class="n">vecs2</span><span class="p">,</span> <span class="n">fx2</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">,</span> <span class="n">info2</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="c1"># Normalizng Keypoint</span>
+        <span class="c1"># if hasattr(cm, &#39;filt2_meta&#39;) and &#39;lnbnn&#39; in cm.filt2_meta:</span>
+        <span class="c1">#    qfx2_norm = cm.filt2_meta[&#39;lnbnn&#39;]</span>
+        <span class="c1">#    # Normalizing chip and feature</span>
+        <span class="c1">#    (aid3, fx3, normk) = qfx2_norm[fx1]</span>
+        <span class="c1">#    rchip3 = ibs.get_annot_chips(aid3)</span>
+        <span class="c1">#    kp3 = ibs.get_annot_kpts(aid3)[fx3]</span>
+        <span class="c1">#    sift3 = ibs.get_annot_vecs(aid3)[fx3]</span>
+        <span class="c1">#    info3 = &#39;\nnorm %s k=%r&#39; % (vh.get_aidstrs(aid3), normk)</span>
+        <span class="c1">#    extracted_list.append((rchip3, kp3, sift3, fx3, aid3, info3))</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#    pass</span>
+        <span class="c1">#    #print(&#39;WARNING: meta doesnt exist&#39;)</span>
+
+        <span class="c1"># ----------------------</span>
+        <span class="c1"># Draw the select_ith_match plot</span>
+        <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">extracted_list</span><span class="p">)</span> <span class="o">+</span> <span class="n">same_fig</span><span class="p">,</span> <span class="mi">3</span>
+        <span class="c1"># Draw matching chips and features</span>
+        <span class="n">sel_fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">fx1</span><span class="p">,</span> <span class="n">fx2</span><span class="p">)])</span>
+        <span class="n">pnum1</span> <span class="o">=</span> <span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">same_fig</span> <span class="k">else</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">vert</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vert</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vert</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chipmatch_view</span><span class="p">(</span>
+            <span class="n">pnum</span><span class="o">=</span><span class="n">pnum1</span><span class="p">,</span>
+            <span class="n">ell_alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+            <span class="n">ell_linewidth</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
+            <span class="n">colors</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">BLUE</span><span class="p">,</span>
+            <span class="n">sel_fm</span><span class="o">=</span><span class="n">sel_fm</span><span class="p">,</span>
+            <span class="n">vert</span><span class="o">=</span><span class="n">vert</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Draw selected feature matches</span>
+        <span class="n">px</span> <span class="o">=</span> <span class="n">nCols</span> <span class="o">*</span> <span class="n">same_fig</span>  <span class="c1"># plot offset</span>
+        <span class="n">prevsift</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">same_fig</span><span class="p">:</span>
+            <span class="c1"># fnum2 = fnum + len(viz.FNUMS)</span>
+            <span class="n">fnum2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum2</span>
+            <span class="n">fig2</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum2</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fnum2</span> <span class="o">=</span> <span class="n">fnum</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span> <span class="ow">in</span> <span class="n">extracted_list</span><span class="p">:</span>
+            <span class="n">px</span> <span class="o">=</span> <span class="n">viz_featrow</span><span class="o">.</span><span class="n">draw_feat_row</span><span class="p">(</span>
+                <span class="n">rchip</span><span class="p">,</span>
+                <span class="n">fx</span><span class="p">,</span>
+                <span class="n">kp</span><span class="p">,</span>
+                <span class="n">sift</span><span class="p">,</span>
+                <span class="n">fnum2</span><span class="p">,</span>
+                <span class="n">nRows</span><span class="p">,</span>
+                <span class="n">nCols</span><span class="p">,</span>
+                <span class="n">px</span><span class="p">,</span>
+                <span class="n">prevsift</span><span class="o">=</span><span class="n">prevsift</span><span class="p">,</span>
+                <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span>
+                <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">prevsift</span> <span class="o">=</span> <span class="n">sift</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">same_fig</span><span class="p">:</span>
+            <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="n">fig2</span><span class="p">,</span> <span class="s1">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_click</span><span class="p">)</span></div>
+            <span class="c1"># pt.set_figtitle(figtitle + vh.get_vsstr(qaid, aid))</span>
+
+    <span class="c1"># Callback</span>
+<div class="viewcode-block" id="MatchInteraction2.on_click_inside"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_matches.MatchInteraction2.on_click_inside">[docs]</a>    <span class="k">def</span> <span class="nf">on_click_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+
+        <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span><span class="p">)</span>
+        <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_popup_options</span><span class="p">(),</span> <span class="n">event</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># key = &#39;&#39; if event.key is None else event.key</span>
+        <span class="c1"># ctrl_down = key.find(&#39;control&#39;) == 0</span>
+        <span class="k">if</span> <span class="n">viztype</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;matches&#39;</span><span class="p">,</span> <span class="s1">&#39;multi_match&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[inter] no feature matches to click&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Normal Click</span>
+                <span class="c1"># Select nearest feature match to the click</span>
+                <span class="n">kpts1_m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts1</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fm</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]</span>
+                <span class="n">kpts2_m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpts2</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fm</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span>
+                <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">w2</span><span class="p">,</span> <span class="n">h2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xywh2</span>
+                <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+                <span class="n">_mx1</span><span class="p">,</span> <span class="n">_dist1</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">nearest_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">kpts1_m</span><span class="p">)</span>
+                <span class="n">_mx2</span><span class="p">,</span> <span class="n">_dist2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">nearest_point</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="n">y2</span><span class="p">,</span> <span class="n">kpts2_m</span><span class="p">)</span>
+                <span class="n">mx</span> <span class="o">=</span> <span class="n">_mx1</span> <span class="k">if</span> <span class="n">_dist1</span> <span class="o">&lt;</span> <span class="n">_dist2</span> <span class="k">else</span> <span class="n">_mx2</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... clicked mx=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mx</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">select_ith_match</span><span class="p">(</span><span class="n">mx</span><span class="p">)</span>
+        <span class="c1"># elif viztype in [&#39;warped&#39;, &#39;unwarped&#39;]:</span>
+        <span class="c1">#    pass</span>
+        <span class="c1">#    #hs_aid = ax.__dict__.get(&#39;_hs_aid&#39;, None)</span>
+        <span class="c1">#    #hs_fx = ax.__dict__.get(&#39;_hs_fx&#39;, None)</span>
+        <span class="c1">#    #if hs_aid is not None and viztype == &#39;unwarped&#39;:</span>
+        <span class="c1">#    #    ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=pt.next_fnum())</span>
+        <span class="c1">#    #elif hs_aid is not None and viztype == &#39;warped&#39;:</span>
+        <span class="c1">#    #    viz.show_keypoint_gradient_orientations(ibs, hs_aid,</span>
+        <span class="c1">#    #    hs_fx, fnum=pt.next_fnum())</span>
+        <span class="c1"># Click in match axes</span>
+        <span class="c1"># elif viztype == &#39;matches&#39; and ctrl_down:</span>
+        <span class="c1">#    # Ctrl-Click</span>
+        <span class="c1">#    print(&#39;.. control click&#39;)</span>
+        <span class="c1">#    return self.sv_view()</span>
+        <span class="k">elif</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;colorbar&#39;</span><span class="p">):</span>
+            <span class="c1"># Hack to get a specific scoring feature</span>
+            <span class="n">sortx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">sortx</span><span class="p">))),</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">mx</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="p">(</span><span class="n">fx1</span><span class="p">,</span> <span class="n">fx2</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">mx</span><span class="p">]</span>
+            <span class="p">(</span><span class="n">fx1</span><span class="p">,</span> <span class="n">fx2</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">mx</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... selected score at rank idx=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">idx</span><span class="p">,))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... selected score with fs=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fs</span><span class="p">[</span><span class="n">mx</span><span class="p">],))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... resolved to mx=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mx</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... fx1, fx2 = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fx1</span><span class="p">,</span> <span class="n">fx2</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">select_ith_match</span><span class="p">(</span><span class="n">mx</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;...Unknown viztype: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatchInteraction2.on_click_outside"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_matches.MatchInteraction2.on_click_outside">[docs]</a>    <span class="k">def</span> <span class="nf">on_click_outside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... out of axis&#39;</span><span class="p">)</span>
+        <span class="c1"># self.warp_homog = not self.warp_homog</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>
+        <span class="c1"># self.chipmatch_view()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatchInteraction2.get_popup_options"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_matches.MatchInteraction2.get_popup_options">[docs]</a>    <span class="k">def</span> <span class="nf">get_popup_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">toggle_attr_item</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">num_states</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">toggle_attr</span><span class="p">():</span>
+                <span class="n">new_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_states</span><span class="p">)</span>
+                <span class="n">new_value</span> <span class="o">=</span> <span class="n">type_</span><span class="p">(</span><span class="n">new_value</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new_value(</span><span class="si">%s</span><span class="s1">) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">new_value</span><span class="p">))</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">new_value</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+            <span class="n">itemstr</span> <span class="o">=</span> <span class="s1">&#39;Toggle </span><span class="si">%s</span><span class="s1">=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">itemstr</span><span class="p">,</span> <span class="n">toggle_attr</span><span class="p">)</span>
+
+        <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">toggle_attr_item</span><span class="p">(</span><span class="s1">&#39;warp_homog&#39;</span><span class="p">),</span>
+            <span class="n">toggle_attr_item</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">options</span></div></div>
+
+
+<div class="viewcode-block" id="show_keypoint_gradient_orientations"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.interact_matches.show_keypoint_gradient_orientations">[docs]</a><span class="k">def</span> <span class="nf">show_keypoint_gradient_orientations</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">rchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">vec</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="c1"># Draw the gradient vectors of a patch overlaying the keypoint</span>
+    <span class="kn">import</span> <span class="nn">wbia.plottoola</span> <span class="k">as</span> <span class="nn">pt</span>
+
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="c1"># rchip = ibs.get_annot_chips(aid, config2_=config2_)</span>
+    <span class="c1"># kp    = ibs.get_annot_kpts(aid, config2_=config2_)[fx]</span>
+    <span class="c1"># sift  = ibs.get_annot_vecs(aid, config2_=config2_)[fx]</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">draw_keypoint_gradient_orientations</span><span class="p">(</span>
+        <span class="n">rchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="o">=</span><span class="n">vec</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;vec&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span>
+    <span class="p">)</span></div>
+    <span class="c1"># pt.set_title(&#39;Gradient orientation\n %s, fx=%d&#39; % (get_aidstrs(aid), fx))</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -468,7 +468,7 @@ def filterflags_general_tags(
         python -m wbia.tag_funcs --exec-filterflags_general_tags:1
         python -m wbia.tag_funcs --exec-filterflags_general_tags:2
 
-    Example0:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.tag_funcs import *  # NOQA
         >>> tags_list = [['v'], [], ['P'], ['P', 'o'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['q', 'v'], ['n'], ['n'], ['N']]
@@ -479,7 +479,7 @@ def filterflags_general_tags(
         >>> result = ut.compress(tags_list, flags)
         >>> print('result = %r' % (result,))
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.tag_funcs import *  # NOQA
         >>> tags_list = [['v'], [], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n'], ['N']]
@@ -489,7 +489,7 @@ def filterflags_general_tags(
         >>> result = ut.compress(tags_list, flags)
         >>> print('result = %r' % (result,))
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.tag_funcs import *  # NOQA
         >>> tags_list = [['vn'], ['vn', 'no'], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n', 'nP'], ['NP']]

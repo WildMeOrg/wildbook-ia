@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.fig_presenter &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.fig_presenter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.fig_presenter</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">custom_figure</span>
+
+<span class="c1"># from .custom_constants import golden_wh</span>
+
+
+<span class="n">SLEEP_TIME</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">__QT4_WINDOW_LIST__</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[fig_presenter]&#39;</span><span class="p">)</span>
+
+
+<span class="n">VERBOSE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verbose-fig&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbfig&#39;</span><span class="p">,</span> <span class="s1">&#39;--verb-pt&#39;</span><span class="p">))</span>
+<span class="c1"># (print, print_, printDBG, rrr, profile) = ut.inject(__name__, &#39;[fig_presenter]&#39;, DEBUG=True)</span>
+
+
+<div class="viewcode-block" id="unregister_qt4_win"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.unregister_qt4_win">[docs]</a><span class="k">def</span> <span class="nf">unregister_qt4_win</span><span class="p">(</span><span class="n">win</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">__QT4_WINDOW_LIST__</span>
+    <span class="k">if</span> <span class="n">win</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="n">__QT4_WINDOW_LIST__</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># index = __QT4_WINDOW_LIST__.index(win)</span>
+            <span class="n">__QT4_WINDOW_LIST__</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">win</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="register_qt4_win"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.register_qt4_win">[docs]</a><span class="k">def</span> <span class="nf">register_qt4_win</span><span class="p">(</span><span class="n">win</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">__QT4_WINDOW_LIST__</span>
+    <span class="n">__QT4_WINDOW_LIST__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">win</span><span class="p">)</span></div>
+
+
+<span class="c1"># ---- GENERAL FIGURE COMMANDS ----</span>
+
+
+<div class="viewcode-block" id="set_geometry"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.set_geometry">[docs]</a><span class="k">def</span> <span class="nf">set_geometry</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">custom_figure</span><span class="o">.</span><span class="n">ensure_fig</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">qtwin</span> <span class="o">=</span> <span class="n">get_figure_window</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">qtwin</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_geometry"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.get_geometry">[docs]</a><span class="k">def</span> <span class="nf">get_geometry</span><span class="p">(</span><span class="n">fnum</span><span class="p">):</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">custom_figure</span><span class="o">.</span><span class="n">ensure_fig</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">qtwin</span> <span class="o">=</span> <span class="n">get_figure_window</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span> <span class="o">=</span> <span class="n">qtwin</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">getCoords</span><span class="p">()</span>
+    <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span></div>
+
+
+<span class="c1"># def get_screen_info():</span>
+<span class="c1">#    # TODO Move dependency to guitool</span>
+<span class="c1">#    desktop = QtWidgets.QDesktopWidget()</span>
+<span class="c1">#    mask = desktop.mask()  # NOQA</span>
+<span class="c1">#    layout_direction = desktop.layoutDirection()  # NOQA</span>
+<span class="c1">#    screen_number = desktop.screenNumber()  # NOQA</span>
+<span class="c1">#    normal_geometry = desktop.normalGeometry()  # NOQA</span>
+<span class="c1">#    num_screens = desktop.screenCount()  # NOQA</span>
+<span class="c1">#    avail_rect = desktop.availableGeometry()  # NOQA</span>
+<span class="c1">#    screen_rect = desktop.screenGeometry()  # NOQA</span>
+<span class="c1">#    QtWidgets.QDesktopWidget().availableGeometry().center()  # NOQA</span>
+<span class="c1">#    normal_geometry = desktop.normalGeometry()  # NOQA</span>
+
+
+<span class="c1"># @profile</span>
+<div class="viewcode-block" id="get_all_figures"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.get_all_figures">[docs]</a><span class="k">def</span> <span class="nf">get_all_figures</span><span class="p">():</span>
+    <span class="n">manager_list</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">_pylab_helpers</span><span class="o">.</span><span class="n">Gcf</span><span class="o">.</span><span class="n">get_all_fig_managers</span><span class="p">()</span>
+    <span class="n">all_figures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># Make sure you dont show figures that this module closed</span>
+    <span class="k">for</span> <span class="n">manager</span> <span class="ow">in</span> <span class="n">manager_list</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">figure</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fig</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;df2_closed&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">all_figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="c1"># Return all the figures sorted by their number</span>
+    <span class="n">all_figures</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_figures</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">fig</span><span class="p">:</span> <span class="n">fig</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_figures</span></div>
+
+
+<div class="viewcode-block" id="get_all_qt4_wins"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.get_all_qt4_wins">[docs]</a><span class="k">def</span> <span class="nf">get_all_qt4_wins</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">__QT4_WINDOW_LIST__</span></div>
+
+
+<div class="viewcode-block" id="all_figures_show"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.all_figures_show">[docs]</a><span class="k">def</span> <span class="nf">all_figures_show</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;all_figures_show&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--noshow&#39;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">get_all_figures</span><span class="p">():</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">SLEEP_TIME</span><span class="p">)</span>
+            <span class="n">show_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+            <span class="c1"># fig.show()</span>
+            <span class="c1"># fig.canvas.draw()</span>
+
+
+<div class="viewcode-block" id="show_figure"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.show_figure">[docs]</a><span class="k">def</span> <span class="nf">show_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;_no_raise_plottool&#39;</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span>
+                <span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;[pt] probably registered made figure with Qt.&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="all_figures_tight_layout"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.all_figures_tight_layout">[docs]</a><span class="k">def</span> <span class="nf">all_figures_tight_layout</span><span class="p">():</span>
+    <span class="k">if</span> <span class="s1">&#39;--noshow&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">get_all_figures</span><span class="p">()):</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">SLEEP_TIME</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_main_win_base"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.get_main_win_base">[docs]</a><span class="k">def</span> <span class="nf">get_main_win_base</span><span class="p">():</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">backends</span><span class="p">,</span> <span class="s1">&#39;backend_qt4&#39;</span><span class="p">):</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">backend_qt4</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">backend_qt5</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">QMainWin</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">MainWindow</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;warning&#39;</span><span class="p">,</span> <span class="s1">&#39;[fig_presenter]&#39;</span><span class="p">)</span>
+            <span class="c1"># from wbia.guitool.__PYQT__ import QtGui</span>
+            <span class="n">QMainWin</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QMainWindow</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex1</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex1</span><span class="p">,</span> <span class="s1">&#39;warning&#39;</span><span class="p">,</span> <span class="s1">&#39;[fig_presenter]&#39;</span><span class="p">)</span>
+            <span class="n">QMainWin</span> <span class="o">=</span> <span class="nb">object</span>
+    <span class="k">return</span> <span class="n">QMainWin</span></div>
+
+
+<div class="viewcode-block" id="get_all_windows"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.get_all_windows">[docs]</a><span class="k">def</span> <span class="nf">get_all_windows</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Returns all mpl figures and registered qt windows&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">all_figures</span> <span class="o">=</span> <span class="n">get_all_figures</span><span class="p">()</span>
+        <span class="n">all_qt4wins</span> <span class="o">=</span> <span class="n">get_all_qt4_wins</span><span class="p">()</span>
+        <span class="n">all_wins</span> <span class="o">=</span> <span class="n">all_qt4wins</span> <span class="o">+</span> <span class="p">[</span><span class="n">get_figure_window</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span> <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">all_figures</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">all_wins</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;probably using a windowless backend&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+
+<span class="c1"># @profile</span>
+<div class="viewcode-block" id="all_figures_tile"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.all_figures_tile">[docs]</a><span class="k">def</span> <span class="nf">all_figures_tile</span><span class="p">(</span>
+    <span class="n">max_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">row_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">no_tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">monitor_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">percent_w</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">percent_h</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">hide_toolbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lays out all figures in a grid. if wh is a scalar, a golden ratio is used</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># print(&#39;[plottool] all_figures_tile()&#39;)</span>
+    <span class="k">if</span> <span class="n">no_tile</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">current_backend</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">current_backend</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Qt&#39;</span><span class="p">):</span>
+        <span class="c1"># print(&#39;current_backend=%r is not a Qt backend. cannot tile.&#39; % current_backend)</span>
+        <span class="k">return</span>
+
+    <span class="n">all_wins</span> <span class="o">=</span> <span class="n">get_all_windows</span><span class="p">()</span>
+    <span class="n">num_wins</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_wins</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_wins</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">screeninfo</span>
+
+    <span class="n">valid_positions</span> <span class="o">=</span> <span class="n">screeninfo</span><span class="o">.</span><span class="n">get_valid_fig_positions</span><span class="p">(</span>
+        <span class="n">num_wins</span><span class="p">,</span>
+        <span class="n">max_rows</span><span class="p">,</span>
+        <span class="n">row_first</span><span class="p">,</span>
+        <span class="n">monitor_num</span><span class="p">,</span>
+        <span class="n">percent_w</span><span class="o">=</span><span class="n">percent_w</span><span class="p">,</span>
+        <span class="n">percent_h</span><span class="o">=</span><span class="n">percent_h</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">QMainWin</span> <span class="o">=</span> <span class="n">get_main_win_base</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">win</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_wins</span><span class="p">):</span>
+        <span class="n">isqt4_mpl</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">win</span><span class="p">,</span> <span class="n">QMainWin</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span>  <span class="c1"># NOQA</span>
+        <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtWidgets</span>  <span class="c1"># NOQA</span>
+
+        <span class="n">isqt4_back</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">win</span><span class="p">,</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QMainWindow</span><span class="p">)</span>
+        <span class="n">isqt4_widget</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">win</span><span class="p">,</span> <span class="n">QtWidgets</span><span class="o">.</span><span class="n">QWidget</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">=</span> <span class="n">valid_positions</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span>
+        <span class="c1"># printDBG(&#39;tile %d-th win: xywh=%r&#39; % (ix, (x, y, w, h)))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">isqt4_mpl</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isqt4_back</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isqt4_widget</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%r</span><span class="s1">-th Backend </span><span class="si">%r</span><span class="s1"> is not a Qt Window&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ix</span><span class="p">,</span> <span class="n">win</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hide_toolbar</span><span class="p">:</span>
+                <span class="n">toolbar</span> <span class="o">=</span> <span class="n">win</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QtWidgets</span><span class="o">.</span><span class="n">QToolBar</span><span class="p">)</span>
+                <span class="n">toolbar</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">win</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="all_figures_bring_to_front"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.all_figures_bring_to_front">[docs]</a><span class="k">def</span> <span class="nf">all_figures_bring_to_front</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">all_figures</span> <span class="o">=</span> <span class="n">get_all_figures</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">all_figures</span><span class="p">):</span>
+            <span class="n">bring_to_front</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;_no_raise_plottool&#39;</span><span class="p">):</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="close_all_figures"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.close_all_figures">[docs]</a><span class="k">def</span> <span class="nf">close_all_figures</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] close_all_figures&#39;</span><span class="p">)</span>
+    <span class="n">all_figures</span> <span class="o">=</span> <span class="n">get_all_figures</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">all_figures</span><span class="p">):</span>
+        <span class="n">close_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="close_figure"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.close_figure">[docs]</a><span class="k">def</span> <span class="nf">close_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] close_figure&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">df2_closed</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">qtwin</span> <span class="o">=</span> <span class="n">get_figure_window</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">qtwin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_figure_window"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.get_figure_window">[docs]</a><span class="k">def</span> <span class="nf">get_figure_window</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">qwin</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">window</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">qwin</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">window</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">qwin</span></div>
+
+
+<div class="viewcode-block" id="bring_to_front"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.bring_to_front">[docs]</a><span class="k">def</span> <span class="nf">bring_to_front</span><span class="p">(</span><span class="n">fig</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] bring_to_front&#39;</span><span class="p">)</span>
+    <span class="c1"># what is difference between show and show normal?</span>
+    <span class="n">qtwin</span> <span class="o">=</span> <span class="n">get_figure_window</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">qtwin</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span>
+    <span class="c1"># if not ut.WIN32:</span>
+    <span class="c1"># NOT sure on the correct order of these</span>
+    <span class="c1"># can cause the figure geometry to be unset</span>
+    <span class="kn">from</span> <span class="nn">wbia.guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+
+    <span class="n">qtwin</span><span class="o">.</span><span class="n">activateWindow</span><span class="p">()</span>
+    <span class="n">qtwin</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+    <span class="n">qtwin</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowFlags</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">qtwin</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="show"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.show">[docs]</a><span class="k">def</span> <span class="nf">show</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] show&#39;</span><span class="p">)</span>
+    <span class="n">all_figures_show</span><span class="p">()</span>
+    <span class="n">all_figures_bring_to_front</span><span class="p">()</span></div>
+    <span class="c1"># plt.show()</span>
+
+
+<div class="viewcode-block" id="reset"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.reset">[docs]</a><span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] reset&#39;</span><span class="p">)</span>
+    <span class="n">close_all_figures</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="draw"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.draw">[docs]</a><span class="k">def</span> <span class="nf">draw</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] draw&#39;</span><span class="p">)</span>
+    <span class="n">all_figures_show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="update"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.update">[docs]</a><span class="k">def</span> <span class="nf">update</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] update&#39;</span><span class="p">)</span>
+    <span class="n">draw</span><span class="p">()</span>
+    <span class="n">all_figures_bring_to_front</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="iupdate"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.iupdate">[docs]</a><span class="k">def</span> <span class="nf">iupdate</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] iupdate&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">inIPython</span><span class="p">():</span>
+        <span class="n">update</span><span class="p">()</span></div>
+
+
+<span class="n">iup</span> <span class="o">=</span> <span class="n">iupdate</span>
+
+
+<div class="viewcode-block" id="present"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.fig_presenter.present">[docs]</a><span class="k">def</span> <span class="nf">present</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    basically calls show if not embeded.</span>
+
+<span class="sd">    Kwargs:</span>
+<span class="sd">        max_rows, row_first, no_tile, monitor_num, percent_w, percent_h,</span>
+<span class="sd">        hide_toolbar</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.fig_presenter present</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.fig_presenter import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = present()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[pt] present&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--noshow&#39;</span><span class="p">):</span>
+        <span class="c1"># print(&#39;[fig_presenter] Presenting figures...&#39;)</span>
+        <span class="c1"># with warnings.catch_warnings():</span>
+        <span class="c1">#    warnings.simplefilter(&quot;ignore&quot;)</span>
+        <span class="n">all_figures_tile</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># Both of these lines cause the weird non-refresh black border behavior</span>
+        <span class="n">all_figures_show</span><span class="p">()</span>
+        <span class="n">all_figures_bring_to_front</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

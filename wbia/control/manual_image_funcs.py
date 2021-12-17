@@ -828,7 +828,7 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
     CommandLine:
         python -m wbia.control.manual_image_funcs --test-set_image_unixtime
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> import wbia
@@ -848,7 +848,7 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
         >>> print(ut.repr2(unixtime_list_))
         >>> assert unixtime_list == unixtime_list_
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> import wbia
@@ -868,7 +868,7 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
         >>> except AssertionError:
         >>>     pass
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> import wbia

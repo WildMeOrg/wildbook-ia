@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.tests package &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="wbia.scripts package" href="wbia.scripts.html" />
+    <link rel="prev" title="wbia.plottool package" href="wbia.plottool.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wbia.algo.html">wbia.algo package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.control.html">wbia.control package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.dbio.html">wbia.dbio package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.detecttools.html">wbia.detecttools package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.dtool.html">wbia.dtool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.expt.html">wbia.expt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.gui.html">wbia.gui package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.guitool.html">wbia.guitool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.init.html">wbia.init package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.other.html">wbia.other package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="wbia.plottool.html">wbia.plottool package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="wbia.plottool.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">wbia.plottool.tests package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.__MPL_INIT__">wbia.plottool.__MPL_INIT__ module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.__main__">wbia.plottool.__main__ module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool._cv2_impaint">wbia.plottool._cv2_impaint module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool._oldimpaint">wbia.plottool._oldimpaint module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.abstract_interaction">wbia.plottool.abstract_interaction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.color_funcs">wbia.plottool.color_funcs module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.custom_constants">wbia.plottool.custom_constants module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.custom_figure">wbia.plottool.custom_figure module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.draw_func2">wbia.plottool.draw_func2 module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.draw_sv">wbia.plottool.draw_sv module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.fig_presenter">wbia.plottool.fig_presenter module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.interact_annotations">wbia.plottool.interact_annotations module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.interact_helpers">wbia.plottool.interact_helpers module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.interact_impaint">wbia.plottool.interact_impaint module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.interact_keypoints">wbia.plottool.interact_keypoints module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.interact_matches">wbia.plottool.interact_matches module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.interact_multi_image">wbia.plottool.interact_multi_image module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.interactions">wbia.plottool.interactions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.mpl_keypoint">wbia.plottool.mpl_keypoint module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.mpl_sift">wbia.plottool.mpl_sift module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.nx_helpers">wbia.plottool.nx_helpers module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.other">wbia.plottool.other module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.plot_helpers">wbia.plottool.plot_helpers module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.plots">wbia.plottool.plots module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#wbia-plottool-screeninfo-module">wbia.plottool.screeninfo module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.test_colorsys">wbia.plottool.test_colorsys module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.test_vtk_poly">wbia.plottool.test_vtk_poly module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.viz_featrow">wbia.plottool.viz_featrow module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.viz_image2">wbia.plottool.viz_image2 module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool.viz_keypoints">wbia.plottool.viz_keypoints module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.plottool.html#module-wbia.plottool">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.scripts.html">wbia.scripts package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.templates.html">wbia.templates package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.viz.html">wbia.viz package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.web.html">wbia.web package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-main">wbia.__main__</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-devcmds-wbia">wbia._devcmds_wbia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-devscript">wbia._devscript</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia._wbia_object">wbia._wbia_object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.annotmatch_funcs">wbia.annotmatch_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.annots">wbia.annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.constants">wbia.constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_annots">wbia.core_annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_images">wbia.core_images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_parts">wbia.core_parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-demodata">wbia.demodata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-dev">wbia.dev</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-filter-configs">wbia.filter_configs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.images">wbia.images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.params">wbia.params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.tag_funcs">wbia.tag_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="api.html">API</a> &raquo;</li>
+          <li><a href="wbia.plottool.html">wbia.plottool package</a> &raquo;</li>
+      <li>wbia.plottool.tests package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/wbia.plottool.tests.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wbia-plottool-tests-package">
+<h1>wbia.plottool.tests package<a class="headerlink" href="#wbia-plottool-tests-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.plottool.tests.test_helpers">
+<span id="wbia-plottool-tests-test-helpers-module"></span><h2>wbia.plottool.tests.test_helpers module<a class="headerlink" href="#module-wbia.plottool.tests.test_helpers" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.plottool.tests.test_helpers.dummy_bbox">
+<span class="sig-prename descclassname"><span class="pre">wbia.plottool.tests.test_helpers.</span></span><span class="sig-name descname"><span class="pre">dummy_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/plottool/tests/test_helpers.html#dummy_bbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.plottool.tests.test_helpers.dummy_bbox" title="Permalink to this definition"></a></dt>
+<dd><p>Default to rectangle that has a quarter-width/height border.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.plottool.tests.test_helpers.imread_many">
+<span class="sig-prename descclassname"><span class="pre">wbia.plottool.tests.test_helpers.</span></span><span class="sig-name descname"><span class="pre">imread_many</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgpaths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/plottool/tests/test_helpers.html#imread_many"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.plottool.tests.test_helpers.imread_many" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-wbia.plottool.tests.test_interact_multi_image">
+<span id="wbia-plottool-tests-test-interact-multi-image-module"></span><h2>wbia.plottool.tests.test_interact_multi_image module<a class="headerlink" href="#module-wbia.plottool.tests.test_interact_multi_image" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.plottool.tests.test_viz_image2">
+<span id="wbia-plottool-tests-test-viz-image2-module"></span><h2>wbia.plottool.tests.test_viz_image2 module<a class="headerlink" href="#module-wbia.plottool.tests.test_viz_image2" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.plottool.tests.test_viz_images">
+<span id="wbia-plottool-tests-test-viz-images-module"></span><h2>wbia.plottool.tests.test_viz_images module<a class="headerlink" href="#module-wbia.plottool.tests.test_viz_images" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.plottool.tests">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-wbia.plottool.tests" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wbia.plottool.html" class="btn btn-neutral float-left" title="wbia.plottool package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wbia.scripts.html" class="btn btn-neutral float-right" title="wbia.scripts package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

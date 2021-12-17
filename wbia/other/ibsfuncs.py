@@ -680,7 +680,8 @@ def check_image_bit_depth(ibs, gid_list=None):
     args = (len(update_gid_list),)
     logger.info('[check_image_bit_depth] Updated %d images' % args)
 
-    update_uuid_list = ibs.compute_image_uuids(update_gid_list)
+    update_gpath_list = ibs.get_image_paths(update_gid_list)
+    update_uuid_list = ibs.compute_image_uuids(update_gpath_list)
 
     return update_gid_list, update_uuid_list
 
@@ -2211,16 +2212,24 @@ def ensure_unix_gpaths(gpath_list):
     """
     # if ut.NO_ASSERTS:
     #    return
-    try:
-        msg = (
-            'gpath_list must be in unix format (no backslashes).'
-            'Failed on %d-th gpath=%r'
-        )
-        for count, gpath in enumerate(gpath_list):
-            assert gpath.find('\\') == -1, msg % (count, gpath)
-    except AssertionError as ex:
-        ut.printex(ex, iswarning=True)
-        gpath_list = list(map(ut.unixpath, gpath_list))
+    gpath_list_ = []
+    for count, gpath in enumerate(gpath_list):
+        if gpath is None:
+            gpath = None
+        elif isinstance(gpath, dict) and len(gpath) == 0:
+            gpath = None
+        else:
+            try:
+                msg = (
+                    'gpath_list must be in unix format (no backslashes).'
+                    'Failed on %d-th gpath=%r'
+                )
+                assert gpath.find('\\') == -1, msg % (count, gpath)
+            except (AttributeError, AssertionError) as ex:
+                ut.printex(ex, iswarning=True)
+                gpath = ut.unixpath(gpath)
+        gpath_list_.append(gpath)
+
     return gpath_list
 
 
@@ -3631,7 +3640,7 @@ def get_database_species(ibs, aid_list=None):
     CommandLine:
         python -m wbia.other.ibsfuncs --test-get_database_species
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia  # NOQA
@@ -3640,7 +3649,7 @@ def get_database_species(ibs, aid_list=None):
         >>> print(result)
         ['____', 'bear_polar', 'zebra_grevys', 'zebra_plains']
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia  # NOQA
@@ -3920,7 +3929,7 @@ def set_exemplars_from_quality_and_viewpoint(
         >>> assert sum(zero_flag_list) == 0
         >>> result = new_sum
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
@@ -3932,7 +3941,7 @@ def set_exemplars_from_quality_and_viewpoint(
         >>> # 2 of the 11 annots are unknown and should not be exemplars
         >>> ut.assert_eq(sum(new_flag_list), 9)
 
-    Example2:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia

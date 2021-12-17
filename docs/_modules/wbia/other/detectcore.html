@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.other.detectcore &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.other.detectcore</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.other.detectcore</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Developer convenience functions for ibs (detections).</span>
+
+<span class="sd">TODO: need to split up into sub modules:</span>
+<span class="sd">    consistency_checks</span>
+<span class="sd">    feasibility_fixes</span>
+<span class="sd">    move the export stuff to dbio</span>
+
+<span class="sd">    then there are also convineience functions that need to be ordered at least</span>
+<span class="sd">    within this file</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">wbia.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">from</span> <span class="nn">wbia.other.detectfuncs</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">general_parse_gt</span><span class="p">,</span>
+    <span class="n">general_get_imageset_gids</span><span class="p">,</span>
+    <span class="n">localizer_parse_pred</span><span class="p">,</span>
+    <span class="n">_resize</span><span class="p">,</span>
+    <span class="n">general_overlap</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="c1"># Inject utool functions</span>
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[other.detectcore]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
+    <span class="vm">__name__</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="nms"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.nms">[docs]</a><span class="k">def</span> <span class="nf">nms</span><span class="p">(</span><span class="n">dets</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">use_cpu</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="c1"># Interface into Faster R-CNN&#39;s Python native NMS algorithm by Girshick et al.</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect.nms.py_cpu_nms</span> <span class="kn">import</span> <span class="n">py_cpu_nms</span>
+
+    <span class="k">return</span> <span class="n">py_cpu_nms</span><span class="p">(</span><span class="n">dets</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="export_to_pascal"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.export_to_pascal">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">export_to_pascal</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Alias for export_to_xml&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">export_to_xml</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="export_to_xml"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.export_to_xml">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">export_to_xml</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">species_list</span><span class="p">,</span>
+    <span class="n">species_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">offset</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+    <span class="n">enforce_viewpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">target_size</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+    <span class="n">purge</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">use_maximum_linear_dimension</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_existing_train_test</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">include_parts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">allow_empty_images</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">min_annot_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create training XML for training models.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
+    <span class="kn">from</span> <span class="nn">wbia.detecttools.pypascalmarkup</span> <span class="kn">import</span> <span class="n">PascalVOC_Markup_Annotation</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Received species_mapping = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_mapping</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="n">species_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_mapping</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using species_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_list</span><span class="p">,))</span>
+
+    <span class="k">def</span> <span class="nf">_add_annotation</span><span class="p">(</span>
+        <span class="n">annotation</span><span class="p">,</span>
+        <span class="n">bbox</span><span class="p">,</span>
+        <span class="n">theta</span><span class="p">,</span>
+        <span class="n">species_name</span><span class="p">,</span>
+        <span class="n">viewpoint</span><span class="p">,</span>
+        <span class="n">interest</span><span class="p">,</span>
+        <span class="n">decrease</span><span class="p">,</span>
+        <span class="n">width</span><span class="p">,</span>
+        <span class="n">height</span><span class="p">,</span>
+        <span class="n">part_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="c1"># Transformation matrix</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rotation_around_bbox_mat3x3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">bbox</span><span class="p">)</span>
+        <span class="c1"># Get verticies of the annotation polygon</span>
+        <span class="n">verts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">verts_from_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">close</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Rotate and transform vertices</span>
+        <span class="n">xyz_pts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">add_homogenous_coordinate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">trans_pts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">remove_homogenous_coordinate</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz_pts</span><span class="p">))</span>
+        <span class="n">new_verts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">trans_pts</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">x_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">new_verts</span><span class="p">]</span>
+        <span class="n">y_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">new_verts</span><span class="p">]</span>
+        <span class="n">xmin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">x_points</span><span class="p">)</span> <span class="o">*</span> <span class="n">decrease</span><span class="p">)</span>
+        <span class="n">xmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">x_points</span><span class="p">)</span> <span class="o">*</span> <span class="n">decrease</span><span class="p">)</span>
+        <span class="n">ymin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">y_points</span><span class="p">)</span> <span class="o">*</span> <span class="n">decrease</span><span class="p">)</span>
+        <span class="n">ymax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">y_points</span><span class="p">)</span> <span class="o">*</span> <span class="n">decrease</span><span class="p">)</span>
+        <span class="c1"># Bounds check</span>
+        <span class="n">xmin</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">ymin</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">xmax</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ymax</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ymax</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Get info</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">w_</span> <span class="o">=</span> <span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span>
+        <span class="n">h_</span> <span class="o">=</span> <span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span>
+        <span class="k">if</span> <span class="n">w_</span> <span class="o">&lt;</span> <span class="n">min_annot_size</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">h_</span> <span class="o">&lt;</span> <span class="n">min_annot_size</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">viewpoint</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">info</span><span class="p">[</span><span class="s1">&#39;pose&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewpoint</span>
+
+        <span class="k">if</span> <span class="n">interest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">info</span><span class="p">[</span><span class="s1">&#39;interest&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span> <span class="k">if</span> <span class="n">interest</span> <span class="k">else</span> <span class="s1">&#39;0&#39;</span>
+
+        <span class="k">if</span> <span class="n">part_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">species_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">part_type</span><span class="p">)</span>
+
+        <span class="n">area</span> <span class="o">=</span> <span class="n">w_</span> <span class="o">*</span> <span class="n">h_</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Adding </span><span class="si">%r</span><span class="s1"> with area </span><span class="si">%0.04f</span><span class="s1"> pixels^2&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">area</span><span class="p">))</span>
+
+        <span class="n">annotation</span><span class="o">.</span><span class="n">add_object</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="o">**</span><span class="n">info</span><span class="p">)</span>
+
+    <span class="n">current_year</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+    <span class="n">information</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;database_name&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()}</span>
+    <span class="kn">import</span> <span class="nn">datetime</span>
+
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">folder</span> <span class="o">=</span> <span class="s1">&#39;VOC</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="o">.</span><span class="n">year</span><span class="p">,)</span>
+
+    <span class="k">if</span> <span class="n">output_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">()</span>
+
+    <span class="n">datadir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;VOCdevkit&#39;</span><span class="p">,</span> <span class="n">folder</span><span class="p">)</span>
+    <span class="n">imagedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;JPEGImages&#39;</span><span class="p">)</span>
+    <span class="n">annotdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;Annotations&#39;</span><span class="p">)</span>
+    <span class="n">setsdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;ImageSets&#39;</span><span class="p">)</span>
+    <span class="n">mainsetsdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">setsdir</span><span class="p">,</span> <span class="s1">&#39;Main&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">datadir</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">datadir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">imagedir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">annotdir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">setsdir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">mainsetsdir</span><span class="p">)</span>
+
+    <span class="c1"># Get all gids and process them</span>
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">())</span>
+
+    <span class="n">sets_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;test&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;train&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;trainval&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;val&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">offset</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span> <span class="k">else</span> <span class="n">offset</span>
+
+    <span class="c1"># Make a preliminary train / test split as imagesets or use the existing ones</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_existing_train_test</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">imageset_train_test_split</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+    <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Exporting </span><span class="si">%d</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),))</span>
+    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">image_uri</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">image_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">allow_empty_images</span><span class="p">:</span>
+            <span class="n">fulldir</span> <span class="o">=</span> <span class="n">image_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">fulldir</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">extension</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># NOQA</span>
+            <span class="n">out_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">_</span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_year</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">out_img</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out_name</span><span class="p">,)</span>
+
+            <span class="n">_image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+            <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="n">_image</span><span class="o">.</span><span class="n">shape</span>
+
+            <span class="n">condition</span> <span class="o">=</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="n">height</span> <span class="k">if</span> <span class="n">use_maximum_linear_dimension</span> <span class="k">else</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="n">height</span>
+            <span class="k">if</span> <span class="n">condition</span><span class="p">:</span>
+                <span class="n">ratio</span> <span class="o">=</span> <span class="n">height</span> <span class="o">/</span> <span class="n">width</span>
+                <span class="n">decrease</span> <span class="o">=</span> <span class="n">target_size</span> <span class="o">/</span> <span class="n">width</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="n">target_size</span>
+                <span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_size</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ratio</span> <span class="o">=</span> <span class="n">width</span> <span class="o">/</span> <span class="n">height</span>
+                <span class="n">decrease</span> <span class="o">=</span> <span class="n">target_size</span> <span class="o">/</span> <span class="n">height</span>
+                <span class="n">height</span> <span class="o">=</span> <span class="n">target_size</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_size</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">)</span>
+
+            <span class="n">dst_img</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">imagedir</span><span class="p">,</span> <span class="n">out_img</span><span class="p">)</span>
+            <span class="n">_image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">_image</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">dst_img</span><span class="p">,</span> <span class="n">_image</span><span class="p">)</span>
+
+            <span class="n">annotation</span> <span class="o">=</span> <span class="n">PascalVOC_Markup_Annotation</span><span class="p">(</span>
+                <span class="n">dst_img</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">out_img</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">image_uri</span><span class="p">,</span> <span class="o">**</span><span class="n">information</span>
+            <span class="p">)</span>
+            <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">species_name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">interest_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+            <span class="n">part_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_part_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">bbox_list</span><span class="p">,</span>
+                <span class="n">theta_list</span><span class="p">,</span>
+                <span class="n">species_name_list</span><span class="p">,</span>
+                <span class="n">viewpoint_list</span><span class="p">,</span>
+                <span class="n">interest_list</span><span class="p">,</span>
+                <span class="n">part_rowids_list</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span>
+                <span class="n">bbox</span><span class="p">,</span>
+                <span class="n">theta</span><span class="p">,</span>
+                <span class="n">species_name</span><span class="p">,</span>
+                <span class="n">viewpoint</span><span class="p">,</span>
+                <span class="n">interest</span><span class="p">,</span>
+                <span class="n">part_rowid_list</span><span class="p">,</span>
+            <span class="p">)</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">species_mapping</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">species_name</span> <span class="o">=</span> <span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">species_name</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">species_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">species_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_list</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">_add_annotation</span><span class="p">(</span>
+                    <span class="n">annotation</span><span class="p">,</span>
+                    <span class="n">bbox</span><span class="p">,</span>
+                    <span class="n">theta</span><span class="p">,</span>
+                    <span class="n">species_name</span><span class="p">,</span>
+                    <span class="n">viewpoint</span><span class="p">,</span>
+                    <span class="n">interest</span><span class="p">,</span>
+                    <span class="n">decrease</span><span class="p">,</span>
+                    <span class="n">width</span><span class="p">,</span>
+                    <span class="n">height</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">include_parts</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">part_bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_bboxes</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+                    <span class="n">part_theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_thetas</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+                    <span class="n">part_type_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+                    <span class="n">part_zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">part_bbox_list</span><span class="p">,</span> <span class="n">part_theta_list</span><span class="p">,</span> <span class="n">part_type_list</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">part_bbox</span><span class="p">,</span> <span class="n">part_theta</span><span class="p">,</span> <span class="n">part_type</span> <span class="ow">in</span> <span class="n">part_zipped</span><span class="p">:</span>
+                        <span class="n">part_viewpoint</span> <span class="o">=</span> <span class="n">viewpoint</span>
+                        <span class="n">part_interest</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="n">_add_annotation</span><span class="p">(</span>
+                            <span class="n">annotation</span><span class="p">,</span>
+                            <span class="n">part_bbox</span><span class="p">,</span>
+                            <span class="n">part_theta</span><span class="p">,</span>
+                            <span class="n">species_name</span><span class="p">,</span>
+                            <span class="n">part_viewpoint</span><span class="p">,</span>
+                            <span class="n">part_interest</span><span class="p">,</span>
+                            <span class="n">decrease</span><span class="p">,</span>
+                            <span class="n">width</span><span class="p">,</span>
+                            <span class="n">height</span><span class="p">,</span>
+                            <span class="n">part_type</span><span class="o">=</span><span class="n">part_type</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+            <span class="n">out_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.xml&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out_name</span><span class="p">,)</span>
+            <span class="n">dst_annot</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">annotdir</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">test_gid_set</span><span class="p">:</span>
+                <span class="n">sets_dict</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_name</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">train_gid_set</span><span class="p">:</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">state</span> <span class="o">&lt;=</span> <span class="mf">0.75</span><span class="p">:</span>
+                    <span class="n">sets_dict</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_name</span><span class="p">)</span>
+                    <span class="n">sets_dict</span><span class="p">[</span><span class="s1">&#39;trainval&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_name</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sets_dict</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_name</span><span class="p">)</span>
+                    <span class="n">sets_dict</span><span class="p">[</span><span class="s1">&#39;trainval&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                    <span class="s1">&#39;All gids must be either in the TRAIN_SET or TEST_SET imagesets&#39;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Write XML</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;Copying:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">dst_img</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+            <span class="p">)</span>
+            <span class="n">xml_data</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dst_annot</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+            <span class="n">xml_data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">annotation</span><span class="o">.</span><span class="n">xml</span><span class="p">())</span>
+            <span class="n">xml_data</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">while</span> <span class="n">exists</span><span class="p">(</span><span class="n">dst_annot</span><span class="p">):</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">offset</span> <span class="o">!=</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">out_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">_</span><span class="si">%06d</span><span class="s1">.xml&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_year</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+                <span class="n">dst_annot</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">annotdir</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Skipping:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_path</span><span class="p">,))</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">sets_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">manifest_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.txt&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,)</span>
+        <span class="n">manifest_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">mainsetsdir</span><span class="p">,</span> <span class="n">manifest_filename</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manifest_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="n">sets_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">sets_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...completed&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">datadir</span></div>
+
+
+<div class="viewcode-block" id="export_to_coco"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.export_to_coco">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">export_to_coco</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">species_list</span><span class="p">,</span>
+    <span class="n">species_mapping</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">viewpoint_mapping</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">target_size</span><span class="o">=</span><span class="mi">2400</span><span class="p">,</span>
+    <span class="n">use_maximum_linear_dimension</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_existing_train_test</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">include_parts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">include_reviews</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">require_image_reviewed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">require_named</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">output_images</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_global_train_set</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create training COCO dataset for training models.&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
+    <span class="kn">import</span> <span class="nn">datetime</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Received species_mapping = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_mapping</span><span class="p">,))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Received viewpoint_mapping = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">viewpoint_mapping</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="n">species_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">species_mapping</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using species_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_list</span><span class="p">,))</span>
+
+    <span class="n">current_year</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+    <span class="n">datadir</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s1">&#39;coco&#39;</span><span class="p">))</span>
+    <span class="n">annotdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;annotations&#39;</span><span class="p">)</span>
+    <span class="n">imagedir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)</span>
+    <span class="n">image_dir_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;train&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">imagedir</span><span class="p">,</span> <span class="s1">&#39;train</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_year</span><span class="p">,)),</span>
+        <span class="s1">&#39;val&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">imagedir</span><span class="p">,</span> <span class="s1">&#39;val</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_year</span><span class="p">,)),</span>
+        <span class="s1">&#39;test&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">imagedir</span><span class="p">,</span> <span class="s1">&#39;test</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_year</span><span class="p">,)),</span>
+    <span class="p">}</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">datadir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">datadir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">annotdir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">imagedir</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">image_dir_dict</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">image_dir_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">])</span>
+
+    <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Wild Me </span><span class="si">%s</span><span class="s1"> Dataset&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span><span class="p">,),</span>
+        <span class="c1"># &#39;url&#39;          : &#39;http://www.greatgrevysrally.com&#39;,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.wildme.org&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">current_year</span><span class="p">,</span>
+        <span class="s1">&#39;contributor&#39;</span><span class="p">:</span> <span class="s1">&#39;Wild Me &lt;dev@wildme.org&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;date_created&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">),</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_name</span><span class="p">(),</span>
+        <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_db_init_uuid</span><span class="p">()),</span>
+    <span class="p">}</span>
+
+    <span class="n">licenses</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;http://creativecommons.org/licenses/by-nc-nd/2.0/&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Attribution-NonCommercial-NoDerivs License&#39;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+        <span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
+    <span class="p">),</span> <span class="s1">&#39;Cannot have duplicate species in species_list&#39;</span>
+    <span class="n">category_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">categories</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">species_list</span><span class="p">)):</span>
+
+        <span class="n">species</span> <span class="o">=</span> <span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+
+        <span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">index</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">species</span><span class="p">,</span> <span class="s1">&#39;supercategory&#39;</span><span class="p">:</span> <span class="s1">&#39;animal&#39;</span><span class="p">})</span>
+        <span class="n">category_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
+
+    <span class="k">def</span> <span class="nf">_add_annotation_or_part</span><span class="p">(</span>
+        <span class="n">image_index</span><span class="p">,</span>
+        <span class="n">annot_index</span><span class="p">,</span>
+        <span class="n">annot_uuid</span><span class="p">,</span>
+        <span class="n">bbox</span><span class="p">,</span>
+        <span class="n">theta</span><span class="p">,</span>
+        <span class="n">species_name</span><span class="p">,</span>
+        <span class="n">viewpoint</span><span class="p">,</span>
+        <span class="n">interest</span><span class="p">,</span>
+        <span class="n">annot_name</span><span class="p">,</span>
+        <span class="n">decrease</span><span class="p">,</span>
+        <span class="n">width</span><span class="p">,</span>
+        <span class="n">height</span><span class="p">,</span>
+        <span class="n">individuals</span><span class="p">,</span>
+        <span class="n">part_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">part_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">is_part</span> <span class="o">=</span> <span class="n">part_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="n">R</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rotation_around_bbox_mat3x3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">bbox</span><span class="p">)</span>
+        <span class="n">verts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">verts_from_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">close</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">xyz_pts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">add_homogenous_coordinate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">trans_pts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">remove_homogenous_coordinate</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz_pts</span><span class="p">))</span>
+        <span class="n">new_verts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">trans_pts</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="n">x_points</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">decrease</span><span class="p">))</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">new_verts</span><span class="p">]</span>
+        <span class="n">y_points</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">decrease</span><span class="p">))</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">new_verts</span><span class="p">]</span>
+        <span class="n">segmentation</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x_points</span><span class="p">,</span> <span class="n">y_points</span><span class="p">)))</span>
+
+        <span class="n">xmin</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">x_points</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">ymin</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">y_points</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">xmax</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">x_points</span><span class="p">),</span> <span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ymax</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">y_points</span><span class="p">),</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">h</span>
+
+        <span class="n">xtl_</span><span class="p">,</span> <span class="n">ytl_</span><span class="p">,</span> <span class="n">w_</span><span class="p">,</span> <span class="n">h_</span> <span class="o">=</span> <span class="n">bbox</span>
+        <span class="n">xtl_</span> <span class="o">*=</span> <span class="n">decrease</span>
+        <span class="n">ytl_</span> <span class="o">*=</span> <span class="n">decrease</span>
+        <span class="n">w_</span> <span class="o">*=</span> <span class="n">decrease</span>
+        <span class="n">h_</span> <span class="o">*=</span> <span class="n">decrease</span>
+
+        <span class="n">annot_part</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;bbox&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">xtl_</span><span class="p">,</span> <span class="n">ytl_</span><span class="p">,</span> <span class="n">w_</span><span class="p">,</span> <span class="n">h_</span><span class="p">],</span>
+            <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="n">theta</span><span class="p">,</span>
+            <span class="s1">&#39;viewpoint&#39;</span><span class="p">:</span> <span class="n">viewpoint</span><span class="p">,</span>
+            <span class="s1">&#39;segmentation&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">segmentation</span><span class="p">],</span>
+            <span class="s1">&#39;segmentation_bbox&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">],</span>
+            <span class="s1">&#39;area&#39;</span><span class="p">:</span> <span class="n">area</span><span class="p">,</span>
+            <span class="s1">&#39;iscrowd&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">part_index</span> <span class="k">if</span> <span class="n">is_part</span> <span class="k">else</span> <span class="n">annot_index</span><span class="p">,</span>
+            <span class="s1">&#39;image_id&#39;</span><span class="p">:</span> <span class="n">image_index</span><span class="p">,</span>
+            <span class="s1">&#39;category_id&#39;</span><span class="p">:</span> <span class="n">category_dict</span><span class="p">[</span><span class="n">species_name</span><span class="p">],</span>
+            <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">part_uuid</span> <span class="k">if</span> <span class="n">is_part</span> <span class="k">else</span> <span class="n">annot_uuid</span><span class="p">),</span>
+            <span class="s1">&#39;individual_ids&#39;</span><span class="p">:</span> <span class="n">individuals</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">is_part</span><span class="p">:</span>
+            <span class="n">annot_part</span><span class="p">[</span><span class="s1">&#39;annot_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot_index</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">annot_part</span><span class="p">[</span><span class="s1">&#39;isinterest&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">interest</span><span class="p">)</span>
+            <span class="n">annot_part</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot_name</span>
+
+        <span class="k">return</span> <span class="n">annot_part</span><span class="p">,</span> <span class="n">area</span>
+
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">]:</span>
+        <span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">,</span>
+            <span class="s1">&#39;licenses&#39;</span><span class="p">:</span> <span class="n">licenses</span><span class="p">,</span>
+            <span class="s1">&#39;categories&#39;</span><span class="p">:</span> <span class="n">categories</span><span class="p">,</span>
+            <span class="s1">&#39;images&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;annotations&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;parts&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Get all gids and process them</span>
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">require_named</span><span class="p">:</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+            <span class="n">species_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species_</span><span class="p">,</span> <span class="n">species_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">species_list</span>
+                <span class="k">for</span> <span class="n">species_</span> <span class="ow">in</span> <span class="n">species_list_</span>
+            <span class="p">]</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+            <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+            <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">require_image_reviewed</span><span class="p">:</span>
+            <span class="n">image_reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+            <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">image_reviewed_list</span><span class="p">)</span>
+
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)))</span>
+
+    <span class="c1"># Make a preliminary train / test split as imagesets or use the existing ones</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_existing_train_test</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">imageset_train_test_split</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">train_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+    <span class="n">test_gid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="n">image_index</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">annot_index</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">part_index</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">aid_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Exporting </span><span class="si">%d</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),))</span>
+    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">use_global_train_set</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="s1">&#39;train&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">test_gid_set</span><span class="p">:</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span>
+            <span class="k">elif</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">train_gid_set</span><span class="p">:</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">state</span> <span class="o">&lt;=</span> <span class="mf">0.75</span><span class="p">:</span>
+                    <span class="n">dataset</span> <span class="o">=</span> <span class="s1">&#39;train&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dataset</span> <span class="o">=</span> <span class="s1">&#39;val&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># raise AssertionError(&#39;All gids must be either in the TRAIN_SET or TEST_SET imagesets&#39;)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;GID = </span><span class="si">%r</span><span class="s1"> was not in the TRAIN_SET or TEST_SET&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,))</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span>
+
+        <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">target_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">decrease</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">condition</span> <span class="o">=</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="n">height</span> <span class="k">if</span> <span class="n">use_maximum_linear_dimension</span> <span class="k">else</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="n">height</span>
+            <span class="k">if</span> <span class="n">condition</span><span class="p">:</span>
+                <span class="n">ratio</span> <span class="o">=</span> <span class="n">height</span> <span class="o">/</span> <span class="n">width</span>
+                <span class="n">decrease</span> <span class="o">=</span> <span class="n">target_size</span> <span class="o">/</span> <span class="n">width</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="n">target_size</span>
+                <span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_size</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ratio</span> <span class="o">=</span> <span class="n">width</span> <span class="o">/</span> <span class="n">height</span>
+                <span class="n">decrease</span> <span class="o">=</span> <span class="n">target_size</span> <span class="o">/</span> <span class="n">height</span>
+                <span class="n">height</span> <span class="o">=</span> <span class="n">target_size</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_size</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">)</span>
+
+        <span class="n">image_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">image_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%012d</span><span class="s1">.jpg&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_index</span><span class="p">,)</span>
+        <span class="n">image_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">image_dir_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">],</span> <span class="n">image_filename</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">output_images</span><span class="p">:</span>
+            <span class="n">_image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+            <span class="n">_image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">_image</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">image_filepath</span><span class="p">,</span> <span class="n">_image</span><span class="p">)</span>
+
+        <span class="n">image_gps</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">image_gps</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_gps</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">image_gps</span><span class="p">:</span>
+            <span class="n">image_gps_lat</span><span class="p">,</span> <span class="n">image_gps_lon</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image_gps_lat</span><span class="p">,</span> <span class="n">image_gps_lon</span> <span class="o">=</span> <span class="n">image_gps</span>
+            <span class="n">image_gps_lat</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%03.06f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_gps_lat</span><span class="p">,)</span>
+            <span class="n">image_gps_lon</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%03.06f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_gps_lon</span><span class="p">,)</span>
+
+        <span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="s1">&#39;images&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;license&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s1">&#39;file_name&#39;</span><span class="p">:</span> <span class="n">image_filename</span><span class="p">,</span>
+                <span class="c1"># &#39;file_name&#39;     : basename(ibs.get_image_uris_original(gid)),</span>
+                <span class="s1">&#39;photographer&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_notes</span><span class="p">(</span><span class="n">gid</span><span class="p">),</span>
+                <span class="s1">&#39;coco_url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">height</span><span class="p">,</span>
+                <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">width</span><span class="p">,</span>
+                <span class="s1">&#39;date_captured&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_datetime_str</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;gps_lat_captured&#39;</span><span class="p">:</span> <span class="n">image_gps_lat</span><span class="p">,</span>
+                <span class="s1">&#39;gps_lon_captured&#39;</span><span class="p">:</span> <span class="n">image_gps_lon</span><span class="p">,</span>
+                <span class="s1">&#39;flickr_url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">image_index</span><span class="p">,</span>
+                <span class="s1">&#39;uuid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;Copying:</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n</span><span class="si">%r</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">image_filepath</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+        <span class="p">)</span>
+
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">species_name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">interest_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">annot_name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">part_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_part_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">aid_list</span><span class="p">,</span>
+            <span class="n">bbox_list</span><span class="p">,</span>
+            <span class="n">theta_list</span><span class="p">,</span>
+            <span class="n">species_name_list</span><span class="p">,</span>
+            <span class="n">viewpoint_list</span><span class="p">,</span>
+            <span class="n">interest_list</span><span class="p">,</span>
+            <span class="n">annot_uuid_list</span><span class="p">,</span>
+            <span class="n">annot_name_list</span><span class="p">,</span>
+            <span class="n">part_rowids_list</span><span class="p">,</span>
+            <span class="n">nid_list</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">aid</span><span class="p">,</span>
+            <span class="n">bbox</span><span class="p">,</span>
+            <span class="n">theta</span><span class="p">,</span>
+            <span class="n">species_name</span><span class="p">,</span>
+            <span class="n">viewpoint</span><span class="p">,</span>
+            <span class="n">interest</span><span class="p">,</span>
+            <span class="n">annot_uuid</span><span class="p">,</span>
+            <span class="n">annot_name</span><span class="p">,</span>
+            <span class="n">part_rowid_list</span><span class="p">,</span>
+            <span class="n">nid</span><span class="p">,</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+            <span class="n">species_name</span> <span class="o">=</span> <span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">species_name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">species_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">species_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_list</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">require_named</span> <span class="ow">and</span> <span class="n">nid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">viewpoint</span> <span class="o">=</span> <span class="n">viewpoint_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">)</span>
+
+            <span class="c1"># if viewpoint is None:</span>
+            <span class="c1">#     continue</span>
+
+            <span class="n">individuals</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">))</span>
+
+            <span class="c1"># Transformation matrix</span>
+            <span class="n">annot</span><span class="p">,</span> <span class="n">area</span> <span class="o">=</span> <span class="n">_add_annotation_or_part</span><span class="p">(</span>
+                <span class="n">image_index</span><span class="p">,</span>
+                <span class="n">annot_index</span><span class="p">,</span>
+                <span class="n">annot_uuid</span><span class="p">,</span>
+                <span class="n">bbox</span><span class="p">,</span>
+                <span class="n">theta</span><span class="p">,</span>
+                <span class="n">species_name</span><span class="p">,</span>
+                <span class="n">viewpoint</span><span class="p">,</span>
+                <span class="n">interest</span><span class="p">,</span>
+                <span class="n">annot_name</span><span class="p">,</span>
+                <span class="n">decrease</span><span class="p">,</span>
+                <span class="n">width</span><span class="p">,</span>
+                <span class="n">height</span><span class="p">,</span>
+                <span class="n">individuals</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Adding annot </span><span class="si">%r</span><span class="s1"> with area </span><span class="si">%0.04f</span><span class="s1"> pixels^2&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">area</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">include_reviews</span><span class="p">:</span>
+                <span class="n">reviews</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_from_single</span><span class="p">([</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">user_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_identity</span><span class="p">(</span><span class="n">reviews</span><span class="p">)</span>
+                <span class="n">aid_tuple_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_aid_tuple</span><span class="p">(</span><span class="n">reviews</span><span class="p">)</span>
+                <span class="n">decision_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_decision_str</span><span class="p">(</span><span class="n">reviews</span><span class="p">)</span>
+
+                <span class="n">ids</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">decisions</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">user_list</span><span class="p">,</span> <span class="n">aid_tuple_list</span><span class="p">,</span> <span class="n">decision_list</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">user</span><span class="p">,</span> <span class="n">aid_tuple</span><span class="p">,</span> <span class="n">decision</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;user:web&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">match</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aid_tuple</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">([</span><span class="n">aid</span><span class="p">]))</span>
+                    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+                    <span class="n">ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">decisions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decision</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;review_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">decisions</span><span class="p">))</span>
+
+            <span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="s1">&#39;annotations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">annot</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">include_parts</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+                <span class="n">part_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_uuids</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+                <span class="n">part_bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_bboxes</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+                <span class="n">part_theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_thetas</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+                <span class="n">part_type_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_part_types</span><span class="p">(</span><span class="n">part_rowid_list</span><span class="p">)</span>
+
+                <span class="n">part_zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="n">part_uuid_list</span><span class="p">,</span> <span class="n">part_bbox_list</span><span class="p">,</span> <span class="n">part_theta_list</span><span class="p">,</span> <span class="n">part_type_list</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">part_uuid</span><span class="p">,</span> <span class="n">part_bbox</span><span class="p">,</span> <span class="n">part_theta</span><span class="p">,</span> <span class="n">part_type</span> <span class="ow">in</span> <span class="n">part_zipped</span><span class="p">:</span>
+                    <span class="n">part_species_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">part_type</span><span class="p">)</span>
+
+                    <span class="n">part_species_name</span> <span class="o">=</span> <span class="n">species_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                        <span class="n">part_species_name</span><span class="p">,</span> <span class="n">part_species_name</span>
+                    <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">part_species_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">continue</span>
+
+                    <span class="k">if</span> <span class="n">part_species_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_list</span><span class="p">:</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">part</span><span class="p">,</span> <span class="n">area</span> <span class="o">=</span> <span class="n">_add_annotation_or_part</span><span class="p">(</span>
+                        <span class="n">image_index</span><span class="p">,</span>
+                        <span class="n">annot_index</span><span class="p">,</span>
+                        <span class="n">annot_uuid</span><span class="p">,</span>
+                        <span class="n">part_bbox</span><span class="p">,</span>
+                        <span class="n">part_theta</span><span class="p">,</span>
+                        <span class="n">part_species_name</span><span class="p">,</span>
+                        <span class="n">viewpoint</span><span class="p">,</span>
+                        <span class="n">interest</span><span class="p">,</span>
+                        <span class="n">annot_name</span><span class="p">,</span>
+                        <span class="n">decrease</span><span class="p">,</span>
+                        <span class="n">width</span><span class="p">,</span>
+                        <span class="n">height</span><span class="p">,</span>
+                        <span class="n">individuals</span><span class="p">,</span>
+                        <span class="n">part_index</span><span class="o">=</span><span class="n">part_index</span><span class="p">,</span>
+                        <span class="n">part_uuid</span><span class="o">=</span><span class="n">part_uuid</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Adding part </span><span class="si">%r</span><span class="s1"> with area </span><span class="si">%0.04f</span><span class="s1"> pixels^2&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">part_species_name</span><span class="p">,</span> <span class="n">area</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="s1">&#39;parts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+
+                <span class="n">part_index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">aid_dict</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot_index</span>
+            <span class="n">annot_index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">image_index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">output_dict</span><span class="p">:</span>
+        <span class="n">annots</span> <span class="o">=</span> <span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="s1">&#39;annotations&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">annots</span><span class="p">)):</span>
+            <span class="n">annot</span> <span class="o">=</span> <span class="n">annots</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="c1"># Map internal aids to external annot index</span>
+            <span class="n">individual_ids</span> <span class="o">=</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;individual_ids&#39;</span><span class="p">]</span>
+            <span class="n">individual_ids_</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">individual_id</span> <span class="ow">in</span> <span class="n">individual_ids</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">individual_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">aid_dict</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">individual_id_</span> <span class="o">=</span> <span class="n">aid_dict</span><span class="p">[</span><span class="n">individual_id</span><span class="p">]</span>
+                <span class="n">individual_ids_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">individual_id_</span><span class="p">)</span>
+            <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;individual_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">individual_ids_</span>
+
+            <span class="c1"># Map reviews</span>
+            <span class="k">if</span> <span class="n">include_reviews</span><span class="p">:</span>
+                <span class="n">review_ids</span> <span class="o">=</span> <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;review_ids&#39;</span><span class="p">]</span>
+                <span class="n">review_ids_</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">review</span> <span class="ow">in</span> <span class="n">review_ids</span><span class="p">:</span>
+                    <span class="n">review_id</span><span class="p">,</span> <span class="n">review_decision</span> <span class="o">=</span> <span class="n">review</span>
+                    <span class="k">if</span> <span class="n">review_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">aid_dict</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">review_id_</span> <span class="o">=</span> <span class="n">aid_dict</span><span class="p">[</span><span class="n">review_id</span><span class="p">]</span>
+                    <span class="n">review_</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">review_id_</span><span class="p">,</span>
+                        <span class="n">review_decision</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">review_ids_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">review_</span><span class="p">)</span>
+                <span class="n">annot</span><span class="p">[</span><span class="s1">&#39;review_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">review_ids_</span>
+
+            <span class="c1"># Store</span>
+            <span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="s1">&#39;annotations&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">annot</span>
+
+    <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">output_dict</span><span class="p">:</span>
+        <span class="n">json_filename</span> <span class="o">=</span> <span class="s1">&#39;instances_</span><span class="si">%s%s</span><span class="s1">.json&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">current_year</span><span class="p">)</span>
+        <span class="n">json_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">annotdir</span><span class="p">,</span> <span class="n">json_filename</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">output_dict</span><span class="p">[</span><span class="n">dataset</span><span class="p">],</span> <span class="n">json_file</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;...completed&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">datadir</span></div>
+
+
+<div class="viewcode-block" id="imageset_train_test_split"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.imageset_train_test_split">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">imageset_train_test_split</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">train_split</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">is_tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">shuffle</span>
+
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">is_tile</span><span class="o">=</span><span class="n">is_tile</span><span class="p">)</span>
+
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">distro_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">):</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">total</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">distro_dict</span><span class="p">:</span>
+            <span class="n">distro_dict</span><span class="p">[</span><span class="n">total</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">distro_dict</span><span class="p">[</span><span class="n">total</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Processing train/test imagesets...&#39;</span><span class="p">)</span>
+    <span class="n">global_train_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">global_test_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">distro</span><span class="p">,</span> <span class="n">gid_list_</span> <span class="ow">in</span> <span class="n">distro_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+        <span class="n">shuffle</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+        <span class="n">split_index</span> <span class="o">=</span> <span class="n">total</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">train_split</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-9</span>  <span class="c1"># weird</span>
+        <span class="k">if</span> <span class="n">split_index</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">split_index</span> <span class="o">=</span> <span class="n">total</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">split_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">split_index</span><span class="p">)</span>
+        <span class="n">split_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_index</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">distro</span><span class="p">,</span>
+            <span class="n">total</span><span class="p">,</span>
+            <span class="n">split_index</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">num aids distro: </span><span class="si">%d</span><span class="s1"> - total: </span><span class="si">%d</span><span class="s1"> - split_index: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">train_list</span> <span class="o">=</span> <span class="n">gid_list_</span><span class="p">[</span><span class="n">split_index</span><span class="p">:]</span>
+        <span class="n">test_list</span> <span class="o">=</span> <span class="n">gid_list_</span><span class="p">[:</span><span class="n">split_index</span><span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">test_list</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">train_list</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">train_list</span><span class="p">)</span> <span class="o">/</span> <span class="n">total</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">test: </span><span class="si">%d</span><span class="se">\n\t</span><span class="s1">train: </span><span class="si">%d</span><span class="se">\n\t</span><span class="s1">split: </span><span class="si">%0.04f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">global_train_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">train_list</span><span class="p">)</span>
+        <span class="n">global_test_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">test_list</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">global_train_list</span><span class="p">),</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">global_test_list</span><span class="p">),</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">global_train_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_test_list</span><span class="p">),</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">global_train_list</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span>
+        <span class="n">train_split</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">train_imgsetid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">)</span>
+    <span class="n">test_imgsetid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_imagesets</span><span class="p">(</span><span class="s1">&#39;TEST_SET&#39;</span><span class="p">)</span>
+
+    <span class="n">temp_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">train_imgsetid</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_imagesets</span><span class="p">(</span><span class="n">temp_list</span><span class="p">,</span> <span class="p">[</span><span class="n">train_imgsetid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">temp_list</span><span class="p">))</span>
+    <span class="n">temp_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">test_imgsetid</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_imagesets</span><span class="p">(</span><span class="n">temp_list</span><span class="p">,</span> <span class="p">[</span><span class="n">test_imgsetid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">temp_list</span><span class="p">))</span>
+
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imgsetids</span><span class="p">(</span><span class="n">global_train_list</span><span class="p">,</span> <span class="p">[</span><span class="n">train_imgsetid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_train_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_imgsetids</span><span class="p">(</span><span class="n">global_test_list</span><span class="p">,</span> <span class="p">[</span><span class="n">test_imgsetid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_test_list</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Complete... </span><span class="si">%d</span><span class="s1"> train + </span><span class="si">%d</span><span class="s1"> test = </span><span class="si">%d</span><span class="s1"> (</span><span class="si">%0.04f</span><span class="s1"> </span><span class="si">%0.04f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="localizer_distributions"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.localizer_distributions">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">localizer_distributions</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Process distributions of densities</span>
+    <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">]</span>
+        <span class="n">imageset_id</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imageset_id</span><span class="p">)))</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">distro_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">species_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">):</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">total</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="k">if</span> <span class="n">total</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">distro_dict</span><span class="p">:</span>
+            <span class="n">distro_dict</span><span class="p">[</span><span class="n">total</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">total</span><span class="p">,)</span> <span class="k">if</span> <span class="n">total</span> <span class="o">&lt;</span> <span class="n">threshold</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">+&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">total</span><span class="p">,)</span>
+        <span class="n">distro_dict</span><span class="p">[</span><span class="n">total</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">:</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">viewpoint</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_dict</span><span class="p">:</span>
+                <span class="n">species_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]:</span>
+                <span class="n">species_dict</span><span class="p">[</span><span class="n">species</span><span class="p">][</span><span class="n">viewpoint</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">species_dict</span><span class="p">[</span><span class="n">species</span><span class="p">][</span><span class="n">viewpoint</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Annotation density distribution (annotations per image)&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">distro</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">distro_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:&gt;6}</span><span class="s1"> annot(s): </span><span class="si">{:&gt;5}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">distro</span><span class="p">,</span> <span class="n">distro_dict</span><span class="p">[</span><span class="n">distro</span><span class="p">]))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">species_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Species viewpoint distribution: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
+        <span class="n">viewpoint_dict</span> <span class="o">=</span> <span class="n">species_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEWTEXT_TO_VIEWPOINT_RADIANS</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">viewpoint_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:&gt;15}</span><span class="s1">: </span><span class="si">{:&gt;5}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">count</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;TOTAL: </span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">total</span><span class="p">,))</span></div>
+
+    <span class="c1"># visualize_distributions(distro_dict, threshold=threshold)</span>
+
+
+<div class="viewcode-block" id="visualize_distributions"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.visualize_distributions">[docs]</a><span class="k">def</span> <span class="nf">visualize_distributions</span><span class="p">(</span><span class="n">distro_dict</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+    <span class="n">key_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">distro_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">threshold_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">+&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">threshold</span><span class="p">,)</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">threshold_str</span> <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="n">threshold</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">]</span>
+    <span class="n">size_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">distro_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">]</span>
+    <span class="n">color_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;yellowgreen&#39;</span><span class="p">,</span> <span class="s1">&#39;gold&#39;</span><span class="p">,</span> <span class="s1">&#39;lightskyblue&#39;</span><span class="p">,</span> <span class="s1">&#39;lightcoral&#39;</span><span class="p">]</span>
+    <span class="n">explode</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">size_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span>
+        <span class="n">size_list</span><span class="p">,</span>
+        <span class="n">explode</span><span class="o">=</span><span class="n">explode</span><span class="p">,</span>
+        <span class="n">labels</span><span class="o">=</span><span class="n">label_list</span><span class="p">,</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">color_list</span><span class="p">,</span>
+        <span class="n">autopct</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%1.1f%%</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">startangle</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="visualize_pascal_voc_dataset"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.visualize_pascal_voc_dataset">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">visualize_pascal_voc_dataset</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">dataset_path</span><span class="p">,</span> <span class="n">num_examples</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">randomize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_path</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Visualize the PASCAL VOC dataset.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        dataset_path (str): the dataset path in the PASCAL VOC format</span>
+<span class="sd">        num_examples (int, optional): the number of examples to draw</span>
+<span class="sd">        randomize (bool, optional): if to randomize the visualization</span>
+<span class="sd">        write (bool, optional): if to display or write the files</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.other.detectcore --test-visualize_pascal_voc_dataset</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.other.detectcore import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; dataset_path = &#39;/Users/jason.parham/Downloads/wilddog_data/data/VOCdevkit/VOC2020/&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # dataset_path = &#39;/Users/jason.parham/Downloads/LearningData/&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # dataset_path = &#39;/Users/jason.parham/Downloads/VOCdevkit/VOC2018/&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs.visualize_pascal_voc_dataset(dataset_path, randomize=True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.detecttools.wbiadata</span> <span class="kn">import</span> <span class="n">IBEIS_Data</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+
+    <span class="n">num_examples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_examples</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">num_examples</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">IBEIS_Data</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">)</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">print_distribution</span><span class="p">()</span>
+
+    <span class="n">image_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
+
+    <span class="n">num_examples</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">num_examples</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_list</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">randomize</span><span class="p">:</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">image_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">write_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">write_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">)))</span>
+
+    <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">[:</span><span class="n">num_examples</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">write</span><span class="p">:</span>
+            <span class="n">write_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">write_path</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">display</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">write_filepath</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="classifier_visualize_training_localizations"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.classifier_visualize_training_localizations">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">classifier_visualize_training_localizations</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">classifier_weight_filepath</span><span class="p">,</span>
+    <span class="n">species_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;zebra&#39;</span><span class="p">],</span>
+    <span class="n">scheme</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_draw</span><span class="p">(</span><span class="n">image_dict</span><span class="p">,</span> <span class="n">list_</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">],</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;xbr&#39;</span><span class="p">],</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;ybr&#39;</span><span class="p">],</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">],</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">]</span>
+            <span class="n">gid</span><span class="p">,</span> <span class="n">xbr</span><span class="p">,</span> <span class="n">ybr</span><span class="p">,</span> <span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span> <span class="o">=</span> <span class="n">vals</span>
+            <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">image_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">xbr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">xbr</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+            <span class="n">ybr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ybr</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span>
+            <span class="n">xtl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">xtl</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+            <span class="n">ytl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ytl</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">image_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">),</span> <span class="p">(</span><span class="n">xbr</span><span class="p">,</span> <span class="n">ybr</span><span class="p">),</span> <span class="n">color</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_write_chips</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">output_path_fmt_str</span><span class="p">):</span>
+        <span class="n">interpolation</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LANCZOS4</span>
+        <span class="n">warpkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="n">interpolation</span><span class="p">)</span>
+        <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">list_</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">],</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;xbr&#39;</span><span class="p">],</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;ybr&#39;</span><span class="p">],</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">],</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">]</span>
+            <span class="n">gid</span><span class="p">,</span> <span class="n">xbr</span><span class="p">,</span> <span class="n">ybr</span><span class="p">,</span> <span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span> <span class="o">=</span> <span class="n">vals</span>
+            <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">image_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">xbr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">xbr</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+            <span class="n">ybr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ybr</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span>
+            <span class="n">xtl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">xtl</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+            <span class="n">ytl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ytl</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">image_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+            <span class="c1"># Get chips</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">ytl</span><span class="p">:</span><span class="n">ybr</span><span class="p">,</span> <span class="n">xtl</span><span class="p">:</span><span class="n">xbr</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="p">(</span><span class="mi">192</span><span class="p">,</span> <span class="mi">192</span><span class="p">),</span> <span class="o">**</span><span class="n">warpkw</span><span class="p">)</span>
+            <span class="n">chip_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chip</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chip_list</span>
+
+    <span class="c1"># Get output path</span>
+    <span class="k">if</span> <span class="n">output_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;output-bootstrap&#39;</span><span class="p">)))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Load data</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loading pre-trained features for filtered localizations&#39;</span><span class="p">)</span>
+        <span class="n">train_gid_list</span> <span class="o">=</span> <span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TRAIN_SET&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">train_gid_list</span> <span class="o">=</span> <span class="n">train_gid_list</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;algo&#39;</span><span class="p">:</span> <span class="s1">&#39;_COMBINED&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;species_set&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">),</span>
+            <span class="s1">&#39;features&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;feature2_algo&#39;</span><span class="p">:</span> <span class="s1">&#39;resnet&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;classify&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;classifier_algo&#39;</span><span class="p">:</span> <span class="s1">&#39;svm&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;classifier_weight_filepath&#39;</span><span class="p">:</span> <span class="n">classifier_weight_filepath</span><span class="p">,</span>
+            <span class="s1">&#39;nms&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;nms_thresh&#39;</span><span class="p">:</span> <span class="mf">0.50</span><span class="p">,</span>
+            <span class="c1"># &#39;thresh&#39;       : True,</span>
+            <span class="c1"># &#39;index_thresh&#39; : 0.25,</span>
+        <span class="p">}</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Ground-Truth&#39;</span><span class="p">)</span>
+        <span class="n">gt_dict</span> <span class="o">=</span> <span class="n">general_parse_gt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">train_gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Predictions&#39;</span><span class="p">)</span>
+        <span class="n">pred_dict</span> <span class="o">=</span> <span class="n">localizer_parse_pred</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">train_gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Mine proposals&#39;</span><span class="p">)</span>
+        <span class="n">reviewed_gid_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">_bootstrap_mine</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">gt_dict</span><span class="p">,</span> <span class="n">pred_dict</span><span class="p">,</span> <span class="n">scheme</span><span class="p">,</span> <span class="n">reviewed_gid_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+    <span class="n">mined_gid_list</span><span class="p">,</span> <span class="n">mined_gt_list</span><span class="p">,</span> <span class="n">mined_pos_list</span><span class="p">,</span> <span class="n">mined_neg_list</span> <span class="o">=</span> <span class="n">values</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Prepare images&#39;</span><span class="p">)</span>
+    <span class="c1"># Get images and a dictionary based on their gids</span>
+    <span class="n">image_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">mined_gid_list</span><span class="p">)</span>
+    <span class="n">image_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">gid</span><span class="p">:</span> <span class="n">image</span> <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mined_gid_list</span><span class="p">,</span> <span class="n">image_list</span><span class="p">)}</span>
+
+    <span class="c1"># Draw positives</span>
+    <span class="n">list_</span> <span class="o">=</span> <span class="n">mined_pos_list</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">_draw</span><span class="p">(</span><span class="n">image_dict</span><span class="p">,</span> <span class="n">list_</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+    <span class="n">pos_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;positives&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">pos_path</span><span class="p">)</span>
+    <span class="n">_write_chips</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">pos_path</span><span class="p">,</span> <span class="s1">&#39;chips_pos_</span><span class="si">%05d</span><span class="s1">.png&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Draw negatives</span>
+    <span class="n">list_</span> <span class="o">=</span> <span class="n">mined_neg_list</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">_draw</span><span class="p">(</span><span class="n">image_dict</span><span class="p">,</span> <span class="n">list_</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+    <span class="n">neg_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;negatives&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">neg_path</span><span class="p">)</span>
+    <span class="n">_write_chips</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">neg_path</span><span class="p">,</span> <span class="s1">&#39;chips_neg_</span><span class="si">%05d</span><span class="s1">.png&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Draw positives</span>
+    <span class="n">list_</span> <span class="o">=</span> <span class="n">mined_gt_list</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">_draw</span><span class="p">(</span><span class="n">image_dict</span><span class="p">,</span> <span class="n">list_</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Write images to </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output_path</span><span class="p">,))</span>
+    <span class="c1"># Write images to disk</span>
+    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">image_dict</span><span class="p">:</span>
+        <span class="n">output_filename</span> <span class="o">=</span> <span class="s1">&#39;localizations_gid_</span><span class="si">%d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,)</span>
+        <span class="n">output_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">image_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="redownload_detection_models"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.redownload_detection_models">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">redownload_detection_models</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Re-download detection models.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -c &quot;from wbia.algo.detect import grabmodels; grabmodels.redownload_models()&quot;</span>
+<span class="sd">        python -c &quot;import utool, wbia.algo; utool.view_directory(wbia.algo.detect.grabmodels._expand_modeldir())&quot;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.other.detectcore import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; result = redownload_detection_models(ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[other.detectcore] redownload_detection_models&#39;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.detect</span> <span class="kn">import</span> <span class="n">grabmodels</span>
+
+    <span class="n">modeldir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_detect_modeldir</span><span class="p">()</span>
+    <span class="n">grabmodels</span><span class="o">.</span><span class="n">redownload_models</span><span class="p">(</span><span class="n">modeldir</span><span class="o">=</span><span class="n">modeldir</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="view_model_dir"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.view_model_dir">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">view_model_dir</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[other.detectcore] redownload_detection_models&#39;</span><span class="p">)</span>
+    <span class="n">modeldir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_detect_modeldir</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">modeldir</span><span class="p">)</span></div>
+    <span class="c1"># grabmodels.redownload_models(modeldir=modeldir)</span>
+
+
+<span class="k">def</span> <span class="nf">_bootstrap_mine</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">gt_dict</span><span class="p">,</span>
+    <span class="n">pred_dict</span><span class="p">,</span>
+    <span class="n">scheme</span><span class="p">,</span>
+    <span class="n">reviewed_gid_dict</span><span class="p">,</span>
+    <span class="n">min_overlap</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
+    <span class="n">max_overlap</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+
+    <span class="c1">##################################################################################</span>
+    <span class="c1"># Step 7.5: gather SVM training data from overlap images</span>
+    <span class="c1">#           note that this step randomly subsamples new negatives, so</span>
+    <span class="c1">#           each SVM in the ensemble is given a different set of negatives</span>
+    <span class="n">mined_gid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">mined_gt_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">mined_pos_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">mined_neg_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">image_uuid</span> <span class="ow">in</span> <span class="n">gt_dict</span><span class="p">:</span>
+        <span class="c1"># logger.info(&#39;--- Processing user interaction for image %r&#39; % (image_uuid, ))</span>
+        <span class="c1"># Get the gt and prediction list</span>
+        <span class="n">gt_list</span> <span class="o">=</span> <span class="n">gt_dict</span><span class="p">[</span><span class="n">image_uuid</span><span class="p">]</span>
+        <span class="n">pred_list</span> <span class="o">=</span> <span class="n">pred_dict</span><span class="p">[</span><span class="n">image_uuid</span><span class="p">]</span>
+
+        <span class="c1"># If never seen this image before, pick a new selection of GT bboxes</span>
+        <span class="n">image_gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">image_gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reviewed_gid_dict</span><span class="p">:</span>
+            <span class="c1"># Simulate the user selecting the gt bounding box(es)</span>
+            <span class="n">index_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gt_list</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">scheme</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Pick a random bbox</span>
+                <span class="n">index_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">index_list</span><span class="p">)]</span>
+            <span class="k">elif</span> <span class="n">scheme</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c1"># Pick all gt boxes</span>
+                <span class="n">index_list_</span> <span class="o">=</span> <span class="n">index_list</span><span class="p">[:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span>
+            <span class="n">reviewed_gid_dict</span><span class="p">[</span><span class="n">image_gid</span><span class="p">]</span> <span class="o">=</span> <span class="n">index_list_</span>
+
+        <span class="c1"># Filter based on picked bboxes for gt</span>
+        <span class="n">picked_index_list</span> <span class="o">=</span> <span class="n">reviewed_gid_dict</span><span class="p">[</span><span class="n">image_gid</span><span class="p">]</span>
+        <span class="n">gt_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">gt_list</span><span class="p">[</span><span class="n">picked_index</span><span class="p">]</span> <span class="k">for</span> <span class="n">picked_index</span> <span class="ow">in</span> <span class="n">picked_index_list</span><span class="p">]</span>
+
+        <span class="c1"># Calculate overlap</span>
+        <span class="n">overlap</span> <span class="o">=</span> <span class="n">general_overlap</span><span class="p">(</span><span class="n">gt_list_</span><span class="p">,</span> <span class="n">pred_list</span><span class="p">)</span>
+        <span class="n">num_gt</span><span class="p">,</span> <span class="n">num_pred</span> <span class="o">=</span> <span class="n">overlap</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="k">if</span> <span class="n">num_gt</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">num_pred</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pos_idx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">overlap</span> <span class="o">&gt;=</span> <span class="n">min_overlap</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">neg_idx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">overlap</span> <span class="o">&lt;=</span> <span class="n">max_overlap</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">num_pos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_idx_list</span><span class="p">)</span>
+            <span class="n">num_neg</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">neg_idx_list</span><span class="p">)</span>
+
+            <span class="c1"># Randomly sample negative chips to get new candidates</span>
+            <span class="c1"># Most of the time (like almost always will happen)</span>
+            <span class="k">if</span> <span class="n">num_neg</span> <span class="o">&gt;</span> <span class="n">num_pos</span><span class="p">:</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">neg_idx_list</span><span class="p">)</span>
+                <span class="n">neg_idx_list</span> <span class="o">=</span> <span class="n">neg_idx_list</span><span class="p">[:</span><span class="n">num_pos</span><span class="p">]</span>
+
+            <span class="n">mined_gid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image_gid</span><span class="p">)</span>
+            <span class="n">mined_gt_list</span> <span class="o">+=</span> <span class="n">gt_list_</span>
+            <span class="n">mined_pos_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">pred_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">pos_idx_list</span><span class="p">]</span>
+            <span class="n">mined_neg_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">pred_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">neg_idx_list</span><span class="p">]</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">mined_pos_list</span><span class="p">),</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">mined_neg_list</span><span class="p">),</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">mined_gid_list</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Mined </span><span class="si">%d</span><span class="s1"> positive, </span><span class="si">%d</span><span class="s1"> negative from </span><span class="si">%d</span><span class="s1"> images&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mined_gid_list</span><span class="p">,</span> <span class="n">mined_gt_list</span><span class="p">,</span> <span class="n">mined_pos_list</span><span class="p">,</span> <span class="n">mined_neg_list</span>
+
+
+<div class="viewcode-block" id="visualize_ground_truth"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.visualize_ground_truth">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">visualize_ground_truth</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">visualize_bounding_boxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="s1">&#39;ground_truth&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="visualize_predictions"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.visualize_predictions">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">visualize_predictions</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">visualize_bounding_boxes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="s1">&#39;prediction&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="visualize_bounding_boxes"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.detectcore.visualize_bounding_boxes">[docs]</a><span class="k">def</span> <span class="nf">visualize_bounding_boxes</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">,</span>
+    <span class="n">gid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">randomize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">num_images</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">t_width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">gid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">general_get_imageset_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;TEST_SET&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">num_images</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">randomize</span><span class="p">:</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">num_images</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="n">num_images</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">num_images</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[:</span><span class="n">num_images</span><span class="p">]</span>
+
+    <span class="n">uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">version</span> <span class="o">==</span> <span class="s1">&#39;prediction&#39;</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Predictions&#39;</span><span class="p">)</span>
+        <span class="n">val_dict</span> <span class="o">=</span> <span class="n">localizer_parse_pred</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">version</span> <span class="o">==</span> <span class="s1">&#39;ground_truth&#39;</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Gather Ground-Truth&#39;</span><span class="p">)</span>
+        <span class="n">val_dict</span> <span class="o">=</span> <span class="n">general_parse_gt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;bboxes&#39;</span><span class="p">)))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+
+    <span class="n">filepath_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">image_uuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="n">t_width</span><span class="p">)</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="n">val_list</span> <span class="o">=</span> <span class="n">val_dict</span><span class="p">[</span><span class="n">image_uuid</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">val_list</span><span class="p">:</span>
+            <span class="n">xbr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;xbr&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">w</span><span class="p">))</span>
+            <span class="n">ybr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;ybr&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">h</span><span class="p">))</span>
+            <span class="n">xtl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">w</span><span class="p">))</span>
+            <span class="n">ytl</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;ytl&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">h</span><span class="p">))</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">ytl</span><span class="p">),</span> <span class="p">(</span><span class="n">xbr</span><span class="p">,</span> <span class="n">ybr</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">140</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">write_filename</span> <span class="o">=</span> <span class="s1">&#39;bboxes_</span><span class="si">%d</span><span class="s1">_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+        <span class="n">write_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">write_filename</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">write_filepath</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">write_filepath</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+
+        <span class="n">filepath_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="n">write_filepath</span>
+
+    <span class="k">return</span> <span class="n">filepath_dict</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

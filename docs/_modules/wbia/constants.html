@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.constants &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wbia.constants</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.constants</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">It is better to use constant variables instead of hoping you spell the same</span>
+<span class="sd">string correctly every time you use it. (Also it makes it much easier if a</span>
+<span class="sd">string name changes)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CONTAINERIZED</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--containerized&#39;</span><span class="p">)</span>
+<span class="n">PRODUCTION</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--production&#39;</span><span class="p">)</span>
+<span class="n">HTTPS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--https&#39;</span><span class="p">)</span>
+
+
+<span class="n">CONTAINER_NAME</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+    <span class="s1">&#39;--container-name&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">ENGINE_SLOT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--engine-slot&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
+
+
+<span class="n">CODEX</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--codex&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;codex_houston_1&#39;</span><span class="p">)</span>
+
+
+<span class="n">PI</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+<span class="n">TAU</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">PI</span>
+
+<span class="n">VIEWTEXT_TO_YAW_RADIANS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;frontright&#39;</span><span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;frontleft&#39;</span><span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;backleft&#39;</span><span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;back&#39;</span><span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;backright&#39;</span><span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Mapping of viewpoints codes to yaw angles</span>
+<span class="n">VIEWTEXT_TO_YAW_RADIANS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;frontright&#39;</span><span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;front&#39;</span><span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;frontleft&#39;</span><span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;backleft&#39;</span><span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;back&#39;</span><span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;backright&#39;</span><span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">VIEWTEXT_TO_VIEWPOINT_RADIANS</span> <span class="o">=</span> <span class="n">VIEWTEXT_TO_YAW_RADIANS</span>
+
+
+<span class="c1"># TODO: DEPRICATE ALL THE YAW ALIAS STUFF IN FAVOR OF const.VIEW</span>
+<span class="n">YAWALIAS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># maybe this can be CODE_TO_SHORT</span>
+    <span class="s1">&#39;up&#39;</span><span class="p">:</span> <span class="s1">&#39;U&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;down&#39;</span><span class="p">:</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;front&#39;</span><span class="p">:</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="s1">&#39;L&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;back&#39;</span><span class="p">:</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;upfront&#39;</span><span class="p">:</span> <span class="s1">&#39;UF&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;upback&#39;</span><span class="p">:</span> <span class="s1">&#39;UB&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;upleft&#39;</span><span class="p">:</span> <span class="s1">&#39;UL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;upright&#39;</span><span class="p">:</span> <span class="s1">&#39;UR&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;downfront&#39;</span><span class="p">:</span> <span class="s1">&#39;DF&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;downback&#39;</span><span class="p">:</span> <span class="s1">&#39;DB&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;downleft&#39;</span><span class="p">:</span> <span class="s1">&#39;DL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;downright&#39;</span><span class="p">:</span> <span class="s1">&#39;DR&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;frontleft&#39;</span><span class="p">:</span> <span class="s1">&#39;FL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;frontright&#39;</span><span class="p">:</span> <span class="s1">&#39;FR&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;backleft&#39;</span><span class="p">:</span> <span class="s1">&#39;BL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;backright&#39;</span><span class="p">:</span> <span class="s1">&#39;BR&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;upfrontleft&#39;</span><span class="p">:</span> <span class="s1">&#39;UFL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;upfrontright&#39;</span><span class="p">:</span> <span class="s1">&#39;UFR&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;upbackleft&#39;</span><span class="p">:</span> <span class="s1">&#39;UBL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;upbackright&#39;</span><span class="p">:</span> <span class="s1">&#39;UBR&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;downfrontleft&#39;</span><span class="p">:</span> <span class="s1">&#39;DFL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;downfrontright&#39;</span><span class="p">:</span> <span class="s1">&#39;DFR&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;downbackleft&#39;</span><span class="p">:</span> <span class="s1">&#39;DBL&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;downbackright&#39;</span><span class="p">:</span> <span class="s1">&#39;DBR&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">QUAL_EXCELLENT</span> <span class="o">=</span> <span class="s1">&#39;excellent&#39;</span>
+<span class="n">QUAL_GOOD</span> <span class="o">=</span> <span class="s1">&#39;good&#39;</span>
+<span class="n">QUAL_OK</span> <span class="o">=</span> <span class="s1">&#39;ok&#39;</span>
+<span class="n">QUAL_POOR</span> <span class="o">=</span> <span class="s1">&#39;poor&#39;</span>
+<span class="n">QUAL_JUNK</span> <span class="o">=</span> <span class="s1">&#39;junk&#39;</span>
+<span class="n">QUAL_UNKNOWN</span> <span class="o">=</span> <span class="s1">&#39;UNKNOWN&#39;</span>
+
+<span class="n">QUALITY_INT_TO_TEXT</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">QUAL_EXCELLENT</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">QUAL_GOOD</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">QUAL_OK</span><span class="p">),</span>
+        <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">QUAL_POOR</span><span class="p">),</span>
+        <span class="c1"># oops forgot 1. will be mapped to poor</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">QUAL_JUNK</span><span class="p">),</span>
+        <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">QUAL_UNKNOWN</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+
+<span class="n">QUALITY_TEXT_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="p">)</span>
+<span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">QUAL_JUNK</span>
+<span class="c1"># QUALITY_TEXT_TO_INTS      = ut.invert_dict(QUALITY_INT_TO_TEXT)</span>
+<span class="n">QUALITY_TEXT_TO_INTS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span>
+    <span class="nb">list</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="nb">list</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<span class="p">)</span>
+<span class="n">QUALITY_TEXT_TO_INTS</span><span class="p">[</span><span class="n">QUAL_UNKNOWN</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+
+<span class="n">SEX_INT_TO_TEXT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kc">None</span><span class="p">:</span> <span class="s1">&#39;UNKNOWN NAME&#39;</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;UNKNOWN SEX&#39;</span><span class="p">,</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;Female&#39;</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Male&#39;</span><span class="p">,</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;INDETERMINATE SEX&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">SEX_TEXT_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">SEX_INT_TO_TEXT</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PATH_NAMES"><a class="viewcode-back" href="../../api.html#wbia.constants.PATH_NAMES">[docs]</a><span class="k">class</span> <span class="nc">PATH_NAMES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
+    <span class="sd">&quot;&quot;&quot;Path names for internal IBEIS database&quot;&quot;&quot;</span>
+
+    <span class="n">sqldb</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_database.sqlite3&#39;</span>
+    <span class="n">sqlstaging</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_staging.sqlite3&#39;</span>
+    <span class="n">_ibsdb</span> <span class="o">=</span> <span class="s1">&#39;_ibsdb&#39;</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_cache&#39;</span>
+    <span class="n">backups</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_backups&#39;</span>
+    <span class="n">logs</span> <span class="o">=</span> <span class="s1">&#39;_ibeis_logs&#39;</span>
+    <span class="n">chips</span> <span class="o">=</span> <span class="s1">&#39;chips&#39;</span>
+    <span class="n">figures</span> <span class="o">=</span> <span class="s1">&#39;figures&#39;</span>
+    <span class="n">flann</span> <span class="o">=</span> <span class="s1">&#39;flann&#39;</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="s1">&#39;images&#39;</span>
+    <span class="n">trees</span> <span class="o">=</span> <span class="s1">&#39;trees&#39;</span>
+    <span class="n">nets</span> <span class="o">=</span> <span class="s1">&#39;nets&#39;</span>
+    <span class="n">uploads</span> <span class="o">=</span> <span class="s1">&#39;uploads&#39;</span>
+    <span class="n">detectimg</span> <span class="o">=</span> <span class="s1">&#39;detectimg&#39;</span>
+    <span class="n">thumbs</span> <span class="o">=</span> <span class="s1">&#39;thumbs&#39;</span>
+    <span class="n">trashdir</span> <span class="o">=</span> <span class="s1">&#39;trashed_images&#39;</span>
+    <span class="n">distinctdir</span> <span class="o">=</span> <span class="s1">&#39;distinctiveness_model&#39;</span>
+    <span class="n">scorenormdir</span> <span class="o">=</span> <span class="s1">&#39;scorenorm&#39;</span>
+    <span class="n">smartpatrol</span> <span class="o">=</span> <span class="s1">&#39;smart_patrol&#39;</span>
+    <span class="c1"># Query Results (chipmatch dirs)</span>
+    <span class="n">qres</span> <span class="o">=</span> <span class="s1">&#39;qres_new&#39;</span>
+    <span class="n">bigcache</span> <span class="o">=</span> <span class="s1">&#39;qres_bigcache_new&#39;</span></div>
+
+
+<div class="viewcode-block" id="REL_PATHS"><a class="viewcode-back" href="../../api.html#wbia.constants.REL_PATHS">[docs]</a><span class="k">class</span> <span class="nc">REL_PATHS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
+    <span class="sd">&quot;&quot;&quot;all paths are relative to ibs.dbdir&quot;&quot;&quot;</span>
+
+    <span class="n">_ibsdb</span> <span class="o">=</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span>
+    <span class="n">trashdir</span> <span class="o">=</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">trashdir</span>
+    <span class="n">figures</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">figures</span><span class="p">)</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+    <span class="n">backups</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">backups</span><span class="p">)</span>
+    <span class="n">logs</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">logs</span><span class="p">)</span>
+    <span class="c1"># chips       = join(_ibsdb, PATH_NAMES.chips)</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
+    <span class="n">trees</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">trees</span><span class="p">)</span>
+    <span class="n">nets</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">nets</span><span class="p">)</span>
+    <span class="n">uploads</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">uploads</span><span class="p">)</span>
+    <span class="c1"># All computed dirs live in &lt;dbdir&gt;/_ibsdb/_ibeis_cache</span>
+    <span class="n">chips</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">chips</span><span class="p">)</span>
+    <span class="n">thumbs</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">thumbs</span><span class="p">)</span>
+    <span class="n">flann</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">flann</span><span class="p">)</span>
+    <span class="n">qres</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">qres</span><span class="p">)</span>
+    <span class="n">bigcache</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">bigcache</span><span class="p">)</span>
+    <span class="n">distinctdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">distinctdir</span><span class="p">)</span></div>
+
+
+<span class="c1"># Directories that should be excluded from copy operations</span>
+<span class="n">EXCLUDE_COPY_REL_DIRS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">chips</span><span class="p">,</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">cache</span><span class="p">,</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">backups</span><span class="p">,</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">figures</span><span class="p">,</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">nets</span><span class="p">,</span>
+    <span class="n">join</span><span class="p">(</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="s1">&#39;_ibeis_cache*&#39;</span><span class="p">),</span>
+    <span class="c1"># &#39;_ibsdb/_ibeis_cache&#39;,</span>
+    <span class="s1">&#39;_ibsdb/chips&#39;</span><span class="p">,</span>  <span class="c1"># old path for caches</span>
+    <span class="s1">&#39;./images&#39;</span><span class="p">,</span>  <span class="c1"># the hotspotter images dir</span>
+<span class="p">]</span>
+
+
+<span class="c1"># TODO: Remove anything under this block completely</span>
+
+
+<span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">UNKNOWN_NAME_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># Names normalized to the standard UNKNOWN_NAME</span>
+<span class="n">ACCEPTED_UNKNOWN_NAMES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;Unassigned&#39;</span><span class="p">])</span>
+
+<span class="n">INDIVIDUAL_KEY</span> <span class="o">=</span> <span class="s1">&#39;INDIVIDUAL_KEY&#39;</span>
+<span class="n">SPECIES_KEY</span> <span class="o">=</span> <span class="s1">&#39;SPECIES_KEY&#39;</span>
+<span class="n">EMPTY_KEY</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="n">UNKNOWN</span> <span class="o">=</span> <span class="s1">&#39;____&#39;</span>
+<span class="n">KEY_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">INDIVIDUAL_KEY</span><span class="p">:</span> <span class="n">UNKNOWN</span><span class="p">,</span>
+    <span class="n">SPECIES_KEY</span><span class="p">:</span> <span class="n">UNKNOWN</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># &lt;UNFINISHED METADATA&gt;</span>
+<span class="c1"># We are letting wildbook do this metadata instead</span>
+<span class="c1"># Define the special metadata for annotation</span>
+
+<span class="n">ROSEMARY_ANNOT_METADATA</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s1">&#39;local_name&#39;</span><span class="p">,</span> <span class="s1">&#39;Local name:&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;sun&#39;</span><span class="p">,</span> <span class="s1">&#39;Sun:&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;FS&#39;</span><span class="p">,</span> <span class="s1">&#39;PS&#39;</span><span class="p">,</span> <span class="s1">&#39;NS&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wind&#39;</span><span class="p">,</span> <span class="s1">&#39;Wind:&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;NW&#39;</span><span class="p">,</span> <span class="s1">&#39;LW&#39;</span><span class="p">,</span> <span class="s1">&#39;MW&#39;</span><span class="p">,</span> <span class="s1">&#39;SW&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;rain&#39;</span><span class="p">,</span> <span class="s1">&#39;Rain:&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;NR&#39;</span><span class="p">,</span> <span class="s1">&#39;LR&#39;</span><span class="p">,</span> <span class="s1">&#39;MR&#39;</span><span class="p">,</span> <span class="s1">&#39;HR&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;cover&#39;</span><span class="p">,</span> <span class="s1">&#39;Cover:&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;grass&#39;</span><span class="p">,</span> <span class="s1">&#39;Grass:&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;less hf&#39;</span><span class="p">,</span> <span class="s1">&#39;less hk&#39;</span><span class="p">,</span> <span class="s1">&#39;less belly&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;grass_color&#39;</span><span class="p">,</span> <span class="s1">&#39;Grass Colour:&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;BG&#39;</span><span class="p">,</span> <span class="s1">&#39;GB&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;grass_species&#39;</span><span class="p">,</span> <span class="s1">&#39;Grass Species:&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;bush_type&#39;</span><span class="p">,</span> <span class="s1">&#39;Bush type:&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;OG&#39;</span><span class="p">,</span> <span class="s1">&#39;LB&#39;</span><span class="p">,</span> <span class="s1">&#39;MB&#39;</span><span class="p">,</span> <span class="s1">&#39;TB&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;bit&#39;</span><span class="p">,</span> <span class="s1">&#39;Bit:&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;other_speceis&#39;</span><span class="p">,</span> <span class="s1">&#39;Other Species:&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="c1"># ROSEMARY_KEYS = utool.get_list_column(ROSEMARY_ANNOT_METADATA, 0)</span>
+<span class="c1"># KEY_DEFAULTS.update(**{key: UNKNOWN for key in ROSEMARY_KEYS})</span>
+<span class="c1"># &lt;/UNFINISHED METADATA&gt;</span>
+
+<span class="n">BASE_DATABASE_VERSION</span> <span class="o">=</span> <span class="s1">&#39;0.0.0&#39;</span>
+
+<span class="c1">#################################################################</span>
+<span class="c1"># DO NOT DELETE FROM THE TABLE LIST, THE DATABASE UPDATER WILL BREAK!!!</span>
+<span class="c1"># THIS GOES FOR OLD AND DEPRICATED TABLENAMES AS WELL!!!</span>
+<span class="c1"># TODO:</span>
+<span class="c1"># What should happen is when they are depricated they should go into a</span>
+<span class="c1"># depricated tablename structure with the relevant versions suffixed</span>
+<span class="c1">#################################################################</span>
+<span class="c1"># CORE DATABASE</span>
+<span class="n">AL_RELATION_TABLE</span> <span class="o">=</span> <span class="s1">&#39;annotation_lblannot_relationship&#39;</span>
+<span class="n">GA_RELATION_TABLE</span> <span class="o">=</span> <span class="s1">&#39;annotgroup_annotation_relationship&#39;</span>
+<span class="n">ANNOTGROUP_TABLE</span> <span class="o">=</span> <span class="s1">&#39;annotgroups&#39;</span>
+<span class="n">ANNOTATION_TABLE</span> <span class="o">=</span> <span class="s1">&#39;annotations&#39;</span>
+<span class="n">PART_TABLE</span> <span class="o">=</span> <span class="s1">&#39;parts&#39;</span>
+<span class="n">CHIP_TABLE</span> <span class="o">=</span> <span class="s1">&#39;chips&#39;</span>
+<span class="n">CONFIG_TABLE</span> <span class="o">=</span> <span class="s1">&#39;configs&#39;</span>
+<span class="n">CONTRIBUTOR_TABLE</span> <span class="o">=</span> <span class="s1">&#39;contributors&#39;</span>
+<span class="n">GSG_RELATION_TABLE</span> <span class="o">=</span> <span class="s1">&#39;imageset_image_relationship&#39;</span>
+<span class="n">IMAGESET_TABLE</span> <span class="o">=</span> <span class="s1">&#39;imagesets&#39;</span>
+<span class="n">FEATURE_TABLE</span> <span class="o">=</span> <span class="s1">&#39;features&#39;</span>
+<span class="n">FEATURE_WEIGHT_TABLE</span> <span class="o">=</span> <span class="s1">&#39;feature_weights&#39;</span>
+<span class="n">GL_RELATION_TABLE</span> <span class="o">=</span> <span class="s1">&#39;image_lblimage_relationship&#39;</span>
+<span class="n">IMAGE_TABLE</span> <span class="o">=</span> <span class="s1">&#39;images&#39;</span>
+<span class="n">LBLANNOT_TABLE</span> <span class="o">=</span> <span class="s1">&#39;lblannot&#39;</span>
+<span class="n">LBLIMAGE_TABLE</span> <span class="o">=</span> <span class="s1">&#39;lblimage&#39;</span>
+<span class="n">LBLTYPE_TABLE</span> <span class="o">=</span> <span class="s1">&#39;keys&#39;</span>
+<span class="n">METADATA_TABLE</span> <span class="o">=</span> <span class="s1">&#39;metadata&#39;</span>
+<span class="c1"># Ugly move from name to names, need better way of versioning old table names</span>
+<span class="n">NAME_TABLE_v121</span> <span class="o">=</span> <span class="s1">&#39;name&#39;</span>
+<span class="n">NAME_TABLE_v130</span> <span class="o">=</span> <span class="s1">&#39;names&#39;</span>
+<span class="n">NAME_TABLE</span> <span class="o">=</span> <span class="n">NAME_TABLE_v130</span>
+<span class="n">ANNOTMATCH_TABLE</span> <span class="o">=</span> <span class="s1">&#39;annotmatch&#39;</span>
+<span class="n">SPECIES_TABLE</span> <span class="o">=</span> <span class="s1">&#39;species&#39;</span>
+<span class="n">RESIDUAL_TABLE</span> <span class="o">=</span> <span class="s1">&#39;residuals&#39;</span>
+<span class="n">VERSIONS_TABLE</span> <span class="o">=</span> <span class="s1">&#39;versions&#39;</span>
+<span class="n">WEIGHT_TABLE</span> <span class="o">=</span> <span class="s1">&#39;weights&#39;</span>
+<span class="c1">#</span>
+<span class="n">PARTY_CONTRIB_RELATION_TABLE</span> <span class="o">=</span> <span class="s1">&#39;party_contrib_relation&#39;</span>
+<span class="n">PARTY_TABLE</span> <span class="o">=</span> <span class="s1">&#39;party&#39;</span>
+<span class="c1">#################################################################</span>
+<span class="c1"># STAGING DATABASE</span>
+<span class="n">REVIEW_TABLE</span> <span class="o">=</span> <span class="s1">&#39;reviews&#39;</span>
+<span class="n">TEST_TABLE</span> <span class="o">=</span> <span class="s1">&#39;tests&#39;</span>
+<span class="c1">#################################################################</span>
+
+
+<span class="c1"># DEPCACHE TABLENAMES</span>
+<span class="c1"># CHIPTHUMB_TABLE = &#39;chipthumb&#39;</span>
+
+
+<span class="n">UNKNOWN_PURPLE_RGBA255</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">102</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+<span class="n">NAME_BLUE_RGBA255</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">235</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+<span class="n">NAME_RED_RGBA255</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">235</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+<span class="n">NEW_YELLOW_RGBA255</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">235</span><span class="p">,</span> <span class="mi">235</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+
+<span class="n">UNKNOWN_PURPLE_RGBA01</span> <span class="o">=</span> <span class="n">UNKNOWN_PURPLE_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">NAME_BLUE_RGBA01</span> <span class="o">=</span> <span class="n">NAME_BLUE_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">NAME_RED_RGBA01</span> <span class="o">=</span> <span class="n">NAME_RED_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
+<span class="n">NEW_YELLOW_RGBA01</span> <span class="o">=</span> <span class="n">NEW_YELLOW_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
+
+<span class="n">EXEMPLAR_IMAGESETTEXT</span> <span class="o">=</span> <span class="s1">&#39;*Exemplars&#39;</span>
+<span class="n">ALL_IMAGE_IMAGESETTEXT</span> <span class="o">=</span> <span class="s1">&#39;*All Images&#39;</span>
+<span class="n">UNREVIEWED_IMAGE_IMAGESETTEXT</span> <span class="o">=</span> <span class="s1">&#39;*Undetected Images&#39;</span>
+<span class="n">REVIEWED_IMAGE_IMAGESETTEXT</span> <span class="o">=</span> <span class="s1">&#39;*Reviewed Detections&#39;</span>
+<span class="n">UNGROUPED_IMAGES_IMAGESETTEXT</span> <span class="o">=</span> <span class="s1">&#39;*Ungrouped Images&#39;</span>
+<span class="n">SPECIAL_IMAGESET_LABELS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">EXEMPLAR_IMAGESETTEXT</span><span class="p">,</span>
+    <span class="n">ALL_IMAGE_IMAGESETTEXT</span><span class="p">,</span>
+    <span class="n">UNREVIEWED_IMAGE_IMAGESETTEXT</span><span class="p">,</span>
+    <span class="n">REVIEWED_IMAGE_IMAGESETTEXT</span><span class="p">,</span>
+    <span class="n">UNGROUPED_IMAGES_IMAGESETTEXT</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">NEW_IMAGESET_IMAGESETTEXT</span> <span class="o">=</span> <span class="s1">&#39;NEW IMAGESET&#39;</span>
+
+<span class="c1"># IMAGE_THUMB_SUFFIX = &#39;_thumb.png&#39;</span>
+<span class="c1"># CHIP_THUMB_SUFFIX  = &#39;_chip_thumb.png&#39;</span>
+<span class="n">IMAGE_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s1">&#39;_thumb.jpg&#39;</span>
+<span class="n">IMAGE_BARE_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s1">&#39;_thumb_bare.jpg&#39;</span>
+<span class="n">CHIP_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s1">&#39;_chip_thumb.jpg&#39;</span>
+
+
+<span class="n">VS_EXEMPLARS_KEY</span> <span class="o">=</span> <span class="s1">&#39;vs_exemplars&#39;</span>
+<span class="n">INTRA_OCCUR_KEY</span> <span class="o">=</span> <span class="s1">&#39;intra_occurrence&#39;</span>
+
+<span class="n">HARD_NOTE_TAG</span> <span class="o">=</span> <span class="s1">&#39;&lt;HARDCASE&gt;&#39;</span>
+
+<span class="c1"># HACK</span>
+<span class="n">COMPUTER_NAME</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span>
+<span class="c1"># if COMPUTER_NAME in [&#39;wbia.cs.uic.edu&#39;]:</span>
+<span class="c1">#     _DEFAULT_WILDBOOK_TARGET = &#39;lewa3&#39;</span>
+<span class="c1"># elif COMPUTER_NAME in [&#39;Leviathan&#39;]:</span>
+<span class="c1">#     _DEFAULT_WILDBOOK_TARGET = &#39;lewa3&#39;</span>
+<span class="c1"># elif COMPUTER_NAME in [&#39;maasai&#39;, &#39;quagga&#39;, &#39;xadmin-Nitro-AN515-51&#39;]:</span>
+<span class="c1">#     _DEFAULT_WILDBOOK_TARGET = &#39;quagga.princeton.edu&#39;</span>
+<span class="c1"># else:</span>
+<span class="c1">#     _DEFAULT_WILDBOOK_TARGET = &#39;wbia&#39;</span>
+<span class="n">WILDBOOK_TARGET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span>
+    <span class="s1">&#39;--wildbook-target&#39;</span><span class="p">,</span>
+    <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help_</span><span class="o">=</span><span class="s1">&#39;specify the Wildbook target deployment&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="ZIPPED_URLS"><a class="viewcode-back" href="../../api.html#wbia.constants.ZIPPED_URLS">[docs]</a><span class="k">class</span> <span class="nc">ZIPPED_URLS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
+    <span class="n">PZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/distinctivness_zebra_plains.zip&#39;</span>  <span class="c1"># DEPRICATE</span>
+    <span class="n">GZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/models/distinctivness_zebra_grevys.zip&#39;</span>  <span class="c1"># DEPRICATE</span>
+
+    <span class="n">PZ_MTEST</span> <span class="o">=</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/databases/PZ_MTEST.zip&#39;</span>
+    <span class="n">NAUTS</span> <span class="o">=</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/databases/NAUT_test.zip&#39;</span>
+    <span class="n">WDS</span> <span class="o">=</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/databases/wd_peter2.zip&#39;</span>
+    <span class="n">DF_CURVRANK</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;https://wildbookiarepository.azureedge.net/databases/testdb_curvrank.zip&#39;</span>
+    <span class="p">)</span>
+    <span class="n">ID_EXAMPLE</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;https://wildbookiarepository.azureedge.net/databases/testdb_identification.zip&#39;</span>
+    <span class="p">)</span>
+    <span class="n">ORIENTATION</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;https://wildbookiarepository.azureedge.net/databases/testdb_orientation.zip&#39;</span>
+    <span class="p">)</span>
+    <span class="n">ASSIGNER</span> <span class="o">=</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/databases/testdb_assigner.zip&#39;</span>
+    <span class="n">K7_EXAMPLE</span> <span class="o">=</span> <span class="s1">&#39;https://wildbookiarepository.azureedge.net/databases/testdb_kaggle7.zip&#39;</span></div>
+
+
+<span class="c1"># Turn off features at Lewa :(</span>
+<span class="n">SIMPLIFY_INTERFACE</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;wbia.cs.uic.edu&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span>
+    <span class="s1">&#39;--simplify&#39;</span>
+<span class="p">)</span>
+
+
+<span class="c1"># For candidacy document</span>
+<span class="n">DBNAME_ALIAS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &#39;NNP_MasterGIRM_core&#39;: &#39;NNP_GIRM&#39;</span>
+    <span class="c1"># &#39;NNP_MasterGIRM_core&#39;: &#39;GIRM&#39;,</span>
+    <span class="s1">&#39;NNP_MasterGIRM_core&#39;</span><span class="p">:</span> <span class="s1">&#39;GIRM&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PZ_Master1&#39;</span><span class="p">:</span> <span class="s1">&#39;PZ&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GZ_Master1&#39;</span><span class="p">:</span> <span class="s1">&#39;GZ&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GIRM_Master1&#39;</span><span class="p">:</span> <span class="s1">&#39;GIRM&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GZ_ALL&#39;</span><span class="p">:</span> <span class="s1">&#39;GZ&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="TEST_SPECIES"><a class="viewcode-back" href="../../api.html#wbia.constants.TEST_SPECIES">[docs]</a><span class="k">class</span> <span class="nc">TEST_SPECIES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
+    <span class="n">ZEB_PLAIN</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
+    <span class="n">ZEB_GREVY</span> <span class="o">=</span> <span class="s1">&#39;zebra_grevys&#39;</span>
+    <span class="n">BEAR_POLAR</span> <span class="o">=</span> <span class="s1">&#39;bear_polar&#39;</span>
+    <span class="n">GIR_MASAI</span> <span class="o">=</span> <span class="s1">&#39;giraffe_masai&#39;</span></div>
+
+
+<span class="n">SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;cheetah&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dolphin_spotted&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dolphin_spotted+dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dolphin_spotted+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;giraffe_masai&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;giraffe_reticulated&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;grouper_nassau&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hyaena&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;jaguar&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;leopard&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lynx&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;manta_ray&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;manta_ray_giant&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;right_whale_head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;salanader_fire&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;salanader_fire_larvae&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;salanader_fire_adult&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;seadragon_leafy&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;seadragon_leafy+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;seadragon_weedy&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;seadragon_weedy+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;skunk_spotted&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;snow_leopard&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;spotted_eagle_ray&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;turtle_green&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;turtle_green+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;turtle_hawksbill&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;turtle_hawksbill+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;turtle_oliveridley&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;turtle_oliveridley+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;turtle_asian&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;turtle_sea&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;turtle_sea+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_fluke&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_humpback&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_humpback+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;zebra_plains&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;zebra_mountain&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_orca&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_orca+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wild_dog&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wild_dog_dark&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wild_dog_light&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wild_dog_puppy&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wild_dog_standard&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wild_dog_tan&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dolphin_bottlenose+dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dolphin_bottlenose+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dolphin_spotted+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;shark_sand_tiger+fin_dorsal_back&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;shark_sand_tiger+fin_dorsal_front&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_humpback+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_humpback+fin_dorsal_back&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_humpback+fin_dorsal_front&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_pilot+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_beluga&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;beluga_whale&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mediterranean_monk_seal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;grey_seal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;grey_seal_unknown&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;grey_seal_male&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;grey_seal_femaleyoung&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;grey_seal_pup&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;harbour_seal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hawaiian_monk_seal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_sperm&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;whale_sperm+fluke&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;yellow_bellied_toad&#39;</span><span class="p">,</span>
+    <span class="c1"># Latin (Flukebook)</span>
+    <span class="s1">&#39;aetobatus_narinari&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bombina_variegata&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;chelonioidea&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;chelonioidea+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;chelonia_mydas&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;chelonia_mydas+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;delphinapterus_leucas&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;eretmochelys_imbricata&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;eretmochelys_imbricata+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;eubalaena_australis&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;eubalaena_glacialis&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;epinephelus_striatus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;equus_quagga&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;equus_grevyi&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;equus_zebra&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;giraffa_tippelskirchi&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;giraffa_camelopardalis_reticulata&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hyaena_hyaena&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lepidochelys_olivacea&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lepidochelys_olivacea+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lynx_pardinus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mobula_birostris&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mobula_alfredi&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;phycodurus_eques&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;phycodurus_eques+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;phyllopteryx_taeniolatus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;phyllopteryx_taeniolatus+head&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;salamandra_salamandra&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;salamandra_salamandra_larvae&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;salamandra_salamandra_adult&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;megaptera_novaeangliae&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;physeter_macrocephalus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;physeter_macrocephalus+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;spilogale_gracilis&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;stenella_frontalis&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;stenella_frontalis+dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;stenella_frontalis+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;tursiops_truncatus+dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;tursiops_truncatus+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;orcinus_orca&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;orcinus_orca+fin_dorsal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;panthera_pardus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;panthera_uncia&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;panthera_onca&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;acinonyx_jubatus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lycaon_pictus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;monachus_monachus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;phoca_vitulina&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;halichoerus_grypus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;monachus_schauinslandi&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;physeter_macrocephalus&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;physeter_macrocephalus+fluke&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="n">SPECIES_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;antelope&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;ANTEL&#39;</span><span class="p">,</span> <span class="s1">&#39;Antelope&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;airplane&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;PLANE&#39;</span><span class="p">,</span> <span class="s1">&#39;Airplane&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;bear_polar&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;PB&#39;</span><span class="p">,</span> <span class="s1">&#39;Polar Bear&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;bird&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;BIRD&#39;</span><span class="p">,</span> <span class="s1">&#39;Bird (Generic)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;bird_generic&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;bird&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;bicycle&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;BIKE&#39;</span><span class="p">,</span> <span class="s1">&#39;Bicycle&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;boat&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;BOAT&#39;</span><span class="p">,</span> <span class="s1">&#39;Boat&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;building&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;BUILDING&#39;</span><span class="p">,</span> <span class="s1">&#39;Building&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;bus&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;BUS&#39;</span><span class="p">,</span> <span class="s1">&#39;Bus&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;car&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;CAR&#39;</span><span class="p">,</span> <span class="s1">&#39;Car&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;camel&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;CAMEL&#39;</span><span class="p">,</span> <span class="s1">&#39;Camel&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;crane&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;CRANE&#39;</span><span class="p">,</span> <span class="s1">&#39;Crane&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;cheetah&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;CHTH&#39;</span><span class="p">,</span> <span class="s1">&#39;Cheetah&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;dog_wild&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WD&#39;</span><span class="p">,</span> <span class="s1">&#39;Wild Dog&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;dolphin_fin&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;DF&#39;</span><span class="p">,</span> <span class="s1">&#39;Dolphin Fin&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;dolphin_bottlenose_fin&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;BDF&#39;</span><span class="p">,</span> <span class="s1">&#39;Bottlenose Dolphin Fin&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;dolphin_spotted&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;SDOLPH&#39;</span><span class="p">,</span> <span class="s1">&#39;Dolphin (Spotted)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;domesticated_cat&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;DOMC&#39;</span><span class="p">,</span> <span class="s1">&#39;Cat (Domesticated)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;domesticated_cow&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;DOMW&#39;</span><span class="p">,</span> <span class="s1">&#39;Cow (Domesticated)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;domesticated_dog&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;DOMD&#39;</span><span class="p">,</span> <span class="s1">&#39;Dog (Domesticated)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;domesticated_horse&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;DOMH&#39;</span><span class="p">,</span> <span class="s1">&#39;Horse (Domesticated)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;domesticated_sheep&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;DOMS&#39;</span><span class="p">,</span> <span class="s1">&#39;Sheep (Domesticated)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;cat_domestic&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;domesticated_cat&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;cow_domestic&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;domesticated_cow&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;dog_domestic&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;domesticated_dog&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;horse_domestic&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;domesticated_horse&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;sheep_domestic&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;domesticated_sheep&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;elephant_savanna&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;ELEP&#39;</span><span class="p">,</span> <span class="s1">&#39;Elephant (Savanna)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;elephant_savannah&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;elephant_savanna&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;frog&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;FROG&#39;</span><span class="p">,</span> <span class="s1">&#39;Frog&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;gazelle&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;GAZ&#39;</span><span class="p">,</span> <span class="s1">&#39;Gazelle (Generic)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;gazelle_generic&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;gazelle&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;giraffe_masai&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;GIRM&#39;</span><span class="p">,</span> <span class="s1">&#39;Giraffe (Masai)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;giraffe_massai&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;giraffe_masai&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;giraffe_maasai&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;giraffe_masai&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;giraffe_reticulated&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;GIR&#39;</span><span class="p">,</span> <span class="s1">&#39;Giraffe (Reticulated)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;goat&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;GOAT&#39;</span><span class="p">,</span> <span class="s1">&#39;Goat (Generic)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;goat_generic&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;goat&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;grouper_nassau&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;NG&#39;</span><span class="p">,</span> <span class="s1">&#39;Nassau Grouper&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;hippopotamus&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;HIPPO&#39;</span><span class="p">,</span> <span class="s1">&#39;Hippopotamus&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;hyena&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;hyaena&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;hyaena&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;HYAENA&#39;</span><span class="p">,</span> <span class="s1">&#39;Hyaena&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;ignore&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;IGNORE&#39;</span><span class="p">,</span> <span class="s1">&#39;IGNORE&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;indistinct&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;INDISTINCT&#39;</span><span class="p">,</span> <span class="s1">&#39;INDISTINCT&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;jaguar&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;JAG&#39;</span><span class="p">,</span> <span class="s1">&#39;Jaguar&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;leopard&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;LOEP&#39;</span><span class="p">,</span> <span class="s1">&#39;Leopard&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;lion&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;LION&#39;</span><span class="p">,</span> <span class="s1">&#39;Lion&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;lionfish&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;LF&#39;</span><span class="p">,</span> <span class="s1">&#39;Lionfish&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;lynx&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;LYNX&#39;</span><span class="p">,</span> <span class="s1">&#39;Lynx&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;manta_alfredi&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;mobula_alfredi&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;manta_birostris&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;mobula_birostris&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;mobula_alfredi&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;MRR&#39;</span><span class="p">,</span> <span class="s1">&#39;Manta Ray (Reef)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;mobula_birostris&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;MRG&#39;</span><span class="p">,</span> <span class="s1">&#39;Manta Ray (Giant)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;manta_ray_giant&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;mobula_birostris&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;manta_ray&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;manta_ray_giant&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;morotcycle&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;MBIKE&#39;</span><span class="p">,</span> <span class="s1">&#39;Motorcycle&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;nautilus&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;NAUT&#39;</span><span class="p">,</span> <span class="s1">&#39;Nautilus&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;ostrich&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;OST&#39;</span><span class="p">,</span> <span class="s1">&#39;Ostrich&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;other&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;OTHER&#39;</span><span class="p">,</span> <span class="s1">&#39;Other&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;person&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;PERSON&#39;</span><span class="p">,</span> <span class="s1">&#39;Person&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;rhino_black&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;BRHINO&#39;</span><span class="p">,</span> <span class="s1">&#39;Rhino (Black)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;rhino_white&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WRHINO&#39;</span><span class="p">,</span> <span class="s1">&#39;Rhino (White)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;seal_saimma_ringed&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;SEAL2&#39;</span><span class="p">,</span> <span class="s1">&#39;Seal (Siamaa Ringed)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;seal_spotted&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;SEAL1&#39;</span><span class="p">,</span> <span class="s1">&#39;Seal (Spotted)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;seadragon_leafy&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;SDL&#39;</span><span class="p">,</span> <span class="s1">&#39;Sea Dragon (Leafy)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;seadragon_weedy&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;SDW&#39;</span><span class="p">,</span> <span class="s1">&#39;Sea Dragon (Weedy)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;shark_sandtiger&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;STS&#39;</span><span class="p">,</span> <span class="s1">&#39;Sand Tiger Shark&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;skunk_spotted&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;SSKUNK&#39;</span><span class="p">,</span> <span class="s1">&#39;Skunk (Spotted)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;snail&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;SNAIL&#39;</span><span class="p">,</span> <span class="s1">&#39;Snail&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;snow_leopard&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;SLEOP&#39;</span><span class="p">,</span> <span class="s1">&#39;Snow Leopard&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;tiger&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;TIGER&#39;</span><span class="p">,</span> <span class="s1">&#39;Tiger&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;turtle_sea&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;ST&#39;</span><span class="p">,</span> <span class="s1">&#39;Sea Turtle (Generic)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;turtle_sea_generic&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;turtle_sea&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;turtle_green&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;ST-G&#39;</span><span class="p">,</span> <span class="s1">&#39;Sea Turtle (Green)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;turtle_hawksbill&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;ST-HB&#39;</span><span class="p">,</span> <span class="s1">&#39;Sea Turtle (Hawksbill)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;turtle_oliveridley&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;ST-OR&#39;</span><span class="p">,</span> <span class="s1">&#39;Sea Turtle (Olive Ridley)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;turtle_asian&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;ST-A&#39;</span><span class="p">,</span> <span class="s1">&#39;Sea Turtle (Asian)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;train&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;TRAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;Train&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;truck&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;TRUCK&#39;</span><span class="p">,</span> <span class="s1">&#39;Truck&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;toads_wyoming&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WYTOAD&#39;</span><span class="p">,</span> <span class="s1">&#39;Toad (Wyoming)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;unspecified&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;UNSPECIFIED&#39;</span><span class="p">,</span> <span class="s1">&#39;UNSPECIFIED&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;unspecified_animal&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;unspecified&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;warthog&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WART&#39;</span><span class="p">,</span> <span class="s1">&#39;Warthog&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;water_buffalo&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;BUFF&#39;</span><span class="p">,</span> <span class="s1">&#39;Water Buffalo&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;wildebeest&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WB&#39;</span><span class="p">,</span> <span class="s1">&#39;Wildebeest&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;wild_dog_general&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WDG&#39;</span><span class="p">,</span> <span class="s1">&#39;Wild Dog General&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;wild_dog_dark&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WDD&#39;</span><span class="p">,</span> <span class="s1">&#39;Wild Dog Dark&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;wild_dog_tan&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WDT&#39;</span><span class="p">,</span> <span class="s1">&#39;Wild Dog Tan&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;wild_dog_puppy&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WDP&#39;</span><span class="p">,</span> <span class="s1">&#39;Wild Dog Puppy&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;wild_dog_standard&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WDS&#39;</span><span class="p">,</span> <span class="s1">&#39;Wild Dog Standard&#39;</span><span class="p">),</span>
+    <span class="c1"># &#39;wild_dog+tail_general&#39;: (&#39;WD+GEN&#39;, &#39;Wild Dog Tail General&#39;),</span>
+    <span class="c1"># &#39;wild_dog+tail_multi_black&#39;: (&#39;WD+MB&#39;, &#39;Wild Dog Tail Multi-Black&#39;),</span>
+    <span class="c1"># &#39;wild_dog+tail_long_black&#39;: (&#39;WD+LB&#39;, &#39;Wild Dog Tail Long Black&#39;),</span>
+    <span class="c1"># &#39;wild_dog+tail_long_white&#39;: (&#39;WD+LW&#39;, &#39;Wild Dog Tail Long White&#39;),</span>
+    <span class="c1"># &#39;wild_dog+tail_long&#39;: (&#39;WD+LONG&#39;, &#39;Wild Dog Tail Long&#39;),</span>
+    <span class="c1"># &#39;wild_dog+tail_double_black_brown&#39;: (&#39;WD+DBB&#39;, &#39;Wild Dog Tail Double Black Brown&#39;),</span>
+    <span class="c1"># &#39;wild_dog+tail_double_black_white&#39;: (&#39;WD+DBW&#39;, &#39;Wild Dog Tail Double Black White&#39;),</span>
+    <span class="c1"># &#39;wild_dog+tail_triple_black&#39;: (&#39;WD+TB&#39;, &#39;Wild Dog Tail Triple Black&#39;),</span>
+    <span class="c1"># &#39;wild_dog+tail_short_black&#39;: (&#39;WD+SB&#39;, &#39;Wild Dog Tail Short Black&#39;),</span>
+    <span class="c1"># &#39;wild_dog+tail_standard&#39;: (&#39;WD+STD&#39;, &#39;Wild Dog Tail Standard&#39;),</span>
+    <span class="s1">&#39;wild_dog&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WD&#39;</span><span class="p">,</span> <span class="s1">&#39;Wild Dog&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;whale_fluke&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WF&#39;</span><span class="p">,</span> <span class="s1">&#39;Whale Fluke&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;whale_beluga&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;BW&#39;</span><span class="p">,</span> <span class="s1">&#39;Beluga Whale&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;whale_humpback&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;HW&#39;</span><span class="p">,</span> <span class="s1">&#39;Humpback Whale&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;whale_shark&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;WS&#39;</span><span class="p">,</span> <span class="s1">&#39;Whale Shark&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;GZ&#39;</span><span class="p">,</span> <span class="s2">&quot;Zebra (Grevy&#39;s)&quot;</span><span class="p">),</span>
+    <span class="s1">&#39;zebra_hybrid&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;HZ&#39;</span><span class="p">,</span> <span class="s1">&#39;Zebra (Hybrid)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;zebra_plains&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;PZ&#39;</span><span class="p">,</span> <span class="s1">&#39;Zebra (Plains)&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;zebra_mountain&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;MZ&#39;</span><span class="p">,</span> <span class="s1">&#39;Zebra (Mountain)&#39;</span><span class="p">),</span>
+    <span class="n">UNKNOWN</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;UNKNOWN&#39;</span><span class="p">,</span> <span class="s1">&#39;UNSPECIFIED&#39;</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="n">PARTS_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;+head&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+H&#39;</span><span class="p">,</span> <span class="s1">&#39;Head&#39;</span><span class="p">),</span>
+    <span class="c1"># &#39;standard&#39;: (&#39;Standard Tail&#39;),</span>
+    <span class="c1"># &#39;short_black&#39;: (&#39;Short Black Tail&#39;),</span>
+    <span class="c1"># &#39;long_black&#39;: (&#39;Long Black Tail&#39;),</span>
+    <span class="c1"># &#39;double_black_brown&#39;: (&#39;Double Black Brown Tail&#39;),</span>
+    <span class="c1"># &#39;double_black_white&#39;: (&#39;Double Black White Tail&#39;),</span>
+    <span class="c1"># &#39;triple_black&#39;: (&#39;Triple Black Tail&#39;),</span>
+    <span class="c1"># &#39;long_white&#39;: (&#39;Long White Tail&#39;),</span>
+    <span class="s1">&#39;+tail_general&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+GEN&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail General&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;+tail_multi_black&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+MB&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail Multi-Black&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;+tail_long_black&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+LB&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail Long Black&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;+tail_long_white&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+LW&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail Long White&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;+tail_long&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+LONG&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail Long&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;+tail_double_black_brown&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+DBB&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail Double Black Brown&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;+tail_double_black_white&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+DBW&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail Double Black White&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;+tail_triple_black&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+TB&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail Triple Black&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;+tail_short_black&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+SB&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail Short Black&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;+tail_standard&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+STD&#39;</span><span class="p">,</span> <span class="s1">&#39;Tail Standard&#39;</span><span class="p">),</span>
+    <span class="n">UNKNOWN</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;+?&#39;</span><span class="p">,</span> <span class="s1">&#39;UNSPECIFIED&#39;</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">_ConstHelper</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds code and nice constants to an integer version of a class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        cls = META_DECISION</span>
+<span class="sd">        code_cls = META_DECISION_CODE</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">class</span> <span class="nc">CODE</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="k">class</span> <span class="nc">NICE</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dct</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">isupper</span><span class="p">():</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="n">code</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;INT_TO_CODE&#39;</span><span class="p">][</span><span class="n">value</span><span class="p">]</span>
+                    <span class="n">nice</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;INT_TO_NICE&#39;</span><span class="p">][</span><span class="n">value</span><span class="p">]</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">CODE</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">NICE</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">nice</span><span class="p">)</span>
+
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;CODE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CODE</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;NICE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NICE</span>
+        <span class="c1"># we need to call type.__new__ to complete the initialization</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">_ConstHelper</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EVIDENCE_DECISION"><a class="viewcode-back" href="../../api.html#wbia.constants.EVIDENCE_DECISION">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_ConstHelper</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">EVIDENCE_DECISION</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: change to EVIDENCE_DECISION / VISUAL_DECISION</span>
+<span class="sd">    Enumerated types of review codes and texts</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        Unreviewed: Not comparared yet.</span>
+<span class="sd">        nomatch: Visually comparable and the different</span>
+<span class="sd">        match: Visually comparable and the same</span>
+<span class="sd">        notcomp: Not comparable means it is actually impossible to determine.</span>
+<span class="sd">        unknown: means that it was reviewed, but we just can&#39;t figure it out.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">UNREVIEWED</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">NEGATIVE</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">POSITIVE</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">INCOMPARABLE</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="mi">3</span>
+
+    <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="n">POSITIVE</span><span class="p">,</span> <span class="s1">&#39;match&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">NEGATIVE</span><span class="p">,</span> <span class="s1">&#39;nomatch&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">INCOMPARABLE</span><span class="p">,</span> <span class="s1">&#39;notcomp&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UNREVIEWED</span><span class="p">,</span> <span class="s1">&#39;unreviewed&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">INT_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="n">POSITIVE</span><span class="p">,</span> <span class="s1">&#39;Positive&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">NEGATIVE</span><span class="p">,</span> <span class="s1">&#39;Negative&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">INCOMPARABLE</span><span class="p">,</span> <span class="s1">&#39;Incomparable&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UNREVIEWED</span><span class="p">,</span> <span class="s1">&#39;Unreviewed&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">CODE_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">,</span> <span class="n">INT_TO_NICE</span><span class="p">)</span>
+    <span class="n">CODE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">)</span>
+    <span class="n">NICE_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">CODE_TO_NICE</span><span class="p">)</span>
+    <span class="n">NICE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_NICE</span><span class="p">)</span>
+
+    <span class="n">MATCH_CODE</span> <span class="o">=</span> <span class="n">CODE_TO_INT</span></div>
+
+
+<div class="viewcode-block" id="META_DECISION"><a class="viewcode-back" href="../../api.html#wbia.constants.META_DECISION">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_ConstHelper</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">META_DECISION</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># NOQA</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enumerated types of review codes and texts</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        unreviewed: we dont have a meta decision</span>
+<span class="sd">        same: we know this is the same animal through non-visual means</span>
+<span class="sd">        diff: we know this is the different animal through non-visual means</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.constants import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; assert hasattr(META_DECISION, &#39;CODE&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; assert hasattr(META_DECISION, &#39;NICE&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; code1 = META_DECISION.INT_TO_CODE[META_DECISION.NULL]</span>
+<span class="sd">        &gt;&gt;&gt; code2 = META_DECISION.CODE.NULL</span>
+<span class="sd">        &gt;&gt;&gt; assert code1 == code2</span>
+<span class="sd">        &gt;&gt;&gt; nice1 = META_DECISION.INT_TO_NICE[META_DECISION.NULL]</span>
+<span class="sd">        &gt;&gt;&gt; nice2 = META_DECISION.NICE.NULL</span>
+<span class="sd">        &gt;&gt;&gt; assert nice1 == nice2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NULL</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">DIFF</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">SAME</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="n">NULL</span><span class="p">,</span> <span class="s1">&#39;null&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">DIFF</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">SAME</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">)])</span>
+    <span class="n">INT_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([(</span><span class="n">NULL</span><span class="p">,</span> <span class="s1">&#39;NULL&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">DIFF</span><span class="p">,</span> <span class="s1">&#39;Different&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">SAME</span><span class="p">,</span> <span class="s1">&#39;Same&#39;</span><span class="p">)])</span>
+    <span class="n">CODE_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">,</span> <span class="n">INT_TO_NICE</span><span class="p">)</span>
+    <span class="n">CODE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">)</span>
+    <span class="n">NICE_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">CODE_TO_NICE</span><span class="p">)</span>
+    <span class="n">NICE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_NICE</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CONFIDENCE"><a class="viewcode-back" href="../../api.html#wbia.constants.CONFIDENCE">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_ConstHelper</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">CONFIDENCE</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">GUESSING</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">NOT_SURE</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">PRETTY_SURE</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">ABSOLUTELY_SURE</span> <span class="o">=</span> <span class="mi">4</span>
+
+    <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="n">ABSOLUTELY_SURE</span><span class="p">,</span> <span class="s1">&#39;absolutely_sure&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">PRETTY_SURE</span><span class="p">,</span> <span class="s1">&#39;pretty_sure&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">NOT_SURE</span><span class="p">,</span> <span class="s1">&#39;not_sure&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">GUESSING</span><span class="p">,</span> <span class="s1">&#39;guessing&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;unspecified&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">INT_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="n">ABSOLUTELY_SURE</span><span class="p">,</span> <span class="s1">&#39;Doubtless&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">PRETTY_SURE</span><span class="p">,</span> <span class="s1">&#39;Sure&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">NOT_SURE</span><span class="p">,</span> <span class="s1">&#39;Unsure&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">GUESSING</span><span class="p">,</span> <span class="s1">&#39;Guessing&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;Unspecified&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">CODE_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">,</span> <span class="n">INT_TO_NICE</span><span class="p">)</span>
+    <span class="n">CODE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">)</span>
+    <span class="n">NICE_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">CODE_TO_NICE</span><span class="p">)</span>
+    <span class="n">NICE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_NICE</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QUAL"><a class="viewcode-back" href="../../api.html#wbia.constants.QUAL">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_ConstHelper</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">QUAL</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="n">EXCELLENT</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">GOOD</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">OK</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">POOR</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">JUNK</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="n">EXCELLENT</span><span class="p">,</span> <span class="s1">&#39;excellent&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">GOOD</span><span class="p">,</span> <span class="s1">&#39;good&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">OK</span><span class="p">,</span> <span class="s1">&#39;ok&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">POOR</span><span class="p">,</span> <span class="s1">&#39;poor&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">JUNK</span><span class="p">,</span> <span class="s1">&#39;junk&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;unspecified&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">INT_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="n">EXCELLENT</span><span class="p">,</span> <span class="s1">&#39;Excellent&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">GOOD</span><span class="p">,</span> <span class="s1">&#39;Good&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">OK</span><span class="p">,</span> <span class="s1">&#39;OK&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">POOR</span><span class="p">,</span> <span class="s1">&#39;Poor&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">JUNK</span><span class="p">,</span> <span class="s1">&#39;Junk&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;Unspecified&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">CODE_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">,</span> <span class="n">INT_TO_NICE</span><span class="p">)</span>
+    <span class="n">CODE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">)</span>
+    <span class="n">NICE_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">CODE_TO_NICE</span><span class="p">)</span>
+    <span class="n">NICE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_NICE</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VIEW"><a class="viewcode-back" href="../../api.html#wbia.constants.VIEW">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">_ConstHelper</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">VIEW</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    categorical viewpoint using the faces of a Rhombicuboctahedron</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://en.wikipedia.org/wiki/Rhombicuboctahedron</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">FR</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">FL</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">BL</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">BR</span> <span class="o">=</span> <span class="mi">8</span>
+
+    <span class="n">U</span> <span class="o">=</span> <span class="mi">9</span>
+    <span class="n">UF</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">UB</span> <span class="o">=</span> <span class="mi">11</span>
+    <span class="n">UL</span> <span class="o">=</span> <span class="mi">12</span>
+    <span class="n">UR</span> <span class="o">=</span> <span class="mi">13</span>
+    <span class="n">UFL</span> <span class="o">=</span> <span class="mi">14</span>
+    <span class="n">UFR</span> <span class="o">=</span> <span class="mi">15</span>
+    <span class="n">UBL</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="n">UBR</span> <span class="o">=</span> <span class="mi">17</span>
+
+    <span class="n">D</span> <span class="o">=</span> <span class="mi">18</span>
+    <span class="n">DF</span> <span class="o">=</span> <span class="mi">19</span>
+    <span class="n">DB</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">DL</span> <span class="o">=</span> <span class="mi">21</span>
+    <span class="n">DR</span> <span class="o">=</span> <span class="mi">22</span>
+    <span class="n">DFL</span> <span class="o">=</span> <span class="mi">23</span>
+    <span class="n">DFR</span> <span class="o">=</span> <span class="mi">24</span>
+    <span class="n">DBL</span> <span class="o">=</span> <span class="mi">25</span>
+    <span class="n">DBR</span> <span class="o">=</span> <span class="mi">26</span>
+
+    <span class="n">INT_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="s1">&#39;frontright&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="s1">&#39;front&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="s1">&#39;frontleft&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="s1">&#39;backleft&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="s1">&#39;backright&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="s1">&#39;up&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UF</span><span class="p">,</span> <span class="s1">&#39;upfront&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="s1">&#39;upback&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UL</span><span class="p">,</span> <span class="s1">&#39;upleft&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UR</span><span class="p">,</span> <span class="s1">&#39;upright&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UFL</span><span class="p">,</span> <span class="s1">&#39;upfrontleft&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UFR</span><span class="p">,</span> <span class="s1">&#39;upfrontright&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="s1">&#39;upbackleft&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UBR</span><span class="p">,</span> <span class="s1">&#39;upbackright&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="s1">&#39;downfront&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="s1">&#39;downback&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="s1">&#39;downleft&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="s1">&#39;downright&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="s1">&#39;downfrontleft&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="s1">&#39;downfrontright&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="s1">&#39;downbackleft&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="s1">&#39;downbackright&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">INT_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="s1">&#39;Right&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="s1">&#39;Front-Right&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="s1">&#39;Front&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="s1">&#39;Front-Left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="s1">&#39;Left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="s1">&#39;Back-Left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="s1">&#39;Back&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="s1">&#39;Back-Right&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="s1">&#39;Up&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UF</span><span class="p">,</span> <span class="s1">&#39;Up-Front&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="s1">&#39;Up-Back&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UL</span><span class="p">,</span> <span class="s1">&#39;Up-Left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UR</span><span class="p">,</span> <span class="s1">&#39;Up-Right&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UFL</span><span class="p">,</span> <span class="s1">&#39;Up-Front-Left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UFR</span><span class="p">,</span> <span class="s1">&#39;Up-Front-Right&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="s1">&#39;Up-Back-Left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">UBR</span><span class="p">,</span> <span class="s1">&#39;Up-Back-Right&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="s1">&#39;Down&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="s1">&#39;Down-Front&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="s1">&#39;Down-Back&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="s1">&#39;Down-Left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="s1">&#39;Down-Right&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="s1">&#39;Down-Front-Left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="s1">&#39;Down-Front-Right&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="s1">&#39;Down-Back-Left&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="s1">&#39;Down-Back-Right&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">CODE_TO_NICE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_keys</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">,</span> <span class="n">INT_TO_NICE</span><span class="p">)</span>
+    <span class="n">CODE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_CODE</span><span class="p">)</span>
+    <span class="n">NICE_TO_CODE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">CODE_TO_NICE</span><span class="p">)</span>
+    <span class="n">NICE_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">INT_TO_NICE</span><span class="p">)</span>
+
+    <span class="n">DIST</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># DIST 0 PAIRS</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">BL</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">BR</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">DB</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">DBL</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">DBR</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">DF</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBR</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UF</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UFL</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UFR</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UL</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UR</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="c1"># DIST 1 PAIRS</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">BL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">BR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">DB</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">DBL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">DBR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">DBL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">DBR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">DB</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">DBL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">DBR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">DF</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">DBL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">DBR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBR</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UF</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UF</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UFL</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UFR</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="c1"># DIST 2 PAIRS</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">BR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">DB</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">DBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">DB</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">DBL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">DF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">DBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">DF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">DF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBR</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBR</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBR</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBR</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UF</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UF</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UFL</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UFL</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UFR</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UL</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="c1"># DIST 3 PAIRS</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">DF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">DF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">DF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="c1"># DIST 4 PAIRS</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="c1"># UNDEFINED DIST PAIRS</span>
+        <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BL</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">BR</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DB</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBL</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DBR</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DF</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFL</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DFR</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DL</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">DR</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FL</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">FR</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UB</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBL</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UBR</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UF</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UFL</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UFR</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UL</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">BL</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">BR</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">DB</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">DBL</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">DBR</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">DF</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">DFL</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">DFR</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">DL</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">DR</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">FL</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">FR</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">R</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">UB</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">UBL</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">UBR</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">UF</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">UFL</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">UFR</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">UL</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">UR</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UR</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">UNKNOWN</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">):</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="c1"># make distance symmetric</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">),</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">DIST</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">DIST</span><span class="p">[(</span><span class="n">f2</span><span class="p">,</span> <span class="n">f1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">d</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

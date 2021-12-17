@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.color_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.color_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.color_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">custom_constants</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">colors</span> <span class="k">as</span> <span class="n">mcolors</span>
+<span class="kn">import</span> <span class="nn">colorsys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="c1"># from wbia.plottool import colormaps as cmaps2</span>
+<span class="c1"># (print, print_, printDBG, rrr, profile) = utool.inject(__name__, &#39;[colorfuncs]&#39;, DEBUG=False)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="c1"># &#39;[colorfuncs]&#39;)</span>
+
+
+<span class="k">def</span> <span class="nf">_test_base01</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
+    <span class="n">tests01</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;is_float&#39;</span><span class="p">:</span> <span class="nb">all</span><span class="p">([</span><span class="n">ut</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">]),</span>
+        <span class="s1">&#39;is_01&#39;</span><span class="p">:</span> <span class="nb">all</span><span class="p">([</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">]),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">tests01</span>
+
+
+<span class="k">def</span> <span class="nf">_test_base255</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
+    <span class="n">tests255</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># &#39;is_int&#39;: all([ut.is_int(c) for c in channels]),</span>
+        <span class="s1">&#39;is_255&#39;</span><span class="p">:</span> <span class="nb">all</span><span class="p">([</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="mf">255.0</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">]),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">tests255</span>
+
+
+<div class="viewcode-block" id="is_base01"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.is_base01">[docs]</a><span class="k">def</span> <span class="nf">is_base01</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;check if a color is in base 01&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">_test_base01</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="is_base255"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.is_base255">[docs]</a><span class="k">def</span> <span class="nf">is_base255</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;check if a color is in base 01&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">_test_base255</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="assert_base01"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.assert_base01">[docs]</a><span class="k">def</span> <span class="nf">assert_base01</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">tests01</span> <span class="o">=</span> <span class="n">_test_base01</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">tests01</span><span class="p">[</span><span class="s1">&#39;is_float&#39;</span><span class="p">],</span> <span class="s1">&#39;channels must be floats&#39;</span>
+        <span class="k">assert</span> <span class="n">tests01</span><span class="p">[</span><span class="s1">&#39;is_01&#39;</span><span class="p">],</span> <span class="s1">&#39;channels must be in 0-1&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">,</span> <span class="s1">&#39;tests01&#39;</span><span class="p">])</span>
+        <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="assert_base255"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.assert_base255">[docs]</a><span class="k">def</span> <span class="nf">assert_base255</span><span class="p">(</span><span class="n">channels</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">tests255</span> <span class="o">=</span> <span class="n">_test_base255</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">tests255</span><span class="p">[</span><span class="s1">&#39;is_255&#39;</span><span class="p">],</span> <span class="s1">&#39;channels must be in 0-255&#39;</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">,</span> <span class="s1">&#39;tests255&#39;</span><span class="p">])</span>
+        <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="to_base01"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.to_base01">[docs]</a><span class="k">def</span> <span class="nf">to_base01</span><span class="p">(</span><span class="n">color255</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;converts base 255 color to base 01 color&quot;&quot;&quot;</span>
+    <span class="n">color01</span> <span class="o">=</span> <span class="p">[</span><span class="n">channel</span> <span class="o">/</span> <span class="mf">255.0</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">color255</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">color01</span></div>
+
+
+<div class="viewcode-block" id="to_base255"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.to_base255">[docs]</a><span class="k">def</span> <span class="nf">to_base255</span><span class="p">(</span><span class="n">color01</span><span class="p">,</span> <span class="n">assume01</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;converts base 01 color to base 255 color&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">assume01</span><span class="p">:</span>
+        <span class="n">assert_base01</span><span class="p">(</span><span class="n">color01</span><span class="p">)</span>
+    <span class="n">color255</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">channel</span> <span class="o">*</span> <span class="mf">255.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">color01</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">color255</span></div>
+
+
+<div class="viewcode-block" id="ensure_base01"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.ensure_base01">[docs]</a><span class="k">def</span> <span class="nf">ensure_base01</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;always returns a base 01 color</span>
+
+<span class="sd">    Note, some colors cannot be determined to be either 255 or 01 if they are</span>
+<span class="sd">    in float format.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        color (?):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: color01</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.color_funcs ensure_base01</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.color_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base01(&#39;g&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base01(&#39;orangered&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base01(&#39;#AAAAAA&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base01([0, 0, 0])</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base01([1, 1, 0, 0])</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base01([1., 1., 0., 0.])</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base01([.7, .2, 0., 0.])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">is_base01</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
+        <span class="n">color01</span> <span class="o">=</span> <span class="n">color</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">BASE_COLORS</span><span class="p">:</span>
+            <span class="c1"># base colors are 01 based</span>
+            <span class="n">color01</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">BASE_COLORS</span><span class="p">[</span><span class="n">color</span><span class="p">]</span>
+            <span class="n">color01</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">color01</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">color255</span> <span class="o">=</span> <span class="n">ensure_base255</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+            <span class="n">color01</span> <span class="o">=</span> <span class="n">to_base01</span><span class="p">(</span><span class="n">color255</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">color01</span></div>
+
+
+<div class="viewcode-block" id="convert_255_to_hex"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.convert_255_to_hex">[docs]</a><span class="k">def</span> <span class="nf">convert_255_to_hex</span><span class="p">(</span><span class="n">color255</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; color255 = [255, 51, 0]</span>
+
+<span class="sd">    target_rgb01 = pt.FALSE_RED[0:3]</span>
+<span class="sd">    target_rgb = np.array([[target_rgb01]]).astype(np.float32) / 25</span>
+<span class="sd">    target_lab = vt.convert_colorspace(target_rgb, &#39;lab&#39;, &#39;rgb&#39;)</span>
+
+<span class="sd">    # Find closest CSS color in LAB space</span>
+<span class="sd">    dist_lab = {}</span>
+<span class="sd">    dist_rgb = {}</span>
+<span class="sd">    css_colors = ub.map_vals(convert_hex_to_255, mcolors.CSS4_COLORS)</span>
+<span class="sd">    for k, c in css_colors.items():</span>
+<span class="sd">        rgb = np.array([[c]]).astype(np.float32) / 255</span>
+<span class="sd">        lab = vt.convert_colorspace(rgb, &#39;lab&#39;, &#39;rgb&#39;)</span>
+<span class="sd">        dist_lab[k] = np.sqrt(((target_lab - lab) ** 2).sum())</span>
+<span class="sd">        dist_rgb[k] = np.sqrt(((target_rgb - rgb) ** 2).sum())</span>
+
+<span class="sd">    best_keys = ub.argsort(dist_lab)</span>
+<span class="sd">    ub.odict(zip(best_keys, ub.take(dist_lab, best_keys)))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colorhex</span> <span class="o">=</span> <span class="s1">&#39;0x&#39;</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%02x</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">color255</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">colorhex</span></div>
+
+
+<div class="viewcode-block" id="convert_hex_to_255"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.convert_hex_to_255">[docs]</a><span class="k">def</span> <span class="nf">convert_hex_to_255</span><span class="p">(</span><span class="n">hex_color</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    hex_color = &#39;#6A5AFFAF&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">hex_color</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">),</span> <span class="s1">&#39;not a hex string </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hex_color</span><span class="p">,)</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">hex_color</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">color255</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">color255</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s1">&#39;must be length 3 or 4&#39;</span>
+    <span class="c1"># # color = mcolors.hex2color(hex_color[0:7])</span>
+    <span class="c1"># if len(hex_color) &gt; 8:</span>
+    <span class="c1">#     alpha_hex = hex_color[7:9]</span>
+    <span class="c1">#     alpha_float = int(alpha_hex, 16) / 255.0</span>
+    <span class="c1">#     color = color + (alpha_float,)</span>
+    <span class="k">return</span> <span class="n">color255</span></div>
+
+
+<div class="viewcode-block" id="ensure_base255"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.ensure_base255">[docs]</a><span class="k">def</span> <span class="nf">ensure_base255</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    always returns a base 255 color</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.color_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base255(&#39;g&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base255(&#39;orangered&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base255(&#39;#AAAAAA&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base255([0, 0, 0])</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base255([1, 1, 0, 0])</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base255([.9, 1., 0., 0.])</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base255([1., 1., 0., 0.])  # FIXME</span>
+<span class="sd">        &gt;&gt;&gt; ensure_base255([.7, .2, 0., 0.])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">BASE_COLORS</span><span class="p">:</span>
+            <span class="c1"># base colors are 01 based</span>
+            <span class="n">color01</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">BASE_COLORS</span><span class="p">[</span><span class="n">color</span><span class="p">]</span>
+            <span class="n">color255</span> <span class="o">=</span> <span class="n">to_base255</span><span class="p">(</span><span class="n">color01</span><span class="p">,</span> <span class="n">assume01</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">CSS4_COLORS</span><span class="p">:</span>
+            <span class="c1"># cs4 are hex based</span>
+            <span class="n">color_hex</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">CSS4_COLORS</span><span class="p">[</span><span class="n">color</span><span class="p">]</span>
+            <span class="n">color255</span> <span class="o">=</span> <span class="n">convert_hex_to_255</span><span class="p">(</span><span class="n">color_hex</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">color</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
+            <span class="n">color255</span> <span class="o">=</span> <span class="n">convert_hex_to_255</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unknown color=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">color</span><span class="p">,))</span>
+    <span class="k">elif</span> <span class="n">is_base01</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
+        <span class="n">color255</span> <span class="o">=</span> <span class="n">to_base255</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">color255</span> <span class="o">=</span> <span class="n">color</span>
+    <span class="n">assert_base255</span><span class="p">(</span><span class="n">color255</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">color255</span></div>
+
+
+<div class="viewcode-block" id="brighten_rgb"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.brighten_rgb">[docs]</a><span class="k">def</span> <span class="nf">brighten_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">amount</span><span class="p">):</span>
+    <span class="n">hue_adjust</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">sat_adjust</span> <span class="o">=</span> <span class="n">amount</span>
+    <span class="n">val_adjust</span> <span class="o">=</span> <span class="n">amount</span>
+    <span class="k">return</span> <span class="n">adjust_hsv_of_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">hue_adjust</span><span class="p">,</span> <span class="n">sat_adjust</span><span class="p">,</span> <span class="n">val_adjust</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="testshow_colors"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.testshow_colors">[docs]</a><span class="k">def</span> <span class="nf">testshow_colors</span><span class="p">(</span><span class="n">rgb_list</span><span class="p">,</span> <span class="n">gray</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--gray&#39;</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    colors = [&#39;r&#39;, &#39;b&#39;, &#39;purple&#39;, &#39;orange&#39;, &#39;deeppink&#39;, &#39;g&#39;]</span>
+
+<span class="sd">    colors = list(mcolors.CSS4_COLORS.keys())</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.color_funcs testshow_colors --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.color_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; colors = ut.get_argval(&#39;--colors&#39;, type_=list, default=[&#39;k&#39;, &#39;r&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; rgb_list = ut.emap(ensure_base01, colors)</span>
+<span class="sd">        &gt;&gt;&gt; testshow_colors(rgb_list)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+    <span class="n">block</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">block_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span> <span class="o">+</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">rgb_list</span><span class="p">]</span>
+    <span class="c1"># print(ut.repr2(block_list))</span>
+    <span class="c1"># print(ut.repr2(rgb_list))</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">block_list</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">stacked_chunk</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
+        <span class="n">stacked_chunk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">stack_image_list</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">vert</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">stacked_block</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_image_list</span><span class="p">(</span><span class="n">stacked_chunk</span><span class="p">,</span> <span class="n">vert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># convert to bgr</span>
+    <span class="n">stacked_block</span> <span class="o">=</span> <span class="n">stacked_block</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">uint8_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">stacked_block</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">gray</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">cv2</span>
+
+        <span class="n">uint8_img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">uint8_img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2GRAY</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">uint8_img</span><span class="p">)</span></div>
+    <span class="c1"># pt.show_if_requested()</span>
+
+
+<div class="viewcode-block" id="desaturate_rgb"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.desaturate_rgb">[docs]</a><span class="k">def</span> <span class="nf">desaturate_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">amount</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-desaturate_rgb --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.color_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; rgb = (255.0 / 255.0, 100 / 255.0, 0 / 255.0)</span>
+<span class="sd">        &gt;&gt;&gt; amount = .5</span>
+<span class="sd">        &gt;&gt;&gt; new_rgb = desaturate_rgb(rgb, amount)</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--show)</span>
+<span class="sd">        &gt;&gt;&gt; color_list = [rgb, new_rgb, desaturate_rgb(rgb, .7)]</span>
+<span class="sd">        &gt;&gt;&gt; testshow_colors(color_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(new_rgb)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        (1.0, 0.696078431372549, 0.5)</span>
+
+<span class="sd">        (1.0, 0.41599384851980004, 0.039215686274509776)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hue_adjust</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">sat_adjust</span> <span class="o">=</span> <span class="o">-</span><span class="n">amount</span>
+    <span class="n">val_adjust</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">new_rgb</span> <span class="o">=</span> <span class="n">adjust_hsv_of_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">hue_adjust</span><span class="p">,</span> <span class="n">sat_adjust</span><span class="p">,</span> <span class="n">val_adjust</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_rgb</span></div>
+
+
+<div class="viewcode-block" id="darken_rgb"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.darken_rgb">[docs]</a><span class="k">def</span> <span class="nf">darken_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">amount</span><span class="p">):</span>
+    <span class="n">hue_adjust</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">sat_adjust</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">val_adjust</span> <span class="o">=</span> <span class="o">-</span><span class="n">amount</span>
+    <span class="n">new_rgb</span> <span class="o">=</span> <span class="n">adjust_hsv_of_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">hue_adjust</span><span class="p">,</span> <span class="n">sat_adjust</span><span class="p">,</span> <span class="n">val_adjust</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_rgb</span></div>
+
+
+<div class="viewcode-block" id="lighten_rgb"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.lighten_rgb">[docs]</a><span class="k">def</span> <span class="nf">lighten_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">amount</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-lighten_rgb --show</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-lighten_rgb</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.color_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; rgb = np.array((255.0 / 255.0, 100 / 255.0, 0 / 255.0))</span>
+<span class="sd">        &gt;&gt;&gt; amount = .1</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; new_rgb = lighten_rgb(rgb, amount)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; if pt.show_was_requested():</span>
+<span class="sd">        &gt;&gt;&gt;     color_list = [rgb, new_rgb, lighten_rgb(rgb, .5)]</span>
+<span class="sd">        &gt;&gt;&gt;     testshow_colors(color_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.repr2(new_rgb, with_dtype=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hue_adjust</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">sat_adjust</span> <span class="o">=</span> <span class="o">-</span><span class="n">amount</span>
+    <span class="n">val_adjust</span> <span class="o">=</span> <span class="n">amount</span>
+    <span class="n">new_rgb</span> <span class="o">=</span> <span class="n">adjust_hsv_of_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">hue_adjust</span><span class="p">,</span> <span class="n">sat_adjust</span><span class="p">,</span> <span class="n">val_adjust</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_rgb</span></div>
+
+
+<div class="viewcode-block" id="adjust_hsv_of_rgb255"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.adjust_hsv_of_rgb255">[docs]</a><span class="k">def</span> <span class="nf">adjust_hsv_of_rgb255</span><span class="p">(</span><span class="n">rgb255</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-adjust_hsv_of_rgb255 --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.color_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; rgb = (220, 220, 255)</span>
+<span class="sd">        &gt;&gt;&gt; hue_adjust =  0.0</span>
+<span class="sd">        &gt;&gt;&gt; sat_adjust = -0.05</span>
+<span class="sd">        &gt;&gt;&gt; val_adjust =  0.0</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; new_rgb = adjust_hsv_of_rgb255(rgb, hue_adjust, sat_adjust, val_adjust)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(new_rgb)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; if pt.show_was_requested():</span>
+<span class="sd">        &gt;&gt;&gt;     color_list = [to_base01(rgb), to_base01(new_rgb)]</span>
+<span class="sd">        &gt;&gt;&gt;     testshow_colors(color_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rgb</span> <span class="o">=</span> <span class="n">to_base01</span><span class="p">(</span><span class="n">rgb255</span><span class="p">)</span>
+    <span class="n">new_rgb</span> <span class="o">=</span> <span class="n">adjust_hsv_of_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">new_rgb255</span> <span class="o">=</span> <span class="n">to_base255</span><span class="p">(</span><span class="n">new_rgb</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_rgb255</span></div>
+
+
+<div class="viewcode-block" id="adjust_hsv_of_rgb"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.adjust_hsv_of_rgb">[docs]</a><span class="k">def</span> <span class="nf">adjust_hsv_of_rgb</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">hue_adjust</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">sat_adjust</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">val_adjust</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;works on a single rgb tuple</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        rgb (tuple):</span>
+<span class="sd">        hue_adjust (float):</span>
+<span class="sd">        sat_adjust (float):</span>
+<span class="sd">        val_adjust (float):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: new_rgb</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-adjust_hsv_of_rgb --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.color_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; rgb_list = [pt.DEEP_PINK[0:3], pt.DARK_YELLOW[0:3], pt.DARK_GREEN[0:3]]</span>
+<span class="sd">        &gt;&gt;&gt; hue_adjust = -0.1</span>
+<span class="sd">        &gt;&gt;&gt; sat_adjust = +0.5</span>
+<span class="sd">        &gt;&gt;&gt; val_adjust = -0.1</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; new_rgb_list = [adjust_hsv_of_rgb(rgb, hue_adjust, sat_adjust, val_adjust) for rgb in rgb_list]</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; if pt.show_was_requested():</span>
+<span class="sd">        &gt;&gt;&gt;     color_list = rgb_list + new_rgb_list</span>
+<span class="sd">        &gt;&gt;&gt;     testshow_colors(color_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(new_rgb)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        print(np.array([-.1, 0.0, .1, .5, .9, 1.0, 1.1]))</span>
+<span class="sd">        print(np.array([-.1, 0.0, .1, .5, .9, 1.0, 1.1]) % 1.0)</span>
+<span class="sd">        print(divmod(np.array([-.1, 0.0, .1, .5, .9, 1.0, 1.1]), 1.0))</span>
+<span class="sd">        print(1 + np.array([-.1, 0.0, .1, .5, .9, 1.0, 1.1]) % 1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">assert_base01</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+    <span class="c1"># assert_base01([sat_adjust, val_adjust])</span>
+    <span class="n">numpy_input</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+    <span class="c1"># For some reason numpy input does not work well</span>
+    <span class="k">if</span> <span class="n">numpy_input</span><span class="p">:</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">rgb</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="n">rgb</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="c1"># print(&#39;rgb=%r&#39; % (rgb,))</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">=</span> <span class="n">rgb</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span> <span class="o">=</span> <span class="n">rgb</span>
+    <span class="n">hsv</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">rgb_to_hsv</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span> <span class="o">=</span> <span class="n">hsv</span>
+    <span class="n">H_new</span> <span class="o">=</span> <span class="n">H</span> <span class="o">+</span> <span class="n">hue_adjust</span>
+    <span class="k">if</span> <span class="n">H_new</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">H_new</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># is there a way to more ellegantly get this?</span>
+        <span class="n">H_new</span> <span class="o">%=</span> <span class="mf">1.0</span>
+    <span class="n">S_new</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">S</span> <span class="o">+</span> <span class="n">sat_adjust</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">V_new</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">V</span> <span class="o">+</span> <span class="n">val_adjust</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="c1"># print(&#39;hsv=%r&#39; % (hsv,))</span>
+    <span class="n">hsv_new</span> <span class="o">=</span> <span class="p">(</span><span class="n">H_new</span><span class="p">,</span> <span class="n">S_new</span><span class="p">,</span> <span class="n">V_new</span><span class="p">)</span>
+    <span class="c1"># print(&#39;hsv_new=%r&#39; % (hsv_new,))</span>
+    <span class="n">new_rgb</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">hsv_to_rgb</span><span class="p">(</span><span class="o">*</span><span class="n">hsv_new</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">alpha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">new_rgb</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">new_rgb</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">alpha</span><span class="p">]</span>
+    <span class="c1"># print(&#39;new_rgb=%r&#39; % (new_rgb,))</span>
+    <span class="n">assert_base01</span><span class="p">(</span><span class="n">new_rgb</span><span class="p">)</span>
+    <span class="c1"># Return numpy if given as numpy</span>
+    <span class="k">if</span> <span class="n">numpy_input</span><span class="p">:</span>
+        <span class="n">new_rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_rgb</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_rgb</span></div>
+
+
+<div class="viewcode-block" id="brighten"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.brighten">[docs]</a><span class="k">def</span> <span class="nf">brighten</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">brighten_rgb</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="distinct_colors"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.distinct_colors">[docs]</a><span class="k">def</span> <span class="nf">distinct_colors</span><span class="p">(</span>
+    <span class="n">N</span><span class="p">,</span> <span class="n">brightness</span><span class="o">=</span><span class="mf">0.878</span><span class="p">,</span> <span class="n">randomize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hue_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">cmap_seed</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        N (int):</span>
+<span class="sd">        brightness (float):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: RGB_tuples</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-distinct_colors --N 2 --show --hue-range=0.05,.95</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-distinct_colors --N 3 --show --hue-range=0.05,.95</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-distinct_colors --N 4 --show --hue-range=0.05,.95</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-distinct_colors --N 3 --show --no-randomize</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-distinct_colors --N 4 --show --no-randomize</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-distinct_colors --N 6 --show --no-randomize</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-distinct_colors --N 20 --show</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --exec-distinct_colors --show</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --exec-distinct_colors --show --no-randomize --N 50</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --exec-distinct_colors --show --cmap_seed=foobar</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.color_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; N = ut.get_argval(&#39;--N&#39;, int, 2)</span>
+<span class="sd">        &gt;&gt;&gt; randomize = not ut.get_argflag(&#39;--no-randomize&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; brightness = 0.878</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; cmap_seed = ut.get_argval(&#39;--cmap_seed&#39;, str, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; hue_range = ut.get_argval(&#39;--hue-range&#39;, list, default=(0.00, 1.0))</span>
+<span class="sd">        &gt;&gt;&gt; RGB_tuples = distinct_colors(N, brightness, randomize, hue_range, cmap_seed=cmap_seed)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; assert len(RGB_tuples) == N</span>
+<span class="sd">        &gt;&gt;&gt; result = str(RGB_tuples)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; color_list = RGB_tuples</span>
+<span class="sd">        &gt;&gt;&gt; testshow_colors(color_list)</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Add sin wave modulation to the sat and value</span>
+    <span class="c1"># import wbia.plottool as pt</span>
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="c1"># HACK for white figures</span>
+        <span class="n">remove_yellow</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">pt</span><span class="o">.</span><span class="n">is_default_dark_bg</span><span class="p">()</span>
+        <span class="c1"># if not pt.is_default_dark_bg():</span>
+        <span class="c1">#    brightness = .8</span>
+
+    <span class="n">use_jet</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">use_jet</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">jet</span>
+        <span class="n">RGB_tuples</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">cmap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">))))</span>
+    <span class="k">elif</span> <span class="n">cmap_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Randomized map based on a seed</span>
+        <span class="c1"># cmap_ = &#39;Set1&#39;</span>
+        <span class="c1"># cmap_ = &#39;Dark2&#39;</span>
+        <span class="n">choices</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="c1"># &#39;Set1&#39;, &#39;Dark2&#39;,</span>
+            <span class="s1">&#39;jet&#39;</span><span class="p">,</span>
+            <span class="c1"># &#39;gist_rainbow&#39;,</span>
+            <span class="c1"># &#39;rainbow&#39;,</span>
+            <span class="c1"># &#39;gnuplot&#39;,</span>
+            <span class="c1"># &#39;Accent&#39;</span>
+        <span class="p">]</span>
+        <span class="n">cmap_hack</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--cmap-hack&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">ncolor_hack</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--ncolor-hack&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmap_hack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">choices</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmap_hack</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ncolor_hack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">N</span> <span class="o">=</span> <span class="n">ncolor_hack</span>
+            <span class="n">N_</span> <span class="o">=</span> <span class="n">N</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">ord</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr27</span><span class="p">(</span><span class="n">cmap_seed</span><span class="p">))))</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">seed</span> <span class="o">+</span> <span class="mi">48930</span><span class="p">)</span>
+        <span class="n">cmap_str</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># print(&#39;cmap_str = %r&#39; % (cmap_str,))</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap_str</span><span class="p">)</span>
+        <span class="c1"># ut.hashstr27(cmap_seed)</span>
+        <span class="c1"># cmap_seed = 0</span>
+        <span class="c1"># pass</span>
+        <span class="n">jitter</span> <span class="o">=</span> <span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">range_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># print(&#39;range_ = %r&#39; % (range_,))</span>
+        <span class="n">range_</span> <span class="o">=</span> <span class="n">range_</span> <span class="o">+</span> <span class="n">jitter</span>
+        <span class="c1"># print(&#39;range_ = %r&#39; % (range_,))</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">range_</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">range_</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)):</span>
+            <span class="n">range_</span><span class="p">[</span><span class="n">range_</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">range_</span><span class="p">[</span><span class="n">range_</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">range_</span><span class="p">[</span><span class="n">range_</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">range_</span><span class="p">[</span><span class="n">range_</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># print(&#39;range_ = %r&#39; % (range_,))</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+        <span class="n">range_</span> <span class="o">=</span> <span class="p">(</span><span class="n">range_</span> <span class="o">+</span> <span class="n">shift</span><span class="p">)</span> <span class="o">%</span> <span class="mi">1</span>
+        <span class="c1"># print(&#39;jitter = %r&#39; % (jitter,))</span>
+        <span class="c1"># print(&#39;shift = %r&#39; % (shift,))</span>
+        <span class="c1"># print(&#39;range_ = %r&#39; % (range_,))</span>
+        <span class="k">if</span> <span class="n">ncolor_hack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">range_</span> <span class="o">=</span> <span class="n">range_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">N_</span><span class="p">]</span>
+        <span class="n">RGB_tuples</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">cmap</span><span class="p">(</span><span class="n">range_</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sat</span> <span class="o">=</span> <span class="n">brightness</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">brightness</span>
+        <span class="n">hmin</span><span class="p">,</span> <span class="n">hmax</span> <span class="o">=</span> <span class="n">hue_range</span>
+        <span class="k">if</span> <span class="n">remove_yellow</span><span class="p">:</span>
+            <span class="n">hue_skips</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.13</span><span class="p">,</span> <span class="mf">0.24</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hue_skips</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">hue_skip_ranges</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">hue_skips</span><span class="p">]</span>
+        <span class="n">total_skip</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">hue_skip_ranges</span><span class="p">)</span>
+        <span class="n">hmax_</span> <span class="o">=</span> <span class="n">hmax</span> <span class="o">-</span> <span class="n">total_skip</span>
+        <span class="n">hue_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">hmin</span><span class="p">,</span> <span class="n">hmax_</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="c1"># Remove colors (like hard to see yellows) in specified ranges</span>
+        <span class="k">for</span> <span class="n">skip</span><span class="p">,</span> <span class="n">range_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">hue_skips</span><span class="p">,</span> <span class="n">hue_skip_ranges</span><span class="p">):</span>
+            <span class="n">hue_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">hue</span> <span class="k">if</span> <span class="n">hue</span> <span class="o">&lt;=</span> <span class="n">skip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="n">hue</span> <span class="o">+</span> <span class="n">range_</span> <span class="k">for</span> <span class="n">hue</span> <span class="ow">in</span> <span class="n">hue_list</span><span class="p">]</span>
+        <span class="n">HSV_tuples</span> <span class="o">=</span> <span class="p">[(</span><span class="n">hue</span><span class="p">,</span> <span class="n">sat</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">hue</span> <span class="ow">in</span> <span class="n">hue_list</span><span class="p">]</span>
+        <span class="n">RGB_tuples</span> <span class="o">=</span> <span class="p">[</span><span class="n">colorsys</span><span class="o">.</span><span class="n">hsv_to_rgb</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">HSV_tuples</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">randomize</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">deterministic_shuffle</span><span class="p">(</span><span class="n">RGB_tuples</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">RGB_tuples</span></div>
+
+
+<div class="viewcode-block" id="add_alpha"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.add_alpha">[docs]</a><span class="k">def</span> <span class="nf">add_alpha</span><span class="p">(</span><span class="n">colors</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">colors</span><span class="p">]</span></div>
+
+
+<span class="n">CMAP_DICT</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;Perceptually Uniform Sequential&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="s1">&#39;inferno&#39;</span><span class="p">,</span> <span class="s1">&#39;plasma&#39;</span><span class="p">,</span> <span class="s1">&#39;magma&#39;</span><span class="p">]),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;Sequential&#39;</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;Blues&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;BuGn&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;BuPu&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;GnBu&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Greens&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Greys&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Oranges&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;OrRd&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PuBu&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PuBuGn&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PuRd&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Purples&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;RdPu&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Reds&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;YlGn&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;YlGnBu&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;YlOrBr&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;YlOrRd&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;Sequential (2)&#39;</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;afmhot&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;autumn&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;bone&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;cool&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;copper&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;gist_heat&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;hot&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;pink&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;spring&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;summer&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;winter&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;Diverging&#39;</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;BrBG&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;bwr&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;coolwarm&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PiYG&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PRGn&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;PuOr&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;RdBu&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;RdGy&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;RdYlBu&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;RdYlGn&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Spectral&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;seismic&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;Qualitative&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;Accent&#39;</span><span class="p">,</span> <span class="s1">&#39;Dark2&#39;</span><span class="p">,</span> <span class="s1">&#39;Paired&#39;</span><span class="p">,</span> <span class="s1">&#39;Pastel1&#39;</span><span class="p">,</span> <span class="s1">&#39;Pastel2&#39;</span><span class="p">,</span> <span class="s1">&#39;Set1&#39;</span><span class="p">,</span> <span class="s1">&#39;Set2&#39;</span><span class="p">,</span> <span class="s1">&#39;Set3&#39;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="p">(</span>
+            <span class="s1">&#39;Miscellaneous&#39;</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;gist_earth&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;terrain&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;ocean&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;gist_stern&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;brg&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;CMRmap&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;cubehelix&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;gnuplot&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;gnuplot2&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;gist_ncar&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;nipy_spectral&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;jet&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;rainbow&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;gist_rainbow&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;hsv&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;flag&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;prism&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+        <span class="c1"># (&#39;New&#39;, [&#39;magma&#39;, &#39;inferno&#39;, &#39;plasma&#39;, &#39;viridis&#39;]),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="show_all_colormaps"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.color_funcs.show_all_colormaps">[docs]</a><span class="k">def</span> <span class="nf">show_all_colormaps</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Displays at a 90 degree angle. Weird</span>
+
+<span class="sd">    FIXME: Remove call to pylab</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps</span>
+<span class="sd">        http://matplotlib.org/examples/color/colormaps_reference.html</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        cmaps = [(&#39;Perceptually Uniform Sequential&#39;,</span>
+<span class="sd">                            [&#39;viridis&#39;, &#39;inferno&#39;, &#39;plasma&#39;, &#39;magma&#39;]),</span>
+<span class="sd">         (&#39;Sequential&#39;,     [&#39;Blues&#39;, &#39;BuGn&#39;, &#39;BuPu&#39;,</span>
+<span class="sd">                             &#39;GnBu&#39;, &#39;Greens&#39;, &#39;Greys&#39;, &#39;Oranges&#39;, &#39;OrRd&#39;,</span>
+<span class="sd">                             &#39;PuBu&#39;, &#39;PuBuGn&#39;, &#39;PuRd&#39;, &#39;Purples&#39;, &#39;RdPu&#39;,</span>
+<span class="sd">                             &#39;Reds&#39;, &#39;YlGn&#39;, &#39;YlGnBu&#39;, &#39;YlOrBr&#39;, &#39;YlOrRd&#39;]),</span>
+<span class="sd">         (&#39;Sequential (2)&#39;, [&#39;afmhot&#39;, &#39;autumn&#39;, &#39;bone&#39;, &#39;cool&#39;,</span>
+<span class="sd">                             &#39;copper&#39;, &#39;gist_heat&#39;, &#39;gray&#39;, &#39;hot&#39;,</span>
+<span class="sd">                             &#39;pink&#39;, &#39;spring&#39;, &#39;summer&#39;, &#39;winter&#39;]),</span>
+<span class="sd">         (&#39;Diverging&#39;,      [&#39;BrBG&#39;, &#39;bwr&#39;, &#39;coolwarm&#39;, &#39;PiYG&#39;, &#39;PRGn&#39;, &#39;PuOr&#39;,</span>
+<span class="sd">                             &#39;RdBu&#39;, &#39;RdGy&#39;, &#39;RdYlBu&#39;, &#39;RdYlGn&#39;, &#39;Spectral&#39;,</span>
+<span class="sd">                             &#39;seismic&#39;]),</span>
+<span class="sd">         (&#39;Qualitative&#39;,    [&#39;Accent&#39;, &#39;Dark2&#39;, &#39;Paired&#39;, &#39;Pastel1&#39;,</span>
+<span class="sd">                             &#39;Pastel2&#39;, &#39;Set1&#39;, &#39;Set2&#39;, &#39;Set3&#39;]),</span>
+<span class="sd">         (&#39;Miscellaneous&#39;,  [&#39;gist_earth&#39;, &#39;terrain&#39;, &#39;ocean&#39;, &#39;gist_stern&#39;,</span>
+<span class="sd">                             &#39;brg&#39;, &#39;CMRmap&#39;, &#39;cubehelix&#39;,</span>
+<span class="sd">                             &#39;gnuplot&#39;, &#39;gnuplot2&#39;, &#39;gist_ncar&#39;,</span>
+<span class="sd">                             &#39;nipy_spectral&#39;, &#39;jet&#39;, &#39;rainbow&#39;,</span>
+<span class="sd">                             &#39;gist_rainbow&#39;, &#39;hsv&#39;, &#39;flag&#39;, &#39;prism&#39;])</span>
+<span class="sd">                             ]</span>
+
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-show_all_colormaps --show</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-show_all_colormaps --show --type=Miscellaneous</span>
+<span class="sd">        python -m wbia.plottool.color_funcs --test-show_all_colormaps --show --cmap=RdYlBu</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.color_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; show_all_colormaps()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="kn">import</span> <span class="nn">pylab</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+    <span class="n">pylab</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">TRANSPOSE</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">TRANSPOSE</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">pylab</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">TRANSPOSE</span><span class="p">:</span>
+        <span class="n">pylab</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.99</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pylab</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.99</span><span class="p">)</span>
+
+    <span class="n">type_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--type&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">type_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">maps</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">pylab</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">datad</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_r&#39;</span><span class="p">)]</span>
+        <span class="c1"># maps += cmaps2.__all__</span>
+        <span class="n">maps</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">maps</span> <span class="o">=</span> <span class="n">CMAP_DICT</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CMAP_DICT = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">CMAP_DICT</span><span class="p">),))</span>
+
+    <span class="n">cmap_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--cmap&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cmap_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">maps</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span> <span class="n">cmap_</span><span class="p">)]</span>
+
+    <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">maps</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">maps</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">TRANSPOSE</span><span class="p">:</span>
+            <span class="n">pylab</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pylab</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># pylab.axis(&quot;off&quot;)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+        <span class="c1"># try:</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">pylab</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="c1"># except Exception:</span>
+        <span class="c1">#    cmap = getattr(cmaps2, m)</span>
+
+        <span class="n">pylab</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>  <span class="c1"># , origin=&quot;lower&quot;)</span>
+        <span class="k">if</span> <span class="n">TRANSPOSE</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span>
+                <span class="n">m</span><span class="p">,</span>
+                <span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span>
+                <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pylab</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span></div>
+    <span class="c1"># pylab.savefig(&quot;colormaps.png&quot;, dpi=100, facecolor=&#39;gray&#39;)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

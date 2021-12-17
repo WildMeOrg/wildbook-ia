@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_review_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_review_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_review_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tgen.sh&#39;, &#39;wbia.templates.template_generator&#39;)&quot;</span>
+<span class="sd">sh Tgen.sh --key review --invert --Tcfg with_getters=True with_setters=False --modfname manual_review_funcs</span>
+
+<span class="sd"># TODO: Fix this name it is too special case</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+
+<span class="c1"># import numpy as np</span>
+<span class="c1"># import vtool as vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">ubelt</span> <span class="k">as</span> <span class="nn">ub</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">VERBOSE_SQL</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--print-sql&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbose-sql&#39;</span><span class="p">,</span> <span class="s1">&#39;--verb-sql&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbsql&#39;</span><span class="p">))</span>
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">register_api</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_wbia_flask_api</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">REVIEW_ROWID</span> <span class="o">=</span> <span class="s1">&#39;review_rowid&#39;</span>
+<span class="n">REVIEW_UUID</span> <span class="o">=</span> <span class="s1">&#39;review_uuid&#39;</span>
+<span class="n">REVIEW_AID1</span> <span class="o">=</span> <span class="s1">&#39;annot_1_rowid&#39;</span>
+<span class="n">REVIEW_AID2</span> <span class="o">=</span> <span class="s1">&#39;annot_2_rowid&#39;</span>
+<span class="n">REVIEW_COUNT</span> <span class="o">=</span> <span class="s1">&#39;review_count&#39;</span>
+<span class="n">REVIEW_EVIDENCE_DECISION</span> <span class="o">=</span> <span class="s1">&#39;review_evidence_decision&#39;</span>
+<span class="n">REVIEW_META_DECISION</span> <span class="o">=</span> <span class="s1">&#39;review_meta_decision&#39;</span>
+<span class="n">REVIEW_USER_IDENTITY</span> <span class="o">=</span> <span class="s1">&#39;review_user_identity&#39;</span>
+<span class="n">REVIEW_USER_CONFIDENCE</span> <span class="o">=</span> <span class="s1">&#39;review_user_confidence&#39;</span>
+<span class="n">REVIEW_TAGS</span> <span class="o">=</span> <span class="s1">&#39;review_tags&#39;</span>
+<span class="n">REVIEW_TIME_CLIENT_START</span> <span class="o">=</span> <span class="s1">&#39;review_client_start_time_posix&#39;</span>
+<span class="n">REVIEW_TIME_CLIENT_END</span> <span class="o">=</span> <span class="s1">&#39;review_client_end_time_posix&#39;</span>
+<span class="n">REVIEW_TIME_SERVER_START</span> <span class="o">=</span> <span class="s1">&#39;review_server_start_time_posix&#39;</span>
+<span class="n">REVIEW_TIME_SERVER_END</span> <span class="o">=</span> <span class="s1">&#39;review_server_end_time_posix&#39;</span>
+
+
+<div class="viewcode-block" id="e_"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.e_">[docs]</a><span class="k">def</span> <span class="nf">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">v</span> <span class="k">else</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="hack_create_aidpair_index"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.hack_create_aidpair_index">[docs]</a><span class="k">def</span> <span class="nf">hack_create_aidpair_index</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c1"># HACK IN INDEX</span>
+    <span class="n">sqlfmt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CREATE INDEX IF NOT EXISTS {index_name} ON {table} ({index_cols});</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">sqlcmd</span> <span class="o">=</span> <span class="n">sqlfmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">index_name</span><span class="o">=</span><span class="s1">&#39;aidpair_to_rowid&#39;</span><span class="p">,</span>
+            <span class="n">table</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+            <span class="n">index_cols</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">]),</span>
+        <span class="p">)</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sqlcmd</span><span class="p">)</span>
+        <span class="n">sqlcmd</span> <span class="o">=</span> <span class="n">sqlfmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">index_name</span><span class="o">=</span><span class="s1">&#39;aid1_to_rowids&#39;</span><span class="p">,</span>
+            <span class="n">table</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+            <span class="n">index_cols</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">REVIEW_AID1</span><span class="p">]),</span>
+        <span class="p">)</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sqlcmd</span><span class="p">)</span>
+        <span class="n">sqlcmd</span> <span class="o">=</span> <span class="n">sqlfmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">index_name</span><span class="o">=</span><span class="s1">&#39;aid2_to_rowids&#39;</span><span class="p">,</span>
+            <span class="n">table</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+            <span class="n">index_cols</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">REVIEW_AID2</span><span class="p">]),</span>
+        <span class="p">)</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sqlcmd</span><span class="p">)</span></div>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">ider</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">_get_all_review_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_known_review_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_known_review_rowids</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_set_review_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">,</span> <span class="n">review_uuid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): all nids of known animals</span>
+<span class="sd">        (does not include unknown names)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">review_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">review_rowid</span> <span class="ow">in</span> <span class="n">review_rowid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">review_uuid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">review_uuid</span> <span class="ow">in</span> <span class="n">review_uuid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_UUID</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">_set_review_user_confidence</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">,</span> <span class="n">user_confidence_list</span><span class="p">):</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">review_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">review_rowid</span> <span class="ow">in</span> <span class="n">review_rowid_list</span><span class="p">)</span>
+    <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">user_confidence</span><span class="p">,)</span> <span class="k">for</span> <span class="n">user_confidence</span> <span class="ow">in</span> <span class="n">user_confidence_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_USER_CONFIDENCE</span><span class="p">,),</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_review_rowid_from_superkey"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_rowid_from_superkey">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_review_rowid_from_superkey</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">,</span> <span class="n">count_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns review_rowid_list</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        superkey lists: review_rowid_list, aid_list</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        review_rowid_list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_ROWID</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">,</span> <span class="n">count_list</span><span class="p">)</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">,</span> <span class="n">REVIEW_COUNT</span><span class="p">]</span>
+    <span class="n">review_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+            <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+            <span class="n">colnames</span><span class="p">,</span>
+            <span class="n">params_iter</span><span class="p">,</span>
+            <span class="n">where_colnames</span><span class="p">,</span>
+            <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+            <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="add_review"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.add_review">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">adder</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">add_review</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">aid_1_list</span><span class="p">,</span>
+    <span class="n">aid_2_list</span><span class="p">,</span>
+    <span class="n">evidence_decision_list</span><span class="p">,</span>
+    <span class="n">meta_decision_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">review_uuid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">identity_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">user_confidence_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">tags_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">review_client_start_time_posix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">review_client_end_time_posix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">review_server_start_time_posix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">review_server_end_time_posix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds a list of reviews.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: review_id_list - review rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/review/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_review_funcs --test-add_review</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_review_funcs import *</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.staging.get_table_as_pandas(&#39;reviews&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # ensure it is empty</span>
+<span class="sd">        &gt;&gt;&gt; rowids = ibs.staging.get_all_rowids(&#39;reviews&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.staging.delete_rowids(&#39;reviews&#39;, rowids)</span>
+<span class="sd">        &gt;&gt;&gt; ut.exec_funckw(ibs.add_review, globals())</span>
+<span class="sd">        &gt;&gt;&gt; # Add some dummy reviews</span>
+<span class="sd">        &gt;&gt;&gt; aid_1_list = [1, 2, 3, 2]</span>
+<span class="sd">        &gt;&gt;&gt; aid_2_list = [2, 3, 4, 3]</span>
+<span class="sd">        &gt;&gt;&gt; evidence_decision_list = [1, 0, 1, 2]</span>
+<span class="sd">        &gt;&gt;&gt; new_rowids = ibs.add_review(aid_1_list, aid_2_list,</span>
+<span class="sd">        &gt;&gt;&gt;                             evidence_decision_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert new_rowids == [1, 2, 3, 4]</span>
+<span class="sd">        &gt;&gt;&gt; table = ibs.staging.get_table_as_pandas(&#39;reviews&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(table)</span>
+<span class="sd">        &gt;&gt;&gt; # Then delete them</span>
+<span class="sd">        &gt;&gt;&gt; ibs.staging.delete_rowids(&#39;reviews&#39;, new_rowids)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_2_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">evidence_decision_list</span><span class="p">)</span>
+    <span class="n">diff_list</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_2_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">diff_list</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;Cannot add a review state between an aid and itself&#39;</span>
+    <span class="n">n_input</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">)</span>
+
+    <span class="c1"># Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower</span>
+    <span class="n">aid_pair_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">)]</span>
+    <span class="n">aid_1_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">aid_pair_list</span><span class="p">]</span>
+    <span class="n">aid_2_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">aid_pair_list</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># Get current review counts from database</span>
+        <span class="n">unique_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aid_pair_list</span><span class="p">))</span>
+        <span class="n">count_base</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="mi">0</span> <span class="k">if</span> <span class="n">counts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">counts</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">counts</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_counts_from_pairs</span><span class="p">(</span><span class="n">unique_pairs</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">pair_to_count</span> <span class="o">=</span> <span class="p">{</span><span class="n">edge</span><span class="p">:</span> <span class="n">count</span> <span class="k">for</span> <span class="n">edge</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">unique_pairs</span><span class="p">,</span> <span class="n">count_base</span><span class="p">)}</span>
+        <span class="n">count_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">aid_pair_list</span><span class="p">:</span>
+            <span class="n">pair_to_count</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">pair_to_count</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span>
+            <span class="n">count_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+    <span class="c1"># else:</span>
+    <span class="c1">#     # Alternative implemenation</span>
+    <span class="c1">#     unique_pairs, groupxs = ut.group_indices(aid_pair_list)</span>
+    <span class="c1">#     unique_base = [</span>
+    <span class="c1">#         0 if counts is None or len(counts) == 0 else</span>
+    <span class="c1">#         max(max(counts), len(counts))</span>
+    <span class="c1">#         for counts in ibs.get_review_counts_from_pairs(unique_pairs)</span>
+    <span class="c1">#     ]</span>
+    <span class="c1">#     grouped_base = [[b] * len(g) for b, g in zip(unique_base, groupxs)]</span>
+    <span class="c1">#     grouped_offsets = [list(range(n)) for n in map(len, groupxs)]</span>
+    <span class="c1">#     base = np.array(ut.ungroup(grouped_base, groupxs))</span>
+    <span class="c1">#     offsets = np.array(ut.ungroup(grouped_offsets, groupxs))</span>
+    <span class="c1">#     count_list = offsets + base + 1</span>
+
+    <span class="k">if</span> <span class="n">review_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">review_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_input</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">meta_decision_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">meta_decision_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_input</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">identity_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># identity_list = [ut.get_computer_name()] * len(aid_1_list)</span>
+        <span class="n">identity_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_input</span>
+    <span class="k">if</span> <span class="n">tags_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tag_str_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_input</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tag_str_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">tag_list</span><span class="p">))</span> <span class="k">for</span> <span class="n">tag_list</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">user_confidence_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">user_confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_input</span>
+
+    <span class="k">if</span> <span class="n">review_client_start_time_posix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">review_client_start_time_posix</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_input</span>
+    <span class="k">if</span> <span class="n">review_client_end_time_posix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">review_client_end_time_posix</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_input</span>
+    <span class="k">if</span> <span class="n">review_server_start_time_posix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">review_server_start_time_posix</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_input</span>
+    <span class="k">if</span> <span class="n">review_server_end_time_posix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">review_server_end_time_posix</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_input</span>
+
+    <span class="k">assert</span> <span class="n">n_input</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">identity_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">n_input</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_str_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">n_input</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">user_confidence_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">n_input</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">review_uuid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">n_input</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">count_list</span><span class="p">)</span>
+
+    <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="mi">0</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+        <span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># TODO Allow for better ensure=False without using partial</span>
+    <span class="c1"># Just autogenerate these functions</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">REVIEW_AID1</span><span class="p">,</span>
+        <span class="n">REVIEW_AID2</span><span class="p">,</span>
+        <span class="n">REVIEW_COUNT</span><span class="p">,</span>
+        <span class="n">REVIEW_UUID</span><span class="p">,</span>
+        <span class="n">REVIEW_EVIDENCE_DECISION</span><span class="p">,</span>
+        <span class="n">REVIEW_META_DECISION</span><span class="p">,</span>
+        <span class="n">REVIEW_USER_IDENTITY</span><span class="p">,</span>
+        <span class="n">REVIEW_USER_CONFIDENCE</span><span class="p">,</span>
+        <span class="n">REVIEW_TAGS</span><span class="p">,</span>
+        <span class="n">REVIEW_TIME_CLIENT_START</span><span class="p">,</span>
+        <span class="n">REVIEW_TIME_CLIENT_END</span><span class="p">,</span>
+        <span class="n">REVIEW_TIME_SERVER_START</span><span class="p">,</span>
+        <span class="n">REVIEW_TIME_SERVER_END</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">aid_1_list</span><span class="p">,</span>
+            <span class="n">aid_2_list</span><span class="p">,</span>
+            <span class="n">count_list</span><span class="p">,</span>
+            <span class="n">review_uuid_list</span><span class="p">,</span>
+            <span class="n">evidence_decision_list</span><span class="p">,</span>
+            <span class="n">meta_decision_list</span><span class="p">,</span>
+            <span class="n">identity_list</span><span class="p">,</span>
+            <span class="n">user_confidence_list</span><span class="p">,</span>
+            <span class="n">tag_str_list</span><span class="p">,</span>
+            <span class="n">review_client_start_time_posix</span><span class="p">,</span>
+            <span class="n">review_client_end_time_posix</span><span class="p">,</span>
+            <span class="n">review_server_start_time_posix</span><span class="p">,</span>
+            <span class="n">review_server_end_time_posix</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">review_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowid_from_superkey</span><span class="p">,</span>
+        <span class="n">superkey_paramx</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="delete_review"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.delete_review">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">deleter</span>
+<span class="c1"># @cache_invalidator(const.REVIEW_TABLE)</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">delete_review</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    deletes reviews from the database</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: DELETE</span>
+<span class="sd">        URL:    /api/review/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> reviews&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">review_rowid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_review_rowids_from_edges"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_rowids_from_edges">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_review_rowids_from_edges</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_ROWID</span><span class="p">,)</span>
+    <span class="c1"># Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower</span>
+    <span class="c1"># params_iter = edges</span>
+    <span class="k">if</span> <span class="n">directed</span><span class="p">:</span>
+        <span class="n">params_iter</span> <span class="o">=</span> <span class="n">edges</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">]</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">]</span>
+    <span class="n">review_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_rowids_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_exists_from_edges"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_exists_from_edges">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_review_exists_from_edges</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower</span>
+    <span class="c1"># params_iter = (e_(u, v) for u, v in edges)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="n">edges</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">]</span>
+    <span class="n">exists_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">exists_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">exists_list</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">exists_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">eager</span><span class="p">:</span>
+        <span class="n">exists_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">exists_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">exists_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_rowids_from_aid_tuple"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_rowids_from_aid_tuple">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1toM</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/rowids/tuple/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_review_rowids_from_aid_tuple</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Aid pairs are undirected</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): review_rowid_list - review rowid list of lists</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/rowid/tuple/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="p">(</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">get_review_rowids_from_edges</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span></div>
+    <span class="c1"># colnames = (REVIEW_ROWID,)</span>
+    <span class="c1"># where_colnames = [REVIEW_AID1, REVIEW_AID2]</span>
+    <span class="c1"># review_rowids_list = ibs.staging.get_where_eq(</span>
+    <span class="c1">#     const.REVIEW_TABLE, colnames, params_iter, where_colnames,</span>
+    <span class="c1">#     eager=eager, nInput=nInput, unpack_scalars=False)</span>
+    <span class="c1"># return review_rowids_list</span>
+
+
+<div class="viewcode-block" id="get_review_rowids_between"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_rowids_between">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_review_rowids_between</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find staging rowids between sets of aids</span>
+
+<span class="sd">    Doctest:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_review_funcs import *</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids1 = aids2 = [1, 2, 3, 4, 5, 6]</span>
+<span class="sd">        &gt;&gt;&gt; rowids_between = ibs.get_review_rowids_between</span>
+<span class="sd">        &gt;&gt;&gt; ids1 = sorted(rowids_between(aids1, aids2, method=1))</span>
+<span class="sd">        &gt;&gt;&gt; ids2 = sorted(rowids_between(aids1, aids2, method=2))</span>
+<span class="sd">        &gt;&gt;&gt; assert len(ub.find_duplicates(ids1)) == 0</span>
+<span class="sd">        &gt;&gt;&gt; assert len(ub.find_duplicates(ids2)) == 0</span>
+<span class="sd">        &gt;&gt;&gt; assert ids1 == ids2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">aids2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aids2</span> <span class="o">=</span> <span class="n">aids1</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Strategy 1: get all existing rows and see what intersects</span>
+        <span class="c1"># This is better when the enumerated set of rows would be larger than</span>
+        <span class="c1"># the database size</span>
+        <span class="n">rowids11</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_from_aid1</span><span class="p">(</span><span class="n">aids1</span><span class="p">)))</span>
+        <span class="n">rowids12</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_from_aid2</span><span class="p">(</span><span class="n">aids1</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">aids1</span> <span class="ow">is</span> <span class="n">aids2</span><span class="p">:</span>
+            <span class="n">rowids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">reduce</span><span class="p">(</span><span class="nb">set</span><span class="o">.</span><span class="n">intersection</span><span class="p">,</span> <span class="p">[</span><span class="n">rowids11</span><span class="p">,</span> <span class="n">rowids12</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rowids21</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_from_aid1</span><span class="p">(</span><span class="n">aids2</span><span class="p">)))</span>
+            <span class="n">rowids22</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_from_aid2</span><span class="p">(</span><span class="n">aids2</span><span class="p">)))</span>
+            <span class="n">rowids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">reduce</span><span class="p">(</span><span class="nb">set</span><span class="o">.</span><span class="n">intersection</span><span class="p">,</span> <span class="p">[</span><span class="n">rowids11</span><span class="p">,</span> <span class="n">rowids12</span><span class="p">,</span> <span class="n">rowids21</span><span class="p">,</span> <span class="n">rowids22</span><span class="p">])</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># Strategy 2: enumerate what rows could exist and see what does exist</span>
+        <span class="c1"># This is better when the enumerated set of rows would be smaller than</span>
+        <span class="c1"># the database size</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">product_nonsame</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rowids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_rowids_from_edges</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rowids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">rowids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
+            <span class="n">rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">rowids</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;no method=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">rowids</span></div>
+
+
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># @accessor_decors.getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/review/rowids/undirected/&#39;, methods=[&#39;GET&#39;], __api_plural_check__=False)</span>
+<span class="c1"># def get_review_rowids_from_undirected_tuple(ibs, aid_1_list, aid_2_list):</span>
+<span class="c1">#     aids1, aids2 = aid_1_list, aid_2_list</span>
+<span class="c1">#     review_rowids_dir1 = ibs.get_review_rowids_from_aid_tuple(aids1, aids2)</span>
+<span class="c1">#     review_rowids_dir2 = ibs.get_review_rowids_from_aid_tuple(aids2, aids1)</span>
+<span class="c1">#     def _join_rowids(rowids1, rowids2):</span>
+<span class="c1">#         if rowids1 is None and rowids2 is None:</span>
+<span class="c1">#             return None</span>
+<span class="c1">#         else:</span>
+<span class="c1">#             if rowids1 is None:</span>
+<span class="c1">#                 rowids1 = []</span>
+<span class="c1">#             elif rowids2 is None:</span>
+<span class="c1">#                 rowids2 = []</span>
+<span class="c1">#             return rowids1 + rowids2</span>
+<span class="c1">#     review_rowids_list = [</span>
+<span class="c1">#         _join_rowids(rowids1, rowids2)</span>
+<span class="c1">#         for rowids1, rowids2 in zip(review_rowids_dir1, review_rowids_dir2)</span>
+<span class="c1">#     ]</span>
+<span class="c1">#     return review_rowids_list</span>
+
+
+<div class="viewcode-block" id="get_review_count"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_count">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/count/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_count</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_count_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_COUNT</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_count_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_counts_from_tuple"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_counts_from_tuple">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/counts/tuple/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_review_counts_from_tuple</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): review_counts_list - review counts</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/counts/tuple/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aid_pairs</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">)</span>
+    <span class="n">review_counts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_counts_from_pairs</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_counts_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_counts_from_pairs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_counts_from_pairs">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_review_counts_from_pairs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): review_counts_list - review counts</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/counts/tuple/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_COUNT</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="n">aid_pairs</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">]</span>
+    <span class="n">review_counts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_counts_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_decision"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_decision">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/decision/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_decision</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_decision_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_EVIDENCE_DECISION</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_decision_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_uuid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_uuid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_UUID</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_uuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_decision_str"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_decision_str">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/decision/str/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_decision_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_decision_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_decision</span><span class="p">(</span><span class="n">review_rowid_list</span><span class="p">)</span>
+    <span class="n">review_decision_str_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">EVIDENCE_DECISION</span><span class="o">.</span><span class="n">INT_TO_NICE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">review_decision</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">review_decision</span> <span class="ow">in</span> <span class="n">review_decision_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">review_decision_str_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_decisions_from_only"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_decisions_from_only">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/decisions/only/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_review_decisions_from_only</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): review_tuple_decisions_list - review decisions</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/decisions/only/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">REVIEW_AID1</span><span class="p">,</span>
+        <span class="n">REVIEW_AID2</span><span class="p">,</span>
+        <span class="n">REVIEW_EVIDENCE_DECISION</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+    <span class="n">review_tuple_decisions_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_AID1</span><span class="p">,),</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_tuple_decisions_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_rowids_from_only"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_rowids_from_only">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/rowids/only/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_review_rowids_from_only</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): review_rowids</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/rowids/only/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_ROWID</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+    <span class="n">review_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_AID1</span><span class="p">,),</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_rowids</span></div>
+
+
+<div class="viewcode-block" id="get_review_rowids_from_single"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_rowids_from_single">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_review_rowids_from_single</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_ROWID</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aid</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+    <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=? OR </span><span class="si">%s</span><span class="s1">=?&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">)</span>
+    <span class="n">review_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_rowids</span></div>
+
+
+<div class="viewcode-block" id="get_review_rowids_from_aid1"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_rowids_from_aid1">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_review_rowids_from_aid1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_ROWID</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+    <span class="n">review_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">REVIEW_AID1</span><span class="p">,),</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_rowids</span></div>
+
+
+<div class="viewcode-block" id="get_review_rowids_from_aid2"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_rowids_from_aid2">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_review_rowids_from_aid2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_ROWID</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+    <span class="n">review_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">REVIEW_AID2</span><span class="p">,),</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_rowids</span></div>
+
+
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># @accessor_decors.getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/review/decisions/single/&#39;, methods=[&#39;GET&#39;], __api_plural_check__=False)</span>
+<span class="c1"># def get_review_decisions_from_single(ibs, aid_list, eager=True, nInput=None):</span>
+<span class="c1">#     r&quot;&quot;&quot;</span>
+<span class="c1">#     Returns:</span>
+<span class="c1">#         list_ (list): review_tuple_decisions_list - review decisions</span>
+
+<span class="c1">#     RESTful:</span>
+<span class="c1">#         Method: GET</span>
+<span class="c1">#         URL:    /api/review/identities/single/</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_EVIDENCE_DECISION,)</span>
+<span class="c1">#     params_iter = zip(aid_list, aid_list, )</span>
+<span class="c1">#     where_colnames = [REVIEW_AID1, REVIEW_AID2]</span>
+<span class="c1">#     review_tuple_decisions_list = ibs.staging.get_where_eq(</span>
+<span class="c1">#         const.REVIEW_TABLE, colnames, params_iter, where_colnames,</span>
+<span class="c1">#         eager=eager, nInput=nInput, op=&#39;OR&#39;, unpack_scalars=False)</span>
+<span class="c1">#     return review_tuple_decisions_list</span>
+
+
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># @accessor_decors.getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/review/decisions/tuple/&#39;, methods=[&#39;GET&#39;], __api_plural_check__=False)</span>
+<span class="c1"># def get_review_decisions_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=None):</span>
+<span class="c1">#     r&quot;&quot;&quot;</span>
+<span class="c1">#     Returns:</span>
+<span class="c1">#         list_ (list): review_decisions_list - review decisions</span>
+
+<span class="c1">#     RESTful:</span>
+<span class="c1">#         Method: GET</span>
+<span class="c1">#         URL:    /api/review/identities/tuple/</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     colnames = (REVIEW_EVIDENCE_DECISION,)</span>
+<span class="c1">#     params_iter = zip(aid_1_list, aid_2_list)</span>
+<span class="c1">#     where_colnames = [REVIEW_AID1, REVIEW_AID2]</span>
+<span class="c1">#     review_decisions_list = ibs.staging.get_where_eq(</span>
+<span class="c1">#         const.REVIEW_TABLE, colnames, params_iter, where_colnames,</span>
+<span class="c1">#         eager=eager, nInput=nInput, unpack_scalars=False)</span>
+<span class="c1">#     return review_decisions_list</span>
+
+
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># @accessor_decors.getter_1to1</span>
+<span class="c1"># @register_api(&#39;/api/review/decisions/str/tuple/&#39;, methods=[&#39;GET&#39;], __api_plural_check__=False)</span>
+<span class="c1"># def get_review_decisions_str_from_tuple(ibs, aid_1_list, aid_2_list, **kwargs):</span>
+<span class="c1">#     r&quot;&quot;&quot;</span>
+<span class="c1">#     Returns:</span>
+<span class="c1">#         list_ (list): review_decisions_list - review decisions</span>
+
+<span class="c1">#     RESTful:</span>
+<span class="c1">#         Method: GET</span>
+<span class="c1">#         URL:    /api/review/identities/str/tuple/</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     review_decisions_list = ibs.get_review_decisions_from_tuple(</span>
+<span class="c1">#         aid_1_list, aid_2_list, **kwargs)</span>
+<span class="c1">#     review_decision_str_list = [</span>
+<span class="c1">#         [</span>
+<span class="c1">#             const.EVIDENCE_DECISION.INT_TO_NICE.get(review_decision)</span>
+<span class="c1">#             for review_decision in review_decision_list</span>
+<span class="c1">#         ]</span>
+<span class="c1">#         for review_decision_list in review_decisions_list</span>
+<span class="c1">#     ]</span>
+<span class="c1">#     return review_decision_str_list</span>
+
+
+<div class="viewcode-block" id="get_review_identity"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_identity">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/identity/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_identity</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_identity_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_USER_IDENTITY</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_identity_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_user_confidence"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_user_confidence">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/confidence/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_user_confidence</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">user_confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_USER_CONFIDENCE</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">user_confidence_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_identities_from_tuple"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_identities_from_tuple">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span>
+    <span class="s1">&#39;/api/review/identities/tuple/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_review_identities_from_tuple</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): review_identities_list - review identities</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/identities/tuple/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_USER_IDENTITY</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">)</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">]</span>
+    <span class="n">review_identities_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_identities_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_posix_time"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_posix_time">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/time/posix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_posix_time</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_review_posix_server_end_time</span><span class="p">(</span><span class="n">review_rowid_list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_review_posix_server_start_time"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_posix_server_start_time">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/time/server/start/posix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_posix_server_start_time</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_posix_time_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_TIME_SERVER_START</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_posix_time_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_posix_client_start_time"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_posix_client_start_time">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/time/client/start/posix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_posix_client_start_time</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_posix_time_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_TIME_CLIENT_START</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_posix_time_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_posix_client_end_time"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_posix_client_end_time">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/time/client/end/posix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_posix_client_end_time</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_posix_time_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_TIME_CLIENT_END</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_posix_time_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_posix_server_end_time"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_posix_server_end_time">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/time/server/end/posix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_posix_server_end_time</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_posix_time_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_TIME_SERVER_END</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_posix_time_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_aid_tuple"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_aid_tuple">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_review_aid_tuple</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">REVIEW_AID1</span><span class="p">,</span>
+        <span class="n">REVIEW_AID2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">review_rowid_list</span><span class="p">)</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">REVIEW_ROWID</span><span class="p">]</span>
+    <span class="n">aid_tuple_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">aid_tuple_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_posix_times_from_tuple"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_posix_times_from_tuple">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/time/posix/tuple/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_posix_times_from_tuple</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): identity_list - review posix times</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/time/posix/tuple/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_TIME_SERVER_END</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">)</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">]</span>
+    <span class="n">review_posix_times_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_posix_times_list</span></div>
+
+
+<span class="c1"># def _parse_tag_str(tag_str):</span>
+<span class="c1">#     if tag_str is None or len(tag_str) == 0:</span>
+<span class="c1">#         return None</span>
+<span class="c1">#     else:</span>
+<span class="c1">#         return tag_str.split(&#39;;&#39;)</span>
+
+
+<div class="viewcode-block" id="get_review_tags"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_tags">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/tags/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_review_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">review_tag_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">REVIEW_TAGS</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">review_tags_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">review_tag_str</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">review_tag_str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">else</span> <span class="n">review_tag_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">review_tag_str</span> <span class="ow">in</span> <span class="n">review_tag_str_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">review_tags_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_tags_from_tuple"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_tags_from_tuple">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/tags/tuple/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_plural_check__</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_review_tags_from_tuple</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): review_tags_list - review tags (list of strings)</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/tags/tuple/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">REVIEW_TAGS</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_1_list</span><span class="p">,</span> <span class="n">aid_2_list</span><span class="p">)</span>
+    <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">REVIEW_AID1</span><span class="p">,</span> <span class="n">REVIEW_AID2</span><span class="p">]</span>
+    <span class="n">review_tag_strs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_colnames</span><span class="p">,</span>
+        <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span>
+        <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">review_tags_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">review_tag_str_list</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="p">[</span>
+            <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">review_tag_str</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">review_tag_str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="n">review_tag_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">review_tag_str</span> <span class="ow">in</span> <span class="n">review_tag_str_list</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">review_tag_str_list</span> <span class="ow">in</span> <span class="n">review_tag_strs_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">review_tags_list</span></div>
+
+
+<div class="viewcode-block" id="get_review_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.get_review_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">get_review_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): review metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/review/metadata/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;review_metadata_json&#39;</span><span class="p">,),</span> <span class="n">review_rowid_list</span>
+    <span class="p">)</span>
+    <span class="n">metadata_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">metadata_dict</span> <span class="o">=</span> <span class="n">metadata_str</span> <span class="k">if</span> <span class="n">return_raw</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+        <span class="n">metadata_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metadata_list</span></div>
+
+
+<div class="viewcode-block" id="set_review_metadata"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_review_funcs.set_review_metadata">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors</span><span class="o">.</span><span class="n">setter</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/review/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_review_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">,</span> <span class="n">metadata_dict_list</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the review&#39;s metadata using a metadata dictionary</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: PUT</span>
+<span class="sd">        URL:    /api/review/metadata/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_review_funcs --test-set_review_metadata</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_review_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import random</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; review_rowid_list = ibs.add_review([1], [2], [0])</span>
+<span class="sd">        &gt;&gt;&gt; metadata_dict_list = [</span>
+<span class="sd">        &gt;&gt;&gt;     {&#39;test&#39;: random.uniform(0.0, 1.0)},</span>
+<span class="sd">        &gt;&gt;&gt; ]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_dict_list))</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_review_metadata(review_rowid_list, metadata_dict_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; metadata_dict_list_ = ibs.get_review_metadata(review_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_dict_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert metadata_dict_list == metadata_dict_list_</span>
+<span class="sd">        &gt;&gt;&gt; metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_str_list))</span>
+<span class="sd">        &gt;&gt;&gt; metadata_str_list_ = ibs.get_review_metadata(review_rowid_list, return_raw=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(metadata_str_list_))</span>
+<span class="sd">        &gt;&gt;&gt; assert metadata_str_list == metadata_str_list_</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_review(review_rowid_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">review_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">review_rowid</span> <span class="ow">in</span> <span class="n">review_rowid_list</span><span class="p">)</span>
+    <span class="n">metadata_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">metadata_dict</span> <span class="ow">in</span> <span class="n">metadata_dict_list</span><span class="p">:</span>
+        <span class="n">metadata_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">)</span>
+        <span class="n">metadata_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)</span>
+    <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_str</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_str</span> <span class="ow">in</span> <span class="n">metadata_str_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">staging</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;review_metadata_json&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

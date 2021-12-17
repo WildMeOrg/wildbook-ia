@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.graph.nx_dynamic_graph &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../graph.html">wbia.algo.graph</a> &raquo;</li>
+      <li>wbia.algo.graph.nx_dynamic_graph</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.graph.nx_dynamic_graph</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.graph.nx_utils</span> <span class="kn">import</span> <span class="n">edges_inside</span><span class="p">,</span> <span class="n">e_</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="GraphHelperMixin"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.GraphHelperMixin">[docs]</a><span class="k">class</span> <span class="nc">GraphHelperMixin</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;nNodes=</span><span class="si">{}</span><span class="s1">, nEdges=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="GraphHelperMixin.has_nodes"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.GraphHelperMixin.has_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">has_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">has_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GraphHelperMixin.has_edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.GraphHelperMixin.has_edges">[docs]</a>    <span class="k">def</span> <span class="nf">has_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GraphHelperMixin.edges"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.GraphHelperMixin.edges">[docs]</a>    <span class="k">def</span> <span class="nf">edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbunch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Force edges to always be returned in upper triangular form</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">GraphHelperMixin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">nbunch</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">d</span><span class="p">,)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">e_</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="NiceGraph"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.NiceGraph">[docs]</a><span class="k">class</span> <span class="nc">NiceGraph</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">GraphHelperMixin</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="nx_UnionFind"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.nx_UnionFind">[docs]</a><span class="k">class</span> <span class="nc">nx_UnionFind</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Based of nx code</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">elements</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_elements</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+
+<div class="viewcode-block" id="nx_UnionFind.clear"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.nx_UnionFind.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="p">{}</span></div>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="c1"># check for previously unknown element</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span><span class="n">element</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">element</span>
+        <span class="c1"># find path of objects leading to the root</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="n">element</span><span class="p">]</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">element</span><span class="p">]</span>
+        <span class="k">while</span> <span class="n">root</span> <span class="o">!=</span> <span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">root</span><span class="p">]</span>
+        <span class="c1"># compress the path and return</span>
+        <span class="k">for</span> <span class="n">ancestor</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">ancestor</span><span class="p">]</span> <span class="o">=</span> <span class="n">root</span>
+        <span class="k">return</span> <span class="n">root</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span>
+
+<div class="viewcode-block" id="nx_UnionFind.rebalance"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.nx_UnionFind.rebalance">[docs]</a>    <span class="k">def</span> <span class="nf">rebalance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">elements</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="c1"># Make sure only one operation is needed to lookup any node</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="nx_UnionFind.to_sets"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.nx_UnionFind.to_sets">[docs]</a>    <span class="k">def</span> <span class="nf">to_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">yield from</span> <span class="n">it</span><span class="o">.</span><span class="n">groups</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="nx_UnionFind.union"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.nx_UnionFind.union">[docs]</a>    <span class="k">def</span> <span class="nf">union</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">objects</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find the sets containing the objects and merge them all.&quot;&quot;&quot;</span>
+        <span class="n">roots</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">]</span>
+        <span class="c1"># HACK: use the lowest node number to preserve</span>
+        <span class="c1"># node labels through cuts. (has some runtime penalty)</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># Find the best root with the maximum weight</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">roots</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">r</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">roots</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">!=</span> <span class="n">best</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">best</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">best</span></div>
+
+<div class="viewcode-block" id="nx_UnionFind.remove_entire_cc"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.nx_UnionFind.remove_entire_cc">[docs]</a>    <span class="k">def</span> <span class="nf">remove_entire_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="p">):</span>
+        <span class="c1"># NOTE: this will not work in general. This only</span>
+        <span class="c1"># works if all elements are a unique component.</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">x</span><span class="p">]</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">x</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="nx_UnionFind.add_element"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.nx_UnionFind.add_element">[docs]</a>    <span class="k">def</span> <span class="nf">add_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="nx_UnionFind.add_elements"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.nx_UnionFind.add_elements">[docs]</a>    <span class="k">def</span> <span class="nf">add_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span></div></div>
+
+
+<div class="viewcode-block" id="DynConnGraph"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph">[docs]</a><span class="k">class</span> <span class="nc">DynConnGraph</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">GraphHelperMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dynamically connected graph.</span>
+
+<span class="sd">    Maintains a data structure parallel to a normal networkx graph that</span>
+<span class="sd">    maintains dynamic connectivity for fast connected compoment queries.</span>
+
+<span class="sd">    Underlying Data Structures and limitations are</span>
+
+<span class="sd">    Data Structure     | Insertion | Deletion | CC Find |</span>
+<span class="sd">    -----------------------------------------------------</span>
+<span class="sd">    * UnionFind        | lg(n)     |    n     |  No</span>
+<span class="sd">    * UnionFind2       |    n*     |    n     |  1</span>
+<span class="sd">    * EulerTourForest  | lg^2(n)   | lg^2(n)  |  lg(n) / lglg(n) - - Ammortized</span>
+
+<span class="sd">    * it seems to be very quick</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        https://courses.csail.mit.edu/6.851/spring14/lectures/L20.pdf</span>
+<span class="sd">        https://courses.csail.mit.edu/6.851/spring14/lectures/L20.html</span>
+<span class="sd">        http://cs.stackexchange.com/questions/33595/maintaining-connecte</span>
+<span class="sd">        https://en.wikipedia.org/wiki/Dynamic_connectivity#Fully_dynamic_connectivity</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.graph.nx_dynamic_graph DynConnGraph</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.graph.nx_dynamic_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; self = DynConnGraph()</span>
+<span class="sd">        &gt;&gt;&gt; self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])</span>
+<span class="sd">        &gt;&gt;&gt; self.add_edges_from([(10, 20), (20, 30), (40, 50), (60, 70), (70, 40)])</span>
+<span class="sd">        &gt;&gt;&gt; self._ccs</span>
+<span class="sd">        &gt;&gt;&gt; u, v = 20, 1</span>
+<span class="sd">        &gt;&gt;&gt; assert self.node_label(u) != self.node_label(v)</span>
+<span class="sd">        &gt;&gt;&gt; assert self.connected_to(u) != self.connected_to(v)</span>
+<span class="sd">        &gt;&gt;&gt; self.add_edge(u, v)</span>
+<span class="sd">        &gt;&gt;&gt; assert self.node_label(u) == self.node_label(v)</span>
+<span class="sd">        &gt;&gt;&gt; assert self.connected_to(u) == self.connected_to(v)</span>
+<span class="sd">        &gt;&gt;&gt; self.remove_edge(u, v)</span>
+<span class="sd">        &gt;&gt;&gt; assert self.node_label(u) != self.node_label(v)</span>
+<span class="sd">        &gt;&gt;&gt; assert self.connected_to(u) != self.connected_to(v)</span>
+<span class="sd">        &gt;&gt;&gt; ccs = list(self.connected_components())</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.qtensure()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_nx(self)</span>
+
+<span class="sd">    # todo: check if nodes exist when adding</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># raise NotImplementedError(&#39;unfinished&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span> <span class="o">=</span> <span class="n">nx_UnionFind</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DynConnGraph.clear"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;nNodes=</span><span class="si">{}</span><span class="s1">, nEdges=</span><span class="si">{}</span><span class="s1">, nCCs=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_components</span><span class="p">()</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="DynConnGraph.number_of_components"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.number_of_components">[docs]</a>    <span class="k">def</span> <span class="nf">number_of_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.component"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.component">[docs]</a>    <span class="k">def</span> <span class="nf">component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="p">[</span><span class="n">label</span><span class="p">]</span></div>
+
+    <span class="n">component_nodes</span> <span class="o">=</span> <span class="n">component</span>
+
+<div class="viewcode-block" id="DynConnGraph.connected_to"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.connected_to">[docs]</a>    <span class="k">def</span> <span class="nf">connected_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="p">[</span><span class="n">node</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.node_label"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.node_label">[docs]</a>    <span class="k">def</span> <span class="nf">node_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.nx_dynamic_graph import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; self = DynConnGraph()</span>
+<span class="sd">            &gt;&gt;&gt; self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7)])</span>
+<span class="sd">            &gt;&gt;&gt; assert self.node_label(2) == self.node_label(1)</span>
+<span class="sd">            &gt;&gt;&gt; assert self.node_label(2) != self.node_label(4)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="p">[</span><span class="n">node</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.node_labels"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.node_labels">[docs]</a>    <span class="k">def</span> <span class="nf">node_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">nodes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.are_nodes_connected"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.are_nodes_connected">[docs]</a>    <span class="k">def</span> <span class="nf">are_nodes_connected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_labels</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.connected_components"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.connected_components">[docs]</a>    <span class="k">def</span> <span class="nf">connected_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.nx_dynamic_graph import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; self = DynConnGraph()</span>
+<span class="sd">            &gt;&gt;&gt; self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7)])</span>
+<span class="sd">            &gt;&gt;&gt; ccs = list(self.connected_components())</span>
+<span class="sd">            &gt;&gt;&gt; result = &#39;ccs = {}&#39;.format(ut.repr2(ccs, nl=0))</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">            ccs = [{1, 2, 3}, {4, 5}, {6, 7}]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.component_labels"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.component_labels">[docs]</a>    <span class="k">def</span> <span class="nf">component_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+
+    <span class="c1"># -----</span>
+
+    <span class="k">def</span> <span class="nf">_cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decremental connectivity (slow)&quot;&quot;&quot;</span>
+        <span class="n">old_nid1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="p">[</span><span class="n">u</span><span class="p">]</span>
+        <span class="n">old_nid2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">old_nid1</span> <span class="o">!=</span> <span class="n">old_nid2</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># Need to break appart entire component and then reconstruct it</span>
+        <span class="n">old_cc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="p">[</span><span class="n">old_nid1</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="p">[</span><span class="n">old_nid1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="o">.</span><span class="n">remove_entire_cc</span><span class="p">(</span><span class="n">old_cc</span><span class="p">)</span>
+        <span class="c1"># Might be faster to just do DFS to find the CC</span>
+        <span class="n">internal_edges</span> <span class="o">=</span> <span class="n">edges_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_cc</span><span class="p">)</span>
+        <span class="c1"># Add nodes in case there are no edges to it</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">old_cc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_node</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">internal_edges</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_union</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_union</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Incremental connectivity (fast)&quot;&quot;&quot;</span>
+        <span class="c1"># logger.info(&#39;Union ({})&#39;.format((u, v)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_node</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_node</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">old_nid1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="p">[</span><span class="n">u</span><span class="p">]</span>
+        <span class="n">old_nid2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">new_nid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="p">[</span><span class="n">u</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">old_nid</span> <span class="ow">in</span> <span class="p">[</span><span class="n">old_nid1</span><span class="p">,</span> <span class="n">old_nid2</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">new_nid</span> <span class="o">!=</span> <span class="n">old_nid</span><span class="p">:</span>
+                <span class="n">parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">old_nid</span><span class="p">)</span>
+                <span class="c1"># FIXME: this step can be quite bad for time complexity.</span>
+                <span class="c1"># An Euler Tour Tree might solve the issue</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="p">[</span><span class="n">new_nid</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="c1"># logger.info(&#39;Add ({})&#39;.format((n)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_remove_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_union_find</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ccs</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+
+<div class="viewcode-block" id="DynConnGraph.add_edge"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.add_edge">[docs]</a>    <span class="k">def</span> <span class="nf">add_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="o">**</span><span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.nx_dynamic_graph import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; self = DynConnGraph()</span>
+<span class="sd">            &gt;&gt;&gt; self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])</span>
+<span class="sd">            &gt;&gt;&gt; assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7}}</span>
+<span class="sd">            &gt;&gt;&gt; self.add_edge(1, 5)</span>
+<span class="sd">            &gt;&gt;&gt; assert self._ccs == {1: {1, 2, 3, 4, 5, 6, 7}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_union</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="o">**</span><span class="n">attr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.add_edges_from"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.add_edges_from">[docs]</a>    <span class="k">def</span> <span class="nf">add_edges_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ebunch</span><span class="p">,</span> <span class="o">**</span><span class="n">attr</span><span class="p">):</span>
+        <span class="n">ebunch</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ebunch</span><span class="p">)</span>
+        <span class="c1"># logger.info(&#39;add_edges_from %r&#39; % (ebunch,))</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ebunch</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_union</span><span class="p">(</span><span class="o">*</span><span class="n">e</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">ebunch</span><span class="p">,</span> <span class="o">**</span><span class="n">attr</span><span class="p">)</span></div>
+
+    <span class="c1"># ----</span>
+
+<div class="viewcode-block" id="DynConnGraph.add_node"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="o">**</span><span class="n">attr</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_node</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="o">**</span><span class="n">attr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.add_nodes_from"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.add_nodes_from">[docs]</a>    <span class="k">def</span> <span class="nf">add_nodes_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="o">**</span><span class="n">attr</span><span class="p">):</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_node</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="o">**</span><span class="n">attr</span><span class="p">)</span></div>
+
+    <span class="c1"># ----</span>
+
+<div class="viewcode-block" id="DynConnGraph.remove_edge"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.remove_edge">[docs]</a>    <span class="k">def</span> <span class="nf">remove_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.nx_dynamic_graph import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; self = DynConnGraph()</span>
+<span class="sd">            &gt;&gt;&gt; self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])</span>
+<span class="sd">            &gt;&gt;&gt; assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7}}</span>
+<span class="sd">            &gt;&gt;&gt; self.add_edge(1, 5)</span>
+<span class="sd">            &gt;&gt;&gt; assert self._ccs == {1: {1, 2, 3, 4, 5, 6, 7}}</span>
+<span class="sd">            &gt;&gt;&gt; self.remove_edge(1, 5)</span>
+<span class="sd">            &gt;&gt;&gt; assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">remove_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cut</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.remove_edges_from"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.remove_edges_from">[docs]</a>    <span class="k">def</span> <span class="nf">remove_edges_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ebunch</span><span class="p">):</span>
+        <span class="n">ebunch</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ebunch</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">remove_edges_from</span><span class="p">(</span><span class="n">ebunch</span><span class="p">)</span>
+        <span class="c1"># Can do this more efficiently for bulk edges</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ebunch</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cut</span><span class="p">(</span><span class="o">*</span><span class="n">e</span><span class="p">)</span></div>
+
+    <span class="c1"># -----</span>
+
+<div class="viewcode-block" id="DynConnGraph.remove_nodes_from"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.remove_nodes_from">[docs]</a>    <span class="k">def</span> <span class="nf">remove_nodes_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+        <span class="c1"># remove edges as well</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+            <span class="n">nbrs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_edges_from</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">nbrs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_remove_node</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">remove_nodes_from</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.remove_node"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.remove_node">[docs]</a>    <span class="k">def</span> <span class="nf">remove_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.graph.nx_dynamic_graph remove_node</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.graph.nx_dynamic_graph import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; self = DynConnGraph()</span>
+<span class="sd">            &gt;&gt;&gt; self.add_edges_from([(1, 2), (2, 3), (4, 5), (5, 6), (6, 7), (7, 8), (8, 9)])</span>
+<span class="sd">            &gt;&gt;&gt; assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7, 8, 9}}</span>
+<span class="sd">            &gt;&gt;&gt; self.remove_node(2)</span>
+<span class="sd">            &gt;&gt;&gt; assert self._ccs == {1: {1}, 3: {3}, 4: {4, 5, 6, 7, 8, 9}}</span>
+<span class="sd">            &gt;&gt;&gt; self.remove_node(7)</span>
+<span class="sd">            &gt;&gt;&gt; assert self._ccs == {1: {1}, 3: {3}, 4: {4, 5, 6}, 8: {8, 9}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># remove edges as well</span>
+        <span class="n">nbrs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adj</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_edges_from</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">nbrs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_remove_node</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DynConnGraph.subgraph"><a class="viewcode-back" href="../../../../wbia.algo.graph.html#wbia.algo.graph.nx_dynamic_graph.DynConnGraph.subgraph">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">subgraph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbunch</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dynamic</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+            <span class="n">nbunch</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nbunch</span><span class="p">)</span>
+            <span class="n">H</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">nbunch</span><span class="p">)</span>
+            <span class="n">H</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edges_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbunch</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">DynConnGraph</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">nbunch</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nbunch</span><span class="p">:</span>
+                <span class="c1"># need to add individual nodes</span>
+                <span class="n">H</span><span class="o">.</span><span class="n">_add_node</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="c1"># Recreate the connected compoment structure</span>
+            <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">H</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>
+                <span class="n">H</span><span class="o">.</span><span class="n">_union</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">H</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

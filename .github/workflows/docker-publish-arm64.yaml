@@ -1,0 +1,120 @@
+name: Build and upload Docker (ARM64)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight
+
+jobs:
+  devops:
+    name: Docker image build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        images:
+          - wbia-base wbia-provision wbia
+
+    steps:
+      - uses: actions/checkout@v2
+        if: github.event_name == 'schedule'
+        with:
+          ref: main
+
+      - uses: actions/checkout@v2
+        if: github.event_name != 'schedule'
+
+      - uses: docker/setup-buildx-action@v1
+        name: Set up Docker Buildx
+        id: buildx
+
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: 3.8
+
+      # Build images
+      - name: Build images
+        run: |
+          # Build Image
+          cd devops/
+          bash build.sh ${{ matrix.images }}
+        env:
+          # The wildbook-ia image is built at the same time as wbia, it is an alias
+          BUILD_IMAGES: ${{ matrix.images }}
+
+      # Log into image registries
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: wildmebot
+          password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Push to Docker Hub (Nightly)
+        if: github.event_name == 'schedule'
+        run: bash devops/publish.sh -t nightly ${PUBLISH_IMAGES}
+        env:
+          PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
+
+      - name: Push to GitHub Packages (Nightly)
+        if: github.event_name == 'schedule'
+        run: bash devops/publish.sh -t nightly -r ghcr.io/wildmeorg/wildbook-ia ${PUBLISH_IMAGES}
+        env:
+          PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
+
+      - name: Push to Docker Hub (ARM64)
+        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+        run: |
+          VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
+          bash devops/publish.sh -t ${VERSION} ${PUBLISH_IMAGES}
+          bash devops/publish.sh -t arm64 ${PUBLISH_IMAGES}
+        env:
+          PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
+
+      # Push containers out to container registries
+      - name: Push to GitHub Packages (ARM64)
+        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+        run: |
+          VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
+          bash devops/publish.sh -t ${VERSION} -r ghcr.io/wildmeorg/wildbook-ia ${PUBLISH_IMAGES}
+          bash devops/publish.sh -t arm64 -r ghcr.io/wildmeorg/wildbook-ia ${PUBLISH_IMAGES}
+        env:
+          PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
+
+      # Notify status in Slack
+      - name: Slack Notification
+        if: ${{ failure() && github.event_name == 'schedule' }}
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_CHANNEL: ia-development
+          SLACK_COLOR: '#FF0000'
+          SLACK_ICON: https://avatars.slack-edge.com/2020-03-02/965719891842_db87aa21ccb61076f236_44.png
+          SLACK_MESSAGE: 'Nightly Docker build failed :sob:'
+          SLACK_USERNAME: "Nightly"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      # Notify status in Slack
+      - name: Slack Notification
+        if: ${{ failure() && github.event_name != 'schedule' }}
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_CHANNEL: ia-development
+          SLACK_COLOR: '#FF0000'
+          SLACK_ICON: https://avatars.slack-edge.com/2020-03-02/965719891842_db87aa21ccb61076f236_44.png
+          SLACK_MESSAGE: 'ARM64 Docker build failed :sob:'
+          SLACK_USERNAME: "ARM64"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

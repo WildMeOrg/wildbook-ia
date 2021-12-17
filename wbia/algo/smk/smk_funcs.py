@@ -490,11 +490,10 @@ def assign_to_words(
 
     Returns:
         tuple: inverted index, multi-assigned weights, and forward index
-        formated as::
-
-            * wx_to_idxs - word index   -> vector indexes
-            * wx_to_maws - word index   -> multi-assignment weights
-            * idx2_wxs - vector index -> assigned word indexes
+        formated as:
+        * wx_to_idxs - word index   -> vector indexes
+        * wx_to_maws - word index   -> multi-assignment weights
+        * idx2_wxs - vector index -> assigned word indexes
 
     Example:
         >>> # SLOW_DOCTEST

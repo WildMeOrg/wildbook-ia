@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_wbiacontrol_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_wbiacontrol_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_wbiacontrol_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+
+<span class="c1"># from wbia import constants as const</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="new_query_request"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wbiacontrol_funcs.new_query_request">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">new_query_request</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    alias for wbia.algo.hots.query_request.new_wbia_query_request</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        qaid_list (list):</span>
+<span class="sd">        daid_list (list):</span>
+<span class="sd">        cfgdict (None):</span>
+<span class="sd">        verbose (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        wbia.QueryRequest: qreq_ -  hyper-parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
+
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_wbia_query_request</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">qreq_</span></div>
+
+
+<div class="viewcode-block" id="get_annot_kpts_distinctiveness"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wbiacontrol_funcs.get_annot_kpts_distinctiveness">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_annot_kpts_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    very hacky, but cute way to cache keypoint distinctivness</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  wbia controller object</span>
+<span class="sd">        aid_list (list):</span>
+<span class="sd">        dstncvs_normer (None):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: dstncvs_list</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.manual_wbiacontrol_funcs --test-get_annot_kpts_distinctiveness</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +SKIP</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.manual_wbiacontrol_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots import distinctiveness_normalizer</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = None</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; aid_list1 = aid_list[::2]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list2 = aid_list[1::3]</span>
+<span class="sd">        &gt;&gt;&gt; dstncvs_list1 = get_annot_kpts_distinctiveness(ibs, aid_list1)</span>
+<span class="sd">        &gt;&gt;&gt; dstncvs_list2 = get_annot_kpts_distinctiveness(ibs, aid_list2)</span>
+<span class="sd">        &gt;&gt;&gt; dstncvs_list = get_annot_kpts_distinctiveness(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.depth_profile(dstncvs_list1))</span>
+<span class="sd">        &gt;&gt;&gt; stats_dict = ut.dict_stack([ut.get_stats(dstncvs) for dstncvs in dstncvs_list])</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.repr2(stats_dict))</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(np.array(stats_dict[&#39;min&#39;]) &gt;= 0), &#39;distinctiveness was out of bounds&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert np.all(np.array(stats_dict[&#39;max&#39;]) &lt;= 1), &#39;distinctiveness was out of bounds&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">distinctiveness_normalizer</span> <span class="k">as</span> <span class="n">dcvs_normer</span>
+
+    <span class="c1"># per-species disinctivness wrapper around wbia cached function</span>
+    <span class="c1"># get feature rowids</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">fid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_feat_rowids</span><span class="p">(</span>
+            <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="c1"># Compute distinctivness separately for each species</span>
+    <span class="n">unique_sids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
+    <span class="n">fids_groups</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="n">species_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">unique_sids</span><span class="p">)</span>
+    <span class="c1"># Map distinctivness computation</span>
+    <span class="n">normer_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">dcvs_normer</span><span class="o">.</span><span class="n">request_species_distinctiveness_normalizer</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">species_text_list</span>
+    <span class="p">]</span>
+    <span class="c1"># Reduce to get results</span>
+    <span class="n">dstncvs_groups</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">get_feat_kpts_distinctiveness</span><span class="p">(</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">fids</span><span class="p">,</span> <span class="n">dstncvs_normer</span><span class="o">=</span><span class="n">dstncvs_normer</span><span class="p">,</span> <span class="n">species_rowid</span><span class="o">=</span><span class="n">sid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">dstncvs_normer</span><span class="p">,</span> <span class="n">fids</span><span class="p">,</span> <span class="n">sid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">normer_list</span><span class="p">,</span> <span class="n">fids_groups</span><span class="p">,</span> <span class="n">unique_sids</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">dstncvs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">invert_apply_grouping</span><span class="p">(</span><span class="n">dstncvs_groups</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dstncvs_list</span></div>
+
+
+<span class="c1"># dcvs_cfgkeys = dcvs_normer.DCVS_DEFAULT.get_varnames() + [&#39;species_rowid&#39;]</span>
+<span class="c1"># dcvs_colname = dcvs_normer.DCVS_DEFAULT.name</span>
+
+<span class="c1"># @accessor_decors.cache_getter(const.FEATURE_TABLE, dcvs_colname, cfgkeys=dcvs_cfgkeys, debug=None)</span>
+<div class="viewcode-block" id="get_feat_kpts_distinctiveness"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wbiacontrol_funcs.get_feat_kpts_distinctiveness">[docs]</a><span class="k">def</span> <span class="nf">get_feat_kpts_distinctiveness</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">dstncvs_normer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">species_rowid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="c1"># logger.info(&#39;[ibs] get_feat_kpts_distinctiveness fid_list=%r&#39; % (fid_list,))</span>
+    <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_vecs</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">dstncvs_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kc">None</span> <span class="k">if</span> <span class="n">vecs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">dstncvs_normer</span><span class="o">.</span><span class="n">get_distinctiveness</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">vecs_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">dstncvs_list</span></div>
+
+
+<div class="viewcode-block" id="show_annot"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wbiacontrol_funcs.show_annot">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">show_annot</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;viz helper see wbia.viz.viz_chip.show_chip&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
+
+    <span class="k">return</span> <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="show_annot_image"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_wbiacontrol_funcs.show_annot_image">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">show_annot_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;viz helper see wbia.viz.viz_chip.show_chip&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.viz</span> <span class="kn">import</span> <span class="n">viz_image</span>
+
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">viz_image</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

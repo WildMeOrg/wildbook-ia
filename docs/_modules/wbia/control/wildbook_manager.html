@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.wildbook_manager &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.wildbook_manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.wildbook_manager</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Manages local wildbook installations.</span>
+
+<span class="sd">CommandLine:</span>
+<span class="sd">    python -m utool.util_inspect check_module_usage --pat=&quot;wildbook_manager.py&quot;</span>
+
+<span class="sd">Utils:</span>
+<span class="sd">    # TODO go to http://localhost:8080/wbia/createAssetStore.jsp</span>
+<span class="sd">    tail -f ~/.config/wbia/tomcat/logs/catalina.out</span>
+<span class="sd">    cat ~/.config/wbia/tomcat/logs/catalina.out</span>
+<span class="sd">    python -m wbia shutdown_wildbook_server</span>
+<span class="sd">    python -m wbia update_wildbook_install_config</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># PREFERED_BROWSER = &#39;chrome&#39;</span>
+<span class="c1"># webbrowser._tryorder</span>
+<span class="n">PREFERED_BROWSER</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;hyrule&#39;</span><span class="p">:</span>
+    <span class="n">PREFERED_BROWSER</span> <span class="o">=</span> <span class="s1">&#39;firefox&#39;</span>
+
+
+<span class="c1"># FIXME add as controller config</span>
+<span class="c1"># ALLOW_SYSTEM_TOMCAT = ut.get_argflag(&#39;--allow-system-tomcat&#39;)</span>
+
+
+<div class="viewcode-block" id="get_tomcat_startup_tmpdir"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.get_tomcat_startup_tmpdir">[docs]</a><span class="k">def</span> <span class="nf">get_tomcat_startup_tmpdir</span><span class="p">():</span>
+    <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># os.environ.get(&#39;CATALINA_TMPDIR&#39;, None),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">,</span> <span class="s1">&#39;wbia_startup_tmpdir&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">tomcat_startup_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">search_candidate_paths</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tomcat_startup_dir</span></div>
+
+
+<div class="viewcode-block" id="find_tomcat"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.find_tomcat">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">tracefunc_xml</span>
+<span class="k">def</span> <span class="nf">find_tomcat</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches likely places for tomcat to be installed</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: tomcat_dpath</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        locate --regex &quot;tomcat/webapps$&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia find_tomcat</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; tomcat_dpath = find_tomcat()</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;tomcat_dpath = %s&#39; % (str(tomcat_dpath),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Tomcat folder must be named one of these and contain specific files</span>
+    <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Tomcat&#39;</span><span class="p">,</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">]</span>
+    <span class="c1"># required_subpaths = [&#39;webapps&#39;, &#39;bin&#39;, &#39;bin/catalina.sh&#39;]</span>
+    <span class="n">required_subpaths</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;webapps&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Places for local install of tomcat</span>
+    <span class="n">priority_paths</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># Number one preference is the CATALINA_HOME directory</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CATALINA_HOME&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="c1"># We put tomcat here if we can&#39;t find it</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
+        <span class="c1"># For my machine to use local catilina</span>
+        <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Places for system install of tomcat</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
+            <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;C:/Program Files (x86)&#39;</span><span class="p">,</span> <span class="s1">&#39;C:/Program Files&#39;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">DARWIN</span><span class="p">:</span>
+            <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;/Library&#39;</span><span class="p">]</span>  <span class="c1"># + dpath_list</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;/var/lib&#39;</span><span class="p">,</span> <span class="s1">&#39;/usr/share&#39;</span><span class="p">,</span> <span class="s1">&#39;/opt&#39;</span><span class="p">,</span> <span class="s1">&#39;/lib&#39;</span><span class="p">]</span>
+    <span class="n">return_path</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">search_candidate_paths</span><span class="p">(</span>
+        <span class="n">dpath_list</span><span class="p">,</span> <span class="n">fname_list</span><span class="p">,</span> <span class="n">priority_paths</span><span class="p">,</span> <span class="n">required_subpaths</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+    <span class="p">)</span>
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">return_path</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;tomcat_dpath = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">tomcat_dpath</span></div>
+
+
+<div class="viewcode-block" id="download_tomcat"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.download_tomcat">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">tracefunc_xml</span>
+<span class="k">def</span> <span class="nf">download_tomcat</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Put tomcat into a directory controlled by wbia</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        # Reset</span>
+<span class="sd">        python -c &quot;import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir(&#39;wbia&#39;), &#39;tomcat&#39;))&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Grabbing tomcat&#39;</span><span class="p">)</span>
+    <span class="c1"># FIXME: need to make a stable link</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
+        <span class="n">tomcat_binary_url</span> <span class="o">=</span> <span class="s1">&#39;http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36-windows-x86.zip&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tomcat_binary_url</span> <span class="o">=</span> <span class="s1">&#39;http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36.zip&#39;</span>
+    <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">tomcat_binary_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+    <span class="c1"># Download tomcat into the IBEIS resource directory</span>
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">),</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># hack because unzipping is still weird</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">unzip_file</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>
+        <span class="n">tomcat_dpath_tmp</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">tomcat_dpath_tmp</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">scriptnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;catalina.sh&#39;</span><span class="p">,</span> <span class="s1">&#39;startup.sh&#39;</span><span class="p">,</span> <span class="s1">&#39;shutdown.sh&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">scriptnames</span><span class="p">:</span>
+            <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_file_executable</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding executable bits to script </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">chmod_add_executable</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tomcat_dpath</span></div>
+
+
+<div class="viewcode-block" id="find_installed_tomcat"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.find_installed_tomcat">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">tracefunc_xml</span>
+<span class="k">def</span> <span class="nf">find_installed_tomcat</span><span class="p">(</span><span class="n">check_unpacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Asserts that tomcat was properly installed</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        check_unpacked (bool): (default = True)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: tomcat_dpath</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia find_installed_tomcat</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; check_unpacked = False</span>
+<span class="sd">        &gt;&gt;&gt; strict = False</span>
+<span class="sd">        &gt;&gt;&gt; tomcat_dpath = find_installed_tomcat(check_unpacked, strict)</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;tomcat_dpath = %s&#39; % (str(tomcat_dpath),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_tomcat</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Cannot find tomcat&#39;</span>
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">check_unpacked</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">wbia</span>
+
+        <span class="c1"># Check that webapps was unpacked</span>
+        <span class="n">wb_target</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span>
+        <span class="n">webapps_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;webapps&#39;</span><span class="p">)</span>
+        <span class="n">unpacked_war_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tomcat_dpath</span></div>
+
+
+<div class="viewcode-block" id="find_or_download_tomcat"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.find_or_download_tomcat">[docs]</a><span class="k">def</span> <span class="nf">find_or_download_tomcat</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        str: tomcat_dpath</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        # Reset</span>
+<span class="sd">        python -m purge_local_wildbook</span>
+
+<span class="sd">        python -m wbia --tf purge_local_wildbook</span>
+<span class="sd">        python -m wbia --tf find_or_download_tomcat</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; tomcat_dpath = find_or_download_tomcat()</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;tomcat_dpath = %s&#39; % (str(tomcat_dpath),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_tomcat</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">download_tomcat</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tomcat_dpath</span></div>
+
+
+<div class="viewcode-block" id="find_java_jvm"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.find_java_jvm">[docs]</a><span class="k">def</span> <span class="nf">find_java_jvm</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia find_java_jvm</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; jvm_fpath = find_java_jvm()</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;jvm_fpath = %r&#39; % (jvm_fpath,))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">candidate_path_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;JAVA_HOME&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s1">&#39;/usr/lib/jvm/java-7-openjdk-amd64&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">jvm_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">search_candidate_paths</span><span class="p">(</span><span class="n">candidate_path_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">jvm_fpath</span><span class="p">,</span> <span class="s1">&#39;IBEIS cannot find Java Runtime Environment&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jvm_fpath</span></div>
+
+
+<div class="viewcode-block" id="find_or_download_wilbook_warfile"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.find_or_download_wilbook_warfile">[docs]</a><span class="k">def</span> <span class="nf">find_or_download_wilbook_warfile</span><span class="p">(</span><span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">redownload</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/wbia.war \</span>
+<span class="sd">            ~/Downloads/pachy_wbia.war wget</span>
+<span class="sd">    http://dev.wildme.org/wbia_data_dir/wbia.war</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># war_url = &#39;http://dev.wildme.org/wbia_data_dir/wbia.war&#39;</span>
+    <span class="n">war_url</span> <span class="o">=</span> <span class="s1">&#39;http://springbreak.wildbook.org/tools/latest.war&#39;</span>
+    <span class="n">war_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span>
+        <span class="n">war_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;wbia&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">redownload</span><span class="o">=</span><span class="n">redownload</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;wbia.war&#39;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">war_fpath</span></div>
+
+
+<div class="viewcode-block" id="purge_local_wildbook"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.purge_local_wildbook">[docs]</a><span class="k">def</span> <span class="nf">purge_local_wildbook</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Shuts down the server and then purges the server on disk</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia purge_local_wildbook</span>
+<span class="sd">        python -m wbia purge_local_wildbook --purge-war</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; purge_local_wildbook()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">shutdown_wildbook_server</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">),</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--purge-war&#39;</span><span class="p">):</span>
+        <span class="n">war_fpath</span> <span class="o">=</span> <span class="n">find_or_download_wilbook_warfile</span><span class="p">(</span><span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">war_fpath</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ensure_wb_mysql"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.ensure_wb_mysql">[docs]</a><span class="k">def</span> <span class="nf">ensure_wb_mysql</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia ensure_wb_mysql</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = ensure_wb_mysql()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Execute the following code to install mysql&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+            <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # STARTBLOCK bash</span>
+<span class="sd">        # Install</span>
+<span class="sd">        sudo apt-get install mysql-server-5.6 -y</span>
+<span class="sd">        sudo apt-get install mysql-common-5.6 -y</span>
+<span class="sd">        sudo apt-get install mysql-client-5.6 -y</span>
+
+<span class="sd">        mysql_config_editor set --login-path=local --host=localhost --user=root --password</span>
+
+<span class="sd">        # Initialize</span>
+<span class="sd">        mysql --login-path=local -e &quot;create user &#39;wbiawb&#39;@&#39;localhost&#39; identified by &#39;somepassword&#39;;&quot;</span>
+<span class="sd">        mysql --login-path=local -e &quot;create database wbiawbtestdb;&quot;</span>
+<span class="sd">        mysql --login-path=local -e &quot;grant all privileges on wbiawbtestdb.* to &#39;wbiawb&#39;@&#39;localhost&#39;;&quot;</span>
+
+<span class="sd">        # Reset</span>
+<span class="sd">        mysql --login-path=local -e &quot;drop database wbiawbtestdb&quot;</span>
+<span class="sd">        mysql --login-path=local -e &quot;create database wbiawbtestdb&quot;</span>
+<span class="sd">        mysql --login-path=local -e &quot;grant all privileges on wbiawbtestdb.* to &#39;wbiawb&#39;@&#39;localhost&#39;&quot;</span>
+
+<span class="sd">        # Check if running</span>
+<span class="sd">        mysqladmin --login-path=local status</span>
+
+<span class="sd">        # mysql --login-path=local -e &quot;status&quot;</span>
+<span class="sd">        # mysql -u root -proot status</span>
+<span class="sd">        # mysql -u root -proot</span>
+<span class="sd">        # ENDBLOCK bash</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ensure_local_war"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.ensure_local_war">[docs]</a><span class="k">def</span> <span class="nf">ensure_local_war</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensures tomcat has been unpacked and the war is localized</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        wbia ensure_local_war</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = ensure_local_war()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: allow custom specified tomcat directory</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s1">&#39;java&#39;</span><span class="p">,</span> <span class="s1">&#39;-version&#39;</span><span class="p">],</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+        <span class="n">_java_version</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">_java_version</span> <span class="o">=</span> <span class="n">_java_version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;java version &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">java_version</span> <span class="o">=</span> <span class="n">_java_version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;java_version = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">java_version</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">java_version</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;1.7&#39;</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Warning wildbook is only supported for java 1.7&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+            <span class="s1">&#39;Cannot find java on this machine. &#39;</span>
+            <span class="s1">&#39;Please install java: http://www.java.com/en/download/&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_or_download_tomcat</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Could not find tomcat&#39;</span>
+    <span class="n">redownload</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--redownload-war&#39;</span><span class="p">)</span>
+    <span class="n">war_fpath</span> <span class="o">=</span> <span class="n">find_or_download_wilbook_warfile</span><span class="p">(</span><span class="n">redownload</span><span class="o">=</span><span class="n">redownload</span><span class="p">)</span>
+    <span class="n">war_fname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">war_fpath</span><span class="p">)</span>
+
+    <span class="c1"># Move the war file to tomcat webapps if not there</span>
+    <span class="n">webapps_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;webapps&#39;</span><span class="p">)</span>
+    <span class="n">deploy_war_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">war_fname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">deploy_war_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">war_fpath</span><span class="p">,</span> <span class="n">deploy_war_fpath</span><span class="p">)</span>
+
+    <span class="n">wb_target</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">war_fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">wb_target</span></div>
+
+
+<div class="viewcode-block" id="install_wildbook"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.install_wildbook">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">tracefunc_xml</span>
+<span class="k">def</span> <span class="nf">install_wildbook</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Script to setup wildbook on a unix based system</span>
+<span class="sd">    (hopefully eventually this will generalize to win32)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        # Reset</span>
+<span class="sd">        wbia purge_local_wildbook</span>
+<span class="sd">        wbia ensure_wb_mysql</span>
+<span class="sd">        wbia ensure_local_war</span>
+<span class="sd">        # Setup</span>
+<span class="sd">        wbia install_wildbook</span>
+<span class="sd">        # wbia install_wildbook --nomysql</span>
+<span class="sd">        # Startup</span>
+<span class="sd">        wbia startup_wildbook_server --show</span>
+
+<span class="sd">        Alternates:</span>
+<span class="sd">            wbia install_wildbook --redownload-war</span>
+<span class="sd">            wbia install_wildbook --assets</span>
+<span class="sd">            wbia startup_wildbook_server --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; result = install_wildbook()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">requests</span>
+
+    <span class="c1"># Ensure that the war file has been unpacked</span>
+    <span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">wb_target</span> <span class="o">=</span> <span class="n">ensure_local_war</span><span class="p">()</span>
+
+    <span class="n">unpacked_war_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
+    <span class="n">tomcat_startup_dir</span> <span class="o">=</span> <span class="n">get_tomcat_startup_tmpdir</span><span class="p">()</span>
+    <span class="n">fresh_install</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fresh_install</span><span class="p">:</span>
+        <span class="c1"># Need to make sure you start catalina in the same directory otherwise</span>
+        <span class="c1"># the derby databsae gets put in in cwd</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">ChdirContext</span><span class="p">(</span><span class="n">tomcat_startup_dir</span><span class="p">):</span>
+            <span class="c1"># Starting and stoping catalina should be sufficient to unpack the</span>
+            <span class="c1"># war</span>
+            <span class="n">startup_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;startup.sh&#39;</span><span class="p">)</span>
+            <span class="c1"># shutdown_fpath = join(tomcat_dpath, &#39;bin&#39;, &#39;shutdown.sh&#39;)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">quote_single_command</span><span class="p">(</span><span class="n">startup_fpath</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;It is NOT ok if the startup.sh fails</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="c1"># wait for the war to be unpacked</span>
+            <span class="k">for</span> <span class="n">retry_count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                    <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Retrying&#39;</span><span class="p">)</span>
+
+            <span class="c1"># ensure that the server is ruuning</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking if we can ping the server&#39;</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;http://localhost:8080&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There may be an error starting the server&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Seem able to ping the server&#39;</span><span class="p">)</span>
+
+            <span class="c1"># assert tht the war was unpacked</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span>
+                <span class="n">unpacked_war_dpath</span><span class="p">,</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;Wildbook war might have not unpacked correctly.  This may &#39;</span>
+                    <span class="s1">&#39;be ok. Try again. If it fails a second time, then there is a &#39;</span>
+                    <span class="s1">&#39;problem.&#39;</span>
+                <span class="p">),</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Don&#39;t shutdown just yet. Need to create assets</span>
+
+    <span class="n">update_wildbook_install_config</span><span class="p">(</span><span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">unpacked_war_dpath</span><span class="p">)</span>
+    <span class="n">asset_flag_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_startup_dir</span><span class="p">,</span> <span class="s1">&#39;made_assets.flag&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Pinging the server to create asset store</span>
+    <span class="c1"># Ensureing that createAssetStore exists</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">asset_flag_fpath</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fresh_install</span><span class="p">:</span>
+            <span class="n">startup_wildbook_server</span><span class="p">()</span>
+        <span class="c1"># web_url = startup_wildbook_server(verbose=False)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating asset store&#39;</span><span class="p">)</span>
+        <span class="n">wb_url</span> <span class="o">=</span> <span class="s1">&#39;http://localhost:8080/&#39;</span> <span class="o">+</span> <span class="n">wb_target</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/createAssetStore.jsp&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There may be an error starting the server&#39;</span><span class="p">)</span>
+            <span class="c1"># if response.status_code == 500:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;response error&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Created asset store&#39;</span><span class="p">)</span>
+            <span class="c1"># Create file signaling we did this</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">asset_flag_fpath</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">)</span>
+        <span class="n">shutdown_wildbook_server</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;It is ok if the shutdown fails&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">fresh_install</span><span class="p">:</span>
+        <span class="n">shutdown_wildbook_server</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># 127.0.0.1:8080/wildbook_data_dir/test.txt</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Wildbook is installed and waiting to be started&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update_wildbook_install_config"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.update_wildbook_install_config">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">tracefunc_xml</span>
+<span class="k">def</span> <span class="nf">update_wildbook_install_config</span><span class="p">(</span><span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">unpacked_war_dpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia ensure_local_war</span>
+<span class="sd">        python -m wbia update_wildbook_install_config</span>
+<span class="sd">        python -m wbia update_wildbook_install_config --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # xdoctest: +REQUIRES(--tomcat)</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; tomcat_dpath = find_installed_tomcat()</span>
+<span class="sd">        &gt;&gt;&gt; webapps_dpath = join(tomcat_dpath, &#39;webapps&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; wb_target = wbia.const.WILDBOOK_TARGET</span>
+<span class="sd">        &gt;&gt;&gt; unpacked_war_dpath = join(webapps_dpath, wb_target)</span>
+<span class="sd">        &gt;&gt;&gt; locals_ = ut.exec_func_src(update_wildbook_install_config, globals())</span>
+<span class="sd">        &gt;&gt;&gt; #update_wildbook_install_config(webapps_dpath, unpacked_war_dpath)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; ut.vd(unpacked_war_dpath)</span>
+<span class="sd">        &gt;&gt;&gt; ut.editfile(locals_[&#39;permission_fpath&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ut.editfile(locals_[&#39;jdoconfig_fpath&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ut.editfile(locals_[&#39;asset_store_fpath&#39;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mysql_mode</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nomysql&#39;</span><span class="p">)</span>
+
+    <span class="c1"># if ut.get_argflag(&#39;--vd&#39;):</span>
+    <span class="c1">#    ut.vd(unpacked_war_dpath)</span>
+    <span class="c1"># find_installed_tomcat</span>
+    <span class="c1"># Make sure permissions are correctly set in wildbook</span>
+    <span class="c1"># Comment out the line that requires authentication</span>
+    <span class="n">permission_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="s1">&#39;WEB-INF/web.xml&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">permission_fpath</span><span class="p">)</span>
+    <span class="n">permission_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">readfrom</span><span class="p">(</span><span class="n">permission_fpath</span><span class="p">)</span>
+    <span class="n">lines_to_remove</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># &#39;/ImageSetSetMarkedIndividual = authc, roles[admin]&#39;</span>
+        <span class="s1">&#39;/EncounterSetMarkedIndividual = authc, roles[admin]&#39;</span>
+    <span class="p">]</span>
+    <span class="n">new_permission_text</span> <span class="o">=</span> <span class="n">permission_text</span><span class="p">[:]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines_to_remove</span><span class="p">:</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">line</span><span class="p">),</span> <span class="n">permission_text</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;prefix&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">s*&#39;</span><span class="p">)</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;suffix&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">s*</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="s1">&#39;^&#39;</span> <span class="o">+</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">permission_text</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">newline</span> <span class="o">=</span> <span class="s1">&#39;&lt;!--</span><span class="si">%s</span><span class="s1"> --&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,)</span>
+        <span class="n">repl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s1">&#39;prefix&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">newline</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s1">&#39;suffix&#39;</span><span class="p">)</span>
+        <span class="n">new_permission_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+            <span class="n">pattern</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">permission_text</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">new_permission_text</span> <span class="o">!=</span> <span class="n">permission_text</span><span class="p">,</span> <span class="s1">&#39;text should have changed&#39;</span>
+    <span class="k">if</span> <span class="n">new_permission_text</span> <span class="o">!=</span> <span class="n">permission_text</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Need to write new permission texts&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">permission_fpath</span><span class="p">,</span> <span class="n">new_permission_text</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Permission file seems to be ok&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Make sure we are using a non-process based database</span>
+    <span class="n">jdoconfig_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+        <span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="s1">&#39;WEB-INF/classes/bundles/jdoconfig.properties&#39;</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Fixing backend database config&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;jdoconfig_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jdoconfig_fpath</span><span class="p">,))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">jdoconfig_fpath</span><span class="p">)</span>
+    <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">readfrom</span><span class="p">(</span><span class="n">jdoconfig_fpath</span><span class="p">)</span>
+    <span class="c1"># ut.vd(dirname(jdoconfig_fpath))</span>
+    <span class="c1"># ut.editfile(jdoconfig_fpath)</span>
+
+    <span class="k">if</span> <span class="n">mysql_mode</span><span class="p">:</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">toggle_comment_lines</span><span class="p">(</span><span class="n">jdoconfig_text</span><span class="p">,</span> <span class="s1">&#39;mysql&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">toggle_comment_lines</span><span class="p">(</span><span class="n">jdoconfig_text</span><span class="p">,</span> <span class="s1">&#39;derby&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">toggle_comment_lines</span><span class="p">(</span><span class="n">jdoconfig_text</span><span class="p">,</span> <span class="s1">&#39;sqlite&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">mysql_user</span> <span class="o">=</span> <span class="s1">&#39;wbiawb&#39;</span>
+        <span class="n">mysql_passwd</span> <span class="o">=</span> <span class="s1">&#39;somepassword&#39;</span>
+        <span class="n">mysql_dbname</span> <span class="o">=</span> <span class="s1">&#39;wbiawbtestdb&#39;</span>
+        <span class="c1"># Use mysql</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+            <span class="s1">&#39;datanucleus.ConnectionUserName = .*$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;datanucleus.ConnectionUserName = &#39;</span> <span class="o">+</span> <span class="n">mysql_user</span><span class="p">,</span>
+            <span class="n">jdoconfig_text</span><span class="p">,</span>
+            <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+            <span class="s1">&#39;datanucleus.ConnectionPassword = .*$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;datanucleus.ConnectionPassword = &#39;</span> <span class="o">+</span> <span class="n">mysql_passwd</span><span class="p">,</span>
+            <span class="n">jdoconfig_text</span><span class="p">,</span>
+            <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+            <span class="s1">&#39;datanucleus.ConnectionURL *= *jdbc:mysql:.*$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;datanucleus.ConnectionURL = jdbc:mysql://localhost:3306/&#39;</span> <span class="o">+</span> <span class="n">mysql_dbname</span><span class="p">,</span>
+            <span class="n">jdoconfig_text</span><span class="p">,</span>
+            <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+            <span class="s1">&#39;^.*jdbc:mysql://localhost:3306/shepherd.*$&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="n">jdoconfig_text</span><span class="p">,</span>
+            <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Use SQLIIte</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">toggle_comment_lines</span><span class="p">(</span><span class="n">jdoconfig_text</span><span class="p">,</span> <span class="s1">&#39;derby&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">toggle_comment_lines</span><span class="p">(</span><span class="n">jdoconfig_text</span><span class="p">,</span> <span class="s1">&#39;mysql&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">jdoconfig_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">toggle_comment_lines</span><span class="p">(</span><span class="n">jdoconfig_text</span><span class="p">,</span> <span class="s1">&#39;sqlite&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">jdoconfig_fpath</span><span class="p">,</span> <span class="n">jdoconfig_text</span><span class="p">)</span>
+
+    <span class="c1"># Need to make sure wildbook can store information in a reasonalbe place</span>
+    <span class="c1"># tomcat_data_dir = join(tomcat_startup_dir, &#39;webapps&#39;, &#39;wildbook_data_dir&#39;)</span>
+    <span class="n">tomcat_data_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">webapps_dpath</span><span class="p">,</span> <span class="s1">&#39;wildbook_data_dir&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">tomcat_data_dir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">tomcat_data_dir</span><span class="p">,</span> <span class="s1">&#39;test.txt&#39;</span><span class="p">),</span> <span class="s1">&#39;A hosted test file&#39;</span><span class="p">)</span>
+    <span class="n">asset_store_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="s1">&#39;createAssetStore.jsp&#39;</span><span class="p">)</span>
+    <span class="n">asset_store_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">asset_store_fpath</span><span class="p">)</span>
+    <span class="c1"># data_path_pat = ut.named_field(&#39;data_path&#39;, &#39;new File(&quot;.*?&quot;).toPath&#39;)</span>
+    <span class="n">new_line</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;LocalAssetStore as = new LocalAssetStore(&quot;example Local AssetStore&quot;, new File(&quot;</span><span class="si">%s</span><span class="s1">&quot;).toPath(), &quot;</span><span class="si">%s</span><span class="s1">&quot;, true);&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">tomcat_data_dir</span><span class="p">,</span> <span class="s1">&#39;http://localhost:8080/&#39;</span> <span class="o">+</span> <span class="n">basename</span><span class="p">(</span><span class="n">tomcat_data_dir</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="c1"># HACKY</span>
+    <span class="n">asset_store_text2</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+        <span class="s1">&#39;^LocalAssetStore as = .*$&#39;</span><span class="p">,</span> <span class="n">new_line</span><span class="p">,</span> <span class="n">asset_store_text</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span>
+    <span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">asset_store_fpath</span><span class="p">,</span> <span class="n">asset_store_text2</span><span class="p">)</span></div>
+    <span class="c1"># ut.editfile(asset_store_fpath)</span>
+
+
+<div class="viewcode-block" id="update_wildbook_ia_config"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.update_wildbook_ia_config">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">tracefunc_xml</span>
+<span class="k">def</span> <span class="nf">update_wildbook_ia_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    #if use_config_file and wildbook_tomcat_path:</span>
+<span class="sd">    #    # Update the Wildbook configuration to see *THIS* wbia database</span>
+<span class="sd">    #    with lockfile.LockFile(lock_fpath):</span>
+<span class="sd">    #        update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">wildbook_properteis_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">wildbook_tomcat_path</span><span class="p">,</span> <span class="s1">&#39;WEB-INF/classes/bundles/&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s1">&#39;[ibs.update_wildbook_ia_config()] Wildbook properties=</span><span class="si">%r</span><span class="s1">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">wildbook_properteis_dpath</span><span class="p">,)</span>
+    <span class="p">)</span>
+    <span class="c1"># The src file is non-standard. It should be remove here as well</span>
+    <span class="n">wildbook_config_fpath_dst</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+        <span class="n">wildbook_properteis_dpath</span><span class="p">,</span> <span class="s1">&#39;commonConfiguration.properties&#39;</span>
+    <span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">wildbook_properteis_dpath</span><span class="p">)</span>
+    <span class="c1"># for come reason the .default file is not there, that should be ok though</span>
+    <span class="n">orig_content</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">wildbook_config_fpath_dst</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">orig_content</span>
+    <span class="c1"># Make sure wildbook knows where to find us</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="c1"># Old way of telling WB where to find IA</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+            <span class="s1">&#39;IBEIS_DB_path = .*&#39;</span><span class="p">,</span> <span class="s1">&#39;IBEIS_DB_path = &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_core_path</span><span class="p">(),</span> <span class="n">content</span>
+        <span class="p">)</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+            <span class="s1">&#39;IBEIS_image_path = .*&#39;</span><span class="p">,</span> <span class="s1">&#39;IBEIS_image_path = &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imgdir</span><span class="p">(),</span> <span class="n">content</span>
+        <span class="p">)</span>
+
+    <span class="n">web_port</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_web_port_via_scan</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">web_port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;IA web server is not running on any expected port&#39;</span><span class="p">)</span>
+    <span class="n">ia_hostport</span> <span class="o">=</span> <span class="s1">&#39;http://localhost:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">web_port</span><span class="p">,)</span>
+    <span class="n">ia_rest_prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;prefix&#39;</span><span class="p">,</span> <span class="s1">&#39;IBEISIARestUrl.*&#39;</span><span class="p">)</span>
+    <span class="n">host_port</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;host_port&#39;</span><span class="p">,</span> <span class="s1">&#39;http://.*?:[0-9]+&#39;</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+        <span class="n">ia_rest_prefix</span> <span class="o">+</span> <span class="n">host_port</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s1">&#39;prefix&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">ia_hostport</span><span class="p">,</span> <span class="n">content</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Write to the configuration if it is different</span>
+    <span class="k">if</span> <span class="n">orig_content</span> <span class="o">!=</span> <span class="n">content</span><span class="p">:</span>
+        <span class="n">need_sudo</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_file_writable</span><span class="p">(</span><span class="n">wildbook_config_fpath_dst</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">need_sudo</span><span class="p">:</span>
+            <span class="n">quoted_content</span> <span class="o">=</span> <span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">content</span><span class="p">,)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Attempting to gain sudo access to update wildbook config&#39;</span><span class="p">)</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;sudo&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sh&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;-c&#39;</span><span class="p">,</span>
+                <span class="s2">&quot;&#39;&quot;</span><span class="p">,</span>
+                <span class="s1">&#39;echo&#39;</span><span class="p">,</span>
+                <span class="n">quoted_content</span><span class="p">,</span>
+                <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span>
+                <span class="n">wildbook_config_fpath_dst</span><span class="p">,</span>
+                <span class="s2">&quot;&#39;&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="c1"># ut.cmd(command, sudo=True)</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">wildbook_config_fpath_dst</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="startup_wildbook_server"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.startup_wildbook_server">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">tracefunc_xml</span>
+<span class="k">def</span> <span class="nf">startup_wildbook_server</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        verbose (bool):  verbosity flag(default = True)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia startup_wildbook_server</span>
+<span class="sd">        python -m wbia startup_wildbook_server  --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; wb_url = startup_wildbook_server()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: allow custom specified tomcat directory</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">ChdirContext</span><span class="p">(</span><span class="n">get_tomcat_startup_tmpdir</span><span class="p">()):</span>
+        <span class="n">startup_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;startup.sh&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">quote_single_command</span><span class="p">(</span><span class="n">startup_fpath</span><span class="p">))</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">wb_url</span> <span class="o">=</span> <span class="s1">&#39;http://localhost:8080/&#39;</span> <span class="o">+</span> <span class="n">wbia</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span>
+    <span class="c1"># TODO go to http://localhost:8080/wbia/createAssetStore.jsp</span>
+    <span class="k">return</span> <span class="n">wb_url</span></div>
+
+
+<div class="viewcode-block" id="shutdown_wildbook_server"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.shutdown_wildbook_server">[docs]</a><span class="k">def</span> <span class="nf">shutdown_wildbook_server</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        verbose (bool):  verbosity flag(default = True)</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        tail -f ~/.config/wbia/tomcat/logs/catalina.out</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia shutdown_wildbook_server</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; wb_url = shutdown_wildbook_server()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: allow custom specified tomcat directory</span>
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">(</span><span class="n">check_unpacked</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># TODO: allow custom specified tomcat directory</span>
+    <span class="c1"># tomcat_dpath = find_installed_tomcat(check_unpacked=False)</span>
+    <span class="c1"># catalina_out_fpath = join(tomcat_dpath, &#39;logs&#39;, &#39;catalina.out&#39;)</span>
+    <span class="k">if</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">ChdirContext</span><span class="p">(</span><span class="n">get_tomcat_startup_tmpdir</span><span class="p">()):</span>
+            <span class="n">shutdown_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;shutdown.sh&#39;</span><span class="p">)</span>
+            <span class="c1"># ut.cmd(shutdown_fpath)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">quote_single_command</span><span class="p">(</span><span class="n">shutdown_fpath</span><span class="p">))</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="monitor_wildbook_logs"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.monitor_wildbook_logs">[docs]</a><span class="k">def</span> <span class="nf">monitor_wildbook_logs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        verbose (bool):  verbosity flag(default = True)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia monitor_wildbook_logs  --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; monitor_wildbook_logs()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: allow custom specified tomcat directory</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">ChdirContext</span><span class="p">(</span><span class="n">get_tomcat_startup_tmpdir</span><span class="p">()):</span>
+        <span class="n">startup_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;startup.sh&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">quote_single_command</span><span class="p">(</span><span class="n">startup_fpath</span><span class="p">))</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">wb_url</span> <span class="o">=</span> <span class="s1">&#39;http://localhost:8080/&#39;</span> <span class="o">+</span> <span class="n">wbia</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span>
+    <span class="k">return</span> <span class="n">wb_url</span></div>
+
+
+<div class="viewcode-block" id="tryout_wildbook_login"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.tryout_wildbook_login">[docs]</a><span class="k">def</span> <span class="nf">tryout_wildbook_login</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function to test wildbook login automagically</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (wb_target, tomcat_dpath)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia tryout_wildbook_login</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.control.wildbook_manager import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; tryout_wildbook_login()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Use selenimum to login to wildbook</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">manaul_login</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">wb_target</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span>
+    <span class="n">wb_url</span> <span class="o">=</span> <span class="s1">&#39;http://localhost:8080/&#39;</span> <span class="o">+</span> <span class="n">wb_target</span>
+    <span class="k">if</span> <span class="n">manaul_login</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">get_prefered_browser</span><span class="p">(</span><span class="n">PREFERED_BROWSER</span><span class="p">)</span><span class="o">.</span><span class="n">open_new_tab</span><span class="p">(</span><span class="n">wb_url</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Grabbing Driver&#39;</span><span class="p">)</span>
+        <span class="n">driver</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_selenium_driver</span><span class="p">(</span><span class="n">PREFERED_BROWSER</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Going to URL&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wb_url</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finding Login Button&#39;</span><span class="p">)</span>
+            <span class="c1"># login_button = driver.find_element_by_partial_link_text(&#39;Log in&#39;)</span>
+            <span class="n">login_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_partial_link_text</span><span class="p">(</span><span class="s1">&#39;welcome.jps&#39;</span><span class="p">)</span>
+            <span class="n">login_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wb_url</span> <span class="o">+</span> <span class="s1">&#39;/login.jsp&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Finding Login Elements&#39;</span><span class="p">)</span>
+        <span class="n">username_field</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">)</span>
+        <span class="n">password_field</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">)</span>
+        <span class="n">submit_login_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;submit&#39;</span><span class="p">)</span>
+        <span class="n">rememberMe_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;rememberMe&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Executing Login Elements&#39;</span><span class="p">)</span>
+        <span class="n">username_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">&#39;tomcat&#39;</span><span class="p">)</span>
+        <span class="n">password_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">&#39;tomcat123&#39;</span><span class="p">)</span>
+        <span class="n">rememberMe_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="n">submit_login_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="c1"># Accept agreement</span>
+        <span class="kn">import</span> <span class="nn">selenium.common.exceptions</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">accept_aggrement_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;acceptUserAgreement&#39;</span><span class="p">)</span>
+            <span class="n">accept_aggrement_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">selenium</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">NoSuchElementException</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># Goto individuals page</span>
+        <span class="n">individuals</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_partial_link_text</span><span class="p">(</span><span class="s1">&#39;Individuals&#39;</span><span class="p">)</span>
+        <span class="n">individuals</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="n">view_all</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_partial_link_text</span><span class="p">(</span><span class="s1">&#39;View All&#39;</span><span class="p">)</span>
+        <span class="n">view_all</span><span class="o">.</span><span class="n">click</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_wildbook_tomcat_path"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.wildbook_manager.get_wildbook_tomcat_path">[docs]</a><span class="k">def</span> <span class="nf">get_wildbook_tomcat_path</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">DEFAULT_TOMCAT_PATH</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">()</span>
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">DEFAULT_TOMCAT_PATH</span> <span class="k">if</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">tomcat_dpath</span>
+    <span class="n">wb_target</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span> <span class="k">if</span> <span class="n">wb_target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">wb_target</span>
+    <span class="n">wildbook_tomcat_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;webapps&#39;</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wildbook_tomcat_path</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

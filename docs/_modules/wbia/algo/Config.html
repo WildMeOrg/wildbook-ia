@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.Config &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../algo.html">wbia.algo</a> &raquo;</li>
+      <li>wbia.algo.Config</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.Config</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="c1"># from wbia import dtool</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[cfg]&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+<span class="c1"># ConfigBase = ut.DynStruct</span>
+<span class="c1"># ConfigBase = object</span>
+<span class="n">ConfigBase</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">Pref</span>
+
+
+<div class="viewcode-block" id="parse_config_items"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.parse_config_items">[docs]</a><span class="k">def</span> <span class="nf">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively extracts key, val pairs from Config objects</span>
+<span class="sd">    into a flat list. (there must not be name conflicts)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cfg = ibs.cfg.query_cfg</span>
+<span class="sd">        &gt;&gt;&gt; param_list = parse_config_items(cfg)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># import wbia</span>
+    <span class="n">param_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="c1"># if isinstance(val, wbia.algo.Config.ConfigBase):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">ConfigBase</span><span class="p">):</span>
+            <span class="n">child_cfg</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="n">param_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">child_cfg</span><span class="p">))</span>
+            <span class="c1"># logger.info(key)</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+            <span class="c1"># logger.info(key)</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] WARNING: key=</span><span class="si">%r</span><span class="s1"> appears more than once&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">param_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="c1"># logger.info(key)</span>
+    <span class="k">return</span> <span class="n">param_list</span></div>
+
+
+<div class="viewcode-block" id="make_config_metaclass"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.make_config_metaclass">[docs]</a><span class="k">def</span> <span class="nf">make_config_metaclass</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a metaclass for Config objects that automates some of the more</span>
+<span class="sd">    tedious functions to write</span>
+
+<span class="sd">    Like:</span>
+<span class="sd">        get_cfgstr</span>
+<span class="sd">        and the comparison methods</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        from wbia.algo.Config import *  # NOQA</span>
+<span class="sd">        @six.add_metaclass(ConfigMetaclass)</span>
+<span class="sd">        class FooConfig(ConfigBase):</span>
+
+<span class="sd">            def __init__(cfg):</span>
+<span class="sd">                super(FooConfig, cfg).__init__(name=&#39;FooConfig&#39;)</span>
+<span class="sd">                cfg.initialize_params()</span>
+
+<span class="sd">            def get_param_info_list(cfg):</span>
+<span class="sd">                return [</span>
+<span class="sd">                    ut.ParamInfo(&#39;x&#39;, &#39;y&#39;),</span>
+<span class="sd">                    ut.ParamInfo(&#39;z&#39;, 3),</span>
+<span class="sd">                ]</span>
+<span class="sd">        cfg = FooConfig()</span>
+<span class="sd">        logger.info(cfg.get_cfgstr(ignore_keys=[&#39;x&#39;]))</span>
+<span class="sd">        logger.info(cfg.get_cfgstr(ignore_keys=[]))</span>
+
+<span class="sd">        cfg = GenericConfig()</span>
+<span class="sd">        cfg.x = &#39;y&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">methods_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_comparison_methods</span><span class="p">()</span>
+
+    <span class="c1"># Decorator for functions that we will inject into our metaclass</span>
+    <span class="k">def</span> <span class="nf">_register</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="n">methods_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;default get_cfgstr_list, can be overrided by a config object&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s1">&#39;get_param_info_list&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">ignore_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">pi</span><span class="o">.</span><span class="n">get_itemstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span>
+                <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pi</span><span class="o">.</span><span class="n">get_itemstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span> <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">item_list</span> <span class="o">=</span> <span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="n">item_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">ignore_keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">item_list</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">itemstr_list</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">item_list</span>
+                        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span>
+                    <span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ignore_keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ignore_keys</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;item_list&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore_keys&#39;</span><span class="p">])</span>
+                <span class="k">raise</span>
+        <span class="n">filtered_itemstr_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">itemstr_list</span><span class="p">))</span>
+        <span class="n">config_name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_config_name</span><span class="p">()</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filtered_itemstr_list</span><span class="p">)</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">config_name</span><span class="p">,</span> <span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="s1">&#39;)&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">cfgstr</span>
+
+    <span class="nd">@_register</span>
+    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">initialize_params</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes config class attributes based on params info list&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span> <span class="n">pi</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">parse_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">parse_config_items</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">parse_items</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">get_config_name</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;the user might want to overwrite this function&quot;&quot;&quot;</span>
+        <span class="n">class_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
+        <span class="n">full_class_str</span> <span class="o">=</span> <span class="n">class_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;class &#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&gt;&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">config_name</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">full_class_str</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Config&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config_name</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Needed for comparison operators&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="nd">@_register</span>
+    <span class="k">def</span> <span class="nf">lookup_paraminfo</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">pi</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">pi</span><span class="o">.</span><span class="n">varname</span> <span class="o">==</span> <span class="n">key</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">pi</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;no such param info (in the old config)&#39;</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">ConfigMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Defines extra methods for Configs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            cls - meta</span>
+<span class="sd">            name - classname</span>
+<span class="sd">            supers - bases</span>
+<span class="sd">            dct - class dictionary</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># assert &#39;get_cfgstr_list&#39; in dct, (</span>
+            <span class="c1">#  &#39;must have defined get_cfgstr_list.  name=%r&#39; % (name,))</span>
+            <span class="c1"># Inject registered function</span>
+            <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">methods_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+                    <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                    <span class="n">dct</span><span class="p">[</span><span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                    <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;meta_&#39;</span> <span class="o">+</span> <span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+                <span class="c1"># ut.inject_func_as_method(metaself, func)</span>
+            <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ConfigMetaclass</span></div>
+
+
+<span class="n">ConfigMetaclass</span> <span class="o">=</span> <span class="n">make_config_metaclass</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="GenericConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.GenericConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GenericConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GenericConfig</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NNConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.NNConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NNConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.Config --exec-NNConfig</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; nn_cfg = NNConfig()</span>
+<span class="sd">        &gt;&gt;&gt; nn_cfg = NNConfig(requery=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = nn_cfg.get_cfgstr()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        _NN(single,K=4,Kn=1,padk=False,cks800)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NNConfig</span><span class="p">,</span> <span class="n">nn_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># if True:</span>
+        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#    nn_cfg.K = 4</span>
+        <span class="c1">#    # TODO: force to false when in vsone</span>
+        <span class="c1">#    nn_cfg.use_k_padding = False</span>
+        <span class="c1">#    # number of annots before a new multi-indexer is built</span>
+        <span class="c1">#    #nn_cfg.min_reindex_thresh = 3</span>
+        <span class="c1">#    #nn_cfg.index_method = &#39;multi&#39;</span>
+        <span class="c1">#    nn_cfg.index_method = &#39;single&#39;</span>
+        <span class="c1">#    nn_cfg.Knorm = 1</span>
+        <span class="c1">#    nn_cfg.checks = 800</span>
+        <span class="c1"># number of annots before a new multi-indexer is built</span>
+        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">min_reindex_thresh</span> <span class="o">=</span> <span class="mi">200</span>
+        <span class="c1"># number of annots before a new multi-indexer is built</span>
+        <span class="c1"># nn_cfg.max_subindexers = 2</span>
+        <span class="c1"># nn_cfg.valid_index_methods = [&#39;single&#39;, &#39;multi&#39;, &#39;name&#39;]</span>
+        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">valid_index_methods</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;single&#39;</span><span class="p">]</span>
+        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NNConfig.make_feasible"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.NNConfig.make_feasible">[docs]</a>    <span class="k">def</span> <span class="nf">make_feasible</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">):</span>
+        <span class="c1"># normalizer rule depends on Knorm</span>
+        <span class="k">assert</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span> <span class="ow">in</span> <span class="n">nn_cfg</span><span class="o">.</span><span class="n">valid_index_methods</span></div>
+
+<div class="viewcode-block" id="NNConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.NNConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">):</span>
+        <span class="c1"># new way to try and specify config options.</span>
+        <span class="c1"># not sure if i like it yet</span>
+        <span class="n">param_info_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;index_method&#39;</span><span class="p">,</span> <span class="s1">&#39;single&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;Knorm&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Kn=&#39;</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;use_k_padding&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;padk=&#39;</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;requery&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="c1"># ut.ParamInfo(&#39;condrecover&#39;, True, type_=bool, hideif=False),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;checks&#39;</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="s1">&#39;cks&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+                    <span class="c1"># ut.ParamInfo(&#39;ratio_thresh&#39;, None, type_=float, hideif=None),</span>
+                <span class="p">],</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">param_info_list</span></div></div>
+
+
+<div class="viewcode-block" id="SpatialVerifyConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.SpatialVerifyConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">SpatialVerifyConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Spatial verification</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">sv_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SpatialVerifyConfig</span><span class="p">,</span> <span class="n">sv_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;sv_cfg&#39;</span><span class="p">)</span>
+        <span class="n">tau</span> <span class="o">=</span> <span class="mf">6.28</span>  <span class="c1"># 318530</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">xy_thresh</span> <span class="o">=</span> <span class="mf">0.01</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">scale_thresh</span> <span class="o">=</span> <span class="mf">2.0</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">ori_thresh</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="mf">4.0</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">min_nInliers</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">full_homog_checks</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># sv_cfg.nNameShortlistSVER = 50</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">nNameShortlistSVER</span> <span class="o">=</span> <span class="mi">40</span>
+        <span class="c1"># sv_cfg.nAnnotPerNameSVER = 6</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">nAnnotPerNameSVER</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="c1"># sv_cfg.prescore_method = &#39;csum&#39;</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span> <span class="o">=</span> <span class="s1">&#39;nsum&#39;</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">use_chip_extent</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># BAD CONFIG?</span>
+        <span class="c1"># weight feature scores with sver errors</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sver_output_weighting</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">refine_method</span> <span class="o">=</span> <span class="s1">&#39;homog&#39;</span>
+        <span class="c1"># weight feature scores with sver errors</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">weight_inliers</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SpatialVerifyConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.SpatialVerifyConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">sv_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">or</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">xy_thresh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;_SV(OFF)&#39;</span><span class="p">]</span>
+        <span class="n">thresh_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">xy_thresh</span><span class="p">,</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">scale_thresh</span><span class="p">,</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">ori_thresh</span><span class="p">)</span>
+        <span class="n">thresh_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">remove_chars</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">thresh_tup</span><span class="p">),</span> <span class="s1">&#39; ()&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">)</span>
+        <span class="n">sv_cfgstr</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;_SV(&#39;</span><span class="p">,</span>
+            <span class="n">thresh_str</span><span class="p">,</span>
+            <span class="s1">&#39;minIn=</span><span class="si">%d</span><span class="s1">,&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">min_nInliers</span><span class="p">,),</span>
+            <span class="s1">&#39;nNRR=</span><span class="si">%d</span><span class="s1">,&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">nNameShortlistSVER</span><span class="p">,),</span>
+            <span class="s1">&#39;nARR=</span><span class="si">%d</span><span class="s1">,&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">nAnnotPerNameSVER</span><span class="p">,),</span>
+            <span class="n">sv_cfg</span><span class="o">.</span><span class="n">prescore_method</span><span class="p">,</span>
+            <span class="s1">&#39;,&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cdl,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">use_chip_extent</span><span class="p">,</span>  <span class="c1"># chip diag len</span>
+            <span class="s1">&#39;+ow,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sver_output_weighting</span><span class="p">,</span>  <span class="c1"># chip diag len</span>
+            <span class="s1">&#39;+wi,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">weight_inliers</span><span class="p">,</span>  <span class="c1"># chip diag len</span>
+            <span class="s1">&#39;+fc,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">full_homog_checks</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">refine_method</span> <span class="o">!=</span> <span class="s1">&#39;homog&#39;</span><span class="p">:</span>
+            <span class="n">sv_cfgstr</span> <span class="o">+=</span> <span class="p">[</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">refine_method</span><span class="p">]</span>
+
+        <span class="n">sv_cfgstr</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="s1">&#39;)&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">sv_cfgstr</span></div></div>
+
+
+<div class="viewcode-block" id="AggregateConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.AggregateConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AggregateConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Old Agg Cfg</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">agg_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AggregateConfig</span><span class="p">,</span> <span class="n">agg_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;agg_cfg&#39;</span><span class="p">)</span>
+        <span class="c1"># chipsum, namesum,</span>
+        <span class="c1"># agg_cfg.score_method = &#39;csum&#39;</span>
+        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">=</span> <span class="s1">&#39;nsum&#39;</span>
+        <span class="n">alt_methods</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;topk&#39;</span><span class="p">:</span> <span class="s1">&#39;topk&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;chipsum&#39;</span><span class="p">:</span> <span class="s1">&#39;csum&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;namesum&#39;</span><span class="p">:</span> <span class="s1">&#39;nsum&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="c1"># For Placket-Luce</span>
+        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">max_alts</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="c1"># -----</span>
+        <span class="c1"># User update</span>
+        <span class="n">agg_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># ---</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="c1"># Use w as a toggle for weighted mode</span>
+        <span class="c1"># Sanatize the scoring method</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">alt_methods</span><span class="p">:</span>
+            <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span> <span class="o">=</span> <span class="n">alt_methods</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+<div class="viewcode-block" id="AggregateConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.AggregateConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">agg_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">agg_cfgstr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">agg_cfgstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;_AGG(&#39;</span><span class="p">)</span>
+        <span class="n">agg_cfgstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_method</span><span class="p">)</span>
+        <span class="n">agg_cfgstr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">agg_cfgstr</span></div></div>
+
+
+<div class="viewcode-block" id="FlannConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FlannConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">FlannConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    this flann is only for neareset neighbors in vsone/many</span>
+<span class="sd">    TODO: this might not need to be here, should be part of neighbor config</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_pami2014.pdf</span>
+<span class="sd">        http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf</span>
+<span class="sd">        http://docs.opencv.org/trunk/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">flann_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FlannConfig</span><span class="p">,</span> <span class="n">flann_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;flann_cfg&#39;</span><span class="p">)</span>
+        <span class="c1"># General Params</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="s1">&#39;kdtree&#39;</span>  <span class="c1"># linear</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">flann_cores</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># doesnt change config, just speed</span>
+        <span class="c1"># KDTree params</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="c1"># KMeansTree params</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">iterations</span> <span class="o">=</span> <span class="mi">11</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">centers_init</span> <span class="o">=</span> <span class="s1">&#39;random&#39;</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">cb_index</span> <span class="o">=</span> <span class="mf">0.4</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">branching</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="c1"># THESE CONFIGS DONT BELONG TO FLANN. THEY ARE INDEXER CONFIGS</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">fgw_thresh</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">minscale_thresh</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">maxscale_thresh</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">flann_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FlannConfig.get_flann_params"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FlannConfig.get_flann_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_flann_params</span><span class="p">(</span><span class="n">flann_cfg</span><span class="p">):</span>
+        <span class="n">flann_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">algorithm</span><span class="o">=</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span>
+            <span class="n">trees</span><span class="o">=</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span><span class="p">,</span>
+            <span class="n">cores</span><span class="o">=</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">flann_cores</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">flann_params</span></div>
+
+<div class="viewcode-block" id="FlannConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FlannConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">flann_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">flann_cfgstrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_FLANN(&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;kdtree&#39;</span><span class="p">:</span>
+            <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">_kdtrees&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;kdtree&#39;</span><span class="p">:</span>
+            <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span>
+                <span class="s1">&#39;iter=</span><span class="si">%s</span><span class="s1">_&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">iterations</span><span class="p">,</span>
+                <span class="s1">&#39;cb=</span><span class="si">%s</span><span class="s1">_&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">cb_index</span><span class="p">,</span>
+                <span class="s1">&#39;branch=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">branching</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="k">elif</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+            <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">fgw_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">fgw_thresh</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># HACK FOR GGR</span>
+            <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;_fgwthrsh=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">fgw_thresh</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">minscale_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">flann_cfg</span><span class="o">.</span><span class="n">maxscale_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="c1"># HACK FOR GGR</span>
+            <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="s1">&#39;scalethrsh=</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">minscale_thresh</span><span class="p">,</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">maxscale_thresh</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="c1"># flann_cfgstrs += [&#39;checks=%r&#39; % flann_cfg.checks]</span>
+        <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;)&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">flann_cfgstrs</span></div></div>
+
+
+<div class="viewcode-block" id="NNWeightConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.NNWeightConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NNWeightConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.Config --test-NNWeightConfig</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg_list = [</span>
+<span class="sd">        ...     NNWeightConfig(),</span>
+<span class="sd">        ...     NNWeightConfig(can_match_sameimg=True, can_match_samename=False),</span>
+<span class="sd">        ...     NNWeightConfig(ratio_thresh=.625, lnbnn_on=False),</span>
+<span class="sd">        ...     NNWeightConfig(ratio_thresh=.625, lnbnn_normer=&#39;foobarstr&#39;),</span>
+<span class="sd">        ... ]</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;\n&#39;.join([cfg.get_cfgstr() for cfg in cfg_list])</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        _NNWeight(lnbnn,fg,last,nosqrd_dist)</span>
+<span class="sd">        _NNWeight(lnbnn,fg,last,sameimg,nosamename,nosqrd_dist)</span>
+<span class="sd">        _NNWeight(ratio_thresh=0.625,fg,last,nosqrd_dist)</span>
+<span class="sd">        _NNWeight(ratio_thresh=0.625,lnbnn,fg,last,lnbnn_normer=foobarstr,lnbnn_norm_thresh=0.5,nosqrd_dist)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">nnweight_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NNWeightConfig</span><span class="p">,</span> <span class="n">nnweight_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;nnweight_cfg&#39;</span><span class="p">)</span>
+        <span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
+        <span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NNWeightConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.NNWeightConfig.get_param_info_list">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="n">nnweight_cfg</span><span class="p">):</span>
+        <span class="c1"># new way to try and specify config options.</span>
+        <span class="c1"># not sure if i like it yet</span>
+        <span class="n">param_info_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ratio_thresh&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;lnbnn_on&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;const_on&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;lograt_on&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;normonly_on&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;bar_l2_on&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;cos_on&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;fg_on&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+                        <span class="s1">&#39;normalizer_rule&#39;</span><span class="p">,</span> <span class="s1">&#39;last&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;last&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">]</span>
+                    <span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+                        <span class="s1">&#39;lnbnn_normer&#39;</span><span class="p">,</span>
+                        <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">hideif</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">help_</span><span class="o">=</span><span class="s1">&#39;config string for lnbnn score normalizer&#39;</span><span class="p">,</span>
+                    <span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+                        <span class="s1">&#39;lnbnn_norm_thresh&#39;</span><span class="p">,</span>
+                        <span class="mf">0.5</span><span class="p">,</span>
+                        <span class="n">type_</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                        <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="ow">not</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;lnbnn_normer&#39;</span><span class="p">],</span>
+                        <span class="n">help_</span><span class="o">=</span><span class="s1">&#39;config string for lnbnn score normalizer&#39;</span><span class="p">,</span>
+                    <span class="p">),</span>
+                    <span class="c1">#</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;can_match_sameimg&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;sameimg&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;can_match_samename&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;samename&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s1">&#39;sqrd_dist_on&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="p">],</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">param_info_list</span></div></div>
+
+
+<div class="viewcode-block" id="FeatureWeightConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FeatureWeightConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">FeatureWeightConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.Config --exec-FeatureWeightConfig</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; featweight_cfg = FeatureWeightConfig(fw_detector=&#39;rf&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                      featweight_enabled=True)</span>
+<span class="sd">        &gt;&gt;&gt; result = featweight_cfg.get_cfgstr()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">        _FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+
+<span class="sd">        _FEATWEIGHT(OFF)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">featweight_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FeatureWeightConfig</span><span class="p">,</span> <span class="n">featweight_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;featweight_cfg&#39;</span><span class="p">)</span>
+        <span class="c1"># Featweights depend on features</span>
+        <span class="n">featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span> <span class="o">=</span> <span class="n">FeatureConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">featweight_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
+        <span class="n">featweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FeatureWeightConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FeatureWeightConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">core_annots</span><span class="o">.</span><span class="n">ProbchipConfig</span><span class="o">.</span><span class="n">_param_info_list</span>
+            <span class="o">+</span> <span class="n">core_annots</span><span class="o">.</span><span class="n">FeatWeightConfig</span><span class="o">.</span><span class="n">_param_info_list</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="QueryConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.QueryConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">QueryConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    LNBNN ranking query configuration parameters</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cfg = ibs.cfg.query_cfg</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr = ibs.cfg.query_cfg.get_cfgstr()</span>
+<span class="sd">        &gt;&gt;&gt; print(cfgstr)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># TODO: make this a dtool Config</span>
+    <span class="n">_todo_subconfig_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">NNConfig</span><span class="p">,</span>
+        <span class="n">NNWeightConfig</span><span class="p">,</span>
+        <span class="n">SpatialVerifyConfig</span><span class="p">,</span>
+        <span class="n">FlannConfig</span><span class="p">,</span>
+        <span class="n">FeatureWeightConfig</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">QueryConfig</span><span class="p">,</span> <span class="n">query_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;query_cfg&#39;</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span> <span class="o">=</span> <span class="n">NNConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">nnweight_cfg</span> <span class="o">=</span> <span class="n">NNWeightConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span> <span class="o">=</span> <span class="n">SpatialVerifyConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span> <span class="o">=</span> <span class="n">AggregateConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span> <span class="o">=</span> <span class="n">FlannConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># causes some bug in Preference widget if these don&#39;t have underscore</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span> <span class="o">=</span> <span class="n">FeatureWeightConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">use_cache</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Start of pipeline</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_valid_pipeline_roots</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;vsmany&#39;</span><span class="p">]</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s1">&#39;vsmany&#39;</span>
+        <span class="c1"># &lt;HACK&gt;</span>
+        <span class="c1"># query_cfg.with_metadata = False</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">query_rotation_heuristic</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># query_cfg.query_rotation_heuristic = True</span>
+        <span class="c1"># &lt;/HACK&gt;</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">codename</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">species_code</span> <span class="o">=</span> <span class="s1">&#39;____&#39;</span>  <span class="c1"># TODO: make use of this</span>
+        <span class="c1"># Depends on feature config</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[config] NEW QueryConfig&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QueryConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.QueryConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># Ensure feasibility of the configuration</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">make_feasible</span><span class="p">()</span>
+
+        <span class="c1"># Build cfgstr</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">]</span>
+        <span class="c1"># if str(query_cfg.pipeline_root) == &#39;smk&#39;:</span>
+        <span class="c1">#    # SMK Parameters</span>
+        <span class="c1">#    if kwargs.get(&#39;use_smk&#39;, True):</span>
+        <span class="c1">#        cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)</span>
+        <span class="c1">#    if kwargs.get(&#39;use_sv&#39;, True):</span>
+        <span class="c1">#        cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;vsmany&#39;</span><span class="p">:</span>
+            <span class="c1"># Naive Bayes Parameters</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_nn&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_nnweight&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_sv&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_agg&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_flann&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;bad pipeline root: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_featweight&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c1"># HACK: featweight_cfg used to include chip and feat</span>
+            <span class="c1"># but they arent working now due to new structures, so they are hacked in here</span>
+            <span class="c1"># This whole file will eventually be depricated</span>
+            <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">query_rotation_heuristic</span><span class="p">:</span>
+            <span class="c1"># HACK</span>
+            <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;_HACK(augment_queryside)&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cfgstr_list</span></div>
+
+<div class="viewcode-block" id="QueryConfig.update_query_cfg"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.QueryConfig.update_query_cfg">[docs]</a>    <span class="k">def</span> <span class="nf">update_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">cfgdict</span><span class="p">):</span>
+        <span class="c1"># Each config paramater should be unique</span>
+        <span class="c1"># So updating them all should not cause conflicts</span>
+        <span class="c1"># FIXME: Should be able to infer all the children that need updates</span>
+        <span class="c1">#</span>
+        <span class="c1"># apply codename before updating subconfigs</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">apply_codename</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;codename&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="c1"># update subconfigs</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="c1"># Ensure feasibility of the configuration</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">make_feasible</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">sorted_</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="QueryConfig.apply_codename"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.QueryConfig.apply_codename">[docs]</a>    <span class="k">def</span> <span class="nf">apply_codename</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        codenames denote mass changes to configurations</span>
+<span class="sd">        it is a hacky solution to setting different parameter</span>
+<span class="sd">        values all at once.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">codename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">codename</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">codename</span>
+
+        <span class="c1"># nnweight_cfg = query_cfg.nnweight_cfg</span>
+        <span class="c1"># nn_cfg   = query_cfg.nn_cfg</span>
+        <span class="c1"># agg_cfg = query_cfg.agg_cfg</span>
+
+        <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;csum&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">codename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_csum&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;codename nsum&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;nsum&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;codename nsum&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;vsmany&#39;</span><span class="p">):</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s1">&#39;vsmany&#39;</span>
+        <span class="k">elif</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;vsone&#39;</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;no longer supporte&#39;</span>
+        <span class="k">elif</span> <span class="n">codename</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="QueryConfig.make_feasible"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.QueryConfig.make_feasible">[docs]</a>    <span class="k">def</span> <span class="nf">make_feasible</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">query_cfg</span><span class="o">.</span><span class="n">make_feasible_</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+                <span class="n">query_cfg</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;failed ot make feasible&#39;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="QueryConfig.make_feasible_"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.QueryConfig.make_feasible_">[docs]</a>    <span class="k">def</span> <span class="nf">make_feasible_</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        removes invalid parameter settings over all cfgs (move to QueryConfig)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nnweight_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nnweight_cfg</span>
+        <span class="n">nn_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span>
+        <span class="n">featweight_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span>
+        <span class="c1"># feat_cfg = query_cfg._featweight_cfg._feat_cfg</span>
+        <span class="c1"># smk_cfg = query_cfg.smk_cfg</span>
+        <span class="c1"># vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg</span>
+        <span class="c1"># agg_cfg = query_cfg.agg_cfg</span>
+        <span class="c1"># sv_cfg = query_cfg.sv_cfg</span>
+
+        <span class="n">hasvalid_root</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">root</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_valid_pipeline_roots</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">hasvalid_root</span><span class="p">,</span> <span class="s1">&#39;invalid pipeline root </span><span class="si">%r</span><span class="s1"> valid roots are </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">,</span>
+                <span class="n">query_cfg</span><span class="o">.</span><span class="n">_valid_pipeline_roots</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+        <span class="c1"># HACK</span>
+        <span class="k">if</span> <span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">fg_on</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">featweight_cfg</span><span class="o">.</span><span class="n">featweight_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">featweight_cfg</span><span class="o">.</span><span class="n">featweight_enabled</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">nnweight_cfg</span><span class="o">.</span><span class="n">fg_on</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">make_feasible</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="QueryConfig.deepcopy"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.QueryConfig.deepcopy">[docs]</a>    <span class="k">def</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">copy_</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">)</span>
+        <span class="n">copy_</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">copy_</span></div></div>
+
+
+<div class="viewcode-block" id="FeatureConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FeatureConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">FeatureConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Feature configuration object.</span>
+
+<span class="sd">    TODO depcirate for core_annots.FeatConfig</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.Config --test-FeatureConfig</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo import Config  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; feat_cfg = Config.FeatureConfig()</span>
+<span class="sd">        &gt;&gt;&gt; result = (feat_cfg.get_cfgstr())</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; #assert result.startswith(&#39;_FEAT(hesaff+sift_)_CHIP&#39;)</span>
+<span class="sd">        _Feat(hesaff+sift)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">feat_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># Features depend on chips</span>
+        <span class="c1"># import pyhesaff</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FeatureConfig</span><span class="p">,</span> <span class="n">feat_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;feat_cfg&#39;</span><span class="p">)</span>
+        <span class="n">feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span> <span class="o">=</span> <span class="n">ChipConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">feat_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
+        <span class="c1"># feat_cfg.feat_type = &#39;hesaff+sift&#39;</span>
+        <span class="c1"># feat_cfg.bgmethod = None</span>
+        <span class="c1"># feat_cfg._param_list = list(pyhesaff.get_hesaff_default_params().items())</span>
+        <span class="c1"># for type_, name, default, doc in feat_cfg._iterparams():</span>
+        <span class="c1">#    setattr(feat_cfg, name, default)</span>
+        <span class="c1"># feat_cfg.use_adaptive_scale = False  # 9001 # 80</span>
+        <span class="c1"># feat_cfg.nogravity_hack = False  # 9001 # 80</span>
+        <span class="n">feat_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FeatureConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FeatureConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
+
+        <span class="k">return</span> <span class="n">core_annots</span><span class="o">.</span><span class="n">FeatConfig</span><span class="p">()</span><span class="o">.</span><span class="n">get_param_info_list</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FeatureConfig.get_config_name"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FeatureConfig.get_config_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_config_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Feat&#39;</span></div>
+
+<div class="viewcode-block" id="FeatureConfig.get_hesaff_params"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.FeatureConfig.get_hesaff_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_hesaff_params</span><span class="p">(</span><span class="n">feat_cfg</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">pyhesaff</span>
+
+        <span class="n">default_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyhesaff</span><span class="o">.</span><span class="n">get_hesaff_default_params</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">hesaff_param_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">feat_cfg</span><span class="p">,</span> <span class="n">default_keys</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hesaff_param_dict</span></div></div>
+
+
+<div class="viewcode-block" id="ChipConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.ChipConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ChipConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ChipConfig&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">cc_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ChipConfig</span><span class="p">,</span> <span class="n">cc_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;chip_cfg&#39;</span><span class="p">)</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
+        <span class="c1"># cc_cfg.dim_size    = 450</span>
+        <span class="c1"># # cc_cfg.resize_dim  = &#39;area&#39;</span>
+        <span class="c1"># cc_cfg.resize_dim  = &#39;width&#39;</span>
+        <span class="c1"># cc_cfg.grabcut     = False</span>
+        <span class="c1"># cc_cfg.histeq      = False</span>
+        <span class="c1"># cc_cfg.adapteq     = False</span>
+        <span class="c1"># cc_cfg.region_norm = False</span>
+        <span class="c1"># cc_cfg.rank_eq     = False</span>
+        <span class="c1"># cc_cfg.local_eq    = False</span>
+        <span class="c1"># cc_cfg.maxcontrast = False</span>
+        <span class="c1"># cc_cfg.chipfmt     = &#39;.png&#39;</span>
+        <span class="n">cc_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ChipConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.ChipConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">core_annots</span>
+
+        <span class="k">return</span> <span class="n">core_annots</span><span class="o">.</span><span class="n">ChipConfig</span><span class="o">.</span><span class="n">_param_info_list</span></div></div>
+
+
+<div class="viewcode-block" id="DetectionConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.DetectionConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DetectionConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.Config --test-DetectionConfig</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; detect_cfg = DetectionConfig()</span>
+<span class="sd">        &gt;&gt;&gt; result = (detect_cfg.get_cfgstr())</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        _DETECT(cnn,____,sz=800)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">detect_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DetectionConfig</span><span class="p">,</span> <span class="n">detect_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;detect_cfg&#39;</span><span class="p">)</span>
+        <span class="c1"># detect_cfg.species_text = &#39;zebra_grevys&#39;</span>
+        <span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span>
+        <span class="c1"># detect_cfg.detector = &#39;rf&#39;</span>
+        <span class="n">detect_cfg</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="s1">&#39;cnn&#39;</span>
+        <span class="n">detect_cfg</span><span class="o">.</span><span class="n">scale_list</span> <span class="o">=</span> <span class="s1">&#39;1.25, 1.0, 0.80, 0.65, 0.50, 0.40, 0.30, 0.20, 0.10&#39;</span>
+        <span class="n">detect_cfg</span><span class="o">.</span><span class="n">trees_path</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">detect_cfg</span><span class="o">.</span><span class="n">detectimg_sqrt_area</span> <span class="o">=</span> <span class="mi">800</span>
+        <span class="n">detect_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DetectionConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.DetectionConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">detect_cfg</span><span class="p">):</span>
+        <span class="n">cfgstrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;_DETECT(&#39;</span><span class="p">,</span>
+            <span class="n">detect_cfg</span><span class="o">.</span><span class="n">detector</span><span class="p">,</span>
+            <span class="s1">&#39;,&#39;</span><span class="p">,</span>
+            <span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span><span class="p">,</span>
+            <span class="s1">&#39;,sz=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">detectimg_sqrt_area</span><span class="p">,),</span>
+            <span class="s1">&#39;)&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">cfgstrs</span></div></div>
+
+
+<div class="viewcode-block" id="OccurrenceConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.OccurrenceConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">OccurrenceConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;OccurrenceConfig</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.Config --exec-OccurrenceConfig --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; occur_cfg = OccurrenceConfig()</span>
+<span class="sd">        &gt;&gt;&gt; print(occur_cfg.get_cfgstr())</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">occur_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OccurrenceConfig</span><span class="p">,</span> <span class="n">occur_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;occur_cfg&#39;</span><span class="p">)</span>
+        <span class="n">occur_cfg</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
+        <span class="n">occur_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="OccurrenceConfig.get_param_info_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.OccurrenceConfig.get_param_info_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_param_info_list</span><span class="p">(</span><span class="n">occur_cfg</span><span class="p">):</span>
+        <span class="n">param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;min_imgs_per_occurrence&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;minper=&#39;</span><span class="p">),</span>
+            <span class="c1"># ut.ParamInfo(&#39;cluster_algo&#39;, &#39;agglomerative&#39;, &#39;&#39;, valid_values=[&#39;agglomerative&#39;, &#39;meanshift&#39;]),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+                <span class="s1">&#39;cluster_algo&#39;</span><span class="p">,</span> <span class="s1">&#39;agglomerative&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;agglomerative&#39;</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="c1"># ut.ParamInfo(&#39;quantile&#39;, .01, &#39;quant&#39;, hideif=lambda cfg: cfg[&#39;cluster_algo&#39;] != &#39;meanshift&#39;),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span>
+                <span class="s1">&#39;seconds_thresh&#39;</span><span class="p">,</span>
+                <span class="mi">1600</span><span class="p">,</span>
+                <span class="s1">&#39;sec&#39;</span><span class="p">,</span>
+                <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;cluster_algo&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;agglomerative&#39;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;use_gps&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;km_per_sec&#39;</span><span class="p">,</span> <span class="mf">0.002</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">param_info_list</span></div></div>
+
+
+<div class="viewcode-block" id="DisplayConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.DisplayConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DisplayConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;DisplayConfig&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">display_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DisplayConfig</span><span class="p">,</span> <span class="n">display_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;display_cfg&#39;</span><span class="p">)</span>
+        <span class="n">display_cfg</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">display_cfg</span><span class="o">.</span><span class="n">name_scoring</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">display_cfg</span><span class="o">.</span><span class="n">showanalysis</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">display_cfg</span><span class="o">.</span><span class="n">annotations</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">display_cfg</span><span class="o">.</span><span class="n">vert</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># None</span>
+        <span class="n">display_cfg</span><span class="o">.</span><span class="n">show_results_in_image</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># None</span>
+
+<div class="viewcode-block" id="DisplayConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.DisplayConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">nn_cfg</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;abstract&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;unimplemented&#39;</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="OtherConfig"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.OtherConfig">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">OtherConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">other_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OtherConfig</span><span class="p">,</span> <span class="n">other_cfg</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;other_cfg&#39;</span><span class="p">)</span>
+        <span class="c1"># other_cfg.thumb_size      = 128</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_size</span> <span class="o">=</span> <span class="mi">221</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_bare_size</span> <span class="o">=</span> <span class="mi">700</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">ranks_top</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">filter_reviewed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">auto_localize</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># maximum number of exemplars per name</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">max_exemplars</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">exemplars_per_view</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">prioritized_subset_annots_per_name</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">exemplar_distinctiveness_thresh</span> <span class="o">=</span> <span class="mf">0.95</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">detect_add_after</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="c1"># other_cfg.detect_use_chunks = True</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">use_more_special_imagesets</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">location_for_names</span> <span class="o">=</span> <span class="s1">&#39;IBEIS&#39;</span>
+        <span class="c1"># other_cfg.location_for_names = &#39;MUGU&#39;</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">smart_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">enable_custom_filter</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">hots_batch_size</span> <span class="o">=</span> <span class="mi">256</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">use_augmented_indexer</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">show_shipped_imagesets</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="c1"># Convinience</span>
+<span class="k">def</span> <span class="nf">__dict_default_func</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+    <span class="c1"># Sets keys only if they dont exist</span>
+    <span class="k">def</span> <span class="nf">set_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dict_</span><span class="p">:</span>
+            <span class="n">dict_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="k">return</span> <span class="n">set_key</span>
+
+
+<div class="viewcode-block" id="default_vsone_cfg"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.default_vsone_cfg">[docs]</a><span class="k">def</span> <span class="nf">default_vsone_cfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># DEPRICATE</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pipeline_root&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;vsone&#39;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">dict_update_newkeys</span><span class="p">(</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;checks&#39;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
+            <span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s1">&#39;Knorm&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s1">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="mf">0.6666</span><span class="p">,</span>  <span class="c1"># 1.5,</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">query_cfg</span> <span class="o">=</span> <span class="n">QueryConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">query_cfg</span></div>
+
+
+<div class="viewcode-block" id="set_query_cfg"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.set_query_cfg">[docs]</a><span class="k">def</span> <span class="nf">set_query_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">query_cfg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;hack 12-30-2014&quot;&quot;&quot;</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span> <span class="o">=</span> <span class="n">query_cfg</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">featweight_cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span></div>
+
+
+<div class="viewcode-block" id="update_query_config"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.update_query_config">[docs]</a><span class="k">def</span> <span class="nf">update_query_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;hack 12-30-2014&quot;&quot;&quot;</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">featweight_cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span></div>
+
+
+<div class="viewcode-block" id="load_named_config"><a class="viewcode-back" href="../../../wbia.algo.html#wbia.algo.Config.load_named_config">[docs]</a><span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">load_named_config</span><span class="p">(</span>
+    <span class="n">cfgname</span><span class="p">,</span> <span class="n">dpath</span><span class="p">,</span> <span class="n">use_config_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;hack 12-30-2014</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cfgname (str):</span>
+<span class="sd">        dpath (str):</span>
+<span class="sd">        use_config_cache (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Config: cfg</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.Config --test-load_named_config</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.Config import _default_config  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs = wbia.opendb(&#39;PZ_Master0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs.cfg.save()</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; cfgname = &#39;zebra_plains&#39;</span>
+<span class="sd">        &gt;&gt;&gt; dpath = ibs.get_dbdir()</span>
+<span class="sd">        &gt;&gt;&gt; use_config_cache = True</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; cfg = load_named_config(cfgname, dpath, use_config_cache)</span>
+<span class="sd">        &gt;&gt;&gt; #</span>
+<span class="sd">        &gt;&gt;&gt; keys1 = ut.take_column(cfg.parse_items(), 0)</span>
+<span class="sd">        &gt;&gt;&gt; keys2 = ut.take_column(ibs.cfg.parse_items(), 0)</span>
+<span class="sd">        &gt;&gt;&gt; symdiff = set(keys1) ^ set(keys2)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(cfg)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">cfgname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO: find last cfgname</span>
+        <span class="n">cfgname</span> <span class="o">=</span> <span class="s1">&#39;cfg&#39;</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="n">cfgname</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.cPkl&#39;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] loading named config fpath=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
+    <span class="c1"># Always a fresh object</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">GenericConfig</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Use pref cache</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_config_cache</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;force config cache miss&#39;</span><span class="p">)</span>
+        <span class="c1"># Get current &quot;schema&quot;</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">_default_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgname</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">current_itemset</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">parse_items</span><span class="p">()</span>
+        <span class="n">current_keyset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">current_itemset</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="c1"># load saved preferences</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="c1"># Check if loaded schema has changed</span>
+        <span class="n">loaded_keyset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">parse_items</span><span class="p">(),</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">missing_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">current_keyset</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">loaded_keyset</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Bring over new values into old structure</span>
+            <span class="n">tmp</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">parse_items</span><span class="p">()))</span>
+            <span class="n">cfg</span> <span class="o">=</span> <span class="n">tmp</span>
+            <span class="c1"># missing_vals = ut.dict_take(dict(current_itemset), missing_keys)</span>
+            <span class="c1"># def find_cfgkey_parent(tmp, key):</span>
+            <span class="c1">#    subconfig_list = []</span>
+            <span class="c1">#    for attr in dir(tmp):</span>
+            <span class="c1">#        if attr == key:</span>
+            <span class="c1">#            return tmp</span>
+            <span class="c1">#        child = getattr(tmp, attr)</span>
+            <span class="c1">#        if isinstance(child, ConfigBase):</span>
+            <span class="c1">#            subconfig_list.append(child)</span>
+            <span class="c1">#    for subconfig in subconfig_list:</span>
+            <span class="c1">#        found = find_cfgkey_parent(subconfig, key)</span>
+            <span class="c1">#        if found is not None:</span>
+            <span class="c1">#            return found</span>
+            <span class="c1"># missing_parents = [find_cfgkey_parent(tmp, key) for key in missing_keys]</span>
+            <span class="c1"># for parent, key, val in zip(missing_parents, missing_keys, missing_vals):</span>
+            <span class="c1">#    setattr(parent, key, val)</span>
+        <span class="c1">#    # TODO: Finishme update the out of data preferences</span>
+        <span class="c1">#    pass</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] successfully loaded config cfgname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Totally new completely default preferences</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">_default_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgname</span><span class="p">)</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="c1"># Hack in cfgname</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] hack in z_cfgname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">z_cfgname</span> <span class="o">=</span> <span class="n">cfgname</span>
+    <span class="k">return</span> <span class="n">cfg</span></div>
+
+
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">_default_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;hack 12-30-2014&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[Config] building default config&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cfgname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cfgname</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">z_cfgname</span>
+    <span class="k">if</span> <span class="n">new</span><span class="p">:</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">()</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">GenericConfig</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">z_cfgname</span> <span class="o">=</span> <span class="n">cfgname</span>
+    <span class="n">query_cfg</span> <span class="o">=</span> <span class="n">QueryConfig</span><span class="p">(</span><span class="n">pipeline_root</span><span class="o">=</span><span class="s1">&#39;vsmany&#39;</span><span class="p">)</span>
+    <span class="n">set_query_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">query_cfg</span><span class="p">)</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">occur_cfg</span> <span class="o">=</span> <span class="n">OccurrenceConfig</span><span class="p">()</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span> <span class="o">=</span> <span class="n">DetectionConfig</span><span class="p">()</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span> <span class="o">=</span> <span class="n">OtherConfig</span><span class="p">()</span>
+    <span class="n">_default_named_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgname</span><span class="p">)</span>
+    <span class="c1"># if len(species_list) == 1:</span>
+    <span class="c1">#    # try to be intelligent about the default speceis</span>
+    <span class="c1">#    cfg.detect_cfg.species_text = species_list[0]</span>
+    <span class="k">return</span> <span class="n">cfg</span>
+
+
+<span class="nd">@profile</span>
+<span class="k">def</span> <span class="nf">_default_named_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;hack 12-30-2014</span>
+
+<span class="sd">    list default parameters per species</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">cfgname</span> <span class="o">==</span> <span class="s1">&#39;cfg&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+    <span class="k">elif</span> <span class="n">cfgname</span> <span class="o">==</span> <span class="s1">&#39;zebra_plains&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="n">cfgname</span>
+        <span class="c1"># speedup&#39;: 46.90769958496094,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="s1">&#39;kdtree&#39;</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span> <span class="o">=</span> <span class="mi">704</span>
+        <span class="c1"># &#39;algorithm&#39;: &#39;kdtree&#39;,</span>
+        <span class="c1"># [dev.tune_flann]    &#39;checks&#39;: 6656,</span>
+        <span class="c1"># [dev.tune_flann]    &#39;trees&#39;: 4,</span>
+
+        <span class="c1"># Kmeans seems a bit more accurate</span>
+        <span class="c1"># &#39;algorithm&#39;: &#39;kmeans&#39;,</span>
+        <span class="c1"># &#39;branching&#39;: 16,</span>
+        <span class="c1"># &#39;cb_index&#39;: 0.6000000238418579,</span>
+        <span class="c1"># &#39;centers_init&#39;: &#39;random&#39;,</span>
+        <span class="c1"># &#39;checks&#39;: 18432,</span>
+        <span class="c1"># &#39;iterations&#39;: 1,</span>
+        <span class="c1"># &#39;leaf_max_size&#39;: 4,</span>
+        <span class="c1"># &#39;speedup&#39;: 65.54280090332031,</span>
+        <span class="c1"># &#39;target_precision&#39;: 0.9800000190734863,</span>
+
+    <span class="k">elif</span> <span class="n">cfgname</span> <span class="o">==</span> <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="n">cfgname</span>
+        <span class="c1"># speedup&#39;: 224.7425994873047,</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="s1">&#39;kdtree&#39;</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span> <span class="o">=</span> <span class="mi">896</span>
+    <span class="k">elif</span> <span class="n">cfgname</span> <span class="o">==</span> <span class="s1">&#39;giraffe_reticulated&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="n">cfgname</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="s1">&#39;kdtree&#39;</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span> <span class="o">=</span> <span class="mi">316</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;WARNING: UNKNOWN CFGNAME=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

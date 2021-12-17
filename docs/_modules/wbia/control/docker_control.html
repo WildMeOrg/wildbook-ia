@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.docker_control &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.docker_control</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.docker_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">docker</span>
+
+    <span class="k">assert</span> <span class="n">docker</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Local docker client is not available&#39;</span><span class="p">)</span>
+
+
+<span class="n">_</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">DOCKER_CONFIG_REGISTRY</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">DOCKER_IMAGE_PREFIX</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;wildme.azurecr.io&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;wildme&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">DOCKER_DEFAULT_RUN_ARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;detach&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;restart_policy&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Name&#39;</span><span class="p">:</span> <span class="s1">&#39;on-failure&#39;</span><span class="p">}}</span>
+
+
+<span class="n">DOCKER_CLONE_FMTSTR</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_clone_</span><span class="si">%d</span><span class="s1">&#39;</span>
+
+
+<div class="viewcode-block" id="docker_container_clone_name"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_container_clone_name">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_container_clone_name</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">clone</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">container_name</span>
+    <span class="n">container_clone_name</span> <span class="o">=</span> <span class="n">DOCKER_CLONE_FMTSTR</span> <span class="o">%</span> <span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">container_clone_name</span></div>
+
+
+<div class="viewcode-block" id="docker_register_config"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_register_config">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># don&#39;t rely on the ibs object in this method; needs to be callable on import</span>
+<span class="c1"># container_check_func takes a url and returns a boolean</span>
+<span class="k">def</span> <span class="nf">docker_register_config</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span>
+    <span class="n">container_name</span><span class="p">,</span>
+    <span class="n">image_name</span><span class="p">,</span>
+    <span class="n">container_check_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">run_args</span><span class="o">=</span><span class="p">{},</span>
+    <span class="n">ensure_new</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">container_name</span> <span class="ow">in</span> <span class="n">DOCKER_CONFIG_REGISTRY</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ensure_new</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;Container name has already been added to the config registry&#39;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;Warning: docker_register_config called on an existing config. Already have container named </span><span class="si">%s</span><span class="s1">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">container_name</span><span class="p">,)</span>
+            <span class="p">)</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">DOCKER_IMAGE_PREFIX</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">image_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s1">&#39;Cannot register an image name that does not have a prefix in </span><span class="si">%r</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">DOCKER_IMAGE_PREFIX</span><span class="p">,)</span>
+        <span class="p">)</span>
+    <span class="n">DOCKER_CONFIG_REGISTRY</span><span class="p">[</span><span class="n">container_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="n">image_name</span><span class="p">,</span>
+        <span class="s1">&#39;run_args&#39;</span><span class="p">:</span> <span class="n">run_args</span><span class="p">,</span>
+        <span class="s1">&#39;container_check_func&#39;</span><span class="p">:</span> <span class="n">container_check_func</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="is_local_port_open"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.is_local_port_open">[docs]</a><span class="k">def</span> <span class="nf">is_local_port_open</span><span class="p">(</span><span class="n">port</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        port (int):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool:</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://stackoverflow.com/questions/7436801/identifying-listening-ports-using-python</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m utool.util_web is_local_port_open --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from utool.util_web import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; port = 32183</span>
+<span class="sd">        &gt;&gt;&gt; assert is_local_port_open(80) is False, &#39;port 80 should always be closed&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert is_local_port_open(port) is True, &#39;maybe this port is actually used?&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">socket</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+    <span class="n">result1</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">connect_ex</span><span class="p">((</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+    <span class="n">result2</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">connect_ex</span><span class="p">((</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+    <span class="n">result3</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">connect_ex</span><span class="p">((</span><span class="s1">&#39;0.0.0.0&#39;</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>  <span class="c1"># Support for Docker networking</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">result1</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">result2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">result3</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="find_open_port"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.find_open_port">[docs]</a><span class="k">def</span> <span class="nf">find_open_port</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">blacklist</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="n">base</span>
+    <span class="k">while</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">blacklist</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_local_port_open</span><span class="p">(</span><span class="n">port</span><span class="p">):</span>
+        <span class="n">port</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">port</span></div>
+
+
+<div class="viewcode-block" id="docker_run"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_run">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="c1"># runs an image, returns url to container</span>
+<span class="k">def</span> <span class="nf">docker_run</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">image_name</span><span class="p">,</span> <span class="n">container_name</span><span class="p">,</span> <span class="n">override_run_args</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ensure_new</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="s1">&#39;_external_suggested_port&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">override_run_args</span><span class="p">:</span>
+        <span class="n">override_run_args</span><span class="p">[</span><span class="s1">&#39;_external_suggested_port&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5000</span>
+    <span class="k">assert</span> <span class="s1">&#39;_external_suggested_port&#39;</span> <span class="ow">in</span> <span class="n">override_run_args</span>
+    <span class="k">assert</span> <span class="s1">&#39;_internal_port&#39;</span> <span class="ow">in</span> <span class="n">override_run_args</span>
+
+    <span class="n">blacklist_ports</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">container_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_status_dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">container_dict</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">container_name_</span> <span class="ow">in</span> <span class="n">container_dict</span><span class="p">[</span><span class="n">status</span><span class="p">]:</span>
+            <span class="n">container_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_get_container</span><span class="p">(</span><span class="n">container_name_</span><span class="p">)</span>
+            <span class="n">option_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_IP_port_options</span><span class="p">(</span><span class="n">container_</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">container_name_</span><span class="p">,</span> <span class="n">option_list</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">option_list</span><span class="p">:</span>
+                <span class="n">url</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="n">option</span>
+                <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+                    <span class="n">blacklist_ports</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+    <span class="n">blacklist_ports</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">blacklist_ports</span><span class="p">)))</span>
+
+    <span class="n">ext_port</span> <span class="o">=</span> <span class="n">find_open_port</span><span class="p">(</span>
+        <span class="n">override_run_args</span><span class="p">[</span><span class="s1">&#39;_external_suggested_port&#39;</span><span class="p">],</span> <span class="n">blacklist_ports</span>
+    <span class="p">)</span>
+    <span class="n">port_key</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/tcp&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">override_run_args</span><span class="p">[</span><span class="s1">&#39;_internal_port&#39;</span><span class="p">],)</span>
+
+    <span class="c1"># remove underscore args from run_args</span>
+    <span class="n">key_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">override_run_args</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+            <span class="n">override_run_args</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="c1"># update default args with run_args</span>
+    <span class="n">run_args</span> <span class="o">=</span> <span class="n">DOCKER_DEFAULT_RUN_ARGS</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">run_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">override_run_args</span><span class="p">)</span>
+    <span class="c1"># add other args</span>
+    <span class="n">run_args</span><span class="p">[</span><span class="s1">&#39;ports&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">port_key</span><span class="p">:</span> <span class="n">ext_port</span><span class="p">}</span>
+    <span class="n">container_clone_name</span> <span class="o">=</span> <span class="n">docker_container_clone_name</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="n">clone</span><span class="p">)</span>
+    <span class="n">run_args</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">container_clone_name</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;We&#39;re starting image_name </span><span class="si">%s</span><span class="s2"> as </span><span class="si">%s</span><span class="s2"> with args </span><span class="si">%r</span><span class="s2">&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">image_name</span><span class="p">,</span> <span class="n">container_clone_name</span><span class="p">,</span> <span class="n">run_args</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">docker_client</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="n">docker_client</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">image_name</span><span class="p">,</span> <span class="o">**</span><span class="n">run_args</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">docker</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">APIError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ensure_new</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ex</span>
+        <span class="c1"># get the container that&#39;s already running</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_get_container</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="n">clone</span><span class="p">)</span>
+
+    <span class="c1"># h/t https://github.com/docker/docker-py/issues/2128</span>
+    <span class="n">container</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+
+    <span class="n">docker_get_config</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_get_config</span><span class="p">(</span><span class="n">container_name</span><span class="p">)</span>
+    <span class="n">url_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_urls</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">docker_get_config</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">url_list</span></div>
+
+
+<div class="viewcode-block" id="docker_image_list"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_image_list">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_image_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">tag_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">docker_client</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">docker_client</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+        <span class="n">tag_list</span> <span class="o">+=</span> <span class="n">image</span><span class="o">.</span><span class="n">tags</span>
+    <span class="n">tag_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">tag_list</span></div>
+
+
+<div class="viewcode-block" id="docker_get_image"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_get_image">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_get_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_name</span><span class="p">):</span>
+    <span class="n">docker_client</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">docker_client</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">image_name</span> <span class="ow">in</span> <span class="n">image</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">image</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<span class="c1"># TODO download the image from remote server</span>
+<div class="viewcode-block" id="docker_ensure_image"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_ensure_image">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_ensure_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_name</span><span class="p">):</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_get_image</span><span class="p">(</span><span class="n">image_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_pull_image</span><span class="p">(</span><span class="n">image_name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image</span></div>
+
+
+<div class="viewcode-block" id="docker_pull_image"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_pull_image">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_pull_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_name</span><span class="p">):</span>
+    <span class="sa">u</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The process of logging into the Azure Container Registry is arcane and complex.</span>
+<span class="sd">    In the meantime we&#39;ll assume that any image we need in the ACR has been downloaded</span>
+<span class="sd">    by a logged-in user.</span>
+
+
+<span class="sd">    Host: wildme.azurecr.io</span>
+<span class="sd">    Username: example@example.com</span>
+<span class="sd">    Password: asecurepassword</span>
+
+<span class="sd">    Login Script:</span>
+
+<span class="sd">    Install Azure CLI</span>
+
+<span class="sd">    https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest</span>
+
+<span class="sd">    az logout</span>
+
+<span class="sd">    Logout of any user you may already be using with az-cli</span>
+
+<span class="sd">    az login</span>
+
+<span class="sd">    Follow instructions to https://microsoft.com/devicelogin, input the code</span>
+
+<span class="sd">    Login as example@example.com with password above</span>
+
+<span class="sd">    az acr login --name wildme</span>
+
+<span class="sd">    Login to the Azure Container Registry (ACR) for Docker</span>
+
+<span class="sd">    Verify login with “cat ~/.docker/config.json | jq &quot;.auths&quot; and look for “wildme.azurecr.io”</span>
+
+<span class="sd">    docker pull wildme.azurecr.io/wbia/example-image:latest</span>
+
+<span class="sd">    Pull latest nightly image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="docker_login"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_login">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_login</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c1"># login to the ACR with credentials from &quot;somewhere&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="docker_image_run"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_image_run">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_image_run</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6000</span><span class="p">,</span> <span class="n">volumes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="docker_container_status_dict"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_container_status_dict">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_container_status_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">container_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">docker_client</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">docker_client</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">container</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">container_dict</span><span class="p">:</span>
+            <span class="n">container_dict</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">status</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">container_dict</span><span class="p">[</span><span class="n">container</span><span class="o">.</span><span class="n">status</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">container_dict</span><span class="p">:</span>
+        <span class="n">container_dict</span><span class="p">[</span><span class="n">status</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">container_dict</span><span class="p">[</span><span class="n">status</span><span class="p">])))</span>
+    <span class="k">return</span> <span class="n">container_dict</span></div>
+
+
+<div class="viewcode-block" id="docker_container_status"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_container_status">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_container_status</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">container_dict</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_status_dict</span><span class="p">()</span>
+    <span class="n">clone_name</span> <span class="o">=</span> <span class="n">docker_container_clone_name</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">container_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">clone_name</span> <span class="ow">in</span> <span class="n">container_dict</span><span class="p">[</span><span class="n">status</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">status</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="docker_container_IP_port_options"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_container_IP_port_options">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_container_IP_port_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">container</span><span class="p">):</span>
+    <span class="n">networksettings</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;NetworkSettings&#39;</span><span class="p">]</span>
+
+    <span class="n">option_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">networks</span> <span class="o">=</span> <span class="n">networksettings</span><span class="p">[</span><span class="s1">&#39;Networks&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">network</span> <span class="ow">in</span> <span class="n">networks</span><span class="p">:</span>
+        <span class="n">ipaddress</span> <span class="o">=</span> <span class="n">networks</span><span class="p">[</span><span class="n">network</span><span class="p">][</span><span class="s1">&#39;IPAddress&#39;</span><span class="p">]</span>
+        <span class="n">option</span> <span class="o">=</span> <span class="p">(</span><span class="n">ipaddress</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">option_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">option</span><span class="p">)</span>
+
+    <span class="c1"># TODO: understand the container.attrs[&#39;NetworkSettings&#39;][&#39;Ports&#39;]: a dict (??) of lists (??) of dicts (only one &#39;?&#39;)</span>
+    <span class="n">ports</span> <span class="o">=</span> <span class="n">networksettings</span><span class="p">[</span><span class="s1">&#39;Ports&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ports</span><span class="p">:</span>
+        <span class="c1"># ports is a dict keyed by e.g. &#39;5000/tcp&#39;. This is the only key I&#39;ve seen so far on our containers.</span>
+        <span class="n">dict_list</span> <span class="o">=</span> <span class="n">ports</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dict_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">dict_</span> <span class="ow">in</span> <span class="n">dict_list</span><span class="p">:</span>
+            <span class="c1"># ports[key] is a list of dicts</span>
+            <span class="k">if</span> <span class="s1">&#39;HostPort&#39;</span> <span class="ow">in</span> <span class="n">dict_</span><span class="p">:</span>
+                <span class="c1"># just return the first HostPort we find. Doesn&#39;t seem right... but what better logic?</span>
+                <span class="n">option</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">dict_</span><span class="p">[</span><span class="s1">&#39;HostIp&#39;</span><span class="p">],</span>
+                    <span class="n">dict_</span><span class="p">[</span><span class="s1">&#39;HostPort&#39;</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="n">option_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">option</span><span class="p">)</span>
+
+    <span class="c1"># should we throw an assert/error here?</span>
+    <span class="k">return</span> <span class="n">option_list</span></div>
+
+
+<div class="viewcode-block" id="docker_container_urls_from_name"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_container_urls_from_name">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_container_urls_from_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_status</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="n">clone</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;running&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">container</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_get_container</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="n">clone</span><span class="p">)</span>
+    <span class="n">docker_get_config</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_get_config</span><span class="p">(</span><span class="n">container_name</span><span class="p">)</span>
+    <span class="n">url_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_urls</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">docker_get_config</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">url_list</span></div>
+
+
+<div class="viewcode-block" id="docker_container_urls"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_container_urls">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_container_urls</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">container</span><span class="p">,</span> <span class="n">docker_get_config</span><span class="p">):</span>
+    <span class="n">_internal_port</span> <span class="o">=</span> <span class="n">docker_get_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;run_args&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_internal_port&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[docker_container_urls] Found _internal_port: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_internal_port</span><span class="p">,))</span>
+    <span class="n">option_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_IP_port_options</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
+    <span class="n">url_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">option_list</span><span class="p">:</span>
+        <span class="n">ip</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="n">option</span>
+        <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Try to use internal port, if known</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="n">_internal_port</span>
+        <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ip</span><span class="p">,)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ip</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="n">url_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">url_list</span></div>
+
+
+<div class="viewcode-block" id="docker_get_container"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_get_container">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_get_container</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">container_clone_name</span> <span class="o">=</span> <span class="n">docker_container_clone_name</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="p">)</span>
+    <span class="n">docker_client</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="n">docker_client</span><span class="o">.</span><span class="n">containers</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">container</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">container_clone_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">container</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="docker_ensure"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_ensure">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_ensure</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">container_name</span><span class="p">,</span> <span class="n">check_container</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_get_config</span><span class="p">(</span><span class="n">container_name</span><span class="p">)</span>
+
+    <span class="c1"># Check for container in running containers</span>
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_status</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="n">clone</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;running&#39;</span><span class="p">:</span>
+        <span class="n">image_name</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">docker_ensure_image</span><span class="p">(</span><span class="n">image_name</span><span class="p">)</span>
+        <span class="n">run_args</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;run_args&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">docker_run</span><span class="p">(</span><span class="n">image_name</span><span class="p">,</span> <span class="n">container_name</span><span class="p">,</span> <span class="n">run_args</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="n">clone</span><span class="p">)</span>
+
+    <span class="n">original_url_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_urls_from_name</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="n">clone</span><span class="p">)</span>
+    <span class="c1"># If not, check if the image has been downloaded from the config</span>
+
+    <span class="k">if</span> <span class="n">check_container</span><span class="p">:</span>
+        <span class="n">valid_url_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_check_container</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="n">clone</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_url_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Could not validate container&#39;</span>
+        <span class="k">return</span> <span class="n">valid_url_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">original_url_list</span></div>
+
+
+<div class="viewcode-block" id="docker_check_container"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_check_container">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_check_container</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">retry_count</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">retry_timeout</span><span class="o">=</span><span class="mi">15</span>
+<span class="p">):</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_get_config</span><span class="p">(</span><span class="n">container_name</span><span class="p">)</span>
+    <span class="n">check_func</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;container_check_func&#39;</span><span class="p">]</span>
+    <span class="n">url_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">docker_container_urls_from_name</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="n">clone</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">check_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">url_list</span>
+    <span class="n">valid_url_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">retry_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">retry_count</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[docker_control] Performing container check (attempt </span><span class="si">%d</span><span class="s1">, max </span><span class="si">%d</span><span class="s1">)&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">retry_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">retry_count</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">url_list</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Checking URL: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
+            <span class="k">if</span> <span class="n">check_func</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+                <span class="n">valid_url_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_url_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s1">&#39;[docker_control] ERROR!  Container failed the plugin-defined check, sleeping for </span><span class="si">%d</span><span class="s1"> seconds and will try again&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">retry_timeout</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">retry_timeout</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">valid_url_list</span></div>
+
+
+<div class="viewcode-block" id="docker_get_config"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.docker_control.docker_get_config">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">docker_get_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">container_name</span><span class="p">):</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">DOCKER_CONFIG_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">container_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;The container name &#39;</span><span class="si">%s</span><span class="s2">&#39; has not been registered&quot;</span> <span class="o">%</span> <span class="n">container_name</span>
+    <span class="k">assert</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="n">message</span>
+    <span class="k">return</span> <span class="n">config</span></div>
+
+
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># def docker_embed(ibs):</span>
+<span class="c1">#     ut.embed()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

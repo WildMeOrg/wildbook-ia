@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.control.manual_lblimage_funcs &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>wbia.control.manual_lblimage_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.control.manual_lblimage_funcs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">wbia.control.accessor_decors</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">adder</span><span class="p">,</span>
+    <span class="n">getter_1to1</span><span class="p">,</span>
+    <span class="n">getter_1toM</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="c1"># from wbia.other import ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># ADDERS::IMAGE-&gt;IMAGESET</span>
+
+<span class="c1">#</span>
+<span class="c1"># GETTERS::GLR</span>
+
+
+<div class="viewcode-block" id="get_glr_confidence"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_glr_confidence">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_glr_confidence</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">glrid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  confidence in an image relationship</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">glr_confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;glr_confidence&#39;</span><span class="p">,),</span> <span class="n">glrid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">glr_confidence_list</span></div>
+
+
+<div class="viewcode-block" id="get_glr_lblimage_rowids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_glr_lblimage_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_glr_lblimage_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">glrid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;get the lblimage_rowid belonging to each relationship&quot;&quot;&quot;</span>
+    <span class="n">lblimage_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblimage_rowid&#39;</span><span class="p">,),</span> <span class="n">glrid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">lblimage_rowids_list</span></div>
+
+
+<div class="viewcode-block" id="get_glr_image_rowids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_glr_image_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_glr_image_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">glrid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;get the image_rowid belonging to each relationship&quot;&quot;&quot;</span>
+    <span class="n">image_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,),</span> <span class="n">glrid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image_rowids_list</span></div>
+
+
+<span class="c1"># ADDERS::LBLIMAGE</span>
+
+
+<div class="viewcode-block" id="add_lblimages"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.add_lblimages">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@adder</span>
+<span class="k">def</span> <span class="nf">add_lblimages</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">note_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lblimage_uuid_list</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Adds new lblimages (labels of imageations)</span>
+<span class="sd">    creates a new uuid for any new pair(type, value)</span>
+<span class="sd">    #TODO: reverse order of rowid_list value_list in input</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">note_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">note_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">value_list</span><span class="p">)</span>
+    <span class="c1"># Get random uuids</span>
+    <span class="k">if</span> <span class="n">lblimage_uuid_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lblimage_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">value_list</span><span class="p">))]</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;lblimage_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;lblimage_value&#39;</span><span class="p">,</span> <span class="s1">&#39;lblimage_note&#39;</span><span class="p">]</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lblimage_uuid_list</span><span class="p">,</span> <span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">note_list</span><span class="p">))</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_lblimage_rowid_from_superkey</span>
+    <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">lblimage_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">get_rowid_from_superkey</span><span class="p">,</span>
+        <span class="n">superkey_paramx</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">lblimage_rowid_list</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># GETTERS::LBLIMAGE_TABLE</span>
+
+
+<div class="viewcode-block" id="get_lblimage_rowid_from_superkey"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_lblimage_rowid_from_superkey">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_lblimage_rowid_from_superkey</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  lblimage_rowid_list from the superkey (lbltype, value)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;lblimage_rowid&#39;</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">)</span>
+    <span class="n">lblimage_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;lblimage_value&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">lblimage_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_lblimage_rowid_from_uuid"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_lblimage_rowid_from_uuid">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_lblimage_rowid_from_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblimage_uuid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list):  lblimage_rowid_list from the superkey (lbltype, value)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;lblimage_rowid&#39;</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="n">lblimage_uuid_list</span>
+    <span class="n">id_colname</span> <span class="o">=</span> <span class="s1">&#39;lblimage_uuid&#39;</span>
+    <span class="n">lblimage_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">id_colname</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">lblimage_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_lblimage_uuids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_lblimage_uuids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_lblimage_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">):</span>
+    <span class="n">lblimageuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblimage_uuid&#39;</span><span class="p">,),</span> <span class="n">lblimage_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">lblimageuuid_list</span></div>
+
+
+<div class="viewcode-block" id="get_lblimage_lbltypes_rowids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_lblimage_lbltypes_rowids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_lblimage_lbltypes_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">):</span>
+    <span class="n">lbltype_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,),</span> <span class="n">lblimage_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">lbltype_rowid_list</span></div>
+
+
+<div class="viewcode-block" id="get_lblimage_notes"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_lblimage_notes">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_lblimage_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">):</span>
+    <span class="n">lblimagenotes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblimage_note&#39;</span><span class="p">,),</span> <span class="n">lblimage_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">lblimagenotes_list</span></div>
+
+
+<div class="viewcode-block" id="get_lblimage_values"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_lblimage_values">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_lblimage_values</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">,</span> <span class="n">_lbltype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list_ (list): text lblimages</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: Remove keyword argument</span>
+    <span class="c1"># ibsfuncs.assert_lblimage_rowids_are_type(ibs, lblimage_rowid_list,  ibs.lbltype_ids[_lbltype])</span>
+    <span class="n">lblimage_value_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">LBLIMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblimage_value&#39;</span><span class="p">,),</span> <span class="n">lblimage_rowid_list</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">lblimage_value_list</span></div>
+
+
+<div class="viewcode-block" id="get_lblimage_gids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_lblimage_gids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="k">def</span> <span class="nf">get_lblimage_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">):</span>
+    <span class="c1"># verbose = len(lblimage_rowid_list) &gt; 20</span>
+    <span class="c1"># TODO: Optimize IF POSSIBLE</span>
+    <span class="c1"># FIXME: SLOW</span>
+    <span class="c1"># if verbose:</span>
+    <span class="c1">#    logger.info(ut.get_caller_name(N=list(range(0, 20))))</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lblimage_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">lblimage_rowid</span> <span class="ow">in</span> <span class="n">lblimage_rowid_list</span><span class="p">]</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,),</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;lblimage_rowid&#39;</span><span class="p">,),</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">gids_list</span></div>
+
+
+<span class="c1"># ADDERS::GLR</span>
+
+
+<div class="viewcode-block" id="add_image_relationship_one"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.add_image_relationship_one">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@adder</span>
+<span class="k">def</span> <span class="nf">add_image_relationship_one</span><span class="p">(</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">,</span> <span class="n">glr_confidence_list</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds a relationship between images and lblimages</span>
+<span class="sd">    (imageations and labels of imageations)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">glr_confidence_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">glr_confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;image_rowid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;lblimage_rowid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;glr_confidence&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">,</span> <span class="n">glr_confidence_list</span><span class="p">))</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_glrid_from_superkey</span>
+    <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># TODO HAVE SQL GIVE YOU THESE NUMBERS</span>
+    <span class="n">glrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span>
+        <span class="n">colnames</span><span class="p">,</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">get_rowid_from_superkey</span><span class="p">,</span>
+        <span class="n">superkey_paramx</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">glrid_list</span></div>
+
+
+<div class="viewcode-block" id="get_glrid_from_superkey"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_glrid_from_superkey">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1to1</span>
+<span class="k">def</span> <span class="nf">get_glrid_from_superkey</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list): list of image row-ids</span>
+<span class="sd">        lblimage_rowid_list (list): list of lblimage row-ids</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        glrid_list (list): image-label relationship id list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">lblimage_rowid_list</span><span class="p">)</span>
+    <span class="n">glrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;lblimage_rowid&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">glrid_list</span></div>
+
+
+<div class="viewcode-block" id="get_image_glrids"><a class="viewcode-back" href="../../../wbia.control.html#wbia.control.manual_lblimage_funcs.get_image_glrids">[docs]</a><span class="nd">@register_ibs_method</span>
+<span class="nd">@getter_1toM</span>
+<span class="k">def</span> <span class="nf">get_image_glrids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;FIXME: __name__</span>
+<span class="sd">    Get all the relationship ids belonging to the input images</span>
+<span class="sd">    if lblimage lbltype is specified the relationship ids are filtered to</span>
+<span class="sd">    be only of a specific lbltype/category/type</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">gid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">glrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where_eq</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">GL_RELATION_TABLE</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;glr_rowid&#39;</span><span class="p">,),</span>
+        <span class="n">params_iter</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,),</span>
+        <span class="n">unpack_scalars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">glrids_list</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

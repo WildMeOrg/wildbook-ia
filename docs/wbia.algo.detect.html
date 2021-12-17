@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.detect package &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="wbia.algo.detect.nms package" href="wbia.algo.detect.nms.html" />
+    <link rel="prev" title="wbia.algo package" href="wbia.algo.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="wbia.algo.html">wbia.algo package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="wbia.algo.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">wbia.algo.detect package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.graph.html">wbia.algo.graph package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.hots.html">wbia.algo.hots package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.preproc.html">wbia.algo.preproc package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.smk.html">wbia.algo.smk package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wbia.algo.verif.html">wbia.algo.verif package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.algo.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.algo.html#module-wbia.algo.Config">wbia.algo.Config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wbia.algo.html#module-wbia.algo">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.control.html">wbia.control package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.dbio.html">wbia.dbio package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.detecttools.html">wbia.detecttools package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.dtool.html">wbia.dtool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.expt.html">wbia.expt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.gui.html">wbia.gui package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.guitool.html">wbia.guitool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.init.html">wbia.init package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.other.html">wbia.other package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.plottool.html">wbia.plottool package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.scripts.html">wbia.scripts package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.templates.html">wbia.templates package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.viz.html">wbia.viz package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.web.html">wbia.web package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-main">wbia.__main__</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-devcmds-wbia">wbia._devcmds_wbia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-devscript">wbia._devscript</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia._wbia_object">wbia._wbia_object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.annotmatch_funcs">wbia.annotmatch_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.annots">wbia.annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.constants">wbia.constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_annots">wbia.core_annots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_images">wbia.core_images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.core_parts">wbia.core_parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-demodata">wbia.demodata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-dev">wbia.dev</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#wbia-filter-configs">wbia.filter_configs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.images">wbia.images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.params">wbia.params</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-wbia.tag_funcs">wbia.tag_funcs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="api.html">API</a> &raquo;</li>
+          <li><a href="wbia.algo.html">wbia.algo package</a> &raquo;</li>
+      <li>wbia.algo.detect package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/wbia.algo.detect.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wbia-algo-detect-package">
+<h1>wbia.algo.detect package<a class="headerlink" href="#wbia-algo-detect-package" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="wbia.algo.detect.nms.html">wbia.algo.detect.nms package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.nms.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.nms.html#module-wbia.algo.detect.nms.py_cpu_nms">wbia.algo.detect.nms.py_cpu_nms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wbia.algo.detect.nms.html#module-wbia.algo.detect.nms">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="wbia-algo-detect-azure-module">
+<h2>wbia.algo.detect.azure module<a class="headerlink" href="#wbia-algo-detect-azure-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.algo.detect.canonical">
+<span id="wbia-algo-detect-canonical-module"></span><h2>wbia.algo.detect.canonical module<a class="headerlink" href="#module-wbia.algo.detect.canonical" title="Permalink to this headline"></a></h2>
+<p>Interface to Lightnet object proposals.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.Augmentations">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">Augmentations</span></span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#Augmentations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.Augmentations" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.ImageFilePathList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">ImageFilePathList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepaths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#ImageFilePathList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.ImageFilePathList" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.TrainAugmentations">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">TrainAugmentations</span></span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#TrainAugmentations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.TrainAugmentations" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#wbia.algo.detect.canonical.Augmentations" title="wbia.algo.detect.canonical.Augmentations"><code class="xref py py-class docutils literal notranslate"><span class="pre">wbia.algo.detect.canonical.Augmentations</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.ValidAugmentations">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">ValidAugmentations</span></span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#ValidAugmentations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.ValidAugmentations" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#wbia.algo.detect.canonical.Augmentations" title="wbia.algo.detect.canonical.Augmentations"><code class="xref py py-class docutils literal notranslate"><span class="pre">wbia.algo.detect.canonical.Augmentations</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.finetune">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">finetune</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloaders</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">under</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#finetune"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.finetune" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.test">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">canonical_weight_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.test" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.test_ensemble">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">test_ensemble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_path_list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#test_ensemble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.test_ensemble" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.test_single">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">test_single</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#test_single"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.test_single" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.train">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.train" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.canonical.visualize_augmentations">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.canonical.</span></span><span class="sig-name descname"><span class="pre">visualize_augmentations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">augmentation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/canonical.html#visualize_augmentations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.canonical.visualize_augmentations" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-wbia.algo.detect.darknet">
+<span id="wbia-algo-detect-darknet-module"></span><h2>wbia.algo.detect.darknet module<a class="headerlink" href="#module-wbia.algo.detect.darknet" title="Permalink to this headline"></a></h2>
+<p>Interface to Darknet object proposals.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.darknet.detect">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.darknet.</span></span><span class="sig-name descname"><span class="pre">detect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensitivity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/darknet.html#detect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.darknet.detect" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</p>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the Darknet documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.darknet.detect_gid_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.darknet.</span></span><span class="sig-name descname"><span class="pre">detect_gid_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/darknet.html#detect_gid_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.darknet.detect_gid_list" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the Darknet documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>wbia.IBEISController</em>) – image analysis api</p></li>
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><p>detector, config_filepath, weights_filepath, verbose</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p><em>tuple</em> – (gid, gpath, result_list)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.detect.darknet detect_gid_list –show</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.darknet</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.core_images</span> <span class="kn">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p>results (list of dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="wbia-algo-detect-densenet-module">
+<h2>wbia.algo.detect.densenet module<a class="headerlink" href="#wbia-algo-detect-densenet-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.algo.detect.fasterrcnn">
+<span id="wbia-algo-detect-fasterrcnn-module"></span><h2>wbia.algo.detect.fasterrcnn module<a class="headerlink" href="#module-wbia.algo.detect.fasterrcnn" title="Permalink to this headline"></a></h2>
+<p>Interface to Faster R-CNN object proposals.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.fasterrcnn.detect">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.fasterrcnn.</span></span><span class="sig-name descname"><span class="pre">detect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensitivity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/fasterrcnn.html#detect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.fasterrcnn.detect" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</p>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the Faster R-CNN documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.fasterrcnn.detect_gid_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.fasterrcnn.</span></span><span class="sig-name descname"><span class="pre">detect_gid_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/fasterrcnn.html#detect_gid_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.fasterrcnn.detect_gid_list" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the Faster R-CNN documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>wbia.IBEISController</em>) – image analysis api</p></li>
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><p>detector, config_filepath, weights_filepath, verbose</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p><em>tuple</em> – (gid, gpath, result_list)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.detect.fasterrcnn detect_gid_list –show</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.fasterrcnn</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.core_images</span> <span class="kn">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p>results (list of dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wbia.algo.detect.grabmodels">
+<span id="wbia-algo-detect-grabmodels-module"></span><h2>wbia.algo.detect.grabmodels module<a class="headerlink" href="#module-wbia.algo.detect.grabmodels" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.grabmodels.assert_models">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.grabmodels.</span></span><span class="sig-name descname"><span class="pre">assert_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/grabmodels.html#assert_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.grabmodels.assert_models" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.grabmodels.ensure_models">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.grabmodels.</span></span><span class="sig-name descname"><span class="pre">ensure_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/grabmodels.html#ensure_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.grabmodels.ensure_models" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>modeldir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – </p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.detect.grabmodels –test-ensure_models</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.grabmodels.get_species_trees_paths">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.grabmodels.</span></span><span class="sig-name descname"><span class="pre">get_species_trees_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modeldir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/grabmodels.html#get_species_trees_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.grabmodels.get_species_trees_paths" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species</strong> – </p></li>
+<li><p><strong>modeldir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>trees_path</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><p>?</p>
+</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.detect.grabmodels –test-get_species_trees_paths</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">trees_path</span> <span class="o">=</span> <span class="n">get_species_trees_paths</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">modeldir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">trees_path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.grabmodels.iter_algo_modeldirs">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.grabmodels.</span></span><span class="sig-name descname"><span class="pre">iter_algo_modeldirs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensurebase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/grabmodels.html#iter_algo_modeldirs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.grabmodels.iter_algo_modeldirs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.grabmodels.redownload_models">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.grabmodels.</span></span><span class="sig-name descname"><span class="pre">redownload_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modeldir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/grabmodels.html#redownload_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.grabmodels.redownload_models" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modeldir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (default = ‘default’)</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – verbosity flag(default = True)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.detect.grabmodels –test-redownload_models</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">redownload_models</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-wbia.algo.detect.lightnet">
+<span id="wbia-algo-detect-lightnet-module"></span><h2>wbia.algo.detect.lightnet module<a class="headerlink" href="#module-wbia.algo.detect.lightnet" title="Permalink to this headline"></a></h2>
+<p>Interface to Lightnet object proposals.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.lightnet.detect">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.lightnet.</span></span><span class="sig-name descname"><span class="pre">detect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensitivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">192</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/lightnet.html#detect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.lightnet.detect" title="Permalink to this definition"></a></dt>
+<dd><p>Detect image filepaths with lightnet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</p>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the Lightnet documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.lightnet.detect_gid_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.lightnet.</span></span><span class="sig-name descname"><span class="pre">detect_gid_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/lightnet.html#detect_gid_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.lightnet.detect_gid_list" title="Permalink to this definition"></a></dt>
+<dd><p>Detect gid_list with lightnet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the Lightnet documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>wbia.IBEISController</em>) – image analysis api</p></li>
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><p>detector, config_filepath, weight_filepath, verbose</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p><em>tuple</em> – (gid, gpath, result_list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="wbia-algo-detect-orientation-module">
+<h2>wbia.algo.detect.orientation module<a class="headerlink" href="#wbia-algo-detect-orientation-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-wbia.algo.detect.randomforest">
+<span id="wbia-algo-detect-randomforest-module"></span><h2>wbia.algo.detect.randomforest module<a class="headerlink" href="#module-wbia.algo.detect.randomforest" title="Permalink to this headline"></a></h2>
+<p>Interface to pyrf random forest object detection.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.randomforest.detect">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.randomforest.</span></span><span class="sig-name descname"><span class="pre">detect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree_path_list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/randomforest.html#detect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.randomforest.detect" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need detection</p></li>
+<li><p><strong>tree_path_list</strong> (<em>list of str</em>) – the list of trees to load for detection</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.randomforest.detect_gid_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.randomforest.</span></span><span class="sig-name descname"><span class="pre">detect_gid_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree_path_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/randomforest.html#detect_gid_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.randomforest.detect_gid_list" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>tree_path_list</strong> (<em>list of str</em>) – the list of trees to load for detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p>results (list of dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.randomforest.detect_gid_list_with_species">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.randomforest.</span></span><span class="sig-name descname"><span class="pre">detect_gid_list_with_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/randomforest.html#detect_gid_list_with_species"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.randomforest.detect_gid_list_with_species" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>species</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the species that should be used to select the pre-trained
+random forest model</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iter</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.detect.randomforest –test-detect_gid_list_with_species</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.randomforest</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.randomforest</span> <span class="kn">import</span> <span class="n">_get_models</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">detect_gid_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">downsample</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.randomforest.detect_gpath_list_with_species">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.randomforest.</span></span><span class="sig-name descname"><span class="pre">detect_gpath_list_with_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/randomforest.html#detect_gpath_list_with_species"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.randomforest.detect_gpath_list_with_species" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need detection</p></li>
+<li><p><strong>species</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the species that should be used to select the pre-trained
+random forest model</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p>iter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.randomforest.train_gid_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.randomforest.</span></span><span class="sig-name descname"><span class="pre">train_gid_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trees_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">teardown</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/randomforest.html#train_gid_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.randomforest.train_gid_list" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>trees_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the path that the trees will be saved into (along
+with temporary training inventory folders that are deleted once
+training is finished)</p></li>
+<li><p><strong>species</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the species that should be used to assign to the newly
+trained trees</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.randomforest.train_gpath_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.randomforest.</span></span><span class="sig-name descname"><span class="pre">train_gpath_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_pos_cpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_neg_cpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trees_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/randomforest.html#train_gpath_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.randomforest.train_gpath_list" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_pos_cpath_list</strong> (<em>list of str</em>) – the list of positive image paths
+for training</p></li>
+<li><p><strong>train_neg_cpath_list</strong> (<em>list of str</em>) – the list of negative image paths
+for training</p></li>
+<li><p><strong>trees_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the path that the trees will be saved into (along
+with temporary training inventory folders that are deleted once
+training is finished)</p></li>
+<li><p><strong>species</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – the species that should be used to assign to
+the newly trained trees</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the PyRF documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wbia.algo.detect.rf">
+<span id="wbia-algo-detect-rf-module"></span><h2>wbia.algo.detect.rf module<a class="headerlink" href="#module-wbia.algo.detect.rf" title="Permalink to this headline"></a></h2>
+<p>Interface to Darknet object proposals.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.rf.classify">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.rf.</span></span><span class="sig-name descname"><span class="pre">classify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/rf.html#classify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.rf.classify" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>thumbail_list</strong> (<em>list of str</em>) – the list of image thumbnails that need classifying</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>iter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.rf.classify_helper">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.rf.</span></span><span class="sig-name descname"><span class="pre">classify_helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weight_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/rf.html#classify_helper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.rf.classify_helper" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-wbia.algo.detect.selectivesearch">
+<span id="wbia-algo-detect-selectivesearch-module"></span><h2>wbia.algo.detect.selectivesearch module<a class="headerlink" href="#module-wbia.algo.detect.selectivesearch" title="Permalink to this headline"></a></h2>
+<p>Interface to Selective Search object proposals.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.selectivesearch.detect">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.selectivesearch.</span></span><span class="sig-name descname"><span class="pre">detect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matlab_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'selective_search'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/selectivesearch.html#detect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.selectivesearch.detect" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</p>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the Selective Search documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.selectivesearch.detect_gid_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.selectivesearch.</span></span><span class="sig-name descname"><span class="pre">detect_gid_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/selectivesearch.html#detect_gid_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.selectivesearch.detect_gid_list" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the Selective Search documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>wbia.IBEISController</em>) – image analysis api</p></li>
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><p>detector, config_filepath, weights_filepath, verbose</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p><em>tuple</em> – (gid, gpath, result_list)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.detect.selectivesearch detect_gid_list –show</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.selectivesearch</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.core_images</span> <span class="kn">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;matlab_command&#39;</span><span class="p">:</span> <span class="s1">&#39;selective_search&#39;</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;matlab_command&#39;</span><span class="p">:</span> <span class="s1">&#39;selective_search_rcnn&#39;</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p>results (list of dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wbia.algo.detect.ssd">
+<span id="wbia-algo-detect-ssd-module"></span><h2>wbia.algo.detect.ssd module<a class="headerlink" href="#module-wbia.algo.detect.ssd" title="Permalink to this headline"></a></h2>
+<p>Interface to SSD object proposals.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.ssd.detect">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.ssd.</span></span><span class="sig-name descname"><span class="pre">detect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensitivity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/ssd.html#detect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.ssd.detect" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need proposal candidates</p>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the SSD documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.ssd.detect_gid_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.ssd.</span></span><span class="sig-name descname"><span class="pre">detect_gid_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/ssd.html#detect_gid_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.ssd.detect_gid_list" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the SSD documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>wbia.IBEISController</em>) – image analysis api</p></li>
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><p>detector, config_filepath, weights_filepath, verbose</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p><em>tuple</em> – (gid, gpath, result_list)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.detect.ssd detect_gid_list –show</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.ssd</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.core_images</span> <span class="kn">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result lens = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;result[0] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p>results (list of dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wbia.algo.detect.svm">
+<span id="wbia-algo-detect-svm-module"></span><h2>wbia.algo.detect.svm module<a class="headerlink" href="#module-wbia.algo.detect.svm" title="Permalink to this headline"></a></h2>
+<p>Interface to Darknet object proposals.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.svm.classify">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.svm.</span></span><span class="sig-name descname"><span class="pre">classify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/svm.html#classify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.svm.classify" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>thumbail_list</strong> (<em>list of str</em>) – the list of image thumbnails that need classifying</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>iter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.svm.classify_helper">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.svm.</span></span><span class="sig-name descname"><span class="pre">classify_helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weight_filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/svm.html#classify_helper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.svm.classify_helper" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-wbia.algo.detect.yolo">
+<span id="wbia-algo-detect-yolo-module"></span><h2>wbia.algo.detect.yolo module<a class="headerlink" href="#module-wbia.algo.detect.yolo" title="Permalink to this headline"></a></h2>
+<p>Interface to pydarknet yolo object detection.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.yolo.detect">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.yolo.</span></span><span class="sig-name descname"><span class="pre">detect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpath_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_filepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/yolo.html#detect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.yolo.detect" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gpath_list</strong> (<em>list of str</em>) – the list of image paths that need detection</p>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the PyDarknet documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iter</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.yolo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.core_images</span> <span class="kn">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;WS_ALL&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span><span class="o">.</span><span class="n">_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dpath</span> <span class="o">=</span> <span class="s1">&#39;/media/raid/work/WS_ALL/localizer_backup/&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">weights_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;detect.yolo.2.39000.weights&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;detect.yolo.2.cfg&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">LocalizerConfig</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">weights_filepath</span><span class="o">=</span><span class="n">weights_filepath</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">config_filepath</span><span class="o">=</span><span class="n">config_filepath</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;weights_filepath&#39;</span><span class="p">,</span> <span class="s1">&#39;config_filepath&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;thumbnail_cfg&#39;</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="s1">&#39;algo&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.yolo.detect_gid_list">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.yolo.</span></span><span class="sig-name descname"><span class="pre">detect_gid_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gid_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect/yolo.html#detect_gid_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.yolo.detect_gid_list" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>a flag to indicate if the original image
+sizes should be used; defaults to True</p>
+<p>True:  ibs.get_image_detectpaths() is used
+False: ibs.get_image_paths() is used</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p>Kwargs (optional): refer to the PyDarknet documentation for configuration settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ibs</strong> (<em>wbia.IBEISController</em>) – image analysis api</p></li>
+<li><p><strong>gid_list</strong> (<em>list of int</em>) – the list of IBEIS image_rowids that need detection</p></li>
+<li><p><strong>downsample</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – a flag to indicate if the original image
+sizes should be used; defaults to True</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><p>detector, config_filepath, weights_filepath, verbose</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p><em>tuple</em> – (gid, gpath, result_list)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>CommandLine:</dt><dd><p>python -m wbia.algo.detect.yolo detect_gid_list –show</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.algo.detect.yolo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wbia.core_images</span> <span class="kn">import</span> <span class="n">LocalizerConfig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;WS_ALL&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">images</span><span class="p">()</span><span class="o">.</span><span class="n">_rowids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">config</span> <span class="o">=</span> <span class="n">LocalizerConfig</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;weights_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;config_filepath&#39;</span><span class="p">:</span> <span class="s1">&#39;/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.cfg&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exec</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">config</span><span class="p">),</span> <span class="nb">globals</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#classes_fpath = &#39;/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.cfg.classes&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)</span> <span class="o">=</span> <span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;(gid, gpath, result_list) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">((</span><span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span><span class="p">)),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p>results (list of dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-wbia.algo.detect">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-wbia.algo.detect" title="Permalink to this headline"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="wbia.algo.detect.IMPORT_TUPLES">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.</span></span><span class="sig-name descname"><span class="pre">IMPORT_TUPLES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[('grabmodels',</span> <span class="pre">None),</span> <span class="pre">('randomforest',</span> <span class="pre">None),</span> <span class="pre">('yolo',</span> <span class="pre">None),</span> <span class="pre">('assigner',</span> <span class="pre">None)]</span></em><a class="headerlink" href="#wbia.algo.detect.IMPORT_TUPLES" title="Permalink to this definition"></a></dt>
+<dd><p>Regen Command:
+cd /Users/bluemellophone/code/wbia/wbia/algo/detect
+makeinit.py –modname=wbia.algo.detect</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.reassign_submodule_attributes">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.</span></span><span class="sig-name descname"><span class="pre">reassign_submodule_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect.html#reassign_submodule_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.reassign_submodule_attributes" title="Permalink to this definition"></a></dt>
+<dd><p>why reloading all the modules doesnt do this I don’t know</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.reload_subs">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.</span></span><span class="sig-name descname"><span class="pre">reload_subs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wbia/algo/detect.html#reload_subs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wbia.algo.detect.reload_subs" title="Permalink to this definition"></a></dt>
+<dd><p>Reloads wbia.algo.detect and submodules</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wbia.algo.detect.rrrr">
+<span class="sig-prename descclassname"><span class="pre">wbia.algo.detect.</span></span><span class="sig-name descname"><span class="pre">rrrr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#wbia.algo.detect.rrrr" title="Permalink to this definition"></a></dt>
+<dd><p>Reloads wbia.algo.detect and submodules</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wbia.algo.html" class="btn btn-neutral float-left" title="wbia.algo package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wbia.algo.detect.nms.html" class="btn btn-neutral float-right" title="wbia.algo.detect.nms package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

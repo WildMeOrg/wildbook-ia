@@ -1490,7 +1490,7 @@ class TestResult(ut.NiceRepr):
 
             python -m wbia TestResult.case_sample2:2 --db PZ_Master1
 
-        Example0:
+        Example:
             >>> # ENABLE_DOCTEST
             >>> # The same results is achievable with different filter config settings
             >>> from wbia.expt.test_result import *  # NOQA
@@ -1523,7 +1523,7 @@ class TestResult(ut.NiceRepr):
             >>> case_pos_list7 = testres.case_sample2(filt_cfg7, verbose=verbose)
             >>> print(case_pos_list7)
 
-        Example1:
+        Example:
             >>> # SCRIPT
             >>> from wbia.expt.test_result import *  # NOQA
             >>> from wbia.init import main_helpers
@@ -1537,7 +1537,7 @@ class TestResult(ut.NiceRepr):
             >>> selcted_tags = ut.take(all_tags, case_pos_list.T[0])
             >>> print('selcted_tags = %r' % (selcted_tags,))
 
-        Example1:
+        Example:
             >>> # DISABLE_DOCTEST
             >>> from wbia.expt.test_result import *  # NOQA
             >>> from wbia.init import main_helpers

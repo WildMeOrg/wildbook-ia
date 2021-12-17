@@ -2,7 +2,7 @@
 """
 Hotspotter pipeline module
 
-Module Notation and Concepts::
+Module Notation and Concepts:
     PREFIXES:
     qaid2_XXX - prefix mapping query chip index to
     qfx2_XXX  - prefix mapping query chip feature index to
@@ -17,7 +17,7 @@ Module Notation and Concepts::
      * fsv    - a score vector of a corresponding feature
      * valid  - a valid bit for a corresponding feature
 
-    PIPELINE_VARS::
+    PIPELINE_VARS:
     nns_list - maping from query chip index to nns
      * qfx2_idx   - ranked list of query feature indexes to database feature indexes
      * qfx2_dist - ranked list of query feature indexes to database feature indexes
@@ -161,7 +161,7 @@ def request_wbia_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         python    -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
         utprof.py -m wbia.algo.hots.pipeline --test-request_wbia_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> import wbia
@@ -1028,7 +1028,7 @@ def build_chipmatches(
         python -m wbia build_chipmatches:1 --show
         python -m wbia build_chipmatches:2 --show
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre(
@@ -1049,7 +1049,7 @@ def build_chipmatches(
         >>> cm_list[0].ishow_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> # Test to make sure filtering by feature weights works
@@ -1072,7 +1072,7 @@ def build_chipmatches(
         >>> cm_list[0].ishow_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre(
@@ -1143,7 +1143,7 @@ def get_sparse_matchinfo_nonagg(
 
         utprof.py -m wbia.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> verbose = True

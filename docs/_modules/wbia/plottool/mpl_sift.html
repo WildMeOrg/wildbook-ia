@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.plottool.mpl_sift &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../plottool.html">wbia.plottool</a> &raquo;</li>
+      <li>wbia.plottool.mpl_sift</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.plottool.mpl_sift</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">wbia.plottool</span> <span class="kn">import</span> <span class="n">color_funcs</span> <span class="k">as</span> <span class="n">color_fns</span>
+
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;[pt.mpl_sift]&#39;</span><span class="p">)</span>
+
+
+<span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># References: tauday.com</span>
+<span class="n">BLACK</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+<span class="n">RED</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="testdata_sifts"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_sift.testdata_sifts">[docs]</a><span class="k">def</span> <span class="nf">testdata_sifts</span><span class="p">():</span>
+    <span class="c1"># make random sifts</span>
+    <span class="n">randstate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sifts_float</span> <span class="o">=</span> <span class="n">randstate</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+    <span class="n">sifts_float</span> <span class="o">=</span> <span class="n">sifts_float</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">sifts_float</span><span class="p">)</span>
+    <span class="n">sifts_float</span><span class="p">[</span><span class="n">sifts_float</span> <span class="o">&gt;</span> <span class="mf">0.2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.2</span>
+    <span class="n">sifts_float</span> <span class="o">=</span> <span class="n">sifts_float</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">sifts_float</span><span class="p">)</span>
+    <span class="n">sifts</span> <span class="o">=</span> <span class="p">(</span><span class="n">sifts_float</span> <span class="o">*</span> <span class="mi">512</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sifts</span></div>
+
+
+<span class="c1"># Create a patch collection with attributes</span>
+<span class="k">def</span> <span class="nf">_circl_collection</span><span class="p">(</span><span class="n">patch_list</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
+    <span class="n">coll</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">PatchCollection</span><span class="p">(</span><span class="n">patch_list</span><span class="p">)</span>
+    <span class="n">coll</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+    <span class="n">coll</span><span class="o">.</span><span class="n">set_edgecolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="n">coll</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">coll</span>
+
+
+<div class="viewcode-block" id="get_sift_collection"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_sift.get_sift_collection">[docs]</a><span class="k">def</span> <span class="nf">get_sift_collection</span><span class="p">(</span>
+    <span class="n">sift</span><span class="p">,</span>
+    <span class="n">aff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">bin_color</span><span class="o">=</span><span class="n">BLACK</span><span class="p">,</span>
+    <span class="n">arm1_color</span><span class="o">=</span><span class="n">RED</span><span class="p">,</span>
+    <span class="n">arm2_color</span><span class="o">=</span><span class="n">BLACK</span><span class="p">,</span>
+    <span class="n">arm_alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">arm1_lw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">arm2_lw</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">stroke</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">circ_alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">fidelity</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="n">scaling</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a collection of SIFT matplotlib patches</span>
+
+<span class="sd">    get_sift_collection</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sift (?):</span>
+<span class="sd">        aff (None):</span>
+<span class="sd">        bin_color (ndarray):</span>
+<span class="sd">        arm1_color (ndarray):</span>
+<span class="sd">        arm2_color (ndarray):</span>
+<span class="sd">        arm_alpha (float):</span>
+<span class="sd">        arm1_lw (float):</span>
+<span class="sd">        arm2_lw (float):</span>
+<span class="sd">        circ_alpha (float):</span>
+<span class="sd">        fidelity (int): quantization factor</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: coll_tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.mpl_sift --test-get_sift_collection</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.mpl_sift import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; sift = testdata_sifts()[0]</span>
+<span class="sd">        &gt;&gt;&gt; aff = None</span>
+<span class="sd">        &gt;&gt;&gt; bin_color = np.array([ 0.,  0.,  0.,  1.])</span>
+<span class="sd">        &gt;&gt;&gt; arm1_color = np.array([ 1.,  0.,  0.,  1.])</span>
+<span class="sd">        &gt;&gt;&gt; arm2_color = np.array([ 0.,  0.,  0.,  1.])</span>
+<span class="sd">        &gt;&gt;&gt; arm_alpha = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; arm1_lw = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; arm2_lw = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; circ_alpha = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; coll_tup = get_sift_collection(sift, aff, bin_color, arm1_color,</span>
+<span class="sd">        &gt;&gt;&gt;                                arm2_color, arm_alpha, arm1_lw,</span>
+<span class="sd">        &gt;&gt;&gt;                                arm2_lw, circ_alpha)</span>
+<span class="sd">        &gt;&gt;&gt; print(coll_tup)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># global offset scale adjustments</span>
+    <span class="k">if</span> <span class="n">aff</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aff</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Affine2D</span><span class="p">()</span>
+    <span class="n">MULTI_COLORED_ARMS</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;multicolored_arms&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">_kwarm</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">_kwarm</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="n">head_width</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">length_includes_head</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">aff</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="p">)</span>
+    <span class="n">_kwcirc</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">transform</span><span class="o">=</span><span class="n">aff</span><span class="p">)</span>
+    <span class="n">DSCALE</span> <span class="o">=</span> <span class="mf">0.25</span>  <span class="c1"># Descriptor scale factor</span>
+    <span class="n">XYSCALE</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># Position scale factor</span>
+    <span class="n">XYOFFST</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.75</span>  <span class="c1"># Position offset</span>
+    <span class="n">NORI</span><span class="p">,</span> <span class="n">NX</span><span class="p">,</span> <span class="n">NY</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span>  <span class="c1"># SIFT BIN CONSTANTS</span>
+    <span class="n">NBINS</span> <span class="o">=</span> <span class="n">NX</span> <span class="o">*</span> <span class="n">NY</span>
+    <span class="n">discrete_ori</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">NORI</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">TAU</span> <span class="o">/</span> <span class="n">NORI</span><span class="p">)</span>
+
+    <span class="c1"># import utool</span>
+    <span class="c1"># utool.embed()</span>
+    <span class="c1"># Arm magnitude and orientations</span>
+    <span class="c1"># arm_mag = sift / 255.0</span>
+    <span class="c1"># If given the correct fidelity, each arm will have a max magnitude of 1.0</span>
+    <span class="c1"># Because the diameter of each circle is 1.0</span>
+    <span class="n">arm_mag</span> <span class="o">=</span> <span class="n">sift</span> <span class="o">/</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">fidelity</span><span class="p">))</span>
+    <span class="c1"># arm_mag = sift / 512.0  # technically correct</span>
+    <span class="c1"># arm_mag = sift / 256.0  # but use this instead as it is max bin</span>
+
+    <span class="n">arm_ori</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">discrete_ori</span><span class="p">,</span> <span class="p">(</span><span class="n">NBINS</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">scaling</span> <span class="ow">and</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="c1"># Use entropy as a scaling factor to more clearly visualize differences</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">sift</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sift</span><span class="p">)</span>
+        <span class="n">maximum_entropy</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sift</span><span class="p">))</span>
+        <span class="n">entropy</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        <span class="c1"># Alpha is 1 when entropy is maximum</span>
+        <span class="c1"># When entropy is maximum, we want to scale things up a bit</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">entropy</span> <span class="o">/</span> <span class="n">maximum_entropy</span>
+
+        <span class="n">max_</span> <span class="o">=</span> <span class="n">arm_mag</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="c1"># Always scale up, but no more than max.</span>
+        <span class="n">pt1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># max_</span>
+        <span class="n">pt2</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># 1</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="p">(</span><span class="n">pt2</span> <span class="o">*</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">pt1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">))</span>
+        <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">denom</span>
+        <span class="n">arm_mag</span> <span class="o">=</span> <span class="n">arm_mag</span> <span class="o">*</span> <span class="n">scale_factor</span>
+    <span class="c1"># arm_mag *= 4</span>
+
+    <span class="n">ori_dxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">arm_ori</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">arm_ori</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]])</span>
+
+    <span class="c1"># Arm orientation in dxdy format</span>
+    <span class="c1"># arm_dx = np.cos(arm_ori) * arm_mag</span>
+    <span class="c1"># arm_dy = np.sin(arm_ori) * arm_mag</span>
+    <span class="c1"># arm_dxy = np.hstack([arm_dx[:, None], arm_dy[:, None]])</span>
+    <span class="c1"># assert np.all(np.isclose(np.sqrt(arm_dy ** 2 + arm_dx ** 2), arm_mag))</span>
+    <span class="c1"># np.linalg.norm(arm_dxy, axis=1).max()</span>
+
+    <span class="c1"># Arm locations and dxdy index</span>
+    <span class="n">yxt_gen</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">NY</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">NX</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">NORI</span><span class="p">))</span>
+    <span class="c1"># Circle x,y locations</span>
+    <span class="n">yx_gen</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">NY</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">NX</span><span class="p">))</span>
+    <span class="c1"># Draw 8 directional arms in each of the 4x4 grid cells</span>
+
+    <span class="c1"># MOVETO = mpl.path.Path.MOVETO</span>
+    <span class="c1"># LINETO = mpl.path.Path.LINETO</span>
+    <span class="c1"># STOP = mpl.path.Path.STOP</span>
+
+    <span class="n">arm_patches</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">yxt_gen</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">NX</span> <span class="o">*</span> <span class="n">NORI</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">NORI</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="o">=</span> <span class="n">ori_dxy</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">mag</span> <span class="o">=</span> <span class="n">arm_mag</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="c1"># (mdx, mdy) = arm_dxy[index]</span>
+        <span class="n">arm_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">XYSCALE</span><span class="p">)</span> <span class="o">+</span> <span class="n">XYOFFST</span>  <span class="c1"># MULTIPLY BY -1 to invert X axis</span>
+        <span class="n">arm_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">XYSCALE</span><span class="p">)</span> <span class="o">+</span> <span class="n">XYOFFST</span>
+        <span class="n">arm_dy</span> <span class="o">=</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">mag</span> <span class="o">*</span> <span class="n">DSCALE</span>
+        <span class="n">arm_dx</span> <span class="o">=</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">mag</span> <span class="o">*</span> <span class="n">DSCALE</span>
+
+        <span class="c1"># Move arms a little bit away from the center</span>
+        <span class="n">nudge</span> <span class="o">=</span> <span class="mf">0.05</span>
+        <span class="n">arm_x</span> <span class="o">=</span> <span class="n">arm_x</span> <span class="o">+</span> <span class="n">dx</span> <span class="o">*</span> <span class="p">(</span><span class="n">nudge</span> <span class="o">*</span> <span class="n">DSCALE</span><span class="p">)</span>
+        <span class="n">arm_y</span> <span class="o">=</span> <span class="n">arm_y</span> <span class="o">+</span> <span class="n">dy</span> <span class="o">*</span> <span class="p">(</span><span class="n">nudge</span> <span class="o">*</span> <span class="n">DSCALE</span><span class="p">)</span>
+        <span class="n">arm_dx</span> <span class="o">=</span> <span class="n">arm_dx</span> <span class="o">+</span> <span class="n">dx</span> <span class="o">*</span> <span class="p">(</span><span class="n">nudge</span> <span class="o">*</span> <span class="n">DSCALE</span><span class="p">)</span>
+        <span class="n">arm_dy</span> <span class="o">=</span> <span class="n">arm_dy</span> <span class="o">+</span> <span class="n">dy</span> <span class="o">*</span> <span class="p">(</span><span class="n">nudge</span> <span class="o">*</span> <span class="n">DSCALE</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">arm_x</span><span class="p">,</span> <span class="n">arm_y</span><span class="p">,</span> <span class="n">arm_dx</span><span class="p">,</span> <span class="n">arm_dy</span><span class="p">]</span>
+            <span class="n">arm_patch</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">FancyArrow</span><span class="p">(</span><span class="o">*</span><span class="n">_args</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwarm</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">arm_x2</span> <span class="o">=</span> <span class="n">arm_x</span> <span class="o">+</span> <span class="n">arm_dx</span>
+            <span class="n">arm_y2</span> <span class="o">=</span> <span class="n">arm_y</span> <span class="o">+</span> <span class="n">arm_dy</span>
+            <span class="n">pt1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">arm_x</span><span class="p">,</span> <span class="n">arm_y</span><span class="p">])</span>
+            <span class="n">pt2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">arm_x2</span><span class="p">,</span> <span class="n">arm_y2</span><span class="p">])</span>
+            <span class="c1"># Hack a small eps rectangle to make the ends of the line also have</span>
+            <span class="c1"># a stroke</span>
+            <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-6</span>
+            <span class="n">verts</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">,</span> <span class="n">pt2</span> <span class="o">+</span> <span class="n">eps</span><span class="p">,</span> <span class="n">pt2</span> <span class="o">-</span> <span class="n">eps</span><span class="p">]</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">verts</span><span class="p">,</span> <span class="n">closed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">arm_patch</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">PathPatch</span><span class="p">(</span>
+                <span class="n">path</span><span class="p">,</span>
+                <span class="c1"># joinstyle=&#39;bevel&#39;,</span>
+                <span class="c1"># joinstyle=&#39;round&#39;,</span>
+                <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+                <span class="n">transform</span><span class="o">=</span><span class="n">aff</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">arm_patches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arm_patch</span><span class="p">)</span>
+
+    <span class="c1"># Draw circles around each of the 4x4 grid cells</span>
+    <span class="n">circle_patches</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">yx_gen</span><span class="p">:</span>
+        <span class="n">circ_xy</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">XYSCALE</span> <span class="o">+</span> <span class="n">XYOFFST</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="n">XYSCALE</span> <span class="o">+</span> <span class="n">XYOFFST</span><span class="p">)</span>
+        <span class="n">circ_radius</span> <span class="o">=</span> <span class="n">DSCALE</span>
+        <span class="n">patch</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">Circle</span><span class="p">(</span><span class="n">circ_xy</span><span class="p">,</span> <span class="n">circ_radius</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwcirc</span><span class="p">)</span>
+        <span class="n">circle_patches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span>
+
+    <span class="n">circ_coll</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">PatchCollection</span><span class="p">(</span><span class="n">circle_patches</span><span class="p">)</span>
+    <span class="n">circ_coll</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="n">circ_alpha</span><span class="p">)</span>
+    <span class="n">circ_coll</span><span class="o">.</span><span class="n">set_edgecolor</span><span class="p">(</span><span class="n">bin_color</span><span class="p">)</span>
+    <span class="n">circ_coll</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+
+    <span class="c1"># arm2_coll = _arm_collection(arm_patches, arm2_color, arm_alpha, arm2_lw)</span>
+
+    <span class="c1"># Add stroke instead of another arm</span>
+    <span class="n">path_effects</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">ENABLE_PATH_EFFECTS</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">ENABLE_PATH_EFFECTS</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">patheffects</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;stroke = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stroke</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">stroke</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">path_effects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">patheffects</span><span class="o">.</span><span class="n">withStroke</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="n">arm1_lw</span> <span class="o">+</span> <span class="n">stroke</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">path_effects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">patheffects</span><span class="o">.</span><span class="n">Normal</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">MULTI_COLORED_ARMS</span><span class="p">:</span>
+        <span class="c1"># Hack in same colorscheme for arms as the sift bars</span>
+        <span class="n">ori_colors</span> <span class="o">=</span> <span class="n">color_fns</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">arm_collections</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">mpl</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">PatchCollection</span><span class="p">(</span><span class="n">patches</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">patches</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">arm_patches</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">arm_collections</span><span class="p">,</span> <span class="n">ori_colors</span><span class="p">):</span>
+            <span class="n">col</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Just use a single color for all the arms</span>
+        <span class="n">arm1_coll</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">PatchCollection</span><span class="p">(</span><span class="n">arm_patches</span><span class="p">)</span>
+        <span class="n">arm1_coll</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">arm1_color</span><span class="p">)</span>
+        <span class="n">arm_collections</span> <span class="o">=</span> <span class="p">[</span><span class="n">arm1_coll</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">arm_collections</span><span class="p">:</span>
+        <span class="n">col</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="n">arm_alpha</span><span class="p">)</span>
+        <span class="n">col</span><span class="o">.</span><span class="n">set_path_effects</span><span class="p">(</span><span class="n">path_effects</span><span class="p">)</span>
+        <span class="n">col</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="n">arm1_lw</span><span class="p">)</span>
+
+    <span class="n">coll_tup</span> <span class="o">=</span> <span class="p">[</span><span class="n">circ_coll</span><span class="p">]</span> <span class="o">+</span> <span class="n">arm_collections</span>
+    <span class="k">return</span> <span class="n">coll_tup</span></div>
+
+
+<div class="viewcode-block" id="draw_sifts"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_sift.draw_sifts">[docs]</a><span class="k">def</span> <span class="nf">draw_sifts</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">sifts</span><span class="p">,</span> <span class="n">invVR_aff2Ds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets sift patch collections, transforms them and then draws them.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.plottool.mpl_sift --test-draw_sifts --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.plottool.mpl_sift import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.figure(1)</span>
+<span class="sd">        &gt;&gt;&gt; ax = pt.gca()</span>
+<span class="sd">        &gt;&gt;&gt; ax.set_xlim(-1.1, 1.1)</span>
+<span class="sd">        &gt;&gt;&gt; ax.set_ylim(-1.1, 1.1)</span>
+<span class="sd">        &gt;&gt;&gt; sifts = testdata_sifts()</span>
+<span class="sd">        &gt;&gt;&gt; sifts[:, 0:8] = 0</span>
+<span class="sd">        &gt;&gt;&gt; invVR_aff2Ds = None</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = dict(multicolored_arms=False)</span>
+<span class="sd">        &gt;&gt;&gt; kwargs[&#39;arm1_lw&#39;] = 3</span>
+<span class="sd">        &gt;&gt;&gt; kwargs[&#39;stroke&#39;] = 5</span>
+<span class="sd">        &gt;&gt;&gt; result = draw_sifts(ax, sifts, invVR_aff2Ds, **kwargs)</span>
+<span class="sd">        &gt;&gt;&gt; ax.set_aspect(&#39;equal&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">invVR_aff2Ds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">invVR_aff2Ds</span> <span class="o">=</span> <span class="p">[</span><span class="n">mpl</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Affine2D</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sifts</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">invVR_aff2Ds</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+        <span class="n">invVR_aff2Ds</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">aff_</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aff_</span><span class="p">,</span> <span class="n">mpl</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Affine2D</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">mpl</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Affine2D</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="n">aff_</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">aff_</span> <span class="ow">in</span> <span class="n">invVR_aff2Ds</span>
+        <span class="p">]</span>
+    <span class="n">colltup_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">get_sift_collection</span><span class="p">(</span><span class="n">sift</span><span class="p">,</span> <span class="n">aff</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">sift</span><span class="p">,</span> <span class="n">aff</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sifts</span><span class="p">,</span> <span class="n">invVR_aff2Ds</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">invert_xaxis</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">coll_tup</span> <span class="ow">in</span> <span class="n">colltup_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">coll</span> <span class="ow">in</span> <span class="n">coll_tup</span><span class="p">:</span>
+            <span class="n">coll</span><span class="o">.</span><span class="n">set_transform</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">transData</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">coll_tup</span> <span class="ow">in</span> <span class="n">colltup_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">coll</span> <span class="ow">in</span> <span class="n">coll_tup</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">coll</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">invert_xaxis</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="draw_sift_on_patch"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_sift.draw_sift_on_patch">[docs]</a><span class="k">def</span> <span class="nf">draw_sift_on_patch</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">sift</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">half_size</span> <span class="o">=</span> <span class="n">patch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">invVR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">half_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">half_size</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">half_size</span><span class="p">,</span> <span class="n">half_size</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="n">invVR_aff2Ds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">invVR</span><span class="p">])</span>
+    <span class="n">sifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sift</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">draw_sifts</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">sifts</span><span class="p">,</span> <span class="n">invVR_aff2Ds</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="render_sift_on_patch"><a class="viewcode-back" href="../../../wbia.plottool.html#wbia.plottool.mpl_sift.render_sift_on_patch">[docs]</a><span class="k">def</span> <span class="nf">render_sift_on_patch</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">sift</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+    <span class="k">with</span> <span class="n">pt</span><span class="o">.</span><span class="n">RenderingContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">render</span><span class="p">:</span>
+        <span class="n">draw_sift_on_patch</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">sift</span><span class="p">)</span>
+    <span class="n">rendered</span> <span class="o">=</span> <span class="n">render</span><span class="o">.</span><span class="n">image</span>
+    <span class="k">return</span> <span class="n">rendered</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -76,7 +76,7 @@ def new_wbia_query_request(
         python -m wbia.algo.hots.query_request --test-new_wbia_query_request:0
         python -m wbia.algo.hots.query_request --test-new_wbia_query_request:1
 
-    Example0:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.query_request import *  # NOQA
         >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
@@ -91,7 +91,7 @@ def new_wbia_query_request(
         >>> print(result)
         PZ_MTEST_DPCC_UUIDS-a5-n2-vpkyggtpzbqbecuq
 
-    Example1:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.query_request import *  # NOQA
         >>> ibs, qaid_list, daid_list = testdata_newqreq('NAUT_test')
@@ -108,7 +108,7 @@ def new_wbia_query_request(
         >>> print(result)
         NAUT_test_DPCC_UUIDS-a5-n3-rtuyggvzpczvmjcw
 
-    Example2:
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.query_request import *  # NOQA
         >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')

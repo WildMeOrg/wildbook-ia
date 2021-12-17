@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.smk.inverted_index &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../smk.html">wbia.algo.smk</a> &raquo;</li>
+      <li>wbia.algo.smk.inverted_index</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.smk.inverted_index</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">wbia</span> <span class="kn">import</span> <span class="n">dtool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="k">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">wbia.algo.smk</span> <span class="kn">import</span> <span class="n">smk_funcs</span>
+<span class="kn">from</span> <span class="nn">wbia.control.controller_inject</span> <span class="kn">import</span> <span class="n">register_preprocs</span>
+
+<span class="p">(</span><span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">derived_attribute</span> <span class="o">=</span> <span class="n">register_preprocs</span><span class="p">[</span><span class="s1">&#39;annot&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="InvertedIndexConfig"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedIndexConfig">[docs]</a><span class="k">class</span> <span class="nc">InvertedIndexConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;nAssign&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="c1"># ut.ParamInfo(&#39;int_rvec&#39;, False, hideif=False),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;int_rvec&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;massign_equal,&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;massign_alpha,&#39;</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">),</span>
+        <span class="c1"># ut.ParamInfo(&#39;massign_sigma,&#39;, 80.0, hideif=lambda cfg: cfg[&#39;massign_equal&#39;]),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;inva_version&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="c1">#</span>
+        <span class="c1"># massign_sigma=80.0,</span>
+        <span class="c1"># massign_equal_weights=False</span>
+    <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="InvertedAnnotsExtras"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnotsExtras">[docs]</a><span class="k">class</span> <span class="nc">InvertedAnnotsExtras</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="InvertedAnnotsExtras.get_size_info"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnotsExtras.get_size_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_size_info</span><span class="p">(</span><span class="n">inva</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">sys</span>
+
+        <span class="k">def</span> <span class="nf">get_homog_list_nbytes_scalar</span><span class="p">(</span><span class="n">list_scalar</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">list_scalar</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_scalar</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">list_scalar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">item_nbytes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_object_nbytes</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">item_nbytes</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_scalar</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">get_homog_list_nbytes_nested</span><span class="p">(</span><span class="n">list_nested</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">list_nested</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_nested</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">list_nested</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                    <span class="n">nbytes</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">list_nested</span><span class="p">)</span>
+                    <span class="c1"># item_nbytes = sum(v.nbytes for v in list_nested)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">nest_nbytes</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_nested</span><span class="p">)</span>
+                    <span class="n">totals</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">list_nested</span><span class="p">))</span>
+                    <span class="n">item_nbytes</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">totals</span>
+                    <span class="n">nbytes</span> <span class="o">=</span> <span class="n">nest_nbytes</span> <span class="o">+</span> <span class="n">item_nbytes</span>
+                <span class="k">return</span> <span class="n">nbytes</span>
+
+        <span class="k">def</span> <span class="nf">get_homog_dict_nbytes_nested</span><span class="p">(</span><span class="n">dict_nested</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dict_nested</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="n">wxkeybytes</span> <span class="o">=</span> <span class="n">get_homog_list_nbytes_scalar</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">dict_nested</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="n">wxvalbytes</span> <span class="o">=</span> <span class="n">get_homog_list_nbytes_nested</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">dict_nested</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+            <span class="n">wxbytes</span> <span class="o">=</span> <span class="n">wxkeybytes</span> <span class="o">+</span> <span class="n">wxvalbytes</span> <span class="o">+</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">dict_nested</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">wxbytes</span>
+
+        <span class="k">def</span> <span class="nf">get_homog_dict_nbytes_scalar</span><span class="p">(</span><span class="n">dict_scalar</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dict_scalar</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="n">wxkeybytes</span> <span class="o">=</span> <span class="n">get_homog_list_nbytes_scalar</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">dict_scalar</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="n">wxvalbytes</span> <span class="o">=</span> <span class="n">get_homog_list_nbytes_scalar</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">dict_scalar</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+            <span class="n">wxbytes</span> <span class="o">=</span> <span class="n">wxkeybytes</span> <span class="o">+</span> <span class="n">wxvalbytes</span> <span class="o">+</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">dict_scalar</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">wxbytes</span>
+
+        <span class="n">sizes</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;aids&#39;</span><span class="p">:</span> <span class="n">get_homog_list_nbytes_scalar</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">),</span>
+            <span class="s1">&#39;wx_lists&#39;</span><span class="p">:</span> <span class="n">get_homog_list_nbytes_nested</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span><span class="p">),</span>
+            <span class="s1">&#39;fxs_lists&#39;</span><span class="p">:</span> <span class="n">get_homog_list_nbytes_nested</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">fxs_lists</span><span class="p">),</span>
+            <span class="s1">&#39;maws_lists&#39;</span><span class="p">:</span> <span class="n">get_homog_list_nbytes_nested</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">maws_lists</span><span class="p">),</span>
+            <span class="s1">&#39;agg_rvecs&#39;</span><span class="p">:</span> <span class="n">get_homog_list_nbytes_nested</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">agg_rvecs</span><span class="p">),</span>
+            <span class="s1">&#39;agg_flags&#39;</span><span class="p">:</span> <span class="n">get_homog_list_nbytes_nested</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">agg_flags</span><span class="p">),</span>
+            <span class="s1">&#39;aid_to_idx&#39;</span><span class="p">:</span> <span class="n">get_homog_dict_nbytes_scalar</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aid_to_idx</span><span class="p">),</span>
+            <span class="s1">&#39;gamma_list&#39;</span><span class="p">:</span> <span class="n">get_homog_list_nbytes_scalar</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">gamma_list</span><span class="p">),</span>
+            <span class="s1">&#39;wx_to_aids&#39;</span><span class="p">:</span> <span class="n">get_homog_dict_nbytes_nested</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_to_aids</span><span class="p">),</span>
+            <span class="s1">&#39;wx_to_weight&#39;</span><span class="p">:</span> <span class="n">get_homog_dict_nbytes_scalar</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_to_weight</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">sizes</span></div>
+
+<div class="viewcode-block" id="InvertedAnnotsExtras.print_size_info"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnotsExtras.print_size_info">[docs]</a>    <span class="k">def</span> <span class="nf">print_size_info</span><span class="p">(</span><span class="n">inva</span><span class="p">):</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">get_size_info</span><span class="p">()</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sort_dict</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="s1">&#39;vals&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">identity</span><span class="p">)</span>
+        <span class="n">total_nbytes</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sizes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">,</span> <span class="n">sizes</span><span class="p">),</span> <span class="n">strvals</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="s1">&#39;:&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;total_nbytes = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">total_nbytes</span><span class="p">),))</span></div>
+
+<div class="viewcode-block" id="InvertedAnnotsExtras.get_nbytes"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnotsExtras.get_nbytes">[docs]</a>    <span class="k">def</span> <span class="nf">get_nbytes</span><span class="p">(</span><span class="n">inva</span><span class="p">):</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">get_size_info</span><span class="p">()</span>
+        <span class="n">total_nbytes</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sizes</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">total_nbytes</span></div>
+
+<div class="viewcode-block" id="InvertedAnnotsExtras.get_word_patch"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnotsExtras.get_word_patch">[docs]</a>    <span class="k">def</span> <span class="nf">get_word_patch</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">ibs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="s1">&#39;word_patches&#39;</span><span class="p">):</span>
+            <span class="n">inva</span><span class="o">.</span><span class="n">_word_patches</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">wx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">inva</span><span class="o">.</span><span class="n">_word_patches</span><span class="p">:</span>
+            <span class="n">assigned_patches</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">get_patches</span><span class="p">(</span><span class="n">wx</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="c1"># logger.info(&#39;assigned_patches = %r&#39; % (len(assigned_patches),))</span>
+            <span class="n">average_patch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">assigned_patches</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">average_patch</span> <span class="o">=</span> <span class="n">average_patch</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+            <span class="n">inva</span><span class="o">.</span><span class="n">_word_patches</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="o">=</span> <span class="n">average_patch</span>
+        <span class="k">return</span> <span class="n">inva</span><span class="o">.</span><span class="n">_word_patches</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="InvertedAnnotsExtras.get_patches"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnotsExtras.get_patches">[docs]</a>    <span class="k">def</span> <span class="nf">get_patches</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the patches assigned to a particular word in this stack</span>
+
+<span class="sd">        &gt;&gt;&gt; inva.wx_to_aids = inva.compute_inverted_list()</span>
+<span class="sd">        &gt;&gt;&gt; verbose=True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">config</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">wx_to_aids</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+        <span class="n">X_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">inva</span><span class="o">.</span><span class="n">get_annot</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+        <span class="n">fxs_groups</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">fxs</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">X_list</span><span class="p">]</span>
+        <span class="n">all_kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">get_feat_kpts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">sub_kpts_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">all_kpts_list</span><span class="p">,</span> <span class="n">fxs_groups</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">total_patches</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">fxs_groups</span><span class="p">))</span>
+
+        <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">get_chips_img</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="c1"># convert to approprate colorspace</span>
+        <span class="c1"># if colorspace is not None:</span>
+        <span class="c1">#    chip_list = vt.convert_image_list_colorspace(chip_list, colorspace)</span>
+        <span class="c1"># ut.print_object_size(chip_list, &#39;chip_list&#39;)</span>
+
+        <span class="n">patch_size</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_patches</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;warping patches&#39;</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">_patchiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">vt</span><span class="o">.</span><span class="n">get_warped_patches</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="n">patch_size</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c1"># vt.get_warped_patches(chip, kpts, patch_size=patch_size, use_cpp=True)[0]</span>
+                <span class="k">for</span> <span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span>
+                    <span class="nb">zip</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">sub_kpts_list</span><span class="p">),</span> <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">word_patches</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">fromiter_nd</span><span class="p">(</span><span class="n">_patchiter</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">word_patches</span></div>
+
+<div class="viewcode-block" id="InvertedAnnotsExtras.render_inverted_vocab_word"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnotsExtras.render_inverted_vocab_word">[docs]</a>    <span class="k">def</span> <span class="nf">render_inverted_vocab_word</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a visualization of a visual word. This includes the average patch,</span>
+<span class="sd">        the SIFT-like representation of the centroid, and some of the patches that</span>
+<span class="sd">        were assigned to it.</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.smk.inverted_index render_inverted_vocab_word --show</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.smk.inverted_index import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; qreq_, inva = testdata_inva()</span>
+<span class="sd">            &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">            &gt;&gt;&gt; wx_list = list(inva.wx_to_aids.keys())</span>
+<span class="sd">            &gt;&gt;&gt; wx = wx_list[0]</span>
+<span class="sd">            &gt;&gt;&gt; ut.qtensure()</span>
+<span class="sd">            &gt;&gt;&gt; fnum = 2</span>
+<span class="sd">            &gt;&gt;&gt; fnum = pt.ensure_fnum(fnum)</span>
+<span class="sd">            &gt;&gt;&gt; # Interactive visualization of many words</span>
+<span class="sd">            &gt;&gt;&gt; for wx in ut.InteractiveIter(wx_list):</span>
+<span class="sd">            &gt;&gt;&gt;     word_img = inva.render_inverted_vocab_word(wx, ibs, fnum)</span>
+<span class="sd">            &gt;&gt;&gt;     pt.imshow(word_img, fnum=fnum, title=&#39;Word %r/%r&#39; % (wx, &#39;?&#39;))</span>
+<span class="sd">            &gt;&gt;&gt;     pt.update()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="c1"># Create the contributing patch image</span>
+        <span class="n">word_patches</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">get_patches</span><span class="p">(</span><span class="n">wx</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+        <span class="n">word_patches_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">strided_sample</span><span class="p">(</span><span class="n">word_patches</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+        <span class="n">stacked_patches</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_square_images</span><span class="p">(</span><span class="n">word_patches_</span><span class="p">)</span>
+
+        <span class="c1"># Create the average word image</span>
+        <span class="n">vocab</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">([</span><span class="n">inva</span><span class="o">.</span><span class="n">vocab_rowid</span><span class="p">],</span> <span class="s1">&#39;words&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+
+        <span class="n">average_patch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">word_patches</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># vecs = inva.get_vecs(wx)</span>
+        <span class="c1"># assert np.allclose(word, vecs.mean(axis=0))</span>
+        <span class="n">with_sift</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">with_sift</span><span class="p">:</span>
+            <span class="n">patch_img</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">render_sift_on_patch</span><span class="p">(</span><span class="n">average_patch</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">patch_img</span> <span class="o">=</span> <span class="n">average_patch</span>
+
+        <span class="c1"># Stack them together</span>
+        <span class="n">solidbar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">patch_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">patch_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">patch_img</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="p">)</span>
+        <span class="n">border_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>  <span class="c1"># bgr, darkblue</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">solidbar</span><span class="p">):</span>
+            <span class="n">solidbar</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">border_color</span><span class="p">)</span> <span class="o">/</span> <span class="mi">255</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">solidbar</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">border_color</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">patch_img2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">inverted_sift_patch</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+        <span class="c1"># Fix types</span>
+        <span class="n">patch_img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rectify_to_uint8</span><span class="p">(</span><span class="n">patch_img</span><span class="p">)</span>
+        <span class="n">patch_img2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rectify_to_uint8</span><span class="p">(</span><span class="n">patch_img2</span><span class="p">)</span>
+        <span class="n">solidbar</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rectify_to_uint8</span><span class="p">(</span><span class="n">solidbar</span><span class="p">)</span>
+        <span class="n">stacked_patches</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rectify_to_uint8</span><span class="p">(</span><span class="n">stacked_patches</span><span class="p">)</span>
+        <span class="c1"># Stack everything together</span>
+        <span class="n">patch_img2</span><span class="p">,</span> <span class="n">patch_img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">make_channels_comparable</span><span class="p">(</span><span class="n">patch_img2</span><span class="p">,</span> <span class="n">patch_img</span><span class="p">)</span>
+        <span class="n">img_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">patch_img</span><span class="p">,</span> <span class="n">solidbar</span><span class="p">,</span> <span class="n">patch_img2</span><span class="p">,</span> <span class="n">solidbar</span><span class="p">,</span> <span class="n">stacked_patches</span><span class="p">]</span>
+        <span class="n">word_img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_image_list</span><span class="p">(</span><span class="n">img_list</span><span class="p">,</span> <span class="n">vert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">modifysize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">word_img</span></div>
+
+<div class="viewcode-block" id="InvertedAnnotsExtras.render_inverted_vocab"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnotsExtras.render_inverted_vocab">[docs]</a>    <span class="k">def</span> <span class="nf">render_inverted_vocab</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">use_data</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Renders the average patch of each word.</span>
+<span class="sd">        This is a visualization of the entire vocabulary.</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m wbia.algo.smk.inverted_index render_inverted_vocab --show</span>
+<span class="sd">            python -m wbia.algo.smk.inverted_index render_inverted_vocab --show --use-data</span>
+<span class="sd">            python -m wbia.algo.smk.inverted_index render_inverted_vocab --show --debug-depc</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.smk.inverted_index import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; qreq_, inva = testdata_inva()</span>
+<span class="sd">            &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">            &gt;&gt;&gt; all_words = inva.render_inverted_vocab(ibs)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; import wbia.plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; pt.qt4ensure()</span>
+<span class="sd">            &gt;&gt;&gt; pt.imshow(all_words)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">wbia.plottool</span> <span class="k">as</span> <span class="nn">pt</span>
+
+        <span class="c1"># Get words with the most assignments</span>
+        <span class="n">vocab</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">([</span><span class="n">inva</span><span class="o">.</span><span class="n">vocab_rowid</span><span class="p">],</span> <span class="s1">&#39;words&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">wx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">strided_sample</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_list</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+
+        <span class="n">word_patch_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">wx_list</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;building patches&#39;</span><span class="p">):</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+            <span class="n">word_patch</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">get_word_patch</span><span class="p">(</span><span class="n">wx</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+            <span class="n">word_patch</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">render_sift_on_patch</span><span class="p">(</span><span class="n">word_patch</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+            <span class="n">word_patch_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word_patch</span><span class="p">)</span>
+
+        <span class="n">all_words</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_square_images</span><span class="p">(</span><span class="n">word_patch_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">all_words</span></div></div>
+
+
+<div class="viewcode-block" id="InvertedAnnots"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnots">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">InvertedAnnots</span><span class="p">(</span><span class="n">InvertedAnnotsExtras</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.smk.inverted_index InvertedAnnots --show</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.inverted_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;Oxford&#39;, a=&#39;oxford&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                              p=&#39;default:proot=smk,nAssign=1,num_words=64000&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; config = qreq_.qparams</span>
+<span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; depc = qreq_.ibs.depc</span>
+<span class="sd">        &gt;&gt;&gt; aids = qreq_.daids</span>
+<span class="sd">        &gt;&gt;&gt; aids = qreq_.qaids</span>
+<span class="sd">        &gt;&gt;&gt; input_tuple = (aids, [qreq_.daids])</span>
+<span class="sd">        &gt;&gt;&gt; inva = ut.DynStruct()</span>
+<span class="sd">        &gt;&gt;&gt; inva = InvertedAnnots(aids, qreq_)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, inva = testdata_inva()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">inva</span><span class="p">):</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">aids</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">fxs_lists</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">agg_rvecs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">agg_flags</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">aid_to_idx</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">gamma_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">wx_to_weight</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">wx_to_aids</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">int_rvec</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">vocab_rowid</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wx_list</span><span class="p">(</span><span class="n">inva</span><span class="p">):</span>
+        <span class="n">wx</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flat_unique</span><span class="p">(</span><span class="o">*</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">wx</span>
+
+    <span class="c1"># @classmethod</span>
+    <span class="c1"># def from_qreq(cls, aids, qreq_, isdata=False):</span>
+    <span class="c1">#     logger.info(&#39;Loading up inverted assigments&#39;)</span>
+    <span class="c1">#     depc = qreq_.ibs.depc</span>
+    <span class="c1">#     vocab_aids = qreq_.daids</span>
+    <span class="c1">#     config = qreq_.qparams</span>
+    <span class="c1">#     inva = cls.from_depc(depc, aids, vocab_aids, config)</span>
+    <span class="c1">#     return inva</span>
+
+<div class="viewcode-block" id="InvertedAnnots.from_depc"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnots.from_depc">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_depc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">vocab_aids</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="n">inva</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">vocab_rowid</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span><span class="s1">&#39;vocab&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">vocab_aids</span><span class="p">,),</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">vocab_rowid</span> <span class="o">=</span> <span class="n">vocab_rowid</span>
+        <span class="n">tablename</span> <span class="o">=</span> <span class="s1">&#39;inverted_agg_assign&#39;</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">depc</span><span class="p">[</span><span class="n">tablename</span><span class="p">]</span>
+        <span class="n">input_tuple</span> <span class="o">=</span> <span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="p">[</span><span class="n">vocab_rowid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
+        <span class="n">tbl_rowids</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span>
+            <span class="n">tablename</span><span class="p">,</span> <span class="n">input_tuple</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">_hack_rootmost</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">_debug</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="c1"># input_tuple = (aids, [vocab_aids])</span>
+        <span class="c1"># tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reading data&#39;</span><span class="p">)</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wx_list_</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">wx_list_</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">,</span> <span class="s1">&#39;wx_list&#39;</span><span class="p">,</span> <span class="n">showprog</span><span class="o">=</span><span class="s1">&#39;load wxs&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">fxs_lists</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">)</span> <span class="k">for</span> <span class="n">fxs</span> <span class="ow">in</span> <span class="n">fxs_list</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">fxs_list</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span>
+                <span class="n">tbl_rowids</span><span class="p">,</span> <span class="s1">&#39;fxs_list&#39;</span><span class="p">,</span> <span class="n">showprog</span><span class="o">=</span><span class="s1">&#39;load fxs&#39;</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">maws_lists</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">maws</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">maws</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span><span class="n">tbl_rowids</span><span class="p">,</span> <span class="s1">&#39;maws_list&#39;</span><span class="p">,</span> <span class="n">showprog</span><span class="o">=</span><span class="s1">&#39;load maws&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">agg_rvecs</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span>
+            <span class="n">tbl_rowids</span><span class="p">,</span> <span class="s1">&#39;agg_rvecs&#39;</span><span class="p">,</span> <span class="n">showprog</span><span class="o">=</span><span class="s1">&#39;load agg_rvecs&#39;</span>
+        <span class="p">)</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">agg_flags</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">(</span>
+            <span class="n">tbl_rowids</span><span class="p">,</span> <span class="s1">&#39;agg_flags&#39;</span><span class="p">,</span> <span class="n">showprog</span><span class="o">=</span><span class="s1">&#39;load agg_flags&#39;</span>
+        <span class="p">)</span>
+        <span class="c1"># less memory hogs</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">aid_to_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">int_rvec</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;int_rvec&#39;</span><span class="p">]</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">gamma_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Inverted list</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">wx_to_weight</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">wx_to_aids</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">inva</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="k">return</span> <span class="n">inva</span></div>
+
+    <span class="k">def</span> <span class="nf">_assert_self</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">fxs_lists</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">maws_lists</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">agg_rvecs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">agg_flags</span><span class="p">)</span>
+        <span class="n">nfeat_list1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_feats</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">)</span>
+        <span class="n">nfeat_list2</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">fx_list</span><span class="p">))</span> <span class="k">for</span> <span class="n">fx_list</span> <span class="ow">in</span> <span class="n">inva</span><span class="o">.</span><span class="n">fxs_lists</span><span class="p">]</span>
+        <span class="n">nfeat_list3</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">maws</span><span class="p">))</span> <span class="k">for</span> <span class="n">maws</span> <span class="ow">in</span> <span class="n">inva</span><span class="o">.</span><span class="n">maws_lists</span><span class="p">]</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">nfeat_list1</span><span class="p">,</span> <span class="n">nfeat_list2</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">nfeat_list1</span><span class="p">,</span> <span class="n">nfeat_list3</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="n">inva</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="vm">__dict__</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">inva</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">state</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InvertedAnnots.get_annot"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnots.get_annot">[docs]</a>    <span class="nd">@profile</span>
+    <span class="nd">@ut</span><span class="o">.</span><span class="n">memoize</span>
+    <span class="k">def</span> <span class="nf">get_annot</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">aid</span><span class="p">):</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">aid_to_idx</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">SingleAnnot</span><span class="o">.</span><span class="n">from_inva</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">X</span></div>
+
+<div class="viewcode-block" id="InvertedAnnots.compute_inverted_list"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnots.compute_inverted_list">[docs]</a>    <span class="k">def</span> <span class="nf">compute_inverted_list</span><span class="p">(</span><span class="n">inva</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;Building inverted list&#39;</span><span class="p">):</span>
+            <span class="n">wx_to_aids</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">invert_lists</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">,</span> <span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">wx_to_aids</span></div>
+
+<div class="viewcode-block" id="InvertedAnnots.compute_word_weights"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnots.compute_word_weights">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">compute_word_weights</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;idf&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute a per-word weight like idf</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # xdoctest: +REQUIRES(--slow)</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.smk.inverted_index import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; qreq_, inva = testdata_inva()</span>
+<span class="sd">            &gt;&gt;&gt; wx_to_weight = inva.compute_word_weights()</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;wx_to_weight = %r&#39; % (wx_to_weight,))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">wx_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_to_aids</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;Computing </span><span class="si">%s</span><span class="s1"> weights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,)):</span>
+            <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;idf&#39;</span><span class="p">:</span>
+                <span class="n">ndocs_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
+                <span class="c1"># Unweighted documents</span>
+                <span class="n">ndocs_per_word</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_to_aids</span><span class="p">[</span><span class="n">wx</span><span class="p">]))</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_list</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">weight_per_word</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">inv_doc_freq</span><span class="p">(</span><span class="n">ndocs_total</span><span class="p">,</span> <span class="n">ndocs_per_word</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;idf-maw&#39;</span><span class="p">:</span>
+                <span class="c1"># idf denom (the num of docs containing a word for each word)</span>
+                <span class="c1"># The max(maws) denote the prob that this word indexes an annot</span>
+                <span class="n">ndocs_total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">)</span>
+                <span class="c1"># Weighted documents</span>
+                <span class="n">wx_to_ndocs</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_list</span><span class="p">}</span>
+                <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">maws</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">maws_lists</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="n">wx_to_ndocs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">maws</span><span class="p">))</span>
+                <span class="n">ndocs_per_word</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">wx_to_ndocs</span><span class="p">,</span> <span class="n">wx_list</span><span class="p">)</span>
+                <span class="n">weight_per_word</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">inv_doc_freq</span><span class="p">(</span><span class="n">ndocs_total</span><span class="p">,</span> <span class="n">ndocs_per_word</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;uniform&#39;</span><span class="p">:</span>
+                <span class="n">weight_per_word</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wx_list</span><span class="p">))</span>
+            <span class="n">wx_to_weight</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_list</span><span class="p">,</span> <span class="n">weight_per_word</span><span class="p">))</span>
+            <span class="n">wx_to_weight</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DefaultValueDict</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">wx_to_weight</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">wx_to_weight</span></div>
+
+<div class="viewcode-block" id="InvertedAnnots.compute_gammas"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.InvertedAnnots.compute_gammas">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">compute_gammas</span><span class="p">(</span><span class="n">inva</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # xdoctest: +REQUIRES(--slow)</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from wbia.algo.smk.inverted_index import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; qreq_, inva = testdata_inva()</span>
+<span class="sd">            &gt;&gt;&gt; inva.wx_to_weight = inva.compute_word_weights(&#39;uniform&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; alpha = 3.0</span>
+<span class="sd">            &gt;&gt;&gt; thresh = 0.0</span>
+<span class="sd">            &gt;&gt;&gt; gamma_list = inva.compute_gammas(alpha, thresh)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: sep</span>
+        <span class="n">wx_to_weight</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">wx_to_weight</span>
+        <span class="n">_prog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgPartial</span><span class="p">(</span>
+            <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span><span class="p">),</span> <span class="n">bs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;gamma&#39;</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span><span class="p">,</span> <span class="n">inva</span><span class="o">.</span><span class="n">agg_rvecs</span><span class="p">,</span> <span class="n">inva</span><span class="o">.</span><span class="n">agg_flags</span><span class="p">)</span>
+        <span class="n">gamma_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">wx_list</span><span class="p">,</span> <span class="n">phiX_list</span><span class="p">,</span> <span class="n">flagsX_list</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span><span class="n">_iter</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">inva</span><span class="o">.</span><span class="n">int_rvec</span><span class="p">:</span>
+                <span class="n">phiX_list</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">uncast_residual_integer</span><span class="p">(</span><span class="n">phiX_list</span><span class="p">)</span>
+            <span class="n">weight_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">wx_to_weight</span><span class="p">,</span> <span class="n">wx_list</span><span class="p">))</span>
+            <span class="n">gammaX</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">gamma_agg</span><span class="p">(</span>
+                <span class="n">phiX_list</span><span class="p">,</span> <span class="n">flagsX_list</span><span class="p">,</span> <span class="n">weight_list</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">thresh</span>
+            <span class="p">)</span>
+            <span class="n">gamma_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gammaX</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gamma_list</span></div></div>
+
+
+<div class="viewcode-block" id="SingleAnnot"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.SingleAnnot">[docs]</a><span class="nd">@ut</span><span class="o">.</span><span class="n">reloadable_class</span>
+<span class="k">class</span> <span class="nc">SingleAnnot</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">aid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">wx_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">fxs_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">maws_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">agg_flags</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">wx_to_idx</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">int_rvec</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">wx_set</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__nice___</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">aid</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="SingleAnnot.from_inva"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.SingleAnnot.from_inva">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_inva</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">inva</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">aid</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">aids</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">wx_list</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">wx_lists</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">fxs_list</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">fxs_lists</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">maws_list</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">maws_lists</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">agg_rvecs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">agg_flags</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">agg_flags</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">inva</span><span class="o">.</span><span class="n">gamma_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">X</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">gamma_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">wx_to_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_index_lookup</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">wx_list</span><span class="p">)</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">int_rvec</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">int_rvec</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">wx_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">wx_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">X</span></div>
+
+<div class="viewcode-block" id="SingleAnnot.to_dense"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.SingleAnnot.to_dense">[docs]</a>    <span class="k">def</span> <span class="nf">to_dense</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">inva</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">inva</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">n_words</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">wx_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">n_dims</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_words</span> <span class="o">*</span> <span class="n">n_dims</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="c1"># out[X.wx_list] = X.Phis_flags(range(len(X.wx_list)))[0]</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">wx_list</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">words</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">wx_set</span>
+
+<div class="viewcode-block" id="SingleAnnot.fxs"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.SingleAnnot.fxs">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">fxs</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">wx_to_idx</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+        <span class="n">fxs</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">fxs_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">fxs</span></div>
+
+<div class="viewcode-block" id="SingleAnnot.maws"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.SingleAnnot.maws">[docs]</a>    <span class="nd">@profile</span>
+    <span class="k">def</span> <span class="nf">maws</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">wx_to_idx</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+        <span class="n">maws</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">maws_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">maws</span></div>
+
+<div class="viewcode-block" id="SingleAnnot.phis_flags_list"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.SingleAnnot.phis_flags_list">[docs]</a>    <span class="k">def</span> <span class="nf">phis_flags_list</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">idxs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get subset of non-aggregated residual vectors&quot;&quot;&quot;</span>
+        <span class="n">phis_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+        <span class="n">flags_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">flags_list</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">int_rvec</span><span class="p">:</span>
+            <span class="n">phis_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">smk_funcs</span><span class="o">.</span><span class="n">uncast_residual_integer</span><span class="p">,</span> <span class="n">phis_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">phis_list</span><span class="p">,</span> <span class="n">flags_list</span></div>
+
+<div class="viewcode-block" id="SingleAnnot.Phis_flags"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.SingleAnnot.Phis_flags">[docs]</a>    <span class="k">def</span> <span class="nf">Phis_flags</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">idxs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get subset of aggregated residual vectors&quot;&quot;&quot;</span>
+        <span class="n">Phis</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">agg_flags</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">int_rvec</span><span class="p">:</span>
+            <span class="n">Phis</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">uncast_residual_integer</span><span class="p">(</span><span class="n">Phis</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Phis</span><span class="p">,</span> <span class="n">flags</span></div>
+
+    <span class="k">def</span> <span class="nf">_assert_self</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">vocab</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+        <span class="n">all_fxs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">fxs_list</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_fxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">all_fxs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_fxs</span><span class="p">)</span> <span class="o">==</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_feats</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">aid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="n">nAssign</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">[</span><span class="s1">&#39;nAssign&#39;</span><span class="p">]</span>
+        <span class="n">int_rvec</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">[</span><span class="s1">&#39;int_rvec&#39;</span><span class="p">]</span>
+        <span class="c1"># vocab = new_load_vocab(qreq_.ibs, qreq_.daids, qreq_.config)</span>
+        <span class="n">annots</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">annots</span><span class="p">([</span><span class="n">X</span><span class="o">.</span><span class="n">aid</span><span class="p">],</span> <span class="n">config</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">vecs</span> <span class="o">=</span> <span class="n">annots</span><span class="o">.</span><span class="n">vecs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">argtup</span> <span class="o">=</span> <span class="n">residual_args</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">int_rvec</span><span class="p">)</span>
+        <span class="n">wx_list</span><span class="p">,</span> <span class="n">word_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">fx_to_vecs</span><span class="p">,</span> <span class="n">int_rvec</span> <span class="o">=</span> <span class="n">argtup</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">wx_list</span> <span class="o">==</span> <span class="n">wx_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">fxs_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">)])</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">maws_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">)])</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="n">residual_worker</span><span class="p">(</span><span class="n">argtup</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">wx_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">agg_rvecs</span><span class="p">,</span> <span class="n">agg_flags</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span> <span class="o">==</span> <span class="n">agg_rvecs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">agg_flags</span> <span class="o">==</span> <span class="n">agg_flags</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">X</span><span class="o">.</span><span class="n">agg_rvecs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">agg_rvecs</span>
+        <span class="k">assert</span> <span class="n">X</span><span class="o">.</span><span class="n">agg_flags</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">agg_flags</span>
+
+<div class="viewcode-block" id="SingleAnnot.nbytes_info"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.SingleAnnot.nbytes_info">[docs]</a>    <span class="k">def</span> <span class="nf">nbytes_info</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="n">size_info</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_object_nbytes</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">size_info</span></div>
+
+<div class="viewcode-block" id="SingleAnnot.nbytes"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.SingleAnnot.nbytes">[docs]</a>    <span class="k">def</span> <span class="nf">nbytes</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="n">size_info</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">nbytes_info</span><span class="p">()</span>
+        <span class="n">nbytes</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">size_info</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">nbytes</span></div></div>
+
+
+<div class="viewcode-block" id="compute_residual_assignments"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.compute_residual_assignments">[docs]</a><span class="nd">@derived_attribute</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;inverted_agg_assign&#39;</span><span class="p">,</span>
+    <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="s1">&#39;vocab&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span>
+        <span class="s1">&#39;wx_list&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;fxs_list&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;maws_list&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;rvecs_list&#39;,</span>
+        <span class="c1"># &#39;flags_list&#39;,</span>
+        <span class="s1">&#39;agg_rvecs&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;agg_flags&#39;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span>
+        <span class="nb">list</span><span class="p">,</span>
+        <span class="nb">list</span><span class="p">,</span>
+        <span class="nb">list</span><span class="p">,</span>
+        <span class="c1"># list, list,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">InvertedIndexConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;smk/smk_agg_rvecs&#39;</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">compute_residual_assignments</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">vocab_id_list</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.control.IBEISControl show_depc_annot_table_input \</span>
+<span class="sd">                --show --tablename=residuals</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        ibs.depc[&#39;vocab&#39;].print_table()</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        data = ibs.depc.get(&#39;inverted_agg_assign&#39;, ([1, 2473], qreq_.daids), config=qreq_.config)</span>
+<span class="sd">        wxs1 = data[0][0]</span>
+<span class="sd">        wxs2 = data[1][0]</span>
+
+<span class="sd">        # Lev Example</span>
+<span class="sd">        import wbia</span>
+<span class="sd">        ibs = wbia.opendb(&#39;Oxford&#39;)</span>
+<span class="sd">        depc = ibs.depc</span>
+<span class="sd">        table = depc[&#39;inverted_agg_assign&#39;]</span>
+<span class="sd">        table.print_table()</span>
+<span class="sd">        table.print_internal_info()</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.inverted_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # Test depcache access</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = wbia.testdata_aids(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_annot</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;num_words&#39;: 1000, &#39;nAssign&#39;: 1}</span>
+<span class="sd">        &gt;&gt;&gt; #input_tuple = (aid_list, [aid_list] * len(aid_list))</span>
+<span class="sd">        &gt;&gt;&gt; daids = aid_list</span>
+<span class="sd">        &gt;&gt;&gt; input_tuple = (daids, [daids])</span>
+<span class="sd">        &gt;&gt;&gt; rowid_kw = {}</span>
+<span class="sd">        &gt;&gt;&gt; tablename = &#39;inverted_agg_assign&#39;</span>
+<span class="sd">        &gt;&gt;&gt; target_tablename = tablename</span>
+<span class="sd">        &gt;&gt;&gt; input_ids = depc.get_parent_rowids(tablename, input_tuple, config)</span>
+<span class="sd">        &gt;&gt;&gt; fid_list = ut.take_column(input_ids, 0)</span>
+<span class="sd">        &gt;&gt;&gt; vocab_id_list = ut.take_column(input_ids, 1)</span>
+<span class="sd">        &gt;&gt;&gt; data = depc.get(tablename, input_tuple, config)</span>
+<span class="sd">        &gt;&gt;&gt; tup = dat[1]</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.smk.inverted_index import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import wbia</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = wbia.testdata_qreq_(defaultdb=&#39;Oxford&#39;, a=&#39;oxford&#39;, p=&#39;default:proot=smk,nAssign=1,num_words=64000&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;num_words&#39;: 64000, &#39;nAssign&#39;: 1, &#39;int_rvec&#39;: True}</span>
+<span class="sd">        &gt;&gt;&gt; depc = qreq_.ibs.depc</span>
+<span class="sd">        &gt;&gt;&gt; daids = qreq_.daids</span>
+<span class="sd">        &gt;&gt;&gt; input_tuple = (daids, [daids])</span>
+<span class="sd">        &gt;&gt;&gt; rowid_kw = {}</span>
+<span class="sd">        &gt;&gt;&gt; tablename = &#39;inverted_agg_assign&#39;</span>
+<span class="sd">        &gt;&gt;&gt; target_tablename = tablename</span>
+<span class="sd">        &gt;&gt;&gt; input_ids = depc.get_parent_rowids(tablename, input_tuple, config)</span>
+<span class="sd">        &gt;&gt;&gt; fid_list = ut.take_column(input_ids, 0)</span>
+<span class="sd">        &gt;&gt;&gt; vocab_id_list = ut.take_column(input_ids, 1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># logger.info(&#39;[IBEIS] ASSIGN RESIDUALS:&#39;)</span>
+    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">(</span><span class="n">vocab_id_list</span><span class="p">)</span>
+    <span class="n">vocabid</span> <span class="o">=</span> <span class="n">vocab_id_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># NEED HACK TO NOT LOAD INDEXER EVERY TIME</span>
+    <span class="n">this_table</span> <span class="o">=</span> <span class="n">depc</span><span class="p">[</span><span class="s1">&#39;inverted_agg_assign&#39;</span><span class="p">]</span>
+    <span class="n">vocab_table</span> <span class="o">=</span> <span class="n">depc</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">this_table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">vocabid</span> <span class="ow">in</span> <span class="n">this_table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span>
+    <span class="p">):</span>
+        <span class="n">vocab</span> <span class="o">=</span> <span class="n">this_table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span><span class="p">[</span><span class="n">vocabid</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vocab</span> <span class="o">=</span> <span class="n">vocab_table</span><span class="o">.</span><span class="n">get_row_data</span><span class="p">([</span><span class="n">vocabid</span><span class="p">],</span> <span class="s1">&#39;words&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">this_table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">this_table</span><span class="o">.</span><span class="n">_hack_chunk_cache</span><span class="p">[</span><span class="n">vocabid</span><span class="p">]</span> <span class="o">=</span> <span class="n">vocab</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Grab Vecs&#39;</span><span class="p">)</span>
+    <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="s1">&#39;vecs&#39;</span><span class="p">)</span>
+    <span class="n">nAssign</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;nAssign&#39;</span><span class="p">]</span>
+    <span class="n">int_rvec</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;int_rvec&#39;</span><span class="p">]</span>
+
+    <span class="kn">from</span> <span class="nn">concurrent</span> <span class="kn">import</span> <span class="n">futures</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Building residual args&#39;</span><span class="p">)</span>
+    <span class="n">worker</span> <span class="o">=</span> <span class="n">residual_worker</span>
+    <span class="n">args_gen</span> <span class="o">=</span> <span class="n">gen_residual_args</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">int_rvec</span><span class="p">)</span>
+    <span class="n">args_gen</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">args</span> <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">args_gen</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;building args&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c1"># nprocs = ut.num_unused_cpus(thresh=10) - 1</span>
+    <span class="n">nprocs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_cpus</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating </span><span class="si">%d</span><span class="s1"> processes&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nprocs</span><span class="p">,))</span>
+    <span class="n">executor</span> <span class="o">=</span> <span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">nprocs</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Submiting workers&#39;</span><span class="p">)</span>
+        <span class="n">fs_chunk</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">args_gen</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;submit proc&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">fs_chunk</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;getting phi result&#39;</span><span class="p">):</span>
+            <span class="n">tup</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+            <span class="k">yield</span> <span class="n">tup</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gen_residual_args"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.gen_residual_args">[docs]</a><span class="k">def</span> <span class="nf">gen_residual_args</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">int_rvec</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">vecs_list</span><span class="p">:</span>
+        <span class="n">argtup</span> <span class="o">=</span> <span class="n">residual_args</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">int_rvec</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">argtup</span></div>
+
+
+<div class="viewcode-block" id="residual_args"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.residual_args">[docs]</a><span class="k">def</span> <span class="nf">residual_args</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">int_rvec</span><span class="p">):</span>
+    <span class="n">fx_to_vecs</span> <span class="o">=</span> <span class="n">vecs</span>
+    <span class="n">fx_to_wxs</span><span class="p">,</span> <span class="n">fx_to_maws</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">assign_to_words</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">fx_to_vecs</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+    <span class="n">wx_to_fxs</span><span class="p">,</span> <span class="n">wx_to_maws</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">invert_assigns</span><span class="p">(</span><span class="n">fx_to_wxs</span><span class="p">,</span> <span class="n">fx_to_maws</span><span class="p">)</span>
+    <span class="n">wx_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">wx_to_fxs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="n">word_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">wx_to_word</span><span class="p">,</span> <span class="n">wx_list</span><span class="p">)</span>
+    <span class="n">fxs_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">wx_to_fxs</span><span class="p">,</span> <span class="n">wx_list</span><span class="p">)</span>
+    <span class="n">maws_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">wx_to_maws</span><span class="p">,</span> <span class="n">wx_list</span><span class="p">)</span>
+    <span class="n">argtup</span> <span class="o">=</span> <span class="p">(</span><span class="n">wx_list</span><span class="p">,</span> <span class="n">word_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">fx_to_vecs</span><span class="p">,</span> <span class="n">int_rvec</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">argtup</span></div>
+
+
+<div class="viewcode-block" id="residual_worker"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.residual_worker">[docs]</a><span class="k">def</span> <span class="nf">residual_worker</span><span class="p">(</span><span class="n">argtup</span><span class="p">):</span>
+    <span class="n">wx_list</span><span class="p">,</span> <span class="n">word_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">fx_to_vecs</span><span class="p">,</span> <span class="n">int_rvec</span> <span class="o">=</span> <span class="n">argtup</span>
+    <span class="k">if</span> <span class="n">int_rvec</span><span class="p">:</span>
+        <span class="n">agg_rvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">wx_list</span><span class="p">),</span> <span class="n">fx_to_vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">agg_rvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">wx_list</span><span class="p">),</span> <span class="n">fx_to_vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="n">agg_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">wx_list</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+
+    <span class="c1"># for idx, wx in enumerate(wx_list):</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wx_list</span><span class="p">)):</span>
+        <span class="c1"># wx = wx_list[idx]</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">word_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">fxs</span> <span class="o">=</span> <span class="n">fxs_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">maws</span> <span class="o">=</span> <span class="n">maws_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">vecs</span> <span class="o">=</span> <span class="n">fx_to_vecs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">_rvecs</span><span class="p">,</span> <span class="n">_flags</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">compute_rvec</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+        <span class="c1"># rvecs = _rvecs  # NOQA</span>
+        <span class="c1"># error_flags = _flags  # NOQA</span>
+        <span class="n">_agg_rvec</span><span class="p">,</span> <span class="n">_agg_flag</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">aggregate_rvecs</span><span class="p">(</span><span class="n">_rvecs</span><span class="p">,</span> <span class="n">maws</span><span class="p">,</span> <span class="n">_flags</span><span class="p">)</span>
+        <span class="c1"># Cast to integers for storage</span>
+        <span class="k">if</span> <span class="n">int_rvec</span><span class="p">:</span>
+            <span class="n">_agg_rvec</span> <span class="o">=</span> <span class="n">smk_funcs</span><span class="o">.</span><span class="n">cast_residual_integer</span><span class="p">(</span><span class="n">_agg_rvec</span><span class="p">)</span>
+        <span class="n">agg_rvecs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">_agg_rvec</span>
+        <span class="n">agg_flags</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">_agg_flag</span>
+
+    <span class="n">tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">wx_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">agg_rvecs</span><span class="p">,</span> <span class="n">agg_flags</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tup</span></div>
+
+
+<div class="viewcode-block" id="testdata_inva"><a class="viewcode-back" href="../../../../wbia.algo.smk.html#wbia.algo.smk.inverted_index.testdata_inva">[docs]</a><span class="k">def</span> <span class="nf">testdata_inva</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    from wbia.algo.smk.inverted_index import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span>
+        <span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="s1">&#39;default:proot=smk,nAssign=1,num_words=64&#39;</span>
+    <span class="p">)</span>
+    <span class="n">aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span>
+    <span class="bp">cls</span> <span class="o">=</span> <span class="n">InvertedAnnots</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">depc</span>
+    <span class="n">vocab_aids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
+    <span class="n">inva</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_depc</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">vocab_aids</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="n">inva</span><span class="o">.</span><span class="n">wx_to_aids</span> <span class="o">=</span> <span class="n">inva</span><span class="o">.</span><span class="n">compute_inverted_list</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">inva</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

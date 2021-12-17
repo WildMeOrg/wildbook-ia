@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wbia.algo.hots._pipeline_helpers &mdash; wildbook-ia 4.0.1.dev11+dirty documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> wildbook-ia
+          </a>
+              <div class="version">
+                4.0.1.dev11+dirty
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">wildbook-ia</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../algo.html">wbia.algo</a> &raquo;</li>
+          <li><a href="../hots.html">wbia.algo.hots</a> &raquo;</li>
+      <li>wbia.algo.hots._pipeline_helpers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wbia.algo.hots._pipeline_helpers</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="k">as</span> <span class="nn">ut</span>
+
+<span class="nb">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;wbia&#39;</span><span class="p">)</span>
+
+
+<span class="n">VERB_PIPELINE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verb-pipeline&#39;</span><span class="p">,</span> <span class="s1">&#39;--verb-pipe&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
+<span class="n">VERB_TESTDATA</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--verb-testdata&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
+
+
+<div class="viewcode-block" id="testrun_pipeline_upto"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots._pipeline_helpers.testrun_pipeline_upto">[docs]</a><span class="k">def</span> <span class="nf">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">stop_node</span><span class="o">=</span><span class="s1">&#39;end&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main tester function. Runs the pipeline by mirroring</span>
+<span class="sd">    `request_wbia_query_L0`, but stops at a requested breakpoint and returns</span>
+<span class="sd">    the local variables.</span>
+
+<span class="sd">    convinience: runs pipeline for tests</span>
+<span class="sd">    this should mirror request_wbia_query_L0</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        &gt;&gt;&gt; # TODO: autogenerate</span>
+<span class="sd">        &gt;&gt;&gt; # The following is a stub that starts the autogeneration process</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots import pipeline</span>
+<span class="sd">        &gt;&gt;&gt; source = ut.get_func_sourcecode(pipeline.request_wbia_query_L0,</span>
+<span class="sd">        &gt;&gt;&gt;                                 strip_docstr=True, stripdef=True,</span>
+<span class="sd">        &gt;&gt;&gt;                                 strip_comments=True)</span>
+<span class="sd">        &gt;&gt;&gt; import re</span>
+<span class="sd">        &gt;&gt;&gt; source = re.sub(r&#39;^\s*$\n&#39;, &#39;&#39;, source, flags=re.MULTILINE)</span>
+<span class="sd">        &gt;&gt;&gt; print(source)</span>
+<span class="sd">        &gt;&gt;&gt; ut.replace_between_tags(source, &#39;&#39;, sentinal)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.hots.pipeline</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">nearest_neighbors</span><span class="p">,</span>
+        <span class="n">baseline_neighbor_filter</span><span class="p">,</span>
+        <span class="n">weight_neighbors</span><span class="p">,</span>
+        <span class="n">build_chipmatches</span><span class="p">,</span>
+        <span class="n">spatial_verification</span><span class="p">,</span>
+        <span class="c1"># vsone_reranking,</span>
+        <span class="n">build_impossible_daids_list</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;RUN PIPELINE UPTO: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stop_node</span><span class="p">,))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="c1"># ---</span>
+    <span class="k">if</span> <span class="n">stop_node</span> <span class="o">==</span> <span class="s1">&#39;build_impossible_daids_list&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+    <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">Kpad_list</span> <span class="o">=</span> <span class="n">build_impossible_daids_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="c1"># ---</span>
+    <span class="k">if</span> <span class="n">stop_node</span> <span class="o">==</span> <span class="s1">&#39;nearest_neighbors&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+    <span class="n">nns_list</span> <span class="o">=</span> <span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="c1"># ---</span>
+    <span class="k">if</span> <span class="n">stop_node</span> <span class="o">==</span> <span class="s1">&#39;baseline_neighbor_filter&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+    <span class="n">nnvalid0_list</span> <span class="o">=</span> <span class="n">baseline_neighbor_filter</span><span class="p">(</span>
+        <span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+    <span class="p">)</span>
+    <span class="c1"># ---</span>
+    <span class="k">if</span> <span class="n">stop_node</span> <span class="o">==</span> <span class="s1">&#39;weight_neighbors&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+    <span class="n">weight_ret</span> <span class="o">=</span> <span class="n">weight_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span> <span class="n">filtnormks_list</span> <span class="o">=</span> <span class="n">weight_ret</span>
+    <span class="c1"># ---</span>
+    <span class="k">if</span> <span class="n">stop_node</span> <span class="o">==</span> <span class="s1">&#39;filter_neighbors&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;no longer exists&#39;</span><span class="p">)</span>
+    <span class="c1"># ---</span>
+    <span class="k">if</span> <span class="n">stop_node</span> <span class="o">==</span> <span class="s1">&#39;build_chipmatches&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+    <span class="n">cm_list_FILT</span> <span class="o">=</span> <span class="n">build_chipmatches</span><span class="p">(</span>
+        <span class="n">qreq_</span><span class="p">,</span>
+        <span class="n">nns_list</span><span class="p">,</span>
+        <span class="n">nnvalid0_list</span><span class="p">,</span>
+        <span class="n">filtkey_list</span><span class="p">,</span>
+        <span class="n">filtweights_list</span><span class="p">,</span>
+        <span class="n">filtvalids_list</span><span class="p">,</span>
+        <span class="n">filtnormks_list</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># ---</span>
+    <span class="k">if</span> <span class="n">stop_node</span> <span class="o">==</span> <span class="s1">&#39;spatial_verification&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+    <span class="n">cm_list_SVER</span> <span class="o">=</span> <span class="n">spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_FILT</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">stop_node</span> <span class="o">==</span> <span class="s1">&#39;end&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+
+    <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;unknown stop_node=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stop_node</span><span class="p">,)</span>
+
+    <span class="c1"># qaid2_svtups = qreq_.metadata[&#39;qaid2_svtups&#39;]</span>
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="testdata_pre"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots._pipeline_helpers.testdata_pre">[docs]</a><span class="k">def</span> <span class="nf">testdata_pre</span><span class="p">(</span>
+    <span class="n">stopnode</span><span class="p">,</span>
+    <span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span>
+    <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+    <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default:qindex=0:1,dindex=0:5&#39;</span><span class="p">],</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    New (1-1-2016) generic pipeline node testdata getter</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        stopnode (str): name of pipeline function to be tested</span>
+<span class="sd">        defaultdb (str): (default = u&#39;testdb1&#39;)</span>
+<span class="sd">        p (list): (default = [u&#39;default:&#39;])</span>
+<span class="sd">        a (list): (default = [u&#39;default:qsize=1,dsize=4&#39;])</span>
+<span class="sd">        **kwargs: passed to testdata_qreq_</span>
+<span class="sd">            qaid_override, daid_override</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (ibs, qreq_, args)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m wbia.algo.hots._pipeline_helpers --exec-testdata_pre --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from wbia.algo.hots._pipeline_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; stopnode = &#39;build_chipmatches&#39;</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; p = [&#39;default:&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; a = [&#39;default:qindex=0:1,dindex=0:5&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; qreq_, args = testdata_pre(stopnode, defaultdb, p, a)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+    <span class="kn">from</span> <span class="nn">wbia.algo.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">stopnode</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stopnode</span> <span class="o">==</span> <span class="s1">&#39;end&#39;</span><span class="p">:</span>
+        <span class="n">argnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cm_list_SVER&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">stopnode</span><span class="p">)</span>
+        <span class="n">argnames</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argnames</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="c1"># Hack to ignore qreq_, and verbose</span>
+    <span class="k">for</span> <span class="n">ignore</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;qreq_&#39;</span><span class="p">,</span> <span class="s1">&#39;ibs&#39;</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">argnames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ignore</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="n">tupname</span> <span class="o">=</span> <span class="s1">&#39;_Ret_&#39;</span> <span class="o">+</span> <span class="n">stopnode</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_asnametup</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="n">argnames</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">tupname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">args</span></div>
+
+
+<span class="c1"># +--- OTHER TESTDATA FUNCS ---</span>
+
+
+<div class="viewcode-block" id="testdata_sparse_matchinfo_nonagg"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots._pipeline_helpers.testdata_sparse_matchinfo_nonagg">[docs]</a><span class="k">def</span> <span class="nf">testdata_sparse_matchinfo_nonagg</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]):</span>
+    <span class="n">qreq_</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">testdata_pre</span><span class="p">(</span><span class="s1">&#39;build_chipmatches&#39;</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">internal_index</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="c1"># qaid = qreq_.qaids[0]</span>
+    <span class="c1"># daid = qreq_.daids[1]</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">daid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">daids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">nns</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nns_list</span><span class="p">[</span><span class="n">internal_index</span><span class="p">]</span>
+    <span class="c1"># neighb_idx, neighb_dist = args.nns_list[internal_index]</span>
+    <span class="n">neighb_valid0</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nnvalid0_list</span><span class="p">[</span><span class="n">internal_index</span><span class="p">]</span>
+    <span class="n">neighb_score_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">filtweights_list</span><span class="p">[</span><span class="n">internal_index</span><span class="p">]</span>
+    <span class="n">neighb_valid_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">filtvalids_list</span><span class="p">[</span><span class="n">internal_index</span><span class="p">]</span>
+    <span class="n">neighb_normk</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">filtnormks_list</span><span class="p">[</span><span class="n">internal_index</span><span class="p">]</span>
+    <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="n">fsv_col_lbls</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">filtkey_list</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">nns</span><span class="p">,</span>
+        <span class="n">neighb_valid0</span><span class="p">,</span>
+        <span class="n">neighb_score_list</span><span class="p">,</span>
+        <span class="n">neighb_valid_list</span><span class="p">,</span>
+        <span class="n">neighb_normk</span><span class="p">,</span>
+        <span class="n">Knorm</span><span class="p">,</span>
+        <span class="n">fsv_col_lbls</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">args</span></div>
+
+
+<div class="viewcode-block" id="testdata_pre_baselinefilter"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots._pipeline_helpers.testdata_pre_baselinefilter">[docs]</a><span class="k">def</span> <span class="nf">testdata_pre_baselinefilter</span><span class="p">(</span>
+    <span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="s1">&#39;vsmany&#39;</span>
+<span class="p">):</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span>
+        <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span>
+    <span class="p">)</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;baseline_neighbor_filter&#39;</span><span class="p">)</span>
+    <span class="n">nns_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span>
+        <span class="n">locals_</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;nns_list&#39;</span><span class="p">,</span> <span class="s1">&#39;impossible_daids_list&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">impossible_daids_list</span></div>
+
+
+<div class="viewcode-block" id="testdata_pre_sver"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots._pipeline_helpers.testdata_pre_sver">[docs]</a><span class="k">def</span> <span class="nf">testdata_pre_sver</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; from wbia.algo.hots._pipeline_helpers import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: testdata_pre(&#39;sver&#39;)</span>
+    <span class="c1"># from wbia.algo import Config</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span>
+        <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span>
+    <span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;spatial_verification&#39;</span><span class="p">)</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="s1">&#39;cm_list_FILT&#39;</span><span class="p">]</span>
+    <span class="c1"># nnfilts_list   = locals_[&#39;nnfilts_list&#39;]</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span></div>
+
+
+<div class="viewcode-block" id="testdata_post_sver"><a class="viewcode-back" href="../../../../wbia.algo.hots.html#wbia.algo.hots._pipeline_helpers.testdata_post_sver">[docs]</a><span class="k">def</span> <span class="nf">testdata_post_sver</span><span class="p">(</span>
+    <span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; from wbia.algo.hots._pipeline_helpers import *  # NOQA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: testdata_pre(&#39;end&#39;)</span>
+    <span class="c1"># from wbia.algo import Config</span>
+    <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="n">codename</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">wbia</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfg_lbl</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">wbia</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span>
+        <span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span>
+    <span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s1">&#39;end&#39;</span><span class="p">)</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="s1">&#39;cm_list_SVER&#39;</span><span class="p">]</span>
+    <span class="c1"># nnfilts_list   = locals_[&#39;nnfilts_list&#39;]</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span></div>
+
+
+<span class="c1"># L_______</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Wild Me.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
