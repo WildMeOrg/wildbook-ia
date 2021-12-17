@@ -1491,7 +1491,7 @@ class TestResult(ut.NiceRepr):
             python -m wbia TestResult.case_sample2:2 --db PZ_Master1
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # DISABLE_DOCTEST
             >>> # The same results is achievable with different filter config settings
             >>> from wbia.expt.test_result import *  # NOQA
             >>> from wbia.init import main_helpers

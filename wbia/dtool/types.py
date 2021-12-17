@@ -231,7 +231,6 @@ def initialize_postgresql_types(conn, schema):
     domain_names = domain_names + [domain_name.upper() for domain_name in domain_names]
     for type_name, cls in SQL_TYPE_TO_SA_TYPE.items():
         if type_name not in domain_names and hasattr(cls, 'postgresql_base_type'):
-            print(type_name)
             base_type = cls.postgresql_base_type
             try:
                 conn.execute(f'CREATE DOMAIN {type_name} AS {base_type}')

@@ -98,8 +98,8 @@ def postload_commands(ibs, back):
         logger.info('Custom cfgdict specified')
         logger.info(ut.repr2(cfgdict))
         ibs.update_query_cfg(**cfgdict)
-    if params.args.edit_notes:
-        ut.editfile(ibs.get_dbnotes_fpath(ensure=True))
+    # if params.args.edit_notes:
+    #     ut.editfile(ibs.get_dbnotes_fpath(ensure=True))
     if params.args.delete_cache:
         ibs.delete_cache()
     if params.args.delete_cache_complete:

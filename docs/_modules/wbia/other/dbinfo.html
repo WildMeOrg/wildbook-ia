@@ -128,7 +128,8 @@
     <span class="n">with_agesex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">with_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">with_reviews</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">with_ggr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">with_ggr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">with_ca</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">with_map</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">short</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">tag</span><span class="o">=</span><span class="s1">&#39;dbinfo&#39;</span><span class="p">,</span>
@@ -175,7 +176,7 @@
 <span class="sd">        python -m wbia.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA --loadbackup=0</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.other.dbinfo import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
 <span class="sd">        &gt;&gt;&gt; defaultdb = &#39;testdb1&#39;</span>
@@ -201,7 +202,7 @@
 <span class="sd">        &gt;&gt;&gt; # &lt;/HACK FOR FILTERING&gt;</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from wbia.other.dbinfo import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import wbia</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
@@ -374,7 +375,7 @@
                 <span class="n">occurid2_aids_named</span><span class="p">[</span><span class="n">occurx</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
                 <span class="n">occurid2_nids</span><span class="p">[</span><span class="n">occurx</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
 
-    <span class="k">assert</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aid2_occurxs</span><span class="o">.</span><span class="n">values</span><span class="p">()))))</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># assert sorted(set(list(map(len, aid2_occurxs.values())))) == [1]</span>
 
     <span class="n">occur_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">occurid2_aids</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="n">occur_unique_nids</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span> <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">occur_nids</span><span class="p">]</span>
@@ -909,108 +910,109 @@
     <span class="n">review_tag_to_rids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">valid_rids</span><span class="p">,</span> <span class="n">review_tag_list</span><span class="p">)</span>
     <span class="n">review_tag_stats</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">review_tag_to_rids</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
-    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-    <span class="n">quality_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-    <span class="n">interest_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-    <span class="n">canonical_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_canonical</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">with_ca</span><span class="p">:</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_viewpoints</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+        <span class="n">quality_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+        <span class="n">interest_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_interest</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+        <span class="n">canonical_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_canonical</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
 
-    <span class="c1"># ggr_num_relevant = 0</span>
-    <span class="n">ggr_num_species</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_viewpoints</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_qualities</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_filter</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_aois</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_cas</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_filter_overlap</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_filter_remove</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_filter_add</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_aoi_overlap</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_aoi_remove</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">ggr_num_aoi_add</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># ggr_num_relevant = 0</span>
+        <span class="n">ggr_num_species</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_viewpoints</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_qualities</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_filter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_aois</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_cas</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_filter_overlap</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_filter_remove</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_filter_add</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_aoi_overlap</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_aoi_remove</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ggr_num_aoi_add</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-        <span class="nb">zip</span><span class="p">(</span>
-            <span class="n">valid_aids</span><span class="p">,</span>
-            <span class="n">species_list</span><span class="p">,</span>
-            <span class="n">viewpoint_list</span><span class="p">,</span>
-            <span class="n">quality_list</span><span class="p">,</span>
-            <span class="n">interest_list</span><span class="p">,</span>
-            <span class="n">canonical_list</span><span class="p">,</span>
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">valid_aids</span><span class="p">,</span>
+                <span class="n">species_list</span><span class="p">,</span>
+                <span class="n">viewpoint_list</span><span class="p">,</span>
+                <span class="n">quality_list</span><span class="p">,</span>
+                <span class="n">interest_list</span><span class="p">,</span>
+                <span class="n">canonical_list</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">ca_removed_aids</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">ca_added_aids</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species_</span><span class="p">,</span> <span class="n">viewpoint_</span><span class="p">,</span> <span class="n">quality_</span><span class="p">,</span> <span class="n">interest_</span><span class="p">,</span> <span class="n">canonical_</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">species_</span> <span class="o">==</span> <span class="s1">&#39;zebra_grevys+_canonical_&#39;</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">species_</span><span class="p">,</span> <span class="n">viewpoint_</span><span class="p">,</span> <span class="n">quality_</span><span class="p">]</span>
-        <span class="n">species_</span> <span class="o">=</span> <span class="n">species_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">viewpoint_</span> <span class="o">=</span> <span class="n">viewpoint_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">quality_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">quality_</span><span class="p">)</span>
-        <span class="c1"># if species_ in [&#39;zebra_grevys&#39;]:</span>
-        <span class="c1">#     ggr_num_relevant += 1</span>
-        <span class="k">if</span> <span class="n">species_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;zebra_grevys&#39;</span><span class="p">]:</span>
-            <span class="n">ggr_num_species</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">filter_viewpoint_</span> <span class="o">=</span> <span class="s1">&#39;right&#39;</span> <span class="ow">in</span> <span class="n">viewpoint_</span>
-            <span class="n">filter_quality_</span> <span class="o">=</span> <span class="n">quality_</span> <span class="o">&gt;=</span> <span class="mi">3</span>
-            <span class="n">filter_</span> <span class="o">=</span> <span class="n">filter_viewpoint_</span> <span class="ow">and</span> <span class="n">filter_quality_</span>
+        <span class="n">ca_removed_aids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ca_added_aids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">species_</span><span class="p">,</span> <span class="n">viewpoint_</span><span class="p">,</span> <span class="n">quality_</span><span class="p">,</span> <span class="n">interest_</span><span class="p">,</span> <span class="n">canonical_</span> <span class="ow">in</span> <span class="n">zipped</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">species_</span> <span class="o">==</span> <span class="s1">&#39;zebra_grevys+_canonical_&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">assert</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">species_</span><span class="p">,</span> <span class="n">viewpoint_</span><span class="p">,</span> <span class="n">quality_</span><span class="p">]</span>
+            <span class="n">species_</span> <span class="o">=</span> <span class="n">species_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">viewpoint_</span> <span class="o">=</span> <span class="n">viewpoint_</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">quality_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">quality_</span><span class="p">)</span>
+            <span class="c1"># if species_ in [&#39;zebra_grevys&#39;]:</span>
+            <span class="c1">#     ggr_num_relevant += 1</span>
+            <span class="k">if</span> <span class="n">species_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;zebra_grevys&#39;</span><span class="p">]:</span>
+                <span class="n">ggr_num_species</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">filter_viewpoint_</span> <span class="o">=</span> <span class="s1">&#39;right&#39;</span> <span class="ow">in</span> <span class="n">viewpoint_</span>
+                <span class="n">filter_quality_</span> <span class="o">=</span> <span class="n">quality_</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+                <span class="n">filter_</span> <span class="o">=</span> <span class="n">filter_viewpoint_</span> <span class="ow">and</span> <span class="n">filter_quality_</span>
 
-            <span class="k">if</span> <span class="n">canonical_</span><span class="p">:</span>
-                <span class="n">ggr_num_cas</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="k">if</span> <span class="n">filter_viewpoint_</span><span class="p">:</span>
-                <span class="n">ggr_num_viewpoints</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="k">if</span> <span class="n">filter_quality_</span><span class="p">:</span>
-                <span class="n">ggr_num_qualities</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="k">if</span> <span class="n">filter_</span><span class="p">:</span>
-                <span class="n">ggr_num_filter</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="n">canonical_</span><span class="p">:</span>
-                    <span class="n">ggr_num_filter_overlap</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">ggr_num_cas</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">if</span> <span class="n">filter_viewpoint_</span><span class="p">:</span>
+                    <span class="n">ggr_num_viewpoints</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">if</span> <span class="n">filter_quality_</span><span class="p">:</span>
+                    <span class="n">ggr_num_qualities</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">if</span> <span class="n">filter_</span><span class="p">:</span>
+                    <span class="n">ggr_num_filter</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">canonical_</span><span class="p">:</span>
+                        <span class="n">ggr_num_filter_overlap</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ggr_num_filter_remove</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">ca_removed_aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">ggr_num_filter_remove</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="n">ca_removed_aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">canonical_</span><span class="p">:</span>
-                    <span class="n">ggr_num_filter_add</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="n">ca_added_aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">canonical_</span><span class="p">:</span>
+                        <span class="n">ggr_num_filter_add</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">ca_added_aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">interest_</span><span class="p">:</span>
-                <span class="n">ggr_num_aois</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">if</span> <span class="n">canonical_</span><span class="p">:</span>
-                    <span class="n">ggr_num_aoi_overlap</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">interest_</span><span class="p">:</span>
+                    <span class="n">ggr_num_aois</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">canonical_</span><span class="p">:</span>
+                        <span class="n">ggr_num_aoi_overlap</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ggr_num_aoi_remove</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">ggr_num_aoi_remove</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">canonical_</span><span class="p">:</span>
-                    <span class="n">ggr_num_aoi_add</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">canonical_</span><span class="p">:</span>
+                        <span class="n">ggr_num_aoi_add</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CA REMOVED: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ca_removed_aids</span><span class="p">,))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CA ADDED: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ca_added_aids</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CA REMOVED: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ca_removed_aids</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;CA ADDED: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ca_added_aids</span><span class="p">,))</span>
 
-    <span class="n">removed_chip_paths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">ca_removed_aids</span><span class="p">)</span>
-    <span class="n">added_chip_paths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">ca_added_aids</span><span class="p">)</span>
+        <span class="n">removed_chip_paths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">ca_removed_aids</span><span class="p">)</span>
+        <span class="n">added_chip_paths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">ca_added_aids</span><span class="p">)</span>
 
-    <span class="n">removed_output_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;ca_removed&#39;</span><span class="p">))</span>
-    <span class="n">added_output_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;ca_added&#39;</span><span class="p">))</span>
+        <span class="n">removed_output_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;ca_removed&#39;</span><span class="p">))</span>
+        <span class="n">added_output_path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;ca_added&#39;</span><span class="p">))</span>
 
-    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">removed_output_path</span><span class="p">)</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">added_output_path</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">removed_output_path</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">added_output_path</span><span class="p">)</span>
 
-    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">removed_output_path</span><span class="p">)</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">added_output_path</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">removed_output_path</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">added_output_path</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">removed_chip_path</span> <span class="ow">in</span> <span class="n">removed_chip_paths</span><span class="p">:</span>
-        <span class="n">removed_chip_filename</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">removed_chip_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">removed_output_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">removed_output_path</span><span class="p">,</span> <span class="n">removed_chip_filename</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">removed_chip_path</span><span class="p">,</span> <span class="n">removed_output_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">removed_chip_path</span> <span class="ow">in</span> <span class="n">removed_chip_paths</span><span class="p">:</span>
+            <span class="n">removed_chip_filename</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">removed_chip_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">removed_output_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">removed_output_path</span><span class="p">,</span> <span class="n">removed_chip_filename</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">removed_chip_path</span><span class="p">,</span> <span class="n">removed_output_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">added_chip_path</span> <span class="ow">in</span> <span class="n">added_chip_paths</span><span class="p">:</span>
-        <span class="n">added_chip_filename</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">added_chip_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">added_output_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">added_output_path</span><span class="p">,</span> <span class="n">added_chip_filename</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">added_chip_path</span><span class="p">,</span> <span class="n">added_output_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">added_chip_path</span> <span class="ow">in</span> <span class="n">added_chip_paths</span><span class="p">:</span>
+            <span class="n">added_chip_filename</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">added_chip_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">added_output_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">added_output_path</span><span class="p">,</span> <span class="n">added_chip_filename</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">added_chip_path</span><span class="p">,</span> <span class="n">added_output_filepath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1">#########</span>
 
@@ -1036,7 +1038,7 @@
 
     <span class="n">source_block_lines</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s1">&#39;DB Info:  &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()),</span>
-        <span class="p">(</span><span class="s1">&#39;DB Notes: &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbnotes</span><span class="p">()),</span>
+        <span class="c1"># (&#39;DB Notes: &#39; + ibs.get_dbnotes()),</span>
         <span class="p">(</span><span class="s1">&#39;DB NumContrib: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">num_contributors</span><span class="p">),</span>
     <span class="p">]</span>
 
@@ -1136,70 +1138,73 @@
             <span class="n">name_dates_stats</span><span class="p">[</span><span class="n">valid_nid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
         <span class="n">name_dates_stats</span><span class="p">[</span><span class="n">valid_nid</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">date_str</span><span class="p">)</span>
 
-    <span class="n">ggr_name_dates_stats</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;GGR-16 D1 OR D2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s1">&#39;GGR-16 D1 AND D2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s1">&#39;GGR-18 D1 OR D2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s1">&#39;GGR-18 D1 AND D2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s1">&#39;GGR-16 AND GGR-18&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s1">&#39;1+ Days&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s1">&#39;2+ Days&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s1">&#39;3+ Days&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s1">&#39;4+ Days&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="p">}</span>
-    <span class="k">for</span> <span class="n">date_str</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">date_str_list_</span><span class="p">)):</span>
-        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="n">date_str</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">name_dates_stats</span><span class="p">:</span>
-        <span class="n">date_strs</span> <span class="o">=</span> <span class="n">name_dates_stats</span><span class="p">[</span><span class="n">nid</span><span class="p">]</span>
-        <span class="n">total_days</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">date_strs</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">total_days</span> <span class="ow">and</span> <span class="n">total_days</span> <span class="o">&lt;=</span> <span class="mi">4</span>
-        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_days</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">+ Days&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">val</span><span class="p">,)</span>
-            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">for</span> <span class="n">date_str</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
-            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="n">date_str</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="s1">&#39;2016/01/30&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span> <span class="ow">or</span> <span class="s1">&#39;2016/01/31&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
-            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 D1 OR D2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">with_ggr</span><span class="p">:</span>
+        <span class="n">ggr_name_dates_stats</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;GGR-16 D1 OR D2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;GGR-16 D1 AND D2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;GGR-18 D1 OR D2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;GGR-18 D1 AND D2&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;GGR-16 AND GGR-18&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;1+ Days&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;2+ Days&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;3+ Days&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;4+ Days&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">date_str</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">date_str_list_</span><span class="p">)):</span>
+            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="n">date_str</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">name_dates_stats</span><span class="p">:</span>
+            <span class="n">date_strs</span> <span class="o">=</span> <span class="n">name_dates_stats</span><span class="p">[</span><span class="n">nid</span><span class="p">]</span>
+            <span class="n">total_days</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">date_strs</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">total_days</span> <span class="ow">and</span> <span class="n">total_days</span> <span class="o">&lt;=</span> <span class="mi">4</span>
+            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_days</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">+ Days&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">val</span><span class="p">,)</span>
+                <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">date_str</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
+                <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="n">date_str</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="s1">&#39;2016/01/30&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span> <span class="ow">or</span> <span class="s1">&#39;2016/01/31&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
+                <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 D1 OR D2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="s1">&#39;2018/01/27&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span> <span class="ow">or</span> <span class="s1">&#39;2018/01/28&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
+                    <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 AND GGR-18&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="s1">&#39;2018/01/27&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span> <span class="ow">or</span> <span class="s1">&#39;2018/01/28&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
-                <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 AND GGR-18&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="s1">&#39;2018/01/27&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span> <span class="ow">or</span> <span class="s1">&#39;2018/01/28&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
-            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 D1 OR D2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="s1">&#39;2016/01/30&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span> <span class="ow">and</span> <span class="s1">&#39;2016/01/31&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
-            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 D1 AND D2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="s1">&#39;2018/01/27&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span> <span class="ow">and</span> <span class="s1">&#39;2018/01/28&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
-            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 D1 AND D2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 D1 OR D2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="s1">&#39;2016/01/30&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span> <span class="ow">and</span> <span class="s1">&#39;2016/01/31&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
+                <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 D1 AND D2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="s1">&#39;2018/01/27&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span> <span class="ow">and</span> <span class="s1">&#39;2018/01/28&#39;</span> <span class="ow">in</span> <span class="n">date_strs</span><span class="p">:</span>
+                <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 D1 AND D2&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="n">ggr16_pl_index</span><span class="p">,</span> <span class="n">ggr16_pl_error</span> <span class="o">=</span> <span class="n">sight_resight_count</span><span class="p">(</span>
-        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;2016/01/30&#39;</span><span class="p">],</span>
-        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;2016/01/31&#39;</span><span class="p">],</span>
-        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 D1 AND D2&#39;</span><span class="p">],</span>
-    <span class="p">)</span>
-    <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 PL INDEX&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.01f</span><span class="s1"> +/- </span><span class="si">%0.01f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-        <span class="n">ggr16_pl_index</span><span class="p">,</span>
-        <span class="n">ggr16_pl_error</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">total</span> <span class="o">=</span> <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 D1 OR D2&#39;</span><span class="p">]</span>
-    <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 COVERAGE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.01f</span><span class="s1"> (</span><span class="si">%0.01f</span><span class="s1"> - </span><span class="si">%0.01f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
-        <span class="mf">100.0</span> <span class="o">*</span> <span class="n">total</span> <span class="o">/</span> <span class="n">ggr16_pl_index</span><span class="p">,</span>
-        <span class="mf">100.0</span> <span class="o">*</span> <span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="n">ggr16_pl_index</span> <span class="o">+</span> <span class="n">ggr16_pl_error</span><span class="p">),</span>
-        <span class="mf">100.0</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="n">ggr16_pl_index</span> <span class="o">-</span> <span class="n">ggr16_pl_error</span><span class="p">)),</span>
-    <span class="p">)</span>
+        <span class="n">ggr16_pl_index</span><span class="p">,</span> <span class="n">ggr16_pl_error</span> <span class="o">=</span> <span class="n">sight_resight_count</span><span class="p">(</span>
+            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;2016/01/30&#39;</span><span class="p">],</span>
+            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;2016/01/31&#39;</span><span class="p">],</span>
+            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 D1 AND D2&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 PL INDEX&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.01f</span><span class="s1"> +/- </span><span class="si">%0.01f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">ggr16_pl_index</span><span class="p">,</span>
+            <span class="n">ggr16_pl_error</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 D1 OR D2&#39;</span><span class="p">]</span>
+        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-16 COVERAGE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.01f</span><span class="s1"> (</span><span class="si">%0.01f</span><span class="s1"> - </span><span class="si">%0.01f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="mf">100.0</span> <span class="o">*</span> <span class="n">total</span> <span class="o">/</span> <span class="n">ggr16_pl_index</span><span class="p">,</span>
+            <span class="mf">100.0</span> <span class="o">*</span> <span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="n">ggr16_pl_index</span> <span class="o">+</span> <span class="n">ggr16_pl_error</span><span class="p">),</span>
+            <span class="mf">100.0</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="n">ggr16_pl_index</span> <span class="o">-</span> <span class="n">ggr16_pl_error</span><span class="p">)),</span>
+        <span class="p">)</span>
 
-    <span class="n">ggr18_pl_index</span><span class="p">,</span> <span class="n">ggr18_pl_error</span> <span class="o">=</span> <span class="n">sight_resight_count</span><span class="p">(</span>
-        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;2018/01/27&#39;</span><span class="p">],</span>
-        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;2018/01/28&#39;</span><span class="p">],</span>
-        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 D1 AND D2&#39;</span><span class="p">],</span>
-    <span class="p">)</span>
-    <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 PL INDEX&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.01f</span><span class="s1"> +/- </span><span class="si">%0.01f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
-        <span class="n">ggr18_pl_index</span><span class="p">,</span>
-        <span class="n">ggr18_pl_error</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">total</span> <span class="o">=</span> <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 D1 OR D2&#39;</span><span class="p">]</span>
-    <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 COVERAGE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.01f</span><span class="s1"> (</span><span class="si">%0.01f</span><span class="s1"> - </span><span class="si">%0.01f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
-        <span class="mf">100.0</span> <span class="o">*</span> <span class="n">total</span> <span class="o">/</span> <span class="n">ggr18_pl_index</span><span class="p">,</span>
-        <span class="mf">100.0</span> <span class="o">*</span> <span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="n">ggr18_pl_index</span> <span class="o">+</span> <span class="n">ggr18_pl_error</span><span class="p">),</span>
-        <span class="mf">100.0</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="n">ggr18_pl_index</span> <span class="o">-</span> <span class="n">ggr18_pl_error</span><span class="p">)),</span>
-    <span class="p">)</span>
+        <span class="n">ggr18_pl_index</span><span class="p">,</span> <span class="n">ggr18_pl_error</span> <span class="o">=</span> <span class="n">sight_resight_count</span><span class="p">(</span>
+            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;2018/01/27&#39;</span><span class="p">],</span>
+            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;2018/01/28&#39;</span><span class="p">],</span>
+            <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 D1 AND D2&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 PL INDEX&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.01f</span><span class="s1"> +/- </span><span class="si">%0.01f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">ggr18_pl_index</span><span class="p">,</span>
+            <span class="n">ggr18_pl_error</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 D1 OR D2&#39;</span><span class="p">]</span>
+        <span class="n">ggr_name_dates_stats</span><span class="p">[</span><span class="s1">&#39;GGR-18 COVERAGE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.01f</span><span class="s1"> (</span><span class="si">%0.01f</span><span class="s1"> - </span><span class="si">%0.01f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="mf">100.0</span> <span class="o">*</span> <span class="n">total</span> <span class="o">/</span> <span class="n">ggr18_pl_index</span><span class="p">,</span>
+            <span class="mf">100.0</span> <span class="o">*</span> <span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="n">ggr18_pl_index</span> <span class="o">+</span> <span class="n">ggr18_pl_error</span><span class="p">),</span>
+            <span class="mf">100.0</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="n">ggr18_pl_index</span> <span class="o">-</span> <span class="n">ggr18_pl_error</span><span class="p">)),</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ggr_name_dates_stats</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="n">occurrence_block_lines</span> <span class="o">=</span> <span class="p">(</span>
         <span class="p">[</span>

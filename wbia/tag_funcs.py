@@ -490,7 +490,7 @@ def filterflags_general_tags(
         >>> print('result = %r' % (result,))
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.tag_funcs import *  # NOQA
         >>> tags_list = [['vn'], ['vn', 'no'], ['P'], ['P'], ['n', 'o',], [], ['n', 'N'], ['e', 'i', 'p', 'b', 'n'], ['n'], ['n', 'nP'], ['NP']]
         >>> kwargs = {

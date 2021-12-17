@@ -59,7 +59,8 @@ def get_dbinfo(
     with_agesex=True,
     with_header=True,
     with_reviews=True,
-    with_ggr=True,
+    with_ggr=False,
+    with_ca=False,
     with_map=False,
     short=False,
     tag='dbinfo',
@@ -106,7 +107,7 @@ def get_dbinfo(
         python -m wbia.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA --loadbackup=0
 
     Example:
-        >>> # SCRIPT
+        >>> # DISABLE_DOCTEST
         >>> from wbia.other.dbinfo import *  # NOQA
         >>> import wbia
         >>> defaultdb = 'testdb1'
@@ -132,7 +133,7 @@ def get_dbinfo(
         >>> # </HACK FOR FILTERING>
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.other.dbinfo import *  # NOQA
         >>> import wbia
         >>> verbose = True
@@ -305,7 +306,7 @@ def get_dbinfo(
                 occurid2_aids_named[occurx].add(aid)
                 occurid2_nids[occurx].add(nid)
 
-    assert sorted(set(list(map(len, aid2_occurxs.values())))) == [1]
+    # assert sorted(set(list(map(len, aid2_occurxs.values())))) == [1]
 
     occur_nids = ibs.unflat_map(ibs.get_annot_nids, occurid2_aids.values())
     occur_unique_nids = [ut.unique(nids) for nids in occur_nids]
@@ -840,108 +841,109 @@ def get_dbinfo(
     review_tag_to_rids = ut.group_items(valid_rids, review_tag_list)
     review_tag_stats = {key: len(val) for key, val in review_tag_to_rids.items()}
 
-    species_list = ibs.get_annot_species_texts(valid_aids)
-    viewpoint_list = ibs.get_annot_viewpoints(valid_aids)
-    quality_list = ibs.get_annot_qualities(valid_aids)
-    interest_list = ibs.get_annot_interest(valid_aids)
-    canonical_list = ibs.get_annot_canonical(valid_aids)
+    if with_ca:
+        species_list = ibs.get_annot_species_texts(valid_aids)
+        viewpoint_list = ibs.get_annot_viewpoints(valid_aids)
+        quality_list = ibs.get_annot_qualities(valid_aids)
+        interest_list = ibs.get_annot_interest(valid_aids)
+        canonical_list = ibs.get_annot_canonical(valid_aids)
 
-    # ggr_num_relevant = 0
-    ggr_num_species = 0
-    ggr_num_viewpoints = 0
-    ggr_num_qualities = 0
-    ggr_num_filter = 0
-    ggr_num_aois = 0
-    ggr_num_cas = 0
-    ggr_num_filter_overlap = 0
-    ggr_num_filter_remove = 0
-    ggr_num_filter_add = 0
-    ggr_num_aoi_overlap = 0
-    ggr_num_aoi_remove = 0
-    ggr_num_aoi_add = 0
+        # ggr_num_relevant = 0
+        ggr_num_species = 0
+        ggr_num_viewpoints = 0
+        ggr_num_qualities = 0
+        ggr_num_filter = 0
+        ggr_num_aois = 0
+        ggr_num_cas = 0
+        ggr_num_filter_overlap = 0
+        ggr_num_filter_remove = 0
+        ggr_num_filter_add = 0
+        ggr_num_aoi_overlap = 0
+        ggr_num_aoi_remove = 0
+        ggr_num_aoi_add = 0
 
-    zipped = list(
-        zip(
-            valid_aids,
-            species_list,
-            viewpoint_list,
-            quality_list,
-            interest_list,
-            canonical_list,
+        zipped = list(
+            zip(
+                valid_aids,
+                species_list,
+                viewpoint_list,
+                quality_list,
+                interest_list,
+                canonical_list,
+            )
         )
-    )
-    ca_removed_aids = []
-    ca_added_aids = []
-    for aid, species_, viewpoint_, quality_, interest_, canonical_ in zipped:
-        if species_ == 'zebra_grevys+_canonical_':
-            continue
-        assert None not in [species_, viewpoint_, quality_]
-        species_ = species_.lower()
-        viewpoint_ = viewpoint_.lower()
-        quality_ = int(quality_)
-        # if species_ in ['zebra_grevys']:
-        #     ggr_num_relevant += 1
-        if species_ in ['zebra_grevys']:
-            ggr_num_species += 1
-            filter_viewpoint_ = 'right' in viewpoint_
-            filter_quality_ = quality_ >= 3
-            filter_ = filter_viewpoint_ and filter_quality_
+        ca_removed_aids = []
+        ca_added_aids = []
+        for aid, species_, viewpoint_, quality_, interest_, canonical_ in zipped:
+            if species_ == 'zebra_grevys+_canonical_':
+                continue
+            assert None not in [species_, viewpoint_, quality_]
+            species_ = species_.lower()
+            viewpoint_ = viewpoint_.lower()
+            quality_ = int(quality_)
+            # if species_ in ['zebra_grevys']:
+            #     ggr_num_relevant += 1
+            if species_ in ['zebra_grevys']:
+                ggr_num_species += 1
+                filter_viewpoint_ = 'right' in viewpoint_
+                filter_quality_ = quality_ >= 3
+                filter_ = filter_viewpoint_ and filter_quality_
 
-            if canonical_:
-                ggr_num_cas += 1
-
-            if filter_viewpoint_:
-                ggr_num_viewpoints += 1
-
-            if filter_quality_:
-                ggr_num_qualities += 1
-
-            if filter_:
-                ggr_num_filter += 1
                 if canonical_:
-                    ggr_num_filter_overlap += 1
+                    ggr_num_cas += 1
+
+                if filter_viewpoint_:
+                    ggr_num_viewpoints += 1
+
+                if filter_quality_:
+                    ggr_num_qualities += 1
+
+                if filter_:
+                    ggr_num_filter += 1
+                    if canonical_:
+                        ggr_num_filter_overlap += 1
+                    else:
+                        ggr_num_filter_remove += 1
+                        ca_removed_aids.append(aid)
                 else:
-                    ggr_num_filter_remove += 1
-                    ca_removed_aids.append(aid)
-            else:
-                if canonical_:
-                    ggr_num_filter_add += 1
-                    ca_added_aids.append(aid)
+                    if canonical_:
+                        ggr_num_filter_add += 1
+                        ca_added_aids.append(aid)
 
-            if interest_:
-                ggr_num_aois += 1
-                if canonical_:
-                    ggr_num_aoi_overlap += 1
+                if interest_:
+                    ggr_num_aois += 1
+                    if canonical_:
+                        ggr_num_aoi_overlap += 1
+                    else:
+                        ggr_num_aoi_remove += 1
                 else:
-                    ggr_num_aoi_remove += 1
-            else:
-                if canonical_:
-                    ggr_num_aoi_add += 1
+                    if canonical_:
+                        ggr_num_aoi_add += 1
 
-    print('CA REMOVED: %s' % (ca_removed_aids,))
-    print('CA ADDED: %s' % (ca_added_aids,))
+        print('CA REMOVED: %s' % (ca_removed_aids,))
+        print('CA ADDED: %s' % (ca_added_aids,))
 
-    removed_chip_paths = ibs.get_annot_chip_fpath(ca_removed_aids)
-    added_chip_paths = ibs.get_annot_chip_fpath(ca_added_aids)
+        removed_chip_paths = ibs.get_annot_chip_fpath(ca_removed_aids)
+        added_chip_paths = ibs.get_annot_chip_fpath(ca_added_aids)
 
-    removed_output_path = abspath(join('.', 'ca_removed'))
-    added_output_path = abspath(join('.', 'ca_added'))
+        removed_output_path = abspath(join('.', 'ca_removed'))
+        added_output_path = abspath(join('.', 'ca_added'))
 
-    ut.delete(removed_output_path)
-    ut.delete(added_output_path)
+        ut.delete(removed_output_path)
+        ut.delete(added_output_path)
 
-    ut.ensuredir(removed_output_path)
-    ut.ensuredir(added_output_path)
+        ut.ensuredir(removed_output_path)
+        ut.ensuredir(added_output_path)
 
-    for removed_chip_path in removed_chip_paths:
-        removed_chip_filename = split(removed_chip_path)[1]
-        removed_output_filepath = join(removed_output_path, removed_chip_filename)
-        ut.copy(removed_chip_path, removed_output_filepath, verbose=False)
+        for removed_chip_path in removed_chip_paths:
+            removed_chip_filename = split(removed_chip_path)[1]
+            removed_output_filepath = join(removed_output_path, removed_chip_filename)
+            ut.copy(removed_chip_path, removed_output_filepath, verbose=False)
 
-    for added_chip_path in added_chip_paths:
-        added_chip_filename = split(added_chip_path)[1]
-        added_output_filepath = join(added_output_path, added_chip_filename)
-        ut.copy(added_chip_path, added_output_filepath, verbose=False)
+        for added_chip_path in added_chip_paths:
+            added_chip_filename = split(added_chip_path)[1]
+            added_output_filepath = join(added_output_path, added_chip_filename)
+            ut.copy(added_chip_path, added_output_filepath, verbose=False)
 
     #########
 
@@ -967,7 +969,7 @@ def get_dbinfo(
 
     source_block_lines = [
         ('DB Info:  ' + ibs.get_dbname()),
-        ('DB Notes: ' + ibs.get_dbnotes()),
+        # ('DB Notes: ' + ibs.get_dbnotes()),
         ('DB NumContrib: %d' % num_contributors),
     ]
 
@@ -1067,70 +1069,73 @@ def get_dbinfo(
             name_dates_stats[valid_nid] = set([])
         name_dates_stats[valid_nid].add(date_str)
 
-    ggr_name_dates_stats = {
-        'GGR-16 D1 OR D2': 0,
-        'GGR-16 D1 AND D2': 0,
-        'GGR-18 D1 OR D2': 0,
-        'GGR-18 D1 AND D2': 0,
-        'GGR-16 AND GGR-18': 0,
-        '1+ Days': 0,
-        '2+ Days': 0,
-        '3+ Days': 0,
-        '4+ Days': 0,
-    }
-    for date_str in sorted(set(date_str_list_)):
-        ggr_name_dates_stats[date_str] = 0
-    for nid in name_dates_stats:
-        date_strs = name_dates_stats[nid]
-        total_days = len(date_strs)
-        assert 0 < total_days and total_days <= 4
-        for val in range(1, total_days + 1):
-            key = '%d+ Days' % (val,)
-            ggr_name_dates_stats[key] += 1
-        for date_str in date_strs:
-            ggr_name_dates_stats[date_str] += 1
-        if '2016/01/30' in date_strs or '2016/01/31' in date_strs:
-            ggr_name_dates_stats['GGR-16 D1 OR D2'] += 1
+    if with_ggr:
+        ggr_name_dates_stats = {
+            'GGR-16 D1 OR D2': 0,
+            'GGR-16 D1 AND D2': 0,
+            'GGR-18 D1 OR D2': 0,
+            'GGR-18 D1 AND D2': 0,
+            'GGR-16 AND GGR-18': 0,
+            '1+ Days': 0,
+            '2+ Days': 0,
+            '3+ Days': 0,
+            '4+ Days': 0,
+        }
+        for date_str in sorted(set(date_str_list_)):
+            ggr_name_dates_stats[date_str] = 0
+        for nid in name_dates_stats:
+            date_strs = name_dates_stats[nid]
+            total_days = len(date_strs)
+            assert 0 < total_days and total_days <= 4
+            for val in range(1, total_days + 1):
+                key = '%d+ Days' % (val,)
+                ggr_name_dates_stats[key] += 1
+            for date_str in date_strs:
+                ggr_name_dates_stats[date_str] += 1
+            if '2016/01/30' in date_strs or '2016/01/31' in date_strs:
+                ggr_name_dates_stats['GGR-16 D1 OR D2'] += 1
+                if '2018/01/27' in date_strs or '2018/01/28' in date_strs:
+                    ggr_name_dates_stats['GGR-16 AND GGR-18'] += 1
             if '2018/01/27' in date_strs or '2018/01/28' in date_strs:
-                ggr_name_dates_stats['GGR-16 AND GGR-18'] += 1
-        if '2018/01/27' in date_strs or '2018/01/28' in date_strs:
-            ggr_name_dates_stats['GGR-18 D1 OR D2'] += 1
-        if '2016/01/30' in date_strs and '2016/01/31' in date_strs:
-            ggr_name_dates_stats['GGR-16 D1 AND D2'] += 1
-        if '2018/01/27' in date_strs and '2018/01/28' in date_strs:
-            ggr_name_dates_stats['GGR-18 D1 AND D2'] += 1
+                ggr_name_dates_stats['GGR-18 D1 OR D2'] += 1
+            if '2016/01/30' in date_strs and '2016/01/31' in date_strs:
+                ggr_name_dates_stats['GGR-16 D1 AND D2'] += 1
+            if '2018/01/27' in date_strs and '2018/01/28' in date_strs:
+                ggr_name_dates_stats['GGR-18 D1 AND D2'] += 1
 
-    ggr16_pl_index, ggr16_pl_error = sight_resight_count(
-        ggr_name_dates_stats['2016/01/30'],
-        ggr_name_dates_stats['2016/01/31'],
-        ggr_name_dates_stats['GGR-16 D1 AND D2'],
-    )
-    ggr_name_dates_stats['GGR-16 PL INDEX'] = '%0.01f +/- %0.01f' % (
-        ggr16_pl_index,
-        ggr16_pl_error,
-    )
-    total = ggr_name_dates_stats['GGR-16 D1 OR D2']
-    ggr_name_dates_stats['GGR-16 COVERAGE'] = '%0.01f (%0.01f - %0.01f)' % (
-        100.0 * total / ggr16_pl_index,
-        100.0 * total / (ggr16_pl_index + ggr16_pl_error),
-        100.0 * min(1.0, total / (ggr16_pl_index - ggr16_pl_error)),
-    )
+        ggr16_pl_index, ggr16_pl_error = sight_resight_count(
+            ggr_name_dates_stats['2016/01/30'],
+            ggr_name_dates_stats['2016/01/31'],
+            ggr_name_dates_stats['GGR-16 D1 AND D2'],
+        )
+        ggr_name_dates_stats['GGR-16 PL INDEX'] = '%0.01f +/- %0.01f' % (
+            ggr16_pl_index,
+            ggr16_pl_error,
+        )
+        total = ggr_name_dates_stats['GGR-16 D1 OR D2']
+        ggr_name_dates_stats['GGR-16 COVERAGE'] = '%0.01f (%0.01f - %0.01f)' % (
+            100.0 * total / ggr16_pl_index,
+            100.0 * total / (ggr16_pl_index + ggr16_pl_error),
+            100.0 * min(1.0, total / (ggr16_pl_index - ggr16_pl_error)),
+        )
 
-    ggr18_pl_index, ggr18_pl_error = sight_resight_count(
-        ggr_name_dates_stats['2018/01/27'],
-        ggr_name_dates_stats['2018/01/28'],
-        ggr_name_dates_stats['GGR-18 D1 AND D2'],
-    )
-    ggr_name_dates_stats['GGR-18 PL INDEX'] = '%0.01f +/- %0.01f' % (
-        ggr18_pl_index,
-        ggr18_pl_error,
-    )
-    total = ggr_name_dates_stats['GGR-18 D1 OR D2']
-    ggr_name_dates_stats['GGR-18 COVERAGE'] = '%0.01f (%0.01f - %0.01f)' % (
-        100.0 * total / ggr18_pl_index,
-        100.0 * total / (ggr18_pl_index + ggr18_pl_error),
-        100.0 * min(1.0, total / (ggr18_pl_index - ggr18_pl_error)),
-    )
+        ggr18_pl_index, ggr18_pl_error = sight_resight_count(
+            ggr_name_dates_stats['2018/01/27'],
+            ggr_name_dates_stats['2018/01/28'],
+            ggr_name_dates_stats['GGR-18 D1 AND D2'],
+        )
+        ggr_name_dates_stats['GGR-18 PL INDEX'] = '%0.01f +/- %0.01f' % (
+            ggr18_pl_index,
+            ggr18_pl_error,
+        )
+        total = ggr_name_dates_stats['GGR-18 D1 OR D2']
+        ggr_name_dates_stats['GGR-18 COVERAGE'] = '%0.01f (%0.01f - %0.01f)' % (
+            100.0 * total / ggr18_pl_index,
+            100.0 * total / (ggr18_pl_index + ggr18_pl_error),
+            100.0 * min(1.0, total / (ggr18_pl_index - ggr18_pl_error)),
+        )
+    else:
+        ggr_name_dates_stats = {}
 
     occurrence_block_lines = (
         [

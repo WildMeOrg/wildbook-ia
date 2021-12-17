@@ -3579,12 +3579,12 @@
     <span class="k">return</span> <span class="n">hasgt_aids</span></div>
 
 
-<div class="viewcode-block" id="get_dbnotes_fpath"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.get_dbnotes_fpath">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">get_dbnotes_fpath</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="n">notes_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="s1">&#39;dbnotes.txt&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">ensure</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbnotes_fpath</span><span class="p">()):</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_dbnotes</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">notes_fpath</span></div>
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># def get_dbnotes_fpath(ibs, ensure=False):</span>
+<span class="c1">#     notes_fpath = join(ibs.get_ibsdir(), &#39;dbnotes.txt&#39;)</span>
+<span class="c1">#     if ensure and not exists(ibs.get_dbnotes_fpath()):</span>
+<span class="c1">#         ibs.set_dbnotes(&#39;None&#39;)</span>
+<span class="c1">#     return notes_fpath</span>
 
 
 <div class="viewcode-block" id="get_yaw_viewtexts"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.get_yaw_viewtexts">[docs]</a><span class="nd">@profile</span>
@@ -3880,23 +3880,23 @@
     <span class="k">return</span> <span class="n">dbinfo</span><span class="o">.</span><span class="n">get_short_infostr</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_dbnotes"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.get_dbnotes">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">get_dbnotes</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;sets notes for an entire database&quot;&quot;&quot;</span>
-    <span class="n">notes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbnotes_fpath</span><span class="p">(),</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">notes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_dbnotes</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
-        <span class="n">notes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbnotes_fpath</span><span class="p">())</span>
-    <span class="k">return</span> <span class="n">notes</span></div>
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># def get_dbnotes(ibs):</span>
+<span class="c1">#     &quot;&quot;&quot;sets notes for an entire database&quot;&quot;&quot;</span>
+<span class="c1">#     notes = ut.read_from(ibs.get_dbnotes_fpath(), strict=False)</span>
+<span class="c1">#     if notes is None:</span>
+<span class="c1">#         ibs.set_dbnotes(&#39;None&#39;)</span>
+<span class="c1">#         notes = ut.read_from(ibs.get_dbnotes_fpath())</span>
+<span class="c1">#     return notes</span>
 
 
-<div class="viewcode-block" id="set_dbnotes"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.set_dbnotes">[docs]</a><span class="nd">@register_ibs_method</span>
-<span class="k">def</span> <span class="nf">set_dbnotes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">notes</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;sets notes for an entire database&quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">wbia</span>
+<span class="c1"># @register_ibs_method</span>
+<span class="c1"># def set_dbnotes(ibs, notes):</span>
+<span class="c1">#     &quot;&quot;&quot;sets notes for an entire database&quot;&quot;&quot;</span>
+<span class="c1">#     import wbia</span>
 
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wbia</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">)</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbnotes_fpath</span><span class="p">(),</span> <span class="n">notes</span><span class="p">)</span></div>
+<span class="c1">#     assert isinstance(ibs, wbia.control.IBEISControl.IBEISController)</span>
+<span class="c1">#     ut.write_to(ibs.get_dbnotes_fpath(), notes)</span>
 
 
 <div class="viewcode-block" id="annotstr"><a class="viewcode-back" href="../../../wbia.other.html#wbia.other.ibsfuncs.annotstr">[docs]</a><span class="nd">@register_ibs_method</span>

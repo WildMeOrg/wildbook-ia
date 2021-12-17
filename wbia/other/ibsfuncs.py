@@ -3510,12 +3510,12 @@ def get_aids_with_groundtruth(ibs):
     return hasgt_aids
 
 
-@register_ibs_method
-def get_dbnotes_fpath(ibs, ensure=False):
-    notes_fpath = join(ibs.get_ibsdir(), 'dbnotes.txt')
-    if ensure and not exists(ibs.get_dbnotes_fpath()):
-        ibs.set_dbnotes('None')
-    return notes_fpath
+# @register_ibs_method
+# def get_dbnotes_fpath(ibs, ensure=False):
+#     notes_fpath = join(ibs.get_ibsdir(), 'dbnotes.txt')
+#     if ensure and not exists(ibs.get_dbnotes_fpath()):
+#         ibs.set_dbnotes('None')
+#     return notes_fpath
 
 
 @profile
@@ -3811,23 +3811,23 @@ def get_infostr(ibs):
     return dbinfo.get_short_infostr(ibs)
 
 
-@register_ibs_method
-def get_dbnotes(ibs):
-    """sets notes for an entire database"""
-    notes = ut.read_from(ibs.get_dbnotes_fpath(), strict=False)
-    if notes is None:
-        ibs.set_dbnotes('None')
-        notes = ut.read_from(ibs.get_dbnotes_fpath())
-    return notes
+# @register_ibs_method
+# def get_dbnotes(ibs):
+#     """sets notes for an entire database"""
+#     notes = ut.read_from(ibs.get_dbnotes_fpath(), strict=False)
+#     if notes is None:
+#         ibs.set_dbnotes('None')
+#         notes = ut.read_from(ibs.get_dbnotes_fpath())
+#     return notes
 
 
-@register_ibs_method
-def set_dbnotes(ibs, notes):
-    """sets notes for an entire database"""
-    import wbia
+# @register_ibs_method
+# def set_dbnotes(ibs, notes):
+#     """sets notes for an entire database"""
+#     import wbia
 
-    assert isinstance(ibs, wbia.control.IBEISControl.IBEISController)
-    ut.write_to(ibs.get_dbnotes_fpath(), notes)
+#     assert isinstance(ibs, wbia.control.IBEISControl.IBEISController)
+#     ut.write_to(ibs.get_dbnotes_fpath(), notes)
 
 
 @register_ibs_method

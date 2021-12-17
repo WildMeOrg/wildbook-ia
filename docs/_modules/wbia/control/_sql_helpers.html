@@ -408,8 +408,8 @@
         <span class="n">update_schema_version</span><span class="p">(</span>
             <span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">schema_spec</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span> <span class="n">dobackup</span><span class="o">=</span><span class="n">dobackup</span>
         <span class="p">)</span>
-        <span class="c1"># db.set_db_version(version_expected)</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">version_expected</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">set_db_version</span><span class="p">(</span><span class="n">version_expected</span><span class="p">)</span>
+        <span class="c1"># db.metadata.database.version = version_expected</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s1">&#39;[_SQL] Database version updated (incrementally) to </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">version_expected</span><span class="p">)</span>
         <span class="p">)</span>

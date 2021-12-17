@@ -1050,7 +1050,7 @@ def build_chipmatches(
         >>> ut.show_if_requested()
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.algo.hots.pipeline import *  # NOQA
         >>> # Test to make sure filtering by feature weights works
         >>> qreq_, args = plh.testdata_pre(
