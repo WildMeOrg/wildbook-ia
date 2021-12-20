@@ -65,6 +65,7 @@ VIEWTEXT_TO_VIEWPOINT_RADIANS = VIEWTEXT_TO_YAW_RADIANS
 # TODO: DEPRICATE ALL THE YAW ALIAS STUFF IN FAVOR OF const.VIEW
 YAWALIAS = {
     # maybe this can be CODE_TO_SHORT
+    'unknown': 'UNKNOWN',
     'up': 'U',
     'down': 'D',
     'front': 'F',

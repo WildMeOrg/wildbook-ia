@@ -4,7 +4,6 @@ exclude: |
   (?x)(
       ^docs/ |
       ^_docs/_build/html/ |
-      ^docs/ |
       wbia/web/static/
   )
 repos:

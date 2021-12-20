@@ -228,7 +228,7 @@ def initialize_postgresql_types(conn, schema):
         WHERE domain_schema = (select current_schema)"""
     ).fetchall()
     domain_names = ut.flatten(domain_names)
-    domain_names += [domain_name.upper() for domain_name in domain_names]
+    # domain_names += [domain_name.upper() for domain_name in domain_names]
     for type_name, cls in SQL_TYPE_TO_SA_TYPE.items():
         if type_name not in domain_names and hasattr(cls, 'postgresql_base_type'):
             base_type = cls.postgresql_base_type
