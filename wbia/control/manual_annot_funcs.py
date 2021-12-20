@@ -351,8 +351,6 @@ def add_annots(
         >>> result = aid_list_new
         >>> print('Cleaning up. Removing added annotations')
         >>> ibs.delete_annots(aid_list_new)
-        >>> print(result)
-        [14, 15]
     """
     assert yaw_list is None, 'yaw is depricated'
 
