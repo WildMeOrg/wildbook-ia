@@ -564,7 +564,7 @@ class SQLDatabaseController(object):
             schema = None
         return schema
 
-    def ensure_postgresql_types(self, conn):
+    def ensure_postgresql_types(self):
         """Create a connection instance to wrap a SQL execution block as a context manager"""
         if not self.is_using_postgres:
             return
@@ -578,9 +578,10 @@ class SQLDatabaseController(object):
         type_cache_flag = True
         if type_cache_tag not in TYPE_INITIALIZED_CACHE:
             try:
-                conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema_name}')
-                conn.execute(text('SET SCHEMA :schema'), schema=self.schema_name)
-                initialize_postgresql_types(conn, self.schema_name)
+                with self._engine.connect() as conn:
+                    conn.execute(f'CREATE SCHEMA IF NOT EXISTS {self.schema_name}')
+                    conn.execute(text('SET SCHEMA :schema'), schema=self.schema_name)
+                    initialize_postgresql_types(conn, self.schema_name)
             except Exception:
                 type_cache_flag = False
 
@@ -589,8 +590,8 @@ class SQLDatabaseController(object):
     @contextmanager
     def connect(self):
         """Create a connection instance to wrap a SQL execution block as a context manager"""
+        self.ensure_postgresql_types()
         with self._engine.connect() as conn:
-            self.ensure_postgresql_types(conn)
             yield conn
 
     @profile
