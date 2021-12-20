@@ -189,9 +189,7 @@ RUN set -ex \
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
      pyqt5 \
- && /virtualenv/env3/bin/pip uninstall -y \
-     pyqt5 \
- && /virtualenv/env3/bin/pip install \
+ && /virtualenv/env3/bin/pip install --upgrade \
      pyqt5
 
 # Wildbook IA problematic dependencies
