@@ -68,6 +68,10 @@ def parse_imageinfo(gpath):
 
     if gpath is None:
         return None
+    elif isinstance(gpath, dict) and len(gpath) == 0:
+        return None
+    else:
+        pass
 
     urlsplit = urllib.parse.urlsplit
     urlquote = urllib.parse.quote
