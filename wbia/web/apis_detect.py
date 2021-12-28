@@ -488,7 +488,24 @@ def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
         return result
 
     image_uuid_list = ibs.get_image_uuids(gid_list)
-    ibs.assert_valid_gids(gid_list)
+
+    try:
+        ibs.assert_valid_gids(gid_list)
+    except Exception:
+        gid_set = list(set(gid_list))
+        if len(gid_set) == 1 and gid_set[0] is None:
+            results_dict = {
+                'image_uuid_list': image_uuid_list,
+                'results_list': [[]] * len(image_uuid_list),
+                'score_list': [0.0] * len(image_uuid_list),
+                'has_assignments': False,
+            }
+            return results_dict
+
+        kwargs = {
+            'invalid_image_uuid_list': image_uuid_list,
+        }
+        raise controller_inject.WebInvalidUUIDException(**kwargs)
     # Get detections from depc --- this output will be affected by assigner
     aids_list = detect_func(gid_list, **config)
     results_list = []
