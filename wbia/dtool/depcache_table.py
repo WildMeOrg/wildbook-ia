@@ -1998,7 +1998,7 @@ class DependencyCacheTable(
         """
         self.db = self.depc.get_db_by_name(self._db_name)
 
-        if self.db.is_using_postgres():
+        if self.db.is_using_postgres:
             self.tablename = self.tablename.lower()
 
         # logger.info('Checking sql for table=%r' % (self.tablename,))
