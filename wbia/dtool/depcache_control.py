@@ -202,7 +202,8 @@ class DependencyCache:
             self.requestclass_dict[tablename] = requestclass
         self._db_by_name.setdefault(fname, None)
 
-        if self.get_db_by_name(tablename).is_using_postgres:
+        if ut.get_arg_dict().get('db-uri', '').startswith('postgresql://'):
+            # FIXME (28-Dec-12021) Hack for PostGRES databases with plug-ins
             tablename = tablename.lower()
 
         table = depcache_table.DependencyCacheTable.from_name(
