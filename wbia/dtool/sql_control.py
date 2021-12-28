@@ -773,16 +773,26 @@ class SQLDatabaseController(object):
         self.shrink_memory()
         self.vacuum()
 
-    def _reflect_table(self, table_name):
+    def _reflect_table(self, table_name, raise_error=False):
         """Produces a SQLAlchemy Table object from the given ``table_name``"""
         # Note, this on introspects once. Repeated calls will pull the Table object
         # from the MetaData object.
-        kw = {}
-        if self.is_using_postgres:
-            kw = {'schema': self.schema_name}
-        return Table(
-            table_name, self._sa_metadata, autoload=True, autoload_with=self._engine, **kw
-        )
+        try:
+            kw = {}
+            if self.is_using_postgres:
+                kw = {'schema': self.schema_name}
+            return Table(
+                table_name,
+                self._sa_metadata,
+                autoload=True,
+                autoload_with=self._engine,
+                **kw,
+            )
+        except Exception:
+            if raise_error:
+                raise
+            else:
+                return self._reflect_table(table_name.lower(), raise_error=True)
 
     # ==============
     # API INTERFACE
