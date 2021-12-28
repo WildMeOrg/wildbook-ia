@@ -1997,10 +1997,6 @@ class DependencyCacheTable(
         Ensures the SQL schema for this cache table
         """
         self.db = self.depc.get_db_by_name(self._db_name)
-
-        if self.db.is_using_postgres:
-            self.tablename = self.tablename.lower()
-
         # logger.info('Checking sql for table=%r' % (self.tablename,))
         if not self.db.has_table(self.tablename):
             logger.debug('Initializing table=%r' % (self.tablename,))

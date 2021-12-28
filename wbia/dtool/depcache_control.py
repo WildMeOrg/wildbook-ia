@@ -201,6 +201,10 @@ class DependencyCache:
         if requestclass is not None:
             self.requestclass_dict[tablename] = requestclass
         self._db_by_name.setdefault(fname, None)
+
+        if self.get_db_by_name(tablename).is_using_postgres:
+            tablename = tablename.lower()
+
         table = depcache_table.DependencyCacheTable.from_name(
             fname,
             tablename,
