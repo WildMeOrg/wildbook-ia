@@ -2595,11 +2595,10 @@ class SQLDatabaseController(object):
                 lazy=True
             ), 'tablename=%r is not a part of this database' % (tablename,)
         except AssertionError:
-            assert tablename in self.get_table_names(
+            assert tablename_ in self.get_table_names(
                 lazy=True
-            ), 'tablename=%r is not a part of this database' % (tablename,)
+            ), 'tablename=%r is not a part of this database' % (tablename_,)
 
-        tablename_ = tablename.lower()
         meta = self.metadata.get(tablename, self.metadata.get(tablename_))
 
         superkeys = meta.superkeys
