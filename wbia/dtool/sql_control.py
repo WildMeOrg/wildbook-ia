@@ -1963,7 +1963,12 @@ class SQLDatabaseController(object):
         operation = self._make_add_table_sqlstr(tablename, coldef_list, **metadata_keyval)
         self.executeone(operation, [], verbose=False)
 
-        self.metadata[tablename].update(**metadata_keyval)
+        try:
+            self.metadata[tablename].update(**metadata_keyval)
+        except KeyError:
+            tablename_ = tablename.lower()
+            self.metadata[tablename_].update(**metadata_keyval)
+
         if self._tablenames is not None:
             self._tablenames.add(tablename)
 
