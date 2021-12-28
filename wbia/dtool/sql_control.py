@@ -773,26 +773,16 @@ class SQLDatabaseController(object):
         self.shrink_memory()
         self.vacuum()
 
-    def _reflect_table(self, table_name, raise_error=False):
+    def _reflect_table(self, table_name):
         """Produces a SQLAlchemy Table object from the given ``table_name``"""
         # Note, this on introspects once. Repeated calls will pull the Table object
         # from the MetaData object.
-        try:
-            kw = {}
-            if self.is_using_postgres:
-                kw = {'schema': self.schema_name}
-            return Table(
-                table_name,
-                self._sa_metadata,
-                autoload=True,
-                autoload_with=self._engine,
-                **kw,
-            )
-        except Exception:
-            if raise_error:
-                raise
-            else:
-                return self._reflect_table(table_name.lower(), raise_error=True)
+        kw = {}
+        if self.is_using_postgres:
+            kw = {'schema': self.schema_name}
+        return Table(
+            table_name, self._sa_metadata, autoload=True, autoload_with=self._engine, **kw
+        )
 
     # ==============
     # API INTERFACE
@@ -1972,11 +1962,7 @@ class SQLDatabaseController(object):
         """
         operation = self._make_add_table_sqlstr(tablename, coldef_list, **metadata_keyval)
         self.executeone(operation, [], verbose=False)
-
-        tablename_ = tablename.lower()
-        meta = self.metadata.get(tablename, self.metadata.get(tablename_))
-        meta.update(**metadata_keyval)
-
+        self.metadata[tablename].update(**metadata_keyval)
         if self._tablenames is not None:
             self._tablenames.add(tablename)
 
@@ -2155,11 +2141,7 @@ class SQLDatabaseController(object):
         metadata_keyval2 = metadata_keyval.copy()
         for suffix in METADATA_TABLE_COLUMN_NAMES:
             if suffix not in metadata_keyval2 or metadata_keyval2[suffix] is None:
-                tablename_orig_ = tablename_orig.lower()
-                meta = self.metadata.get(
-                    tablename_orig, self.metadata.get(tablename_orig_)
-                )
-                val = getattr(meta, suffix)
+                val = getattr(self.metadata[tablename_orig], suffix)
                 metadata_keyval2[suffix] = val
 
         self.add_table(tablename_temp, coldef_list, **metadata_keyval2)
@@ -2338,9 +2320,7 @@ class SQLDatabaseController(object):
         """
         TODO: use coldef_list with table_autogen_dict instead
         """
-        tablename_ = tablename.lower()
-        meta = self.metadata.get(tablename, self.metadata.get(tablename_))
-        constraint = meta.constraint
+        constraint = self.metadata[tablename].constraint
         return None if constraint is None else constraint.split(';')
 
     def get_coldef_list(self, tablename):
@@ -2398,21 +2378,12 @@ class SQLDatabaseController(object):
             >>> result = ut.repr2(autogen_dict, nl=2)
             >>> print(result)
         """
-        tablename_ = tablename.lower()
-        meta = self.metadata.get(tablename, self.metadata.get(tablename_))
-
-        tablename_key = None
-        if tablename in self.metadata:
-            tablename_key = tablename
-        elif tablename_ in self.metadata:
-            tablename_key = tablename_
-
         autogen_dict = ut.odict()
         autogen_dict['tablename'] = tablename
-        autogen_dict['coldef_list'] = self.get_coldef_list(tablename_key)
+        autogen_dict['coldef_list'] = self.get_coldef_list(tablename)
         autogen_dict['docstr'] = self.get_table_docstr(tablename)
         autogen_dict['superkeys'] = self.get_table_superkey_colnames(tablename)
-        autogen_dict['dependson'] = meta.dependson
+        autogen_dict['dependson'] = self.metadata[tablename].dependson
         return autogen_dict
 
     def get_table_autogen_str(self, tablename):
@@ -2476,9 +2447,6 @@ class SQLDatabaseController(object):
             quoted_docstr = _TSQ + '\n' + indented_docstr + '\n' + tab2 + _TSQ
             return quoted_docstr
 
-        tablename_ = tablename.lower()
-        meta = self.metadata.get(tablename, self.metadata.get(tablename_))
-
         line_list.append(tab2 + 'docstr=%s,' % quote_docstr(docstr))
         line_list.append(tab2 + 'superkeys=%s,' % (ut.repr2(superkeys),))
         # Hack out docstr and superkeys for now
@@ -2486,12 +2454,11 @@ class SQLDatabaseController(object):
             if suffix in specially_handled_table_metakeys:
                 continue
             key = tablename + '_' + suffix
-            val = getattr(meta, suffix)
+            val = getattr(self.metadata[tablename], suffix)
             logger.info(key)
             if val is not None:
                 line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
-
-        dependsmap = meta.dependsmap
+        dependsmap = self.metadata[tablename].dependsmap
         if dependsmap is not None:
             _dictstr = ut.indent(ut.repr2(dependsmap, nl=1), tab2)
             depends_map_dictstr = ut.align(_dictstr.lstrip(' '), ':')
@@ -2598,20 +2565,10 @@ class SQLDatabaseController(object):
             >>> print(result)
             [('dummy_annot_rowid', 'config_rowid')]
         """
-        tablename_ = tablename.lower()
-
-        try:
-            assert tablename in self.get_table_names(
-                lazy=True
-            ), 'tablename=%r is not a part of this database' % (tablename,)
-        except AssertionError:
-            assert tablename_ in self.get_table_names(
-                lazy=True
-            ), 'tablename=%r is not a part of this database' % (tablename_,)
-
-        meta = self.metadata.get(tablename, self.metadata.get(tablename_))
-
-        superkeys = meta.superkeys
+        assert tablename in self.get_table_names(
+            lazy=True
+        ), 'tablename=%r is not a part of this database' % (tablename,)
+        superkeys = self.metadata[tablename].superkeys
         if superkeys is None:
             superkeys = []
         return superkeys
@@ -2639,9 +2596,7 @@ class SQLDatabaseController(object):
             >>> print(result)
             Used to store individual chip features (ellipses)
         """
-        tablename_ = tablename.lower()
-        meta = self.metadata.get(tablename, self.metadata.get(tablename_))
-        return meta.docstr
+        return self.metadata[tablename].docstr
 
     def get_columns(self, tablename):
         """
@@ -2850,10 +2805,7 @@ class SQLDatabaseController(object):
             extern_tablename_list,
             extern_primarycolnames_list,
         ) = new_transferdata
-
-        tablename_ = tablename.lower()
-        meta = self.metadata.get(tablename, self.metadata.get(tablename_))
-        dependsmap = meta.dependsmap
+        dependsmap = self.metadata[tablename].dependsmap
 
         richcolinfo_list = self.get_columns(tablename)
         table_dict_def = ut.odict([(r.name, r.type_) for r in richcolinfo_list])
@@ -2955,11 +2907,7 @@ class SQLDatabaseController(object):
         extern_superkey_colname_list = []
         extern_superkey_colval_list = []
         extern_primarycolnames_list = []
-
-        tablename_lower = tablename.lower()
-        meta = self.metadata.get(tablename, self.metadata.get(tablename_lower))
-
-        dependsmap = meta.dependsmap
+        dependsmap = self.metadata[tablename].dependsmap
         if dependsmap is not None:
             for colname, dependtup in dependsmap.items():
                 assert len(dependtup) == 3, 'must be 3 for now'
@@ -2979,13 +2927,10 @@ class SQLDatabaseController(object):
                         try:
                             # FIXME: Rectify duplicate code
                             superkeys = self.get_table_superkey_colnames(tablename_)
-                            tablename_lower_ = tablename_.lower()
-                            meta = self.metadata.get(
-                                tablename_, self.metadata.get(tablename_lower_)
-                            )
-
                             if len(superkeys) > 1:
-                                primary_superkey = meta.primary_superkey
+                                primary_superkey = self.metadata[
+                                    tablename_
+                                ].primary_superkey
                                 self.get_table_superkey_colnames('contributors')
                                 if primary_superkey is None:
                                     raise AssertionError(
@@ -3009,7 +2954,7 @@ class SQLDatabaseController(object):
                                 # Execute hack to fix contributor tables
                                 if tablename_ == 'contributors':
                                     # hack to fix contributors table
-                                    constraint_str = meta.constraint
+                                    constraint_str = self.metadata[tablename_].constraint
                                     parse_result = parse.parse(
                                         'CONSTRAINT superkey UNIQUE ({superkey})',
                                         constraint_str,
@@ -3169,8 +3114,7 @@ class SQLDatabaseController(object):
         # Reorder tablenames based on dependencies.
         # the tables with dependencies are merged after the tables they depend on
         dependsmap_list = [
-            self.metadata.get(tablename, self.metadata.get(tablename.lower())).dependsmap
-            for tablename in tablename_list
+            self.metadata[tablename].dependsmap for tablename in tablename_list
         ]
         dependency_digraph = {
             tablename: []
@@ -3344,10 +3288,7 @@ class SQLDatabaseController(object):
                 raise
             if len(superkey_colnames_list) > 1:
                 # FIXME: Rectify duplicate code
-                tablename_ = tablename.lower()
-                meta = self.metadata.get(tablename, self.metadata.get(tablename_))
-
-                primary_superkey = meta.primary_superkey
+                primary_superkey = self.metadata[tablename].primary_superkey
                 if primary_superkey is None:
                     raise AssertionError(
                         (
