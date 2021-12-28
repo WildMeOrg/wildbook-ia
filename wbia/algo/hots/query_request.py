@@ -182,18 +182,28 @@ def new_wbia_query_request(
         cfgdict = dict(query_cfg.parse_items())
         requestclass = ibs.depc_annot.requestclass_dict[tablename]
         assert custom_nid_lookup is None, 'unsupported'
-        qreq_ = request = requestclass.new(  # NOQA
-            ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename
-        )
+        try:
+            qreq_ = request = requestclass.new(  # NOQA
+                ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename
+            )
+        except KeyError:
+            qreq_ = request = requestclass.new(  # NOQA
+                ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename.lower()
+            )
     elif piperoot is not None and piperoot not in ['vsmany']:
         # Hack to ensure that correct depcache style request gets called
         if verbose > 2:
             logger.info('[qreq] piperoot HACK')
         requestclass = ibs.depc_annot.requestclass_dict[piperoot]
         # assert custom_nid_lookup is None, 'unsupported'
-        qreq_ = request = requestclass.new(  # NOQA
-            ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot
-        )
+        try:
+            qreq_ = request = requestclass.new(  # NOQA
+                ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot
+            )
+        except KeyError:
+            qreq_ = request = requestclass.new(  # NOQA
+                ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot.lower()
+            )
         # assert qreq_.qparams.pipeline_root != 'vsone', 'pipeline vsone is depricated'
     else:
         if verbose > 2:

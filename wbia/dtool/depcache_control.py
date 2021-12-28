@@ -897,11 +897,23 @@ class DependencyCache:
 
         for trynum in range(1, num_retries + 1):
             try:
-                table = self[tablename]
-                # Vectorized get of properties
-                tbl_rowids = self.get_rowids(tablename, input_tuple, **rowid_kw)
-                logger.debug('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
-                prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
+                try:
+                    table = self[tablename]
+                    # Vectorized get of properties
+                    tbl_rowids = self.get_rowids(tablename, input_tuple, **rowid_kw)
+                    logger.debug(
+                        '[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),)
+                    )
+                    prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
+                except KeyError:
+                    tablename_ = tablename.lower()
+                    table = self[tablename_]
+                    # Vectorized get of properties
+                    tbl_rowids = self.get_rowids(tablename_, input_tuple, **rowid_kw)
+                    logger.debug(
+                        '[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),)
+                    )
+                    prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
             except Exception:
                 logger.warn('!!* Hit Exception in depc.get()')
                 if trynum == num_retries:
