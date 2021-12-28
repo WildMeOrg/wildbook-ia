@@ -2391,9 +2391,15 @@ class SQLDatabaseController(object):
         tablename_ = tablename.lower()
         meta = self.metadata.get(tablename, self.metadata.get(tablename_))
 
+        tablename_key = None
+        if tablename in self.metadata:
+            tablename_key = tablename
+        elif tablename_ in self.metadata:
+            tablename_key = tablename_
+
         autogen_dict = ut.odict()
         autogen_dict['tablename'] = tablename
-        autogen_dict['coldef_list'] = self.get_coldef_list(tablename)
+        autogen_dict['coldef_list'] = self.get_coldef_list(tablename_key)
         autogen_dict['docstr'] = self.get_table_docstr(tablename)
         autogen_dict['superkeys'] = self.get_table_superkey_colnames(tablename)
         autogen_dict['dependson'] = meta.dependson
@@ -2582,9 +2588,16 @@ class SQLDatabaseController(object):
             >>> print(result)
             [('dummy_annot_rowid', 'config_rowid')]
         """
-        assert tablename in self.get_table_names(
-            lazy=True
-        ), 'tablename=%r is not a part of this database' % (tablename,)
+        tablename_ = tablename.lower()
+
+        try:
+            assert tablename in self.get_table_names(
+                lazy=True
+            ), 'tablename=%r is not a part of this database' % (tablename,)
+        except AssertionError:
+            assert tablename in self.get_table_names(
+                lazy=True
+            ), 'tablename=%r is not a part of this database' % (tablename,)
 
         tablename_ = tablename.lower()
         meta = self.metadata.get(tablename, self.metadata.get(tablename_))
