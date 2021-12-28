@@ -476,6 +476,10 @@ def add_images(
     assert None not in all_valid_gid_set
     all_gid_list = [aid if aid in all_valid_gid_set else None for aid in all_gid_list]
     assert len(gpath_list) == len(all_gid_list)
+
+    # Ensure all images that were added are 8-bit images
+    ibs.check_image_bit_depth(gid_list=list(set(all_gid_list)))
+
     return all_gid_list
 
 
