@@ -159,7 +159,7 @@ def execute_query_and_save_L1(
         >>> from wbia.algo.hots.match_chips4 import *  # NOQA
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4])
         >>> use_cache, save_qcache, verbose = False, False, True
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -170,7 +170,7 @@ def execute_query_and_save_L1(
         >>> from wbia.algo.hots.match_chips4 import *  # NOQA
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4])
         >>> use_cache, save_qcache, verbose = False, False, True
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -183,7 +183,7 @@ def execute_query_and_save_L1(
         >>> import wbia
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4])
         >>> use_cache, save_qcache, verbose = False, True, True
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
@@ -196,7 +196,7 @@ def execute_query_and_save_L1(
         >>> import wbia
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+        >>> qreq_ = wbia.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4])
         >>> use_cache, save_qcache, verbose = True, True, True
         >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)

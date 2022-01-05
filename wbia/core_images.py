@@ -221,7 +221,7 @@ def compute_web_src(depc, gid_list, config=None):
         >>> thumbs = depc.get_property('web_src', gid_list, 'src', recompute=True)
         >>> thumb = thumbs[0]
         >>> hash_str = ut.hash_data(thumb)
-        >>> assert hash_str in ['yerctlgfqosrhmjpqvkbmnoocagfqsna', 'wcuppmpowkvhfmfcnrxdeedommihexfu'], 'Found %r' % (hash_str, )
+        >>> assert hash_str in ['yerctlgfqosrhmjpqvkbmnoocagfqsna', 'wcuppmpowkvhfmfcnrxdeedommihexfu', 'lerhyizhlignvvzmvqbbberyklzyfbzq'], 'Found %r' % (hash_str, )
     """
     ibs = depc.controller
 

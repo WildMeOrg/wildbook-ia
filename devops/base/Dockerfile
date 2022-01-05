@@ -18,6 +18,7 @@ RUN set -ex \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
         software-properties-common \
+        apt-utils \
  && add-apt-repository ppa:deadsnakes/ppa \
  && apt-get update \
  # && apt-get upgrade -y \
