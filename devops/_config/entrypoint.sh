@@ -4,6 +4,8 @@ set -ex
 
 setup
 
+source /bin/setup
+
 # Supply EXEC_PRIVILEGED=1 to run your given command as the privileged user.
 if [ $EXEC_PRIVILEGED ]; then
     exec $@

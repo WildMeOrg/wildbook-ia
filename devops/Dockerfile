@@ -91,7 +91,9 @@ COPY ./_config/healthcheck.py /bin/healthcheck.py
 RUN updatedb
 
 # Temporary fix for ARM64
-ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
+ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
+
+ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0"
 
 # Run smoke tests
 RUN set -ex \
