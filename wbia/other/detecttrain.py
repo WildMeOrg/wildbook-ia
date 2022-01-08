@@ -484,7 +484,12 @@ def localizer_lightnet_train(
     )
     call_str = '%s%s %s -c -n %s -b %s %s' % args
     logger.info(call_str)
-    subprocess.call(call_str, shell=True)
+
+    try:
+        subprocess.call(call_str, shell=True)
+    except KeyboardInterrupt:
+        logger.warning('Stopped training prematurely with ^C')
+
     assert exists(backup_path)
 
     """
@@ -581,7 +586,7 @@ def localizer_lightnet_train(
 
     # Deploy
     final_path = join('/', 'data', 'public', 'models')
-    if deploy:
+    if deploy and exists(final_path):
         assert exists(final_path), 'Cannot deploy the model on this machine'
         if deploy_tag is None:
             deploy_tag = cache_species_str
