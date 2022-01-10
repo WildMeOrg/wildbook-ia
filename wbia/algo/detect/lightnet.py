@@ -2,6 +2,7 @@
 """Interface to Lightnet object proposals."""
 import logging
 import utool as ut
+import vtool as vt
 import numpy as np
 from os.path import abspath, dirname, expanduser, join, exists, splitext  # NOQA
 from tqdm import tqdm
@@ -133,9 +134,10 @@ def detect_gid_list(ibs, gid_list, verbose=VERBOSE_LN, **kwargs):
     """
     # Get new gpaths if downsampling
     gpath_list = ibs.get_image_paths(gid_list)
+    orient_list = ibs.get_image_orientation(gid_list)
 
     # Run detection
-    results_iter = detect(gpath_list, verbose=verbose, **kwargs)
+    results_iter = detect(gpath_list, orient_list, verbose=verbose, **kwargs)
     # Upscale the results
     _iter = zip(gid_list, results_iter)
     for gid, (gpath, result_list) in _iter:
@@ -190,13 +192,13 @@ def _create_network(
     return params
 
 
-def _detect(params, gpath_list, flip=False):
+def _detect(params, data_list, flip=False):
     """Perform a detection."""
     # Load image
     imgs = []
     img_sizes = []
-    for gpath in gpath_list:
-        img = cv2.imread(gpath)
+    for gpath, orient in data_list:
+        img = vt.imread(gpath, orient=orient)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if flip:
             img = cv2.flip(img, 1)
@@ -242,6 +244,7 @@ def _detect(params, gpath_list, flip=False):
 
 def detect(
     gpath_list,
+    orient_list,
     config_filepath=None,
     weight_filepath=None,
     classes_filepath=None,
@@ -292,9 +295,10 @@ def detect(
 
     # Execute detector for each image
     results_list_ = []
-    for gpath_batch_list in tqdm(list(ut.ichunks(gpath_list, batch_size))):
+    data_list = list(zip(gpath_list, orient_list))
+    for data_batch_list in tqdm(list(ut.ichunks(data_list, batch_size))):
         try:
-            result_list, img_sizes = _detect(params, gpath_batch_list, flip=flip)
+            result_list, img_sizes = _detect(params, data_batch_list, flip=flip)
         except cv2.error:
             result_list, img_sizes = [], []
 

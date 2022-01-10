@@ -496,21 +496,21 @@ def localizer_lightnet_train(
     x = (
         'CUDA_VISIBLE_DEVICES=0 ',
         '/virtualenv/env3/bin/python',
-        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/bin/test.py',
-        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/cfg/yolo.py',
-        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/results.txt',
-        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/backup',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-salamander_fire_adult-salamander_fire_juvenile-1fc472817c1d2545/bin/test.py',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-salamander_fire_adult-salamander_fire_juvenile-1fc472817c1d2545/cfg/yolo.py',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-salamander_fire_adult-salamander_fire_juvenile-1fc472817c1d2545/results.txt',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-salamander_fire_adult-salamander_fire_juvenile-1fc472817c1d2545/backup',
         True,
-        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/deploy',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-salamander_fire_adult-salamander_fire_juvenile-1fc472817c1d2545/deploy',
         True,
         None,
         False,
         True,
-        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/bin',
-        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/cfg',
-        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/data',
-        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-right_whale-right_whale+body-right_whale+fluke-right_whale+head-right_whale+peduncle-a36054bf78166a05/darknet19_448.conv.23.pt',
-        'wilddog'
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-salamander_fire_adult-salamander_fire_juvenile-1fc472817c1d2545/bin',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-salamander_fire_adult-salamander_fire_juvenile-1fc472817c1d2545/cfg',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-salamander_fire_adult-salamander_fire_juvenile-1fc472817c1d2545/data',
+        '/data/db/_ibsdb/_ibeis_cache/training/lightnet/lightnet-training-salamander_fire_adult-salamander_fire_juvenile-1fc472817c1d2545/darknet19_448.conv.23.pt',
+        'temp'
     )
 
     cuda_str, python_exe, test_py_path, config_py_path, results_path, backup_path, validate_with_accuracy, deploy_path, deploy, deploy_tag, cleanup, cleanup_all, bin_path, cfg_path, data_path, weights_path, cache_species_str = x

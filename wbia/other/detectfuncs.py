@@ -3229,8 +3229,31 @@ def labeler_tp_tn_fp_fn(
     # depc.delete_property('labeler', aid_list, config=kwargs)
     probability_dict_list = depc.get_property('labeler', aid_list, 'probs', config=kwargs)
 
+    viewpoint_label_mapping = {}
+    for species in viewpoint_mapping:
+        for viewpoint in viewpoint_mapping[species]:
+            viewpoint_ = viewpoint_mapping[species][viewpoint]
+            src_label = '%s:%s' % (
+                species,
+                viewpoint,
+            )
+            dst_label = '%s:%s' % (
+                species,
+                viewpoint_,
+            )
+            viewpoint_label_mapping[src_label] = dst_label
+
+    for label in label_list:
+        if label not in viewpoint_label_mapping:
+            viewpoint_label_mapping[label] = label
+
+    predict_label_list = []
+    for label in probability_dict_list[0].keys():
+        label_ = viewpoint_label_mapping.get(label, label)
+        predict_label_list.append(label_)
+
     value1_list = set(label_list)
-    value2_list = set(probability_dict_list[0].keys())
+    value2_list = set(predict_label_list)
     print(value1_list)
     print(value2_list)
     assert len(value1_list - value2_list) == 0
