@@ -2,6 +2,6 @@
 
 set -ex
 
-setup
+source /bin/setup
 
 exec gosu ${HOST_USER}:${HOST_USER} /bin/bash
