@@ -13,6 +13,13 @@ ENV DISPLAY :1
 
 USER root
 
+# Fix for Arm64 builds on GitHub actions
+RUN set -ex \
+ && ln -s /usr/bin/dpkg-split /usr/sbin/dpkg-split \
+ && ln -s /usr/bin/dpkg-deb /usr/sbin/dpkg-deb \
+ && ln -s /bin/rm /usr/sbin/rm \
+ && ln -s /bin/tar /usr/sbin/tar
+
 # Install package updates and dependencies
 RUN set -ex \
  && apt-get update \
