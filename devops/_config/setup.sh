@@ -9,7 +9,12 @@ fi
 
 if [ "${HOST_USER}" != "root" ]; then
     # addgroup --system --non-unique --gid ${HOST_UID} ${HOST_USER}
-    adduser --uid ${HOST_UID} --system --group --force-badname ${HOST_USER}
+    if $(id "${HOST_USER}") &>/dev/null; then
+        echo "Using existing user ${HOST_USER}"
+    else
+        echo "Adding new user ${HOST_USER}"
+        adduser --uid ${HOST_UID} --system --group --force-badname ${HOST_USER}
+    fi
     export HOME_FOLDER=$(eval echo ~${HOST_USER})
 else
     export HOME_FOLDER=${HOME}
@@ -38,9 +43,7 @@ if [ ! -d "/cache" ]; then
 fi
 
 rm -rf ${HOME_FOLDER}/.cache
-
 ln -s -T /cache ${HOME_FOLDER}/.cache
-
 chown ${HOST_USER}:${HOST_USER} ${HOME_FOLDER}/.cache/
 
 if [ "${HOST_USER}" != "root" ]; then
