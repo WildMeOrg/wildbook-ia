@@ -16,14 +16,14 @@ USER root
 # Install package updates and dependencies
 RUN set -ex \
  && apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y -f --no-install-recommends \
         software-properties-common \
         apt-utils \
  && add-apt-repository ppa:deadsnakes/ppa \
  && apt-get update \
  # && apt-get upgrade -y \
  # && apt-get dist-upgrade -y \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y -f --no-install-recommends \
         # Install build requirements
         ca-certificates \
         build-essential \
