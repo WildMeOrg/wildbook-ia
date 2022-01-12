@@ -9,7 +9,7 @@ fi
 
 if [ "${HOST_USER}" != "root" ]; then
     # addgroup --system --non-unique --gid ${HOST_UID} ${HOST_USER}
-    if $(id "${HOST_USER}") &>/dev/null; then
+    if id "${HOST_USER}" >/dev/null 2>&1; then
         echo "Using existing user ${HOST_USER}"
     else
         echo "Adding new user ${HOST_USER}"
