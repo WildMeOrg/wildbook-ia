@@ -18,7 +18,7 @@ args = (
 url = '%s://%s:%s%s' % args
 
 try:
-    raw = requests.get(url, timeout=120)
+    raw = requests.get(url, timeout=2)
     response = raw.json()
     healthy = response.get('response')
 
