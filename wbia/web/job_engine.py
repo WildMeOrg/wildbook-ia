@@ -1931,14 +1931,15 @@ def on_collect_request(
     args = get_collector_shelve_filepaths(collector_data, jobid)
     collector_shelve_input_filepath, collector_shelve_output_filepath = args
 
-    print(
-        'on_collect_request action = %r, jobid = %r, status = %r'
-        % (
-            action,
-            jobid,
-            status,
+    if jobid is not None:
+        print(
+            'on_collect_request action = %r, jobid = %r, status = %r'
+            % (
+                action,
+                jobid,
+                status,
+            )
         )
-    )
 
     if action == 'notification':
         assert None not in [jobid, runtime_lock_filepath]
