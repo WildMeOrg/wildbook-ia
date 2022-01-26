@@ -847,6 +847,10 @@ def detect_cnn_lightnet_json_wrapper(ibs, image_uuid_list, **kwargs):
 @register_ibs_method
 def detect_cnn_lightnet_image_uris_json(ibs, image_uris, config={}, **kwargs):
     gid_list = ibs.add_images(image_uris, auto_localize=True)
+    if None in gid_list:
+        raise controller_inject.WebMissingInput(
+            'At least one of the image URIs failed to download'
+        )
     return ibs.detect_cnn_lightnet_json(gid_list, config=config, **kwargs)
 
 

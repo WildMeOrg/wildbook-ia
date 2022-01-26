@@ -45,13 +45,13 @@ except ImportError:
 else:
     dsn = os.getenv(
         'WBIA_SENTRY_DSN',
-        default='https://30f53fef7e7d44bc8b9446f05cf90dd7@sentry.dyn.wildme.io/2',
+        default='https://a36fa98a60ea42df8fa25e8fa680a72d@sentry.dyn.wildme.io/2',
     )
     sentry_sdk.init(
-        dsn=dsn,
+        dsn,
         integrations=[FlaskIntegration()],
+        traces_sample_rate=1.0,
     )
-    del dsn
 
 try:
     import multiprocessing as mp
