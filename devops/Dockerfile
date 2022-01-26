@@ -117,7 +117,7 @@ RUN set -ex \
 # Undo Fix
 ENV LD_PRELOAD ""
 
-HEALTHCHECK --interval=10s --timeout=5s --retries=60 --start-period=5m \
+HEALTHCHECK --interval=10s --timeout=5s --retries=60 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
 
 STOPSIGNAL SIGTERM
