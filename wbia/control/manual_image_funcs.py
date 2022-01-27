@@ -28,6 +28,7 @@ import utool as ut
 import vtool as vt
 from wbia.web import routes_ajax
 from wbia.utils import call_houston
+import os
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -526,7 +527,7 @@ def get_image_exif_original(ibs, gid_list):
 
 
 @register_ibs_method
-def localize_images(ibs, gid_list_=None, cache_uri_dict=None):
+def localize_images(ibs, gid_list_=None, cache_uri_dict=None, cleanup=True):
     r"""
     Moves the images into the wbia image cache.
     Images are renamed to img_uuid.ext
@@ -609,22 +610,21 @@ def localize_images(ibs, gid_list_=None, cache_uri_dict=None):
     # Copy any s3/http images first
     for uri, loc_gpath in zip(uri_list, loc_gpath_list):
 
-        try:
-            cache_uri = cache_uri_dict.get(uri, None)
-            if cache_uri is not None:
-                logger.info(
-                    'Found cached URI %r -> %r'
-                    % (
-                        uri,
-                        cache_uri,
-                    )
+        cache_uri = cache_uri_dict.get(uri, None)
+        is_cache = cache_uri is not None
+
+        if is_cache:
+            logger.info(
+                'Found cached URI %r -> %r'
+                % (
+                    uri,
+                    cache_uri,
                 )
-                if exists(cache_uri):
-                    uri = cache_uri
-                else:
-                    logger.info('\t...local cache file is missing, fetching')
-        except Exception:
-            pass
+            )
+            if exists(cache_uri):
+                uri = cache_uri
+            else:
+                logger.info('\t...local cache file is missing, fetching')
 
         logger.info('Localizing %r -> %r' % (uri, loc_gpath))
         if isproto(uri, valid_protos):
@@ -678,6 +678,11 @@ def localize_images(ibs, gid_list_=None, cache_uri_dict=None):
                 ut.copy_list([uri], [loc_gpath])
             else:
                 logger.info('\tSkipping (already localized)')
+
+        if cleanup and is_cache:
+            logger.info('Deleting cache file %r' % (cache_uri,))
+            os.unlink(cache_uri)
+
     # Update database uris
     ibs.set_image_uris(gid_list, loc_gname_list)
     assert all(map(exists, loc_gpath_list)), 'not all images copied'

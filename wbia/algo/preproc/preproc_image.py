@@ -35,7 +35,7 @@ def get_standard_ext(gpath):
 
 
 @profile
-def parse_imageinfo(gpath):
+def parse_imageinfo(gpath, cleanup=False):
     """Worker function: gpath must be in UNIX-PATH format!
 
     Args:
@@ -232,9 +232,11 @@ def parse_imageinfo(gpath):
 
     if temp_filepath is not None:
         os.close(temp_file)
-        os.unlink(temp_filepath)
+        if cleanup:
+            os.unlink(temp_filepath)
+
     # logger.info('[ginfo] %r %r' % (image_uuid, orig_gname))
-    return gpath_, param_tup
+    return temp_filepath, param_tup
 
 
 def on_delete(ibs, featweight_rowid_list, qreq_=None):
