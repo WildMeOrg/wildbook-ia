@@ -719,7 +719,12 @@ def check_image_loadable(ibs, gid_list=None):
 
     arg_iter = list(zip(gpath_list, existing_orient_list))
     flag_list = ut.util_parallel.generate2(
-        check_image_loadable_worker, arg_iter, futures_threaded=True
+        check_image_loadable_worker,
+        arg_iter,
+        nTasks=len(arg_iter),
+        ordered=True,
+        progkw={'freq': 1},
+        futures_threaded=True,
     )
     flag_list = list(flag_list)
     loadable_list = ut.take_column(flag_list, 0)
@@ -737,15 +742,18 @@ def check_image_loadable(ibs, gid_list=None):
                 continue
             update_gid_list.append(gid)
             update_orient_list.append(new_orient)
-    assert len(update_gid_list) == len(update_orient_list)
-    args = (
-        len(update_gid_list),
-        len(rewritten_list),
-    )
-    logger.info(
-        '[check_image_loadable] Updating %d orientations from %d rewritten images' % args
-    )
-    ibs._set_image_orientation(update_gid_list, update_orient_list)
+
+    if len(update_gid_list) > 0:
+        assert len(update_gid_list) == len(update_orient_list)
+        args = (
+            len(update_gid_list),
+            len(rewritten_list),
+        )
+        logger.info(
+            '[check_image_loadable] Updating %d orientations from %d rewritten images'
+            % args
+        )
+        ibs._set_image_orientation(update_gid_list, update_orient_list)
 
     bad_loadable_list = ut.filterfalse_items(gid_list, loadable_list)
     bad_exif_list = ut.filterfalse_items(gid_list, exif_list)

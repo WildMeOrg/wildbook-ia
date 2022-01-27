@@ -475,7 +475,8 @@ def add_images(
                 delete_gid_set.add(valid_gid)
 
         delete_gid_list = list(delete_gid_set)
-        ibs.delete_images(delete_gid_list, trash_images=False)
+        if len(delete_gid_list) > 0:
+            ibs.delete_images(delete_gid_list, trash_images=False)
 
         all_valid_gid_set = all_gid_set - delete_gid_set - none_set
         all_valid_gid_list = list(all_valid_gid_set)
