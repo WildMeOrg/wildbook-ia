@@ -396,6 +396,8 @@ def add_images(
         for (gpath_, params_) in params_list:
             cache_uri_dict[params_[1]] = gpath_
 
+    logger.info('Using cache_uri_dict = %s' % (ut.repr3(cache_uri_dict),))
+
     # <DEBUG>
     debug = False
     if debug:
@@ -610,15 +612,17 @@ def localize_images(ibs, gid_list_=None, cache_uri_dict=None):
         try:
             cache_uri = cache_uri_dict.get(uri, None)
             if cache_uri is not None:
-                if exists(cache_uri):
-                    logger.info(
-                        'Found cached URI %r -> %r'
-                        % (
-                            uri,
-                            cache_uri,
-                        )
+                logger.info(
+                    'Found cached URI %r -> %r'
+                    % (
+                        uri,
+                        cache_uri,
                     )
+                )
+                if exists(cache_uri):
                     uri = cache_uri
+                else:
+                    logger.info('\t...local cache file is missing, fetching')
         except Exception:
             pass
 
