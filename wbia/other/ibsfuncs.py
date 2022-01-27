@@ -1628,18 +1628,17 @@ def fix_and_clean_database(ibs):
 
     """
     # TODO: Call more stuff, maybe rename to 'apply duct tape'
-    with ut.Indenter('[FIX_AND_CLEAN]'):
-        logger.info('starting fixes and consistency checks')
-        ibs.fix_unknown_exemplars()
-        ibs.fix_invalid_name_texts()
-        ibs.fix_invalid_nids()
-        ibs.fix_invalid_annotmatches()
-        fix_zero_features(ibs)
-        ibs.update_annot_visual_uuids(ibs.get_valid_aids())
-        ibs.delete_empty_nids()
-        ibs.delete_empty_imgsetids()
-        ibs.db.vacuum()
-        logger.info('finished fixes and consistency checks\n')
+    logger.info('starting fixes and consistency checks')
+    ibs.fix_unknown_exemplars()
+    ibs.fix_invalid_name_texts()
+    ibs.fix_invalid_nids()
+    ibs.fix_invalid_annotmatches()
+    fix_zero_features(ibs)
+    ibs.update_annot_visual_uuids(ibs.get_valid_aids())
+    ibs.delete_empty_nids()
+    ibs.delete_empty_imgsetids()
+    ibs.db.vacuum()
+    logger.info('finished fixes and consistency checks\n')
 
 
 @register_ibs_method

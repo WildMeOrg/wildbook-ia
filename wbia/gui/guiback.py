@@ -3378,18 +3378,17 @@ class MainWindowBackend(GUIBACK_BASE):
             if dbdir is None:
                 return
         logger.info('[back] open_database(dbdir=%r)' % dbdir)
-        with ut.Indenter(lbl='    [opendb]'):
-            try:
-                # should this use wbia.opendb? probably. at least it should be
-                # be request IBEISControl
-                # ibs = IBEISControl.IBEISController(dbdir=dbdir)
-                ibs = IBEISControl.request_IBEISController(dbdir=dbdir)
-                back.connect_wbia_control(ibs)
-            except Exception as ex:
-                ut.printex(ex, 'caught Exception while opening database')
-                raise
-            else:
-                sysres.set_default_dbdir(dbdir)
+        try:
+            # should this use wbia.opendb? probably. at least it should be
+            # be request IBEISControl
+            # ibs = IBEISControl.IBEISController(dbdir=dbdir)
+            ibs = IBEISControl.request_IBEISController(dbdir=dbdir)
+            back.connect_wbia_control(ibs)
+        except Exception as ex:
+            ut.printex(ex, 'caught Exception while opening database')
+            raise
+        else:
+            sysres.set_default_dbdir(dbdir)
 
     @blocking_slot()
     def export_database_as_csv(back):

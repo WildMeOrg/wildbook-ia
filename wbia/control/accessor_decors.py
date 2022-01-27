@@ -327,8 +327,6 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
             colscache_ = self.table_cache[tblname]
             colnames_ = list(colscache_.keys()) if colnames is None else colnames
             if DEBUG_API_CACHE:
-                indenter = ut.Indenter('[%s]' % (tblname,))
-                indenter.start()
                 logger.info('+------')
                 logger.info(
                     'INVALIDATING tblname=%r, colnames=%r, rowidx=%r, force=%r'
@@ -364,8 +362,6 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
 
             writer_result = writer_func(self, *args, **kwargs)
 
-            if DEBUG_API_CACHE:
-                indenter.stop()
             return writer_result
 
         wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, writer_func)

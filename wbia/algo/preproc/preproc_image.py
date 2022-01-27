@@ -52,7 +52,7 @@ def parse_imageinfo(gpath):
     Doctest:
         >>> from wbia.algo.preproc.preproc_image import *  # NOQA
         >>> gpath = ut.grab_test_imgpath('patsy.jpg')
-        >>> param_tup = parse_imageinfo(gpath)
+        >>> gpath_, param_tup = parse_imageinfo(gpath)
         >>> result = ('param_tup = %s' % (str(param_tup),))
         >>> print(result)
         >>> uuid = param_tup[0]
@@ -234,39 +234,7 @@ def parse_imageinfo(gpath):
         os.close(temp_file)
         os.unlink(temp_filepath)
     # logger.info('[ginfo] %r %r' % (image_uuid, orig_gname))
-    return param_tup
-
-
-# def add_images_params_gen(gpath_list):
-#     """
-#     generates values for add_images sqlcommands asychronously
-
-#     Args:
-#         gpath_list (list):
-
-#     Kwargs:
-#         ordered, force_serial, chunksize, prog, verbose, quiet, nTasks, freq,
-#         adjust
-
-#     Returns:
-#         generator: params_gen
-
-#     CommandLine:
-#         python -m wbia.algo.preproc.preproc_image --exec-add_images_params_gen
-
-#     Example:
-#         >>> # ENABLE_DOCTEST
-#         >>> from wbia.algo.preproc.preproc_image import *   # NOQA
-#         >>> from vtool.tests import grabdata
-#         >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
-#         >>> params_list = list(add_images_params_gen(gpath_list))
-#         >>> assert str(params_list[0][0]) == '66ec193a-1619-b3b6-216d-1784b4833b61', 'UUID gen method changed'
-#         >>> assert str(params_list[0][3]) == 'easy1.JPG', 'orig name is different'
-#         >>> assert params_list[3] is None
-#     """
-#     params_gen = ut.generate2(parse_imageinfo, zip(gpath_list), adjust=True,
-#                               force_serial=True)
-#     return params_gen
+    return gpath_, param_tup
 
 
 def on_delete(ibs, featweight_rowid_list, qreq_=None):

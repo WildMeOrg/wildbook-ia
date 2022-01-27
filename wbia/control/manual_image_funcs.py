@@ -278,7 +278,9 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
 
     # Error reporting
     failed_list = [
-        gpath for (gpath, params_) in zip(gpath_list, params_list) if not params_
+        gpath
+        for (gpath, (gpath_, params_)) in zip(gpath_list, params_list)
+        if not params_
     ]
 
     logger.info(
@@ -298,7 +300,8 @@ def compute_image_uuids(ibs, gpath_list, **kwargs):
 
     uuid_colx = IMAGE_COLNAMES.index('image_uuid')
     uuid_list = [
-        None if params_ is None else params_[uuid_colx] for params_ in params_list
+        None if params_ is None else params_[uuid_colx]
+        for (gpath_, params_) in params_list
     ]
 
     return uuid_list
@@ -377,6 +380,7 @@ def add_images(
     """
     logger.info('[ibs] add_images')
     logger.info('[ibs] len(gpath_list) = %d' % len(gpath_list))
+
     if auto_localize is None:
         # grab value from config
         auto_localize = ibs.cfg.other_cfg.auto_localize
@@ -386,15 +390,19 @@ def add_images(
         location_for_names = ibs.cfg.other_cfg.location_for_names
 
     compute_params = params_list is None
+    cache_uri_dict = {}
     if compute_params:
         params_list = ibs._compute_image_uuids(gpath_list, **kwargs)
+        for (gpath_, params_) in params_list:
+            cache_uri_dict[params_[1]] = gpath_
 
     # <DEBUG>
     debug = False
     if debug:
         uuid_colx = IMAGE_COLNAMES.index('image_uuid')
         uuid_list = [
-            None if params_ is None else params_[uuid_colx] for params_ in params_list
+            None if params_ is None else params_[uuid_colx]
+            for (gpath_, params_) in params_list
         ]
         gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
         valid_gids = ibs.get_valid_gids()
@@ -408,11 +416,19 @@ def add_images(
     colnames = IMAGE_COLNAMES + ('image_original_path', 'image_location_code')
     params_list = [
         tuple(params) + (gpath, location_for_names) if params is not None else None
-        for params, gpath in zip(params_list, gpath_list)
+        for (gpath_, params), gpath in zip(params_list, gpath_list)
     ]
 
+    logger.info('Adding %d image records to DB' % (len(params_list),))
     all_gid_list = ibs.db.add_cleanly(
         const.IMAGE_TABLE, colnames, params_list, ibs.get_image_gids_from_uuid
+    )
+    logger.info(
+        '\t...added %d image rows to DB (%d unique)'
+        % (
+            len(all_gid_list),
+            len(set(all_gid_list)),
+        )
     )
 
     # Filter for valid images and de-duplicate
@@ -423,7 +439,7 @@ def add_images(
 
     if auto_localize:
         # Move to wbia database local cache
-        ibs.localize_images(all_valid_gid_list)
+        ibs.localize_images(all_valid_gid_list, cache_uri_dict=cache_uri_dict)
 
     # Check for duplicates
     has_duplicates = ut.duplicates_exist(all_gid_list)
@@ -460,6 +476,14 @@ def add_images(
 
         all_valid_gid_set = all_gid_set - delete_gid_set - none_set
         all_valid_gid_list = list(all_valid_gid_set)
+
+    logger.info(
+        '\t...validated %d image rows in DB (%d unique)'
+        % (
+            len(all_valid_gid_list),
+            len(set(all_valid_gid_list)),
+        )
+    )
 
     if not compute_params:
         # We need to double check that the UUIDs are valid, considering we received the UUIDs
@@ -500,7 +524,7 @@ def get_image_exif_original(ibs, gid_list):
 
 
 @register_ibs_method
-def localize_images(ibs, gid_list_=None):
+def localize_images(ibs, gid_list_=None, cache_uri_dict=None):
     r"""
     Moves the images into the wbia image cache.
     Images are renamed to img_uuid.ext
@@ -546,6 +570,9 @@ def localize_images(ibs, gid_list_=None):
 
     import urllib
 
+    if cache_uri_dict is None:
+        cache_uri_dict = {}
+
     urlsplit = urllib.parse.urlsplit
     urlquote = urllib.parse.quote
     urlunquote = urllib.parse.unquote
@@ -579,6 +606,22 @@ def localize_images(ibs, gid_list_=None):
 
     # Copy any s3/http images first
     for uri, loc_gpath in zip(uri_list, loc_gpath_list):
+
+        try:
+            cache_uri = cache_uri_dict.get(uri, None)
+            if cache_uri is not None:
+                if exists(cache_uri):
+                    logger.info(
+                        'Found cached URI %r -> %r'
+                        % (
+                            uri,
+                            cache_uri,
+                        )
+                    )
+                    uri = cache_uri
+        except Exception:
+            pass
+
         logger.info('Localizing %r -> %r' % (uri, loc_gpath))
         if isproto(uri, valid_protos):
             if isproto(uri, s3_proto):
