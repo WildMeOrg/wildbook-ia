@@ -395,7 +395,9 @@ def add_images(
     if compute_params:
         params_list = ibs._compute_image_uuids(gpath_list, **kwargs)
         for (gpath_, params_) in params_list:
-            cache_uri_dict[params_[1]] = gpath_
+            if gpath_ is not None and params_ is not None:
+                uri_ = params_[1]
+                cache_uri_dict[uri_] = gpath_
 
     logger.info('Using cache_uri_dict = %s' % (ut.repr3(cache_uri_dict),))
 

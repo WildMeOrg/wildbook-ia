@@ -354,10 +354,10 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
         ...     '____', u'zebra_grevys', u'bear_polar']
         >>> ensure = False
         >>> species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)
-        >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
+        >>> # print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
         >>> ensure = True
         >>> species_rowid_list = ibs.get_species_rowids_from_text(species_text_list, ensure)
-        >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
+        >>> # print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
         >>> ibs.print_species_table()
         >>> species_text = ibs.get_species_texts(species_rowid_list)
         >>> # Ensure we leave testdb1 in a clean state

@@ -3,4 +3,5 @@ codecov
 coverage
 pytest
 pytest-cov
+pytest-random-order
 xdoctest

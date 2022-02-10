@@ -89,7 +89,7 @@ def test_add_images_auto_localized():
         mock.call(IMAGE_URIS[0], allow_redirects=True, stream=True),
         mock.call(IMAGE_URIS[1], allow_redirects=True, stream=True),
     ]
-    assert ibs.localize_images.call_args_list == [mock.call([1, 2])]
+    assert ibs.localize_images.call_args_list[0][0] == ([1, 2],)
 
 
 def test_localize_images(request):

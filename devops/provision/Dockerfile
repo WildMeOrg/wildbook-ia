@@ -185,13 +185,6 @@ RUN set -ex \
      torchaudio \
      -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html
 
-# Fix PyQt5
-RUN set -ex \
- && /virtualenv/env3/bin/pip uninstall -y \
-     pyqt5 \
- && /virtualenv/env3/bin/pip install --upgrade \
-     pyqt5
-
 # Wildbook IA problematic dependencies
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \

@@ -95,6 +95,24 @@ ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/torch
 
 ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0"
 
+# Fix PyQt5
+RUN set -ex \
+ && apt-get update \
+ && apt-get remove -y \
+     python3-pyqt5* \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+     qt5-qmake \
+     qt5-default \
+ && /virtualenv/env3/bin/pip uninstall -y \
+     pyqt5 \
+ && /virtualenv/env3/bin/pip install --upgrade \
+     pyqt5 \
+ && apt-get clean \
+ && apt-get autoclean \
+ && apt-get autoremove -y \
+ && rm -rf /var/cache/apt \
+ && rm -rf /var/lib/apt/lists/*
+
 # Run smoke tests
 RUN set -ex \
  && mkdir -p /data \

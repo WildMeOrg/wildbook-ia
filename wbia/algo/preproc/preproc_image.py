@@ -67,9 +67,9 @@ def parse_imageinfo(gpath, cleanup=False):
     import urllib
 
     if gpath is None:
-        return None
+        return None, None
     elif isinstance(gpath, dict) and len(gpath) == 0:
-        return None
+        return None, None
     else:
         pass
 
@@ -160,7 +160,7 @@ def parse_imageinfo(gpath, cleanup=False):
         ) as ex:
             # ut.embed()
             logger.info('[preproc] IOError: %s' % (str(ex),))
-            return None
+            return None, None
 
         if len(w) > 0:
             # for warn in w:
@@ -199,9 +199,9 @@ def parse_imageinfo(gpath, cleanup=False):
                 cv2.imwrite(gpath_, img)
                 orient = EXIF_NORMAL
             except AssertionError:
-                return None
+                return None, None
     except (FileNotFoundError):
-        return None
+        return None, None
 
     # Parse out the data
     height, width = img.shape[:2]  # Read width, height
