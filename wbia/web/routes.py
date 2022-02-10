@@ -768,7 +768,7 @@ def view_advanced0(**kwargs):
         if len(max_ages) > 0:
             max_age = max_ages[0]
         # Histogram
-        if (min_age is None and max_age is None) or (min_age is -1 and max_age is -1):
+        if (min_age is None and max_age is None) or (min_age == -1 and max_age == -1):
             # logger.info('[web] Unreviewded name %r: Specify the age for the name' % (nid, ))
             age_unreviewed += 1
             continue

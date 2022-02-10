@@ -69,7 +69,7 @@ from functools import partial
 from wbia.control import controller_inject
 from wbia.utils import call_houston
 import multiprocessing
-
+import re
 
 print, rrr, profile = ut.inject2(__name__)  # NOQA
 # logger = logging.getLogger('wbia')
@@ -137,7 +137,7 @@ def _get_engine_lock_paths(ibs):
 
 
 @register_ibs_method
-def retry_job(ibs, jobid):
+def fetch_job(ibs, jobid):
     from os.path import exists
 
     shelve_path = ibs.get_shelves_path()
@@ -152,6 +152,14 @@ def retry_job(ibs, jobid):
     job_kwargs = job_record['request']['kwargs']
 
     job_func = getattr(ibs, job_action, None)
+
+    return job_action, job_func, job_args, job_kwargs
+
+
+@register_ibs_method
+def retry_job(ibs, jobid):
+    job_action, job_func, job_args, job_kwargs = ibs.fetch_job(jobid)
+
     if job_func is not None:
         job_result = job_func(*job_args, **job_kwargs)
 
@@ -381,12 +389,12 @@ def get_job_result(ibs, jobid):
     return result
 
 
-@register_ibs_method
-@register_api('/api/engine/job/result/wait/', methods=['GET', 'POST'])
-def wait_for_job_result(ibs, jobid, timeout=10, freq=0.1):
-    ibs.job_manager.jobiface.wait_for_job_result(jobid, timeout=timeout, freq=freq)
-    result = ibs.job_manager.jobiface.get_unpacked_result(jobid)
-    return result
+# @register_ibs_method
+# @register_api('/api/engine/job/result/wait/', methods=['GET', 'POST'])
+# def wait_for_job_result(ibs, jobid, timeout=10, freq=0.1):
+#     ibs.job_manager.jobiface.wait_for_job_result(jobid, timeout=timeout, freq=freq)
+#     result = ibs.job_manager.jobiface.get_unpacked_result(jobid)
+#     return result
 
 
 def _get_random_open_port():
@@ -1081,8 +1089,15 @@ class JobInterface(object):
 
         if jobid is not None:
             assert isinstance(jobid, str)
-            jobid_ = uuid.UUID(jobid)
-            assert jobid_ is not None and isinstance(jobid_, uuid.UUID)
+            try:
+                jobid_ = uuid.UUID(jobid)
+                assert jobid_ is not None and isinstance(jobid_, uuid.UUID)
+            except Exception:
+                assert len(jobid) < 32, 'Job IDs cannot be more than 32 characters'
+                pattern = r'^[a-zA-Z0-9-_]+$'
+                matched = bool(re.match(pattern, jobid))
+                assert matched, 'Job IDs must be alpha-numeric'
+            jobid = jobid_
 
         engine_request = {
             'action': action,
@@ -1893,6 +1908,20 @@ def on_collect_request(
 
     # Ensure we have a collector record for the jobid
     if jobid is not None:
+        try:
+            assert isinstance(jobid, str)
+            try:
+                uuid.UUID(jobid)
+            except Exception:
+                assert len(jobid) < 32, 'Job IDs cannot be more than 32 characters'
+                pattern = r'^[a-zA-Z0-9-_]+$'
+                matched = bool(re.match(pattern, jobid))
+                assert matched, 'Job IDs must be alpha-numeric'
+        except AssertionError:
+            print('Invalid Job ID')
+            reply['status'] = 'error'
+            return reply
+
         if jobid not in collector_data:
             collector_data[jobid] = {
                 'status': None,
@@ -2105,12 +2134,14 @@ def on_collect_request(
                             data=ut.to_json(data_dict),
                             headers={'Content-Type': 'application/json'},
                         )
-                    response = requests.post(callback_url, data=data_dict)
+                    else:
+                        response = requests.post(callback_url, data=data_dict)
                 elif callback_method == 'GET':
                     if callback_url.startswith('houston+'):
                         # Remove houston+ from callback_url
                         call_houston(callback_url[8:], method='GET', params=data_dict)
-                    response = requests.get(callback_url, params=data_dict)
+                    else:
+                        response = requests.get(callback_url, params=data_dict)
                 elif callback_method == 'PUT':
                     if callback_url.startswith('houston+'):
                         # Remove houston+ from callback_url
@@ -2120,7 +2151,8 @@ def on_collect_request(
                             data=ut.to_json(data_dict),
                             headers={'Content-Type': 'application/json'},
                         )
-                    response = requests.put(callback_url, data=data_dict)
+                    else:
+                        response = requests.put(callback_url, data=data_dict)
                 else:
                     raise RuntimeError()
 

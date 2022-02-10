@@ -30,6 +30,49 @@ ENGINE_SLOT = ut.get_argval('--engine-slot', type_=str, default='default')
 CODEX = ut.get_argval('--codex', type_=str, default='codex_houston_1')
 
 
+SENTRY_SKIP_TRANSACTION_PATHS = set(
+    [
+        '/api/test/heartbeat/',
+    ]
+)
+
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+except ImportError:
+    pass
+else:
+
+    def sentry_traces_sampler(sampling_context):
+        # Examine provided context data (including parent decision, if any)
+        # along with anything in the global namespace to compute the sample rate
+        # or sampling decision for this transaction
+        path = sampling_context.get('wsgi_environ', {}).get('PATH_INFO', None)
+
+        if path in SENTRY_SKIP_TRANSACTION_PATHS:
+            # These aren't worth tracking - drop all transactions
+            return 0.0
+        else:
+            # everything else - allow all transactions
+            return 1.0
+
+    try:
+        # sentry_dsn = app.config.get('WBIA_SENTRY_DSN', None)
+        sentry_dsn = 'https://a36fa98a60ea42df8fa25e8fa680a72d@sentry.dyn.wildme.io/2'
+        if sentry_dsn is not None and isinstance(sentry_dsn, str) and len(sentry_dsn) > 0:
+            sentry_sdk.init(
+                sentry_dsn,
+                # traces_sample_rate=1.0,
+                traces_sampler=sentry_traces_sampler,
+                integrations=[FlaskIntegration()],
+                attach_stacktrace=True,
+                with_locals=True,
+                server_name=CONTAINER_NAME,
+            )
+    except Exception:
+        pass
+
+
 PI = math.pi
 TAU = 2.0 * PI
 
@@ -399,6 +442,9 @@ SPECIES_WITH_DETECTORS = (
     'hyaena',
     'jaguar',
     'leopard',
+    'panthera_pardus_fusca',
+    'indian_leopard',
+    'leopard_indian',
     'lynx',
     'manta_ray',
     'manta_ray_giant',

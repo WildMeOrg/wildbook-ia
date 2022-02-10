@@ -152,6 +152,5 @@ if pyflann is not None:
             finally:
                 temp.close()
 
-
 else:
     PickleFLANN = None

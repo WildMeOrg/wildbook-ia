@@ -987,7 +987,6 @@ if sys.version_info[0] == 2:
             j = _randbelow(i + 1)
             input[i], input[j] = input[j], input[i]
 
-
 else:
 
     def compat_shuffle(rng, input):

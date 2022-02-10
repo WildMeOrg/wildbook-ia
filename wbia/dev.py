@@ -38,22 +38,6 @@ import os
 
 # TODO: ADD COPYRIGHT TAG
 try:
-    import sentry_sdk
-    from sentry_sdk.integrations.flask import FlaskIntegration
-except ImportError:
-    pass
-else:
-    dsn = os.getenv(
-        'WBIA_SENTRY_DSN',
-        default='https://a36fa98a60ea42df8fa25e8fa680a72d@sentry.dyn.wildme.io/2',
-    )
-    sentry_sdk.init(
-        dsn,
-        integrations=[FlaskIntegration()],
-        traces_sample_rate=1.0,
-    )
-
-try:
     import multiprocessing as mp
 
     mp.set_start_method('spawn')
@@ -69,6 +53,53 @@ except (ImportError, RuntimeError):
     pass
 
 import logging  # NOQA
+
+try:
+    import rich
+    from rich.logging import RichHandler
+    from rich.theme import Theme
+    from rich.style import Style
+
+    console_kwargs = {
+        'theme': Theme(
+            {
+                'logging.keyword': Style(bold=True, color='yellow'),
+                'logging.level.notset': Style(dim=True),
+                'logging.level.debug': Style(color='cyan'),
+                'logging.level.info': Style(color='green'),
+                'logging.level.warning': Style(color='yellow'),
+                'logging.level.error': Style(color='red', bold=True),
+                'logging.level.critical': Style(color='red', bold=True, reverse=True),
+                'log.time': Style(color='white'),
+            }
+        )
+    }
+    handler_kwargs = {
+        'rich_tracebacks': True,
+        'tracebacks_show_locals': True,
+    }
+    if os.environ.get('TERM', None) is None:
+        try:
+            log_width = os.environ.get('LOG_WIDTH', None)
+            log_width = float(log_width)
+        except Exception:
+            log_width = 200
+
+        # Inside docker without TTL
+        console_kwargs['force_terminal'] = True
+        console_kwargs['force_interactive'] = True
+        console_kwargs['width'] = log_width
+        console_kwargs['soft_wrap'] = True
+
+    rich.reconfigure(**console_kwargs)
+    handler = RichHandler(**handler_kwargs)
+
+    FORMAT = '[%(name)s] %(message)s'
+    logging.basicConfig(
+        level=logging.DEBUG, format=FORMAT, datefmt='[%X]', handlers=[handler]
+    )
+except ImportError:  # pragma: no cover
+    logging.basicConfig()
 
 root_logger = logging.getLogger()  # NOQA
 root_logger.setLevel(logging.INFO)  # NOQA

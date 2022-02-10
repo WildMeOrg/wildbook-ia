@@ -43,7 +43,6 @@ try:
     def _translate(context, text, disambig):
         return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
 
-
 except AttributeError:
     _encoding = ut.identity
 
