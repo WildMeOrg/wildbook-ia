@@ -912,7 +912,7 @@ class SQLDatabaseController(object):
             iterable: rowid_list_ -- list of newly added or previously added rowids
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # DISABLE_DOCTEST
             >>> from wbia.dtool.sql_control import *  # NOQA
             >>> db = SQLDatabaseController('sqlite:///', 'testing')
             >>> db.add_table('dummy_table', (

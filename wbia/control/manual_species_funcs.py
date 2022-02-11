@@ -363,13 +363,9 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
         >>> # Ensure we leave testdb1 in a clean state
         >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
         >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> result = ut.repr2(species_text, nl=False) + '\n'
-        >>> result += ut.repr2(all_species_rowids, nl=False) + '\n'
-        >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)
-        >>> print(result)
-        ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
-        [1, 2, 3, 6]
-        ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
+        >>> assert ut.repr2(species_text, nl=False) == ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
+        >>> assert ut.repr2(all_species_rowids, nl=False) == [1, 2, 3, 6]
+        >>> assert ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False) == ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
 
     Example:
         >>> # ENABLE_DOCTEST

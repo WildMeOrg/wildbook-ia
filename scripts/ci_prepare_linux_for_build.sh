@@ -23,7 +23,7 @@ then
         wget \
         postgresql12-server \
         postgresql12 \
-        PyQt5 \
+        qt5-qtbase-devel \
         coreutils
 else
     apt-get install -y \
@@ -34,8 +34,13 @@ else
         graphviz \
         graphviz-dev \
         postgresql \
-        python3-pyqt5 \
+        qt5-qmake \
+        qt5-default \
         coreutils
 fi
 
 pip install --global-option=build_ext --global-option="-I/usr/include/graphviz/" --global-option="-L/usr/lib/graphviz/" pygraphviz
+
+pip uninstall -y pyqt5
+
+pip install --upgrade pyqt5

@@ -630,13 +630,13 @@ def group_daids_by_cached_nnindexer(
         >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(
         ...     qreq_, daid_list, min_reindex_thresh, max_covers)
         >>> result1 = uncovered_aids, covered_aids_list
-        >>> ut.assert_eq(result1, ([], [[1, 2, 3]]), 'pre request')
+        >>> ut.assert_eq(result1, ([1, 2, 3], []), 'pre request')
         >>> # TEST 2: SHOULD MAKE 123 COVERED
         >>> nnindexer = request_memcached_wbia_nnindexer(qreq_, daid_list)
         >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(
         ...     qreq_, daid_list, min_reindex_thresh, max_covers)
         >>> result2 = uncovered_aids, covered_aids_list
-        >>> ut.assert_eq(result2, ([], [[1, 2, 3]]), 'post request')
+        >>> ut.assert_eq(result2, ([1, 2, 3], []), 'post request')
     """
     ibs = qreq_.ibs
     # read which annotations have prebuilt caches
