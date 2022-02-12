@@ -91,10 +91,7 @@ NUM_ENGINES = {
     'slow': NUM_SLOW_ENGINES,
     'fast': NUM_FAST_ENGINES,
 }
-# VERBOSE_JOBS = (
-#     ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
-# )
-VERBOSE_JOBS = False
+VERBOSE_JOBS = ut.get_argflag('--verbose-jobs')
 
 
 GLOBAL_SHELVE_LOCK = multiprocessing.Lock()
@@ -1112,7 +1109,7 @@ class JobInterface(object):
             'restart_received': None,
             'lane': lane,
         }
-        if jobiface.verbose >= 2:
+        if True or jobiface.verbose >= 2:
             print('Queue job: %s' % (ut.repr2(engine_request, truncate=True),))
 
         # Send request to job
