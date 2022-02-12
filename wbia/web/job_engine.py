@@ -1094,7 +1094,7 @@ class JobInterface(object):
                 pattern = r'^[a-zA-Z0-9-_]+$'
                 matched = bool(re.match(pattern, jobid))
                 assert matched, 'Job IDs must be alpha-numeric'
-            jobid = jobid_
+            jobid = str(jobid_)
 
         engine_request = {
             'action': action,
