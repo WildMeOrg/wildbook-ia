@@ -816,6 +816,76 @@ def compute_probchip(depc, aid_list, config=None):
         yield (probchip,)
 
 
+class BlendedProbchipConfig(dtool.Config):
+    # TODO: incorporate into base
+    _param_info_list = [
+    ]
+
+BlendedProbchipImgType = dtool.ExternType(vt.imread, vt.imwrite, extern_ext='.jpg')
+
+
+@derived_attribute(
+    tablename='blended_probchip',
+    parents=['chips', 'probchip'],
+    colnames=['img'],
+    coltypes=[BlendedProbchipImgType],
+    configclass=BlendedProbchipConfig,
+    chunksize=256,
+    fname='blended_probchip',
+    # isinteractive=True,
+)
+def blended_probchip(depc, cid_list, pcid_list, config=None):
+    """Computes probability chips using pyrf
+
+    CommandLine:
+        python -m wbia.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST
+
+    # TODO: finish example/test below
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> from wbia.core_annots import *  # NOQA
+        >>> import wbia
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> aid_list = ibs.get_valid_aids(species='zebra_plains')[0:10]
+        >>> config = ProbchipConfig.from_argv_dict(fw_detector='cnn', smooth_thresh=None)
+        >>> #probchip_fpath_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
+        >>> probchip_list_ = ut.take_column(list(compute_probchip(depc, aid_list, config)), 0)
+        >>> #result = ut.repr2(probchip_fpath_list_)
+        >>> #print(result)
+        >>> ut.quit_if_noshow()
+        >>> import wbia.plottool as pt
+        >>> #xlabel_list = list(map(str, [vt.image.open_image_size(p) for p in probchip_fpath_list_]))
+        >>> #iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_fpath_list_, nPerPage=4, xlabel_list=xlabel_list)
+        >>> xlabel_list = [str(vt.get_size(img)) for img in probchip_list_]
+        >>> iteract_obj = pt.interact_multi_image.MultiImageInteraction(probchip_list_, nPerPage=4, xlabel_list=xlabel_list)
+        >>> iteract_obj.start()
+        >>> ut.show_if_requested()
+    """
+    logger.info('[core] COMPUTING FEATWEIGHTS')
+    logger.info('config = %r' % (config,))
+    import vtool as vt
+
+    ibs = depc.controller
+    # why is there a 2 here? copied from compute_probchips
+
+    chips = depc.get_native('chips', cid_list, 'img')
+    probchips = depc.get_native('probchip', pcid_list, 'img')
+    blended_images = []
+
+    for chip, probchip, in zip(chips, probchips):
+        mask = vt.resize_mask(probchip, chip)
+        blended = vt.blend_images_multiply(chip, mask)
+        blended *= 255.0
+        blended = np.around(blended)
+        blended[blended < 0] = 0
+        blended[blended > 255] = 255
+        blended = blended.astype(np.uint8)
+        blended_images.append(blended)
+
+    for img in blended_images:
+        yield (img,)
+
+
 def empty_probchips(inputchip_fpaths):
     # HACK for unknown species
     for fpath in inputchip_fpaths:

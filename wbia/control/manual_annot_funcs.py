@@ -3551,6 +3551,25 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
     return probchip_fpath_list
 
 
+@register_ibs_method
+@accessor_decors.getter_1to1
+# @register_api('/api/annot/probchip/fpath/', methods=['GET'])
+def get_annot_blended_probchips(ibs, aid_list, config2_=None, ):
+    blended_probchip_list = ibs.depc_annot.get(
+        'blended_probchip', aid_list, 'img', config=config2_
+    )
+    return blended_probchip_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_annot_blended_probchip_fpaths(ibs, aid_list, config2_=None, ):
+    blended_probchip_fpath_list = ibs.depc_annot.get(
+        'blended_probchip', aid_list, 'img', config=config2_, read_extern=False
+    )
+    return blended_probchip_fpath_list
+
+
 # ---
 # NEW
 # ---

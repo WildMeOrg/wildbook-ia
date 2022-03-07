@@ -322,6 +322,7 @@ def export_to_xml(
 
 
 @register_ibs_method
+# /data/db/_ibsdb/_ibeis_cache/coco
 def export_to_coco(
     ibs,
     species_list,
@@ -337,6 +338,8 @@ def export_to_coco(
     require_named=False,
     output_images=True,
     use_global_train_set=False,
+    output_folder='coco',
+    make_val_set=True,
     **kwargs,
 ):
     """Create training COCO dataset for training models."""
@@ -354,7 +357,8 @@ def export_to_coco(
     logger.info('Using species_list = %r' % (species_list,))
 
     current_year = int(date.today().year)
-    datadir = abspath(join(ibs.get_cachedir(), 'coco'))
+    datadir = abspath(join(ibs.get_cachedir(), output_folder))
+    logger.info(f'Exporting to {datadir}')
     annotdir = join(datadir, 'annotations')
     imagedir = join(datadir, 'images')
     image_dir_dict = {
@@ -525,7 +529,7 @@ def export_to_coco(
                 dataset = 'test'
             elif gid in train_gid_set:
                 state = random.uniform(0.0, 1.0)
-                if state <= 0.75:
+                if (not make_val_set) or state <= 0.75:
                     dataset = 'train'
                 else:
                     dataset = 'val'
@@ -776,7 +780,408 @@ def export_to_coco(
         with open(json_filepath, 'w') as json_file:
             json.dump(output_dict[dataset], json_file)
 
-    logger.info('...completed')
+    logger.info(f'...completed. Exported to {datadir}.')
+    return datadir
+
+
+# like the above but pre-crops the annots so we can (optionally) apply transforms like background subtraction. Such coco exports are used for ID, not detection
+# NOTE: no theta support atm
+@register_ibs_method
+def export_annots_to_coco(
+    ibs,
+    aid_list,
+    viewpoint_mapping={},
+    species_mapping={},
+    # double-check target_size, I just divided whole image target (2400)by 3
+    target_size=800,
+    use_maximum_linear_dimension=True,
+    use_existing_train_test=True,
+    background_subtract=False,
+    include_parts=False,
+    require_named=False,
+    use_global_train_set=False,
+    output_folder='coco',
+    make_val_set=True,
+    **kwargs,
+):
+    """Create training COCO dataset for training models."""
+    from datetime import date
+    import datetime
+    import random
+    import json
+
+    current_year = int(date.today().year)
+    datadir = abspath(join(ibs.get_cachedir(), output_folder))
+    # /data/db/_ibsdb/_ibeis_cache/coco
+    logger.info(f'Exporting to {datadir}')
+    annotdir = join(datadir, 'annotations')
+    imagedir = join(datadir, 'images')
+    image_dir_dict = {
+        'train': join(imagedir, 'train%s' % (current_year,)),
+        'val': join(imagedir, 'val%s' % (current_year,)),
+        'test': join(imagedir, 'test%s' % (current_year,)),
+    }
+
+    ut.delete(datadir)
+    ut.ensuredir(datadir)
+    ut.ensuredir(annotdir)
+    ut.ensuredir(imagedir)
+    for dataset in image_dir_dict:
+        ut.ensuredir(image_dir_dict[dataset])
+
+    info = {
+        'description': 'Wild Me %s pre-cropped ID Dataset' % (ibs.dbname,),
+        'url': 'http://www.wildme.org',
+        'version': '1.0',
+        'year': current_year,
+        'contributor': 'Wild Me <dev@wildme.org>',
+        'date_created': datetime.datetime.utcnow().isoformat(' '),
+        'name': ibs.get_db_name(),
+        'uuid': str(ibs.get_db_init_uuid()),
+    }
+
+    licenses = [
+        {
+            'url': 'http://creativecommons.org/licenses/by-nc-nd/2.0/',
+            'id': 3,
+            'name': 'Attribution-NonCommercial-NoDerivs License',
+        },
+    ]
+
+    species_list = list(set(ibs.get_annot_species(aid_list)))
+    category_dict = {}
+    categories = []
+    for index, species in enumerate(sorted(species_list)):
+        species = species_mapping.get(species, species)
+        categories.append({'id': index, 'name': species, 'supercategory': 'animal'})
+        category_dict[species] = index
+
+    # TODO: add theta support
+    def _add_annotation_or_part(
+        image_index,
+        annot_index,
+        annot_uuid,
+        bbox,
+        species_name,
+        viewpoint,
+        interest,
+        annot_name,
+        decrease,
+        width,
+        height,
+        individuals,
+        part_index=None,
+        part_uuid=None,
+        config2_='{}'
+    ):
+        is_part = part_index is not None
+
+        theta = 0.0
+        R = vt.rotation_around_bbox_mat3x3(theta, bbox)
+        verts = vt.verts_from_bbox(bbox, close=True)
+        xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+        trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
+        new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+
+        x_points = [int(np.around(pt[0] * decrease)) for pt in new_verts]
+        y_points = [int(np.around(pt[1] * decrease)) for pt in new_verts]
+        segmentation = ut.flatten(list(zip(x_points, y_points)))
+
+        xmin = max(min(x_points), 0)
+        ymin = max(min(y_points), 0)
+        xmax = min(max(x_points), width - 1)
+        ymax = min(max(y_points), height - 1)
+
+        w = xmax - xmin
+        h = ymax - ymin
+        area = w * h
+
+        xtl_, ytl_, w_, h_ = bbox
+        xtl_ *= decrease
+        ytl_ *= decrease
+        w_ *= decrease
+        h_ *= decrease
+
+        # TODO: double check bbox logic?
+        annot_part = {
+            'bbox': [0, 0, w_, h_],
+            'theta': 0,
+            'viewpoint': viewpoint,
+            'segmentation': [segmentation],
+            'segmentation_bbox': [xmin, ymin, w, h],
+            'area': area,
+            'iscrowd': 0,
+            'id': part_index if is_part else annot_index,
+            'image_id': image_index,
+            'category_id': category_dict[species_name],
+            'uuid': str(part_uuid if is_part else annot_uuid),
+            'individual_ids': individuals,
+        }
+        if is_part:
+            annot_part['annot_id'] = annot_index
+        else:
+            annot_part['isinterest'] = int(interest)
+            annot_part['name'] = annot_name
+
+        return annot_part, area
+
+    output_dict = {}
+    for dataset in ['train', 'val', 'test']:
+        output_dict[dataset] = {
+            'info': info,
+            'licenses': licenses,
+            'categories': categories,
+            'images': [],
+            'annotations': [],
+            'parts': [],
+        }
+
+    # do we need gid_list?
+    gid_list = ibs.get_annot_gids(aid_list)
+    # Get all gids and process them
+    # Make a preliminary train / test split as imagesets or use the existing ones
+    #TODO: double-check below wrt gid_list
+    if not use_existing_train_test:
+        ibs.imageset_train_test_split(**kwargs)
+
+    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs))
+
+    image_index = 1
+    annot_index = 1
+    part_index = 1
+
+    aid_dict = {}
+
+    #TODO: where edo we get config2_ ? how do we dictate w/h?
+    config2_ = {}  # ??
+    if background_subtract:
+        image_fpaths = ibs.get_annot_blended_probchip_fpaths(aid_list, config2_=config2_)
+    else:
+        image_fpaths = ibs.get_annot_chip_fpath(aid_list, config2_=config2_)
+
+    logger.info('Exporting %d annotations' % (len(aid_list),))
+
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    species_name_list = ibs.get_annot_species_texts(aid_list)
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+    interest_list = ibs.get_annot_interest(aid_list)
+    annot_uuid_list = ibs.get_annot_uuids(aid_list)
+    annot_name_list = ibs.get_annot_name_texts(aid_list)
+    part_rowids_list = ibs.get_annot_part_rowids(aid_list)
+    nid_list = ibs.get_annot_nids(aid_list)
+
+    zipped = zip(
+        aid_list,
+        gid_list,
+        image_fpaths,
+        bbox_list,
+        species_name_list,
+        viewpoint_list,
+        interest_list,
+        annot_uuid_list,
+        annot_name_list,
+        part_rowids_list,
+        nid_list,
+    )
+    for (
+        aid,
+        gid,
+        old_fpath,
+        bbox,
+        species_name,
+        viewpoint,
+        interest,
+        annot_uuid,
+        annot_name,
+        part_rowid_list,
+        nid,
+    ) in zipped:
+
+        if use_global_train_set:
+            dataset = 'train'
+        else:
+            if gid in test_gid_set:
+                dataset = 'test'
+            elif gid in train_gid_set:
+                state = random.uniform(0.0, 1.0)
+                if (not make_val_set) or state <= 0.75:
+                    dataset = 'train'
+                else:
+                    dataset = 'val'
+            else:
+                # raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
+                logger.info('GID = %r was not in the TRAIN_SET or TEST_SET' % (gid,))
+                dataset = 'test'
+
+        xtl, ytl, width, height = bbox
+
+        if target_size is None:
+            decrease = 1.0
+        else:
+            condition = width > height if use_maximum_linear_dimension else width < height
+            if condition:
+                ratio = height / width
+                decrease = target_size / width
+                width = target_size
+                height = int(target_size * ratio)
+            else:
+                ratio = width / height
+                decrease = target_size / height
+                height = target_size
+                width = int(target_size * ratio)
+
+        image_filename = '%012d.jpg' % (aid,)
+        target_fpath = join(image_dir_dict[dataset], image_filename)
+        logger.info(
+            'Copying:\n%r\n%r\n%r\n\n' % (old_fpath, target_fpath, (width, height))
+        )
+        #TODO: could just do this in one call up top
+        ut.copy_files_to([old_fpath], dst_fpath_list=[target_fpath])
+
+        image_gps = ibs.get_image_gps(gid)
+        if image_gps is None or len(image_gps) != 2 or None in image_gps:
+            image_gps_lat, image_gps_lon = None
+        else:
+            image_gps_lat, image_gps_lon = image_gps
+            image_gps_lat = '%03.06f' % (image_gps_lat,)
+            image_gps_lon = '%03.06f' % (image_gps_lon,)
+
+        output_dict[dataset]['images'].append(
+            {
+                'license': 3,
+                'file_name': image_filename,
+                # 'file_name'     : basename(ibs.get_image_uris_original(gid)),
+                'photographer': ibs.get_image_notes(gid),
+                'coco_url': None,
+                'height': height,
+                'width': width,
+                'date_captured': ibs.get_image_datetime_str(gid).replace('/', '-'),
+                'gps_lat_captured': image_gps_lat,
+                'gps_lon_captured': image_gps_lon,
+                'flickr_url': None,
+                'id': image_index,
+                'uuid': str(ibs.get_image_uuids(gid)),
+            }
+        )
+
+        species_name = species_mapping.get(species_name, species_name)
+
+        if species_name is None:
+            continue
+
+        if species_name not in species_list:
+            continue
+
+        if require_named and nid < 0:
+            continue
+
+        viewpoint = viewpoint_mapping.get(species_name, {}).get(viewpoint, viewpoint)
+
+        # if viewpoint is None:
+        #     continue
+
+        individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
+
+        # Transformation matrix
+        annot, area = _add_annotation_or_part(
+            image_index,
+            annot_index,
+            annot_uuid,
+            bbox,
+            species_name,
+            viewpoint,
+            interest,
+            annot_name,
+            decrease,
+            width,
+            height,
+            individuals,
+        )
+        logger.info(
+            '\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area)
+        )
+
+        output_dict[dataset]['annotations'].append(annot)
+
+        if include_parts and len(part_rowid_list) > 0:
+
+            part_uuid_list = ibs.get_part_uuids(part_rowid_list)
+            part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
+            part_theta_list = ibs.get_part_thetas(part_rowid_list)
+            part_type_list = ibs.get_part_types(part_rowid_list)
+
+            part_zipped = zip(
+                part_uuid_list, part_bbox_list, part_theta_list, part_type_list
+            )
+            for part_uuid, part_bbox, part_theta, part_type in part_zipped:
+                part_species_name = '%s+%s' % (species_name, part_type)
+
+                part_species_name = species_mapping.get(
+                    part_species_name, part_species_name
+                )
+
+                if part_species_name is None:
+                    continue
+
+                if part_species_name not in species_list:
+                    continue
+
+                part, area = _add_annotation_or_part(
+                    image_index,
+                    annot_index,
+                    annot_uuid,
+                    part_bbox,
+                    part_theta,
+                    part_species_name,
+                    viewpoint,
+                    interest,
+                    annot_name,
+                    decrease,
+                    width,
+                    height,
+                    individuals,
+                    part_index=part_index,
+                    part_uuid=part_uuid,
+                )
+                logger.info(
+                    '\t\tAdding part %r with area %0.04f pixels^2'
+                    % (part_species_name, area)
+                )
+                output_dict[dataset]['parts'].append(part)
+
+                part_index += 1
+
+        aid_dict[aid] = annot_index
+        annot_index += 1
+        image_index += 1
+
+    for dataset in output_dict:
+        annots = output_dict[dataset]['annotations']
+        for index in range(len(annots)):
+            annot = annots[index]
+
+            # Map internal aids to external annot index
+            individual_ids = annot['individual_ids']
+            individual_ids_ = []
+            for individual_id in individual_ids:
+                if individual_id not in aid_dict:
+                    continue
+                individual_id_ = aid_dict[individual_id]
+                individual_ids_.append(individual_id_)
+            annot['individual_ids'] = individual_ids_
+
+            # Store
+            output_dict[dataset]['annotations'][index] = annot
+
+    for dataset in output_dict:
+        json_filename = 'instances_%s%s.json' % (dataset, current_year)
+        json_filepath = join(annotdir, json_filename)
+
+        with open(json_filepath, 'w') as json_file:
+            json.dump(output_dict[dataset], json_file)
+
+    logger.info(f'...completed. Exported to {datadir}.')
     return datadir
 
 
@@ -846,6 +1251,33 @@ def imageset_train_test_split(
     ibs.set_image_imgsetids(global_test_list, [test_imgsetid] * len(global_test_list))
 
     logger.info('Complete... %d train + %d test = %d (%0.04f %0.04f)' % args)
+
+
+@register_ibs_method
+def imageset_id_training_split(
+    ibs, aid_list, train_split=0.8
+):
+    from collections import defaultdict
+    names = ibs.get_annot_names(aid_list)
+    # name_to_aids = defaultdict(list)
+    # for aid, name in zip(aid_list, names):
+    #     if name is not ('____'):
+    #         name_to_aids[name].append(aid)
+    unique_names = list(set(names))
+    random.shuffle(unique_names)
+    split_index = int(len(unique_names) * train_split)
+    train_names = set(unique_names[:split_index])
+    test_names = set(unique_names[split_index:])
+
+    gid_list = ibs.get_annot_gids(aid_list)
+    train_gids = [gid for gid, name in zip(gid_list, names) if name in train_names and name is not '____']
+    test_gids = [gid for gid, name in zip(gid_list, names) if name in test_names and name is not '____']
+
+    train_imgsetid = ibs.add_imagesets('TRAIN_SET')
+    test_imgsetid = ibs.add_imagesets('TEST_SET')
+
+    ibs.set_image_imgsetids(train_gids, [train_imgsetid] * len(train_gids))
+    ibs.set_image_imgsetids(test_gids, [test_imgsetid] * len(test_gids))
 
 
 @register_ibs_method
