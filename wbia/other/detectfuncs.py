@@ -4464,6 +4464,55 @@ def background_accuracy_display(ibs, category_list, test_gid_set=None, output_pa
         cv2.imwrite(output_filepath, canvas)
 
 
+@register_ibs_method
+def save_background_subtract(ibs, aid_list=None, category_list=None, test_gid_set=None, output_path=None):
+
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'background')))
+        ut.ensuredir(output_path)
+
+    if aid_list is not None:
+        test_gid_set = list(set(ibs.get_annot_gids(aid_list)))
+    else:
+        if test_gid_set is None:
+            test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+            test_gid_set = list(test_gid_set)
+        aids_list = ibs.get_image_aids(test_gid_set)
+        aid_list = ut.flatten(aids_list)
+
+    if category_list is not None:
+        species_list = ibs.get_annot_species_texts(aid_list)
+        aid_list = [
+            aid for aid, species in zip(aid_list, species_list) if species in category_list
+        ]
+    species_list = ibs.get_annot_species_texts(aid_list)
+    gid_list = ibs.get_annot_gids(aid_list)
+
+    config2_ = {'fw_detector': 'cnn'}
+    hough_cpath_list = ibs.get_annot_probchip_fpath(aid_list, config2_=config2_)
+    image_list = [vt.imread(hough_cpath) for hough_cpath in hough_cpath_list]
+    chip_list = ibs.get_annot_chips(aid_list, config2_=config2_)
+    zipped = zip(aid_list, gid_list, species_list, image_list, chip_list)
+
+    for index, (aid, gid, species, image, chip) in enumerate(zipped):
+        logger.info(index)
+        mask = vt.resize_mask(image, chip)
+        blended = vt.blend_images_multiply(chip, mask)
+        blended *= 255.0
+        blended = np.around(blended)
+        blended[blended < 0] = 0
+        blended[blended > 255] = 255
+        blended = blended.astype(np.uint8)
+
+        canvas = np.hstack((chip, mask, blended))
+        output_filepath = join(
+            output_path, 'background.%s.%d.%d.png' % (species, gid, aid)
+        )
+        cv2.imwrite(output_filepath, canvas)
+
+    return output_path
+
+
 def aoi2_precision_recall_algo(ibs, category_list=None, test_gid_set_=None, **kwargs):
     depc = ibs.depc_annot
     if test_gid_set_ is None:
