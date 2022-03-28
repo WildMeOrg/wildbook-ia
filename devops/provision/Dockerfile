@@ -179,11 +179,13 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip install \
      opencv-contrib-python-headless \
      pynvml \
- && /virtualenv/env3/bin/pip install --pre \
+ && /virtualenv/env3/bin/pip install --upgrade --pre \
      torch \
      torchvision \
      torchaudio \
-     -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html
+     --extra-index-url https://download.pytorch.org/whl/nightly/cu113 \
+ && /virtualenv/env3/bin/pip install \
+     MarkupSafe==2.0.1
 
 # Wildbook IA problematic dependencies
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \

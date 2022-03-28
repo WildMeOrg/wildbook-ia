@@ -56,6 +56,7 @@ CONFIG_URL_DICT = {
     'fins_v1_fluke': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.py',
     'fins_v1_dorsal': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.1.py',
     'fins_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.v1.1.py',
+    'fins_enforcement_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.fins.enforcement.v0.py',
     'nassau_grouper_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.grouper_nassau.v0.py',
     'nassau_grouper_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.grouper_nassau.v1.py',
     'nassau_grouper_v2': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.grouper_nassau.v2.py',
