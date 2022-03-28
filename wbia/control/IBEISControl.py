@@ -170,6 +170,14 @@ if ut.get_argflag('--lca'):
     ]
 
 
+if ut.get_argflag('--no-pytorch-cudnn'):
+    try:
+        import torch
+
+        torch.backends.cudnn.enabled = False
+    except Exception:
+        pass
+
 """
 # Should import
 python -c "import wbia"
