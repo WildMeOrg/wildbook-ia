@@ -781,13 +781,16 @@ def labeler_train(
     species_mapping=None,
     viewpoint_mapping=None,
     ensembles=3,
+    cache_species_str=None,
     **kwargs,
 ):
     from wbia.other.detectexport import get_cnn_labeler_training_images_pytorch
     from wbia.algo.detect import densenet
 
-    species = '-'.join(species_list)
-    args = (species,)
+    if cache_species_str is None:
+        cache_species_str = '-'.join(species_list)
+
+    args = (cache_species_str,)
     data_path = join(ibs.get_cachedir(), 'extracted-labeler-%s' % args)
     extracted_path = get_cnn_labeler_training_images_pytorch(
         ibs,
@@ -801,7 +804,7 @@ def labeler_train(
     weights_path_list = []
     for ensemble_num in range(ensembles):
         args = (
-            species,
+            cache_species_str,
             ensemble_num,
         )
         output_path = join(
@@ -809,10 +812,10 @@ def labeler_train(
         )
         if exists(output_path):
             ut.delete(output_path)
-        weights_path = densenet.train(extracted_path, output_path, blur=False, flip=False)
+        weights_path = densenet.train(extracted_path, output_path)
         weights_path_list.append(weights_path)
 
-    args = (species,)
+    args = (cache_species_str,)
     output_name = 'labeler.%s' % args
     ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
     ut.ensuredir(ensemble_path)
