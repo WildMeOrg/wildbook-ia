@@ -65,3 +65,7 @@ fi
 
 # Allow Tensorflow to use GPU memory more dynamically
 export TF_FORCE_GPU_ALLOW_GROWTH=true
+
+# Comment out localhost from /etc/hosts for development
+sed 's/^\([^#].*localhost\)/# \1/' /etc/hosts >/etc/hosts.new
+cat /etc/hosts.new >/etc/hosts

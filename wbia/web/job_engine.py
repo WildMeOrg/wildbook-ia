@@ -2092,8 +2092,12 @@ def on_collect_request(
         engine_result = None  # Release memory
 
         if callback_url is not None:
-            if containerized:
-                callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
+            # We are using localhost as the name of the houston nginx service
+            # so we need localhost to work as is, so commenting out the code
+            # below:
+            #
+            # if containerized:
+            #     callback_url = callback_url.replace('://localhost/', '://wildbook:8080/')
 
             if callback_method is None:
                 callback_method = 'POST'
