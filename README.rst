@@ -42,11 +42,11 @@ simply run:
 
     pip install wildbook-ia
 
-to install the software. Then the command to run the GUI is:
+to install the software. Then the command to run the web server is:
 
 .. code:: bash
 
-    wbia
+    python -m wbia.dev --dbdir wbia-data/ --web
 
 We highly recommend using a Python virtual environment: https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv
 

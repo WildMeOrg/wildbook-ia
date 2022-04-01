@@ -957,6 +957,10 @@ def start_detect_image_lightnet(
         )
     else:
         # image_uuid_list contains urls
+        for image_uuid in image_uuid_list:
+            if len(image_uuid) == 0:
+                raise ValueError('Received an empty UUID')
+
         args = (
             image_uuid_list,
             kwargs,

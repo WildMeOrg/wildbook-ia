@@ -48,6 +48,7 @@ ARCHIVE_URL_DICT = {
     'whale_sperm_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_sperm.v0.zip',
     'fins_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v0.zip',
     'fins_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v1.1.zip',
+    'fins_enforcement_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.enforcement.v0.zip',
     'wilddog_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v0.zip',
     'wilddog_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v1.zip',
     'wilddog_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v2.zip',
@@ -514,8 +515,8 @@ def train(
 
     logger.info('Print Examples of Training Augmentation...')
 
-    # for phase in phases:
-    #    visualize_augmentations(datasets[phase], AUGMENTATION[phase], phase, **kwargs)
+    for phase in phases:
+        visualize_augmentations(datasets[phase], AUGMENTATION[phase], phase, **kwargs)
 
     logger.info('Initializing Optimizer...')
 
