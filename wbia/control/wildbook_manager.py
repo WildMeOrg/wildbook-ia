@@ -6,7 +6,7 @@ CommandLine:
     python -m utool.util_inspect check_module_usage --pat="wildbook_manager.py"
 
 Utils:
-    # TODO go to http://localhost:8080/wbia/createAssetStore.jsp
+    # TODO go to http://127.0.0.1:8080/wbia/createAssetStore.jsp
     tail -f ~/.config/wbia/tomcat/logs/catalina.out
     cat ~/.config/wbia/tomcat/logs/catalina.out
     python -m wbia shutdown_wildbook_server
@@ -277,17 +277,17 @@ def ensure_wb_mysql():
         sudo apt-get install mysql-common-5.6 -y
         sudo apt-get install mysql-client-5.6 -y
 
-        mysql_config_editor set --login-path=local --host=localhost --user=root --password
+        mysql_config_editor set --login-path=local --host=127.0.0.1 --user=root --password
 
         # Initialize
-        mysql --login-path=local -e "create user 'wbiawb'@'localhost' identified by 'somepassword';"
+        mysql --login-path=local -e "create user 'wbiawb'@'127.0.0.1' identified by 'somepassword';"
         mysql --login-path=local -e "create database wbiawbtestdb;"
-        mysql --login-path=local -e "grant all privileges on wbiawbtestdb.* to 'wbiawb'@'localhost';"
+        mysql --login-path=local -e "grant all privileges on wbiawbtestdb.* to 'wbiawb'@'127.0.0.1';"
 
         # Reset
         mysql --login-path=local -e "drop database wbiawbtestdb"
         mysql --login-path=local -e "create database wbiawbtestdb"
-        mysql --login-path=local -e "grant all privileges on wbiawbtestdb.* to 'wbiawb'@'localhost'"
+        mysql --login-path=local -e "grant all privileges on wbiawbtestdb.* to 'wbiawb'@'127.0.0.1'"
 
         # Check if running
         mysqladmin --login-path=local status
@@ -405,7 +405,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
 
             # ensure that the server is ruuning
             logger.info('Checking if we can ping the server')
-            response = requests.get('http://localhost:8080')
+            response = requests.get('http://127.0.0.1:8080')
             if response is None or response.status_code != 200:
                 logger.info('There may be an error starting the server')
             else:
@@ -434,7 +434,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
             startup_wildbook_server()
         # web_url = startup_wildbook_server(verbose=False)
         logger.info('Creating asset store')
-        wb_url = 'http://localhost:8080/' + wb_target
+        wb_url = 'http://127.0.0.1:8080/' + wb_target
         response = requests.get(wb_url + '/createAssetStore.jsp')
         if response is None or response.status_code != 200:
             logger.info('There may be an error starting the server')
@@ -546,12 +546,12 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         )
         jdoconfig_text = re.sub(
             'datanucleus.ConnectionURL *= *jdbc:mysql:.*$',
-            'datanucleus.ConnectionURL = jdbc:mysql://localhost:3306/' + mysql_dbname,
+            'datanucleus.ConnectionURL = jdbc:mysql://127.0.0.1:3306/' + mysql_dbname,
             jdoconfig_text,
             flags=re.MULTILINE,
         )
         jdoconfig_text = re.sub(
-            '^.*jdbc:mysql://localhost:3306/shepherd.*$',
+            '^.*jdbc:mysql://127.0.0.1:3306/shepherd.*$',
             '',
             jdoconfig_text,
             flags=re.MULTILINE,
@@ -573,7 +573,7 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
     # data_path_pat = ut.named_field('data_path', 'new File(".*?").toPath')
     new_line = (
         'LocalAssetStore as = new LocalAssetStore("example Local AssetStore", new File("%s").toPath(), "%s", true);'
-        % (tomcat_data_dir, 'http://localhost:8080/' + basename(tomcat_data_dir))
+        % (tomcat_data_dir, 'http://127.0.0.1:8080/' + basename(tomcat_data_dir))
     )
     # HACKY
     asset_store_text2 = re.sub(
@@ -617,7 +617,7 @@ def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
     web_port = ibs.get_web_port_via_scan()
     if web_port is None:
         raise ValueError('IA web server is not running on any expected port')
-    ia_hostport = 'http://localhost:%s' % (web_port,)
+    ia_hostport = 'http://127.0.0.1:%s' % (web_port,)
     ia_rest_prefix = ut.named_field('prefix', 'IBEISIARestUrl.*')
     host_port = ut.named_field('host_port', 'http://.*?:[0-9]+')
     content = re.sub(
@@ -676,8 +676,8 @@ def startup_wildbook_server(verbose=ut.NOT_QUIET):
         startup_fpath = join(tomcat_dpath, 'bin', 'startup.sh')
         ut.cmd(ut.quote_single_command(startup_fpath))
         time.sleep(1)
-    wb_url = 'http://localhost:8080/' + wbia.const.WILDBOOK_TARGET
-    # TODO go to http://localhost:8080/wbia/createAssetStore.jsp
+    wb_url = 'http://127.0.0.1:8080/' + wbia.const.WILDBOOK_TARGET
+    # TODO go to http://127.0.0.1:8080/wbia/createAssetStore.jsp
     return wb_url
 
 
@@ -736,7 +736,7 @@ def monitor_wildbook_logs(verbose=ut.NOT_QUIET):
         startup_fpath = join(tomcat_dpath, 'bin', 'startup.sh')
         ut.cmd(ut.quote_single_command(startup_fpath))
         time.sleep(1)
-    wb_url = 'http://localhost:8080/' + wbia.const.WILDBOOK_TARGET
+    wb_url = 'http://127.0.0.1:8080/' + wbia.const.WILDBOOK_TARGET
     return wb_url
 
 
@@ -760,7 +760,7 @@ def tryout_wildbook_login():
 
     manaul_login = False
     wb_target = wbia.const.WILDBOOK_TARGET
-    wb_url = 'http://localhost:8080/' + wb_target
+    wb_url = 'http://127.0.0.1:8080/' + wb_target
     if manaul_login:
         ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     else:

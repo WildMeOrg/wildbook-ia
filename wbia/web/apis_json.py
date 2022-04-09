@@ -407,6 +407,7 @@ def add_images_json(
 
             if ibs.containerized and item is not None:
                 item = item.replace('://localhost/', '://nginx:80/')
+                item = item.replace('://127.0.0.1/', '://nginx:80/')
 
             ret_list.append(item)
 
