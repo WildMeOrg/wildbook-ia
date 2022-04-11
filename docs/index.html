@@ -73,7 +73,13 @@
 <p>For details about the Wildbook project see the <a class="reference external" href="https://wildme.org">Wild Me</a> website.</p>
 <p>Wildbook’s Image Analysis is colloquially known as Wildbook-IA and by developers as wbia (wib-ee-A). Any references to WBIA in this documentation should be assumed to therefore mean Wildbook-IA.</p>
 <p>The Wildbook-IA application is used for the storage, management, and analysis of images and derived data used by computer vision algorithms. It aims to compute who an animal is, what species an animal is, and where an animal is with the ultimate goal being to ask important biological questions.</p>
-<p>This project is the Machine Learning (ML) / computer vision component of the <a class="reference external" href="https://github.com/WildMeOrg/">WildBook project</a>. This project is an actively maintained fork of the popular IBEIS (Image Based Ecological Information System) software suite for wildlife conservation. The original IBEIS project is maintained by Jon Crall (&#64;Erotemic) at <a class="reference external" href="https://github.com/Erotemic/ibeis">https://github.com/Erotemic/ibeis</a>. The IBEIS toolkit originally was a wrapper around HotSpotter, for which original binaries can be downloaded from: <a class="reference external" href="http://cs.rpi.edu/hotspotter/">http://cs.rpi.edu/hotspotter/</a></p>
+<p>This project is the Machine Learning (ML) / computer vision component of the <a class="reference external" href="https://github.com/WildMeOrg/">WildBook project</a>. This project is an actively maintained fork of the popular IBEIS (Image Based Ecological Information System) software suite for wildlife conservation.  The original IBEIS project is maintained by Jon Crall (&#64;Erotemic) at <a class="reference external" href="https://github.com/Erotemic/ibeis">https://github.com/Erotemic/ibeis</a>.  The IBEIS toolkit was originally a wrapper around HotSpotter, for which the original binaries can be downloaded here:</p>
+<ul>
+<li>Windows: <a href="https://wildbookiarepository.azureedge.net/data/hotspotter-win32-setup.exe">hotspotter-win32-setup.exe</a> (53.7 MB)</li>
+<li>MacOS (Intel): <a href="https://wildbookiarepository.azureedge.net/data/hotspotter_installer_mac.dmg">data/hotspotter_installer_mac.dmg</a> (101.1 MB)</li>
+</ul>
+<p><b>Warning: The HotSpotter application has severe limitations and is buggy, with sometimes non-intuitive behavior.  If you use it, please make sure that you routinely back up your data.  A recommended alternative to the installable HotSpotter app is to use "pip install ibeis" on a Linux machine with either Python 3.7 or Python 3.8.</b></p>
+
 <p>Currently the system is build around a SQLite database, a web UI, and matplotlib visualizations. Algorithms employed are: </p>
 <ul>
 <li>convolutional neural network detection and localization and classification</li>
