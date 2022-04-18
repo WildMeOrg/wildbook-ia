@@ -8,5 +8,5 @@ source /bin/setup
 if [ $EXEC_PRIVILEGED ]; then
     exec $@
 else
-    exec gosu ${HOST_USER}:${HOST_USER} $@
+    exec gosu ${HOST_USER}:docker $@
 fi

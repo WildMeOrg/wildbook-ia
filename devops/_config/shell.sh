@@ -4,4 +4,4 @@ set -ex
 
 source /bin/setup
 
-exec gosu ${HOST_USER}:${HOST_USER} /bin/bash
+exec gosu ${HOST_USER}:docker /bin/bash
