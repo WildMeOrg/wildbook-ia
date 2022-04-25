@@ -5,8 +5,6 @@ if [ "$(uname -m)" == "aarch64" ]; then
     export LD_PRELOAD="$(locate libgomp | grep ".so" | xargs | sed -e 's/ /:/g'):${LD_PRELOAD}"
 fi
 
-# DOCKER_SOCKET=/var/run/docker.sock
-
 if [ "${HOST_USER}" != "root" ]; then
     # addgroup --system --non-unique --gid ${HOST_UID} ${HOST_USER}
     if id "${HOST_USER}" >/dev/null 2>&1; then
@@ -20,15 +18,17 @@ else
     export HOME_FOLDER=${HOME}
 fi
 
-# if [ -S ${DOCKER_SOCKET} ]; then
-#     DOCKER_GID=$(stat -c '%g' ${DOCKER_SOCKET})
-#     DOCKER_GROUP=docker
+DOCKER_SOCKET=/var/run/docker.sock
 
-#     addgroup --system --gid ${DOCKER_GID} ${DOCKER_GROUP}
-#     usermod -aG ${DOCKER_GROUP} ${HOST_USER}
+if [ -S ${DOCKER_SOCKET} ]; then
+    DOCKER_GID=$(stat -c '%g' ${DOCKER_SOCKET})
+    DOCKER_GROUP=docker
+    groupmod -g ${DOCKER_GID} ${DOCKER_GROUP}
 
-#     sg ${DOCKER_GROUP} -c "/bin/bash"
-# fi
+    # addgroup -q --system --gid ${DOCKER_GID} ${DOCKER_GROUP}
+    # usermod -aG ${DOCKER_GROUP} ${HOST_USER}
+    # sg ${DOCKER_GROUP} -c "/bin/bash"
+fi
 
 if [ ! -d "/data/db" ]; then
     mkdir -p /data/db/
