@@ -2169,7 +2169,6 @@ def on_collect_request(
                 print('Callback completed...\n\tResponse: %r\n\tText: %r' % args)
             except Exception:
                 print('Callback FAILED!')
-                raise
 
     elif action == 'job_status':
         reply['jobstatus'] = collector_data.get(jobid, {}).get('status', 'unknown')
