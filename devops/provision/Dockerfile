@@ -176,6 +176,7 @@ RUN set -ex \
      torch \
      torchvision \
      torchaudio \
+     wbia \
  && /virtualenv/env3/bin/pip install \
      opencv-contrib-python-headless \
      pynvml \
