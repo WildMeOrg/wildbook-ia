@@ -565,6 +565,14 @@ def detect_cnn_yolo_json_wrapper(ibs, image_uuid_list, **kwargs):
 
 
 @register_ibs_method
+def detect_cnn_yolo_image_uris_json(ibs, image_uris, config={}, **kwargs):
+    gid_list = ibs.add_images(image_uris, auto_localize=True)
+    if None in gid_list:
+        raise RuntimeError('At least one of the image URIs failed to download')
+    return ibs.detect_cnn_yolo_json(gid_list, config=config, **kwargs)
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
 def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
     return detect_cnn_json(ibs, gid_list, ibs.detect_cnn_yolo, config=config, **kwargs)

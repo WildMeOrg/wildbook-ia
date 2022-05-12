@@ -983,6 +983,93 @@ def start_detect_image_lightnet(
 
 
 @register_ibs_method
+@register_api('/api/engine/detect/cnn/', methods=['POST', 'GET'])
+def start_detect_image_algo(
+    ibs,
+    image_uuid_list,
+    algo='lightnet',
+    callback_url=None,
+    callback_method=None,
+    callback_detailed=False,
+    lane='fast',
+    jobid=None,
+    **kwargs
+):
+    """
+    REST:
+        Method: GET/api/engine/detect/cnn/
+        URL:
+
+    Args:
+        algo (str): either 'lightnet' (default) or 'yolo'
+        image_uuid_list (list) : list of image uuids or urls to detect on.
+        callback_url (url) : url that will be called when detection succeeds or fails
+    """
+    assert len(image_uuid_list) > 0, 'Cannot send a list of image_uuid_list that is empty'
+
+    image_uuid_types = list(set(list(map(type, image_uuid_list))))
+    if len(image_uuid_types) > 1:
+        raise ValueError('Cannot send a list of UUIDs mixed with URLs')
+    assert len(image_uuid_types) == 1
+    image_uuid_type = image_uuid_types[0]
+
+    algo = algo.lower()
+    assert algo in ['lightnet', 'yolo']
+
+    if image_uuid_type == uuid.UUID:
+        # Check UUIDs
+        ibs.web_check_uuids(image_uuid_list=image_uuid_list)
+
+        # import wbia
+        # from wbia.web import apis_engine
+        # ibs.load_plugin_module(apis_engine)
+        image_uuid_list = ensure_uuid_list(image_uuid_list)
+        gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+        args = (
+            gid_list,
+            kwargs,
+        )
+        jobid = ibs.job_manager.jobiface.queue_job(
+            action='detect_cnn_lightnet_json'
+            if algo == 'lightnet'
+            else 'detect_cnn_yolo_json',
+            callback_url=callback_url,
+            callback_method=callback_method,
+            callback_detailed=callback_detailed,
+            lane=lane,
+            jobid=jobid,
+            args=args,
+        )
+    else:
+        # image_uuid_list contains urls
+        for image_uuid in image_uuid_list:
+            if len(image_uuid) == 0:
+                raise ValueError('Received an empty UUID')
+
+        args = (
+            image_uuid_list,
+            kwargs,
+        )
+        jobid = ibs.job_manager.jobiface.queue_job(
+            action='detect_cnn_lightnet_image_uris_json'
+            if algo == 'lightnet'
+            else 'detect_cnn_yolo_image_uris_json',
+            callback_url=callback_url,
+            callback_method=callback_method,
+            callback_detailed=callback_detailed,
+            lane=lane,
+            jobid=jobid,
+            args=args,
+        )
+
+    # if callback_url is not None:
+    #    #import requests
+    #    #requests.
+    #    #callback_url
+    return jobid
+
+
+@register_ibs_method
 @register_api('/test/engine/detect/cnn/lightnet/', methods=['GET'])
 def start_detect_image_test_lightnet(ibs):
     from random import shuffle  # NOQA
