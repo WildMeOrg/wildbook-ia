@@ -21,7 +21,6 @@ _, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 DOCKER_CONFIG_REGISTRY = {}
 DOCKER_IMAGE_PREFIX = [
-    'wildme.azurecr.io',
     'wildme',
 ]
 DOCKER_DEFAULT_RUN_ARGS = {'detach': True, 'restart_policy': {'Name': 'on-failure'}}
@@ -213,7 +212,7 @@ def docker_pull_image(ibs, image_name):
     by a logged-in user.
 
 
-    Host: wildme.azurecr.io
+    Host: example.azurecr.io
     Username: example@example.com
     Password: asecurepassword
 
@@ -237,9 +236,9 @@ def docker_pull_image(ibs, image_name):
 
     Login to the Azure Container Registry (ACR) for Docker
 
-    Verify login with “cat ~/.docker/config.json | jq ".auths" and look for “wildme.azurecr.io”
+    Verify login with “cat ~/.docker/config.json | jq ".auths" and look for example.azurecr.io”
 
-    docker pull wildme.azurecr.io/wbia/example-image:latest
+    docker pull example.azurecr.io/wbia/example-image:latest
 
     Pull latest nightly image
     """

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import urllib.parse
 
 from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
@@ -8,39 +7,46 @@ from requests_oauthlib import OAuth2Session
 
 # Allow non-ssl communication
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-HOUSTON_TOKEN_API = '/api/v1/auth/tokens'
+
+HOUSTON_HOSTNAME = 'http://localhost'
+
+HOUSTON_TOKEN_API = '%s/api/v1/auth/tokens' % (HOUSTON_HOSTNAME,)
+
+HOUSTON_CLIENT_ID = os.getenv('HOUSTON_CLIENT_ID')
+HOUSTON_CLIENT_SECRET = os.getenv('HOUSTON_CLIENT_SECRET')
+
+HOUSTON_SESSION = None
 
 
-def call_houston(uri, cached_session=[], method='GET', **kwargs):
-    HOUSTON_CLIENT_ID = os.getenv('HOUSTON_CLIENT_ID')
-    HOUSTON_CLIENT_SECRET = os.getenv('HOUSTON_CLIENT_SECRET')
-    uri = uri.replace('houston+', '')
+def init_houston_session():
+    global HOUSTON_SESSION
 
-    def update_token():
-        token_url = urllib.parse.urljoin(uri, HOUSTON_TOKEN_API)
-        session.fetch_token(
-            token_url=token_url,
-            client_id=HOUSTON_CLIENT_ID,
-            client_secret=HOUSTON_CLIENT_SECRET,
-        )
-
-    if cached_session:
-        session = cached_session[0]
-    else:
+    if HOUSTON_SESSION is None:
         client = BackendApplicationClient(client_id=HOUSTON_CLIENT_ID)
-        session = OAuth2Session(client=client)
-        cached_session.append(session)
-        update_token()
+        HOUSTON_SESSION = OAuth2Session(client=client)
 
-    def get_response():
-        return session.request(method, uri, **kwargs)
+
+def refresh_houston_session_token():
+    global HOUSTON_SESSION
+
+    init_houston_session()
+
+    HOUSTON_SESSION.fetch_token(
+        token_url=HOUSTON_TOKEN_API,
+        client_id=HOUSTON_CLIENT_ID,
+        client_secret=HOUSTON_CLIENT_SECRET,
+    )
+
+
+def call_houston(uri, method='GET', retry=True, **kwargs):
+    if HOUSTON_SESSION is None:
+        refresh_houston_session_token()
 
     try:
-        resp = get_response()
-        if resp.status_code == 401:
-            update_token()
-            resp = get_response()
-        return resp
-    except TokenExpiredError:
-        update_token()
-        return get_response()
+        clean_uri = uri.replace('houston+', '')
+        HOUSTON_SESSION.request(method, clean_uri, **kwargs)
+    except (Exception, TokenExpiredError):
+        if retry:
+            return call_houston(uri, method=method, retry=False, **kwargs)
+        else:
+            raise

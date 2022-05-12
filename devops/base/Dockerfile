@@ -28,8 +28,7 @@ RUN set -ex \
         software-properties-common \
         apt-utils \
  && add-apt-repository ppa:deadsnakes/ppa \
- && apt-get update \
- # && apt-get upgrade -y \
+ && apt-get upgrade -y \
  # && apt-get dist-upgrade -y \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         # Install build requirements
@@ -89,6 +88,7 @@ RUN set -ex \
         vim \
         wget \
         xvfb \
+ && apt-get upgrade \
  && apt-get clean \
  && apt-get autoclean \
  && apt-get autoremove -y \
