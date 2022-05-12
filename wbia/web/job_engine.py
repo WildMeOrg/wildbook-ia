@@ -2128,9 +2128,8 @@ def on_collect_request(
                 # Perform callback
                 if callback_method == 'POST':
                     if callback_url.startswith('houston+'):
-                        # Remove houston+ from callback_url
                         call_houston(
-                            callback_url[8:],
+                            callback_url,
                             method='POST',
                             data=ut.to_json(data_dict),
                             headers={'Content-Type': 'application/json'},
@@ -2139,15 +2138,13 @@ def on_collect_request(
                         response = requests.post(callback_url, data=data_dict)
                 elif callback_method == 'GET':
                     if callback_url.startswith('houston+'):
-                        # Remove houston+ from callback_url
-                        call_houston(callback_url[8:], method='GET', params=data_dict)
+                        call_houston(callback_url, method='GET', params=data_dict)
                     else:
                         response = requests.get(callback_url, params=data_dict)
                 elif callback_method == 'PUT':
                     if callback_url.startswith('houston+'):
-                        # Remove houston+ from callback_url
                         call_houston(
-                            callback_url[8:],
+                            callback_url,
                             method='PUT',
                             data=ut.to_json(data_dict),
                             headers={'Content-Type': 'application/json'},
