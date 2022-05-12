@@ -20,9 +20,9 @@ while [ $# -ge 1 ]; do
         docker buildx build \
             -t wildme/wbia-base:arm64 \
             --platform linux/arm64 \
-            --no-cache \
             --load \
             base
+        docker push wildme/wbia-base:arm64
     elif [ "$1" == "wbia-provision" ]; then
         docker buildx build \
             -t wildme/wbia-provision:arm64 \
@@ -30,6 +30,7 @@ while [ $# -ge 1 ]; do
             --platform linux/arm64 \
             --load \
             provision
+        docker push wildme/wbia-provision:arm64
     elif [ "$1" == "wbia" ] || [ "$1" == "wildbook-ia" ]; then
         docker buildx build \
             -t wildme/wbia:arm64 \
@@ -39,6 +40,8 @@ while [ $# -ge 1 ]; do
             --platform linux/arm64 \
             --load \
             .
+        docker push wildme/wbia:arm64
+        docker push wildme/wildbook-ia:arm64
     elif [ "$1" == "wbia-develop" ]; then
         cd ../
         docker buildx build \
