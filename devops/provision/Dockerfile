@@ -176,7 +176,6 @@ RUN set -ex \
      torch \
      torchvision \
      torchaudio \
-     wbia \
  && /virtualenv/env3/bin/pip install \
      opencv-contrib-python-headless \
      pynvml \
@@ -192,3 +191,10 @@ RUN set -ex \
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && pip install -r requirements/problematic.txt'
+
+# Ensure that we are running the local installed copy, not from PyPI
+RUN set -ex \
+ && /virtualenv/env3/bin/pip uninstall -y \
+     wildbook-ia \
+ && cd /wbia/wildbook-ia \
+ && pip install -e .
