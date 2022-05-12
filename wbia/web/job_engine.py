@@ -2128,7 +2128,7 @@ def on_collect_request(
                 # Perform callback
                 if callback_method == 'POST':
                     if callback_url.startswith('houston+'):
-                        call_houston(
+                        response = call_houston(
                             callback_url,
                             method='POST',
                             data=ut.to_json(data_dict),
@@ -2138,12 +2138,14 @@ def on_collect_request(
                         response = requests.post(callback_url, data=data_dict)
                 elif callback_method == 'GET':
                     if callback_url.startswith('houston+'):
-                        call_houston(callback_url, method='GET', params=data_dict)
+                        response = call_houston(
+                            callback_url, method='GET', params=data_dict
+                        )
                     else:
                         response = requests.get(callback_url, params=data_dict)
                 elif callback_method == 'PUT':
                     if callback_url.startswith('houston+'):
-                        call_houston(
+                        response = call_houston(
                             callback_url,
                             method='PUT',
                             data=ut.to_json(data_dict),
@@ -2167,6 +2169,7 @@ def on_collect_request(
                 print('Callback completed...\n\tResponse: %r\n\tText: %r' % args)
             except Exception:
                 print('Callback FAILED!')
+                raise
 
     elif action == 'job_status':
         reply['jobstatus'] = collector_data.get(jobid, {}).get('status', 'unknown')
