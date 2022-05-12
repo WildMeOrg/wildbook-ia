@@ -197,4 +197,4 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
      wildbook-ia \
  && cd /wbia/wildbook-ia \
- && pip install -e .
+ && /virtualenv/env3/bin/pip install -e .
