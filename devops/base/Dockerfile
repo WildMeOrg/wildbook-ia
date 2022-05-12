@@ -22,6 +22,7 @@ RUN set -ex \
 
 # Install package updates and dependencies
 RUN set -ex \
+ && apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         software-properties-common \
@@ -40,6 +41,7 @@ RUN set -ex \
         python3.7 \
         python3.7-dev \
         python3.7-gdbm \
+        python3.7-distutils \
         python3-pip \
         python3-setuptools \
         python3-venv \
