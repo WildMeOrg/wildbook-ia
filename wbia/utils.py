@@ -24,11 +24,13 @@ def init_houston_session():
         client = BackendApplicationClient(client_id=HOUSTON_CLIENT_ID)
         HOUSTON_SESSION = OAuth2Session(client=client)
 
+    return HOUSTON_SESSION
+
 
 def refresh_houston_session_token(hostname):
     global HOUSTON_SESSION
 
-    init_houston_session()
+    HOUSTON_SESSION = init_houston_session()
 
     HOUSTON_SESSION.fetch_token(
         token_url=HOUSTON_TOKEN_API % (hostname,),
@@ -36,8 +38,12 @@ def refresh_houston_session_token(hostname):
         client_secret=HOUSTON_CLIENT_SECRET,
     )
 
+    return HOUSTON_SESSION
+
 
 def call_houston(uri, method='GET', retry=True, **kwargs):
+    global HOUSTON_SESSION
+
     clean_uri = uri.replace('houston+', '')
 
     if HOUSTON_SESSION is None:
@@ -47,10 +53,10 @@ def call_houston(uri, method='GET', retry=True, **kwargs):
             parse_uri.netloc,
         )
 
-        refresh_houston_session_token(hostname)
+        HOUSTON_SESSION = refresh_houston_session_token(hostname)
 
     try:
-        HOUSTON_SESSION.request(method, clean_uri, **kwargs)
+        return HOUSTON_SESSION.request(method, clean_uri, **kwargs)
     except (Exception, TokenExpiredError):
         if retry:
             return call_houston(uri, method=method, retry=False, **kwargs)
