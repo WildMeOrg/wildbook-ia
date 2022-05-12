@@ -531,6 +531,15 @@ def add_images_json(
     return image_uuid_list
 
 
+@register_api('/api/upload/image/json/', methods=['POST'])
+def image_upload_json(ibs, *args, **kwargs):
+    from wbia.web.apis import image_upload
+
+    gid = image_upload(*args, **kwargs)
+    image_uuid = ibs.get_image_uuids(gid)
+    return image_uuid
+
+
 class ParseError(object):
     def __init__(self, value):
         self.value = value
