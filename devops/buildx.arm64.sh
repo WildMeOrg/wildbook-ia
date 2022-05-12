@@ -19,6 +19,8 @@ while [ $# -ge 1 ]; do
     if [ "$1" == "wbia-base" ]; then
         docker buildx build \
             -t wildme/wbia-base:arm64 \
+            --cache-to=type=local,dest=.buildx.cache,mode=max \
+            --cache-from=type=local,src=.buildx.cache,mode=max \
             --platform linux/arm64 \
             --load \
             base
@@ -26,6 +28,8 @@ while [ $# -ge 1 ]; do
     elif [ "$1" == "wbia-provision" ]; then
         docker buildx build \
             -t wildme/wbia-provision:arm64 \
+            --cache-to=type=local,dest=.buildx.cache,mode=max \
+            --cache-from=type=local,src=.buildx.cache,mode=max \
             --build-arg WBIA_BASE_IMAGE="wildme/wbia-base:arm64" \
             --platform linux/arm64 \
             --load \
@@ -35,6 +39,8 @@ while [ $# -ge 1 ]; do
         docker buildx build \
             -t wildme/wbia:arm64 \
             -t wildme/wildbook-ia:arm64 \
+            --cache-to=type=local,dest=.buildx.cache,mode=max \
+            --cache-from=type=local,src=.buildx.cache,mode=max \
             --build-arg WBIA_BASE_IMAGE="wildme/wbia-base:arm64" \
             --build-arg WBIA_PROVISION_IMAGE="wildme/wbia-provision:arm64" \
             --platform linux/arm64 \
@@ -46,6 +52,8 @@ while [ $# -ge 1 ]; do
         cd ../
         docker buildx build \
             -t wildme/wbia:develop \
+            --cache-to=type=local,dest=.buildx.cache,mode=max \
+            --cache-from=type=local,src=.buildx.cache,mode=max \
             --platform linux/arm64 \
             --load \
             devops/develop
