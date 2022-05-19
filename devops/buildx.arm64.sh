@@ -21,6 +21,7 @@ while [ $# -ge 1 ]; do
             -t wildme/wbia-base:arm64 \
             --cache-to=type=local,dest=.buildx.cache,mode=max \
             --cache-from=type=local,src=.buildx.cache,mode=max \
+            --compress \
             --platform linux/arm64 \
             --load \
             base
@@ -30,6 +31,7 @@ while [ $# -ge 1 ]; do
             -t wildme/wbia-provision:arm64 \
             --cache-to=type=local,dest=.buildx.cache,mode=max \
             --cache-from=type=local,src=.buildx.cache,mode=max \
+            --compress \
             --build-arg WBIA_BASE_IMAGE="wildme/wbia-base:arm64" \
             --platform linux/arm64 \
             --load \
@@ -41,6 +43,7 @@ while [ $# -ge 1 ]; do
             -t wildme/wildbook-ia:arm64 \
             --cache-to=type=local,dest=.buildx.cache,mode=max \
             --cache-from=type=local,src=.buildx.cache,mode=max \
+            --compress \
             --build-arg WBIA_BASE_IMAGE="wildme/wbia-base:arm64" \
             --build-arg WBIA_PROVISION_IMAGE="wildme/wbia-provision:arm64" \
             --platform linux/arm64 \
