@@ -177,8 +177,9 @@ RUN set -ex \
      torchvision \
      torchaudio \
  && /virtualenv/env3/bin/pip install \
-     opencv-contrib-python-headless \
      pynvml \
+ && /virtualenv/env3/bin/pip install --upgrade \
+     opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip install --upgrade --pre \
      torch \
      torchvision \
