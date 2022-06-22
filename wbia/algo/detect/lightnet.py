@@ -225,9 +225,10 @@ def _detect(params, data_list, flip=False):
         imgs.unsqueeze_(0)
 
     if torch.cuda.is_available():
-        imgs = imgs.cuda()
-
-    # ut.embed()
+        try:
+            imgs = imgs.cuda()
+        except Exception:
+            pass
 
     # Run detector
     if torch.__version__.startswith('0.3'):
