@@ -15,6 +15,8 @@ logger = logging.getLogger('wbia')
 if not ut.get_argflag('--no-lightnet'):
     try:
         import torch
+
+        torch.multiprocessing.set_start_method('spawn')
         from torchvision import transforms as tf
         import lightnet as ln
     except ImportError:
