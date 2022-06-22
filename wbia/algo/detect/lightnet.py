@@ -15,8 +15,6 @@ logger = logging.getLogger('wbia')
 if not ut.get_argflag('--no-lightnet'):
     try:
         import torch
-
-        torch.multiprocessing.set_start_method('spawn')
         from torchvision import transforms as tf
         import lightnet as ln
     except ImportError:
@@ -190,7 +188,12 @@ def _create_network(
         params.network = nn.DataParallel(params.network)
 
     params.network.eval()
-    params.network.to(params.device)
+
+    try:
+        params.network.to(params.device)
+    except Exception:
+        device = torch.device('cpu')
+        params.network.to(device)
 
     return params
 
