@@ -88,6 +88,7 @@ ARCHIVE_URL_DICT = {
     'beluga_whale_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_beluga.v1.zip',
     'sea_turtle_v4': 'https://wildbookiarepository.azureedge.net/models/labeler.sea_turtle.v4.zip',
     'seals_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.seals.v0.zip',
+    'lions_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.lions.v0.zip',
     'spotted_eagle_ray_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.spotted_eagle_ray.v0.zip',
 }
 
