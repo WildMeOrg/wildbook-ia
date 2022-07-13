@@ -84,6 +84,21 @@ SPECIES_CONFIG_MAP = {
         'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.iot_dummies_v0.joblib',
         'annot_feature_col': 'assigner_viewpoint_unit_features',
     },
+    'lion': {
+        'model_file': '/tmp/assigner.lions_v0.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.lions_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_unit_features',
+    },
+    'lioness': {
+        'model_file': '/tmp/assigner.lions_v0.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.lions_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_unit_features',
+    },
+    'lion_general': {
+        'model_file': '/tmp/assigner.lions_v0.joblib',
+        'model_url': 'https://wildbookiarepository.azureedge.net/models/assigner.lions_v0.joblib',
+        'annot_feature_col': 'assigner_viewpoint_unit_features',
+    },
 }
 
 
