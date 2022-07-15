@@ -95,6 +95,12 @@ CONFIG_URL_DICT = {
     'spotted_eagle_ray_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.spotted_eagle_ray.v0.py',
     'yellow_bellied_toad_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.yellow_bellied_toad.v0.py',
     'lions_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.lions.v0.py',
+    'vulcan_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.vulcan.d3e8bf43.v0.py',
+    'vulcan_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.vulcan.d3e8bf43.v1.py',
+    'vulcan_d3e8bf43_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.vulcan.d3e8bf43.v0.py',
+    'vulcan_d3e8bf43_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.vulcan.d3e8bf43.v1.py',
+    'vulcan_5fbfff26_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.vulcan.5fbfff26.v0.py',
+    'vulcan_5fbfff26_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.vulcan.5fbfff26.v1.py',
     None: 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py',
     'training_kit': 'https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip',
 }

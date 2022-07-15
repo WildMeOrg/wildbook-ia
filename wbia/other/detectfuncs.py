@@ -104,28 +104,64 @@ def simple_code(label):
 
 
 def general_precision_recall_algo(
-    ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs
+    ibs,
+    label_list,
+    confidence_list,
+    category='positive',
+    samples=SAMPLES,
+    index_list=None,
+    filter_fn_func=None,
+    **kwargs,
 ):
-    def errors(zipped, conf, category):
+    def errors(zipped, conf, category, filter_fn_func_, gid_aids_mapping):
         tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
-        for index, (label, confidence) in enumerate(zipped):
+        fn_filter_converted = 0
+        fn_filter_total = 0
+        for label, confidence, index in zipped:
             if label == category:
                 if conf <= confidence:
                     tp += 1
                 else:
-                    fn += 1
+                    fn_filter_total += 1
+                    if None not in [filter_fn_func_, index]:
+                        values = (
+                            index,
+                            label,
+                            confidence,
+                            category,
+                            conf,
+                            zipped,
+                        )
+                        flag = filter_fn_func_(ibs, 1, values, gid_aids_mapping)
+                        if flag:
+                            fn += 1
+                        else:
+                            fn_filter_converted += 1
+                            tp += 1
+                    else:
+                        fn += 1
             else:
                 if conf <= confidence:
                     fp += 1
                 else:
                     tn += 1
+        # if filter_fn_func_ is not None:
+        #     print('fn_filter_converted = %d / %d' % (fn_filter_converted, fn_filter_total, ))
         return tp, tn, fp, fn
 
-    zipped = list(zip(label_list, confidence_list))
+    print('Using filter_fn_func = {!r}'.format(filter_fn_func))
+    if index_list is None:
+        index_list = [None] * len(label_list)
+        gid_aids_mapping = {}
+    else:
+        aids_list = ibs.get_image_aids(index_list)
+        gid_aids_mapping = dict(zip(index_list, aids_list))
+    zipped = list(zip(label_list, confidence_list, index_list))
+
     conf_list = [_ / float(samples) for _ in range(0, int(samples) + 1)]
     conf_dict = {}
-    for conf in conf_list:
-        conf_dict[conf] = errors(zipped, conf, category)
+    for conf in tqdm.tqdm(conf_list):
+        conf_dict[conf] = errors(zipped, conf, category, filter_fn_func, gid_aids_mapping)
 
     conf_list_ = [-1.0, -1.0]
     pr_list = [1.0, 0.0]
@@ -218,6 +254,7 @@ def general_area_best_conf(
     interpolate=True,
     target=(1.0, 1.0),
     target_recall=None,
+    force_target_recall=False,
     **kwargs,
 ):
     import matplotlib.pyplot as plt
@@ -252,6 +289,9 @@ def general_area_best_conf(
             if target_recall <= x and not np.isnan(conf):
                 tup2 = [conf], [x], [y], None
                 break
+
+    if force_target_recall and tup2 is not None:
+        tup1 = tup2
 
     if len(best_conf_list) > 1:
         logger.info(
@@ -375,7 +415,7 @@ def general_confusion_matrix_algo(
     return correct_rate, fuzzy_rate
 
 
-def general_intersection_over_union(bbox1, bbox2):
+def general_intersection_over_union(bbox1, bbox2, return_components=False):
     intersection_xtl = max(bbox1['xtl'], bbox2['xtl'])
     intersection_ytl = max(bbox1['ytl'], bbox2['ytl'])
     intersection_xbr = min(bbox1['xbr'], bbox2['xbr'])
@@ -387,6 +427,8 @@ def general_intersection_over_union(bbox1, bbox2):
     if intersection_w <= 0 or intersection_h <= 0:
         return 0.0
 
+    intersection_w = max(0.0, intersection_xbr - intersection_xtl)
+    intersection_h = max(0.0, intersection_ybr - intersection_ytl)
     intersection = intersection_w * intersection_h
     union = (
         (bbox1['width'] * bbox1['height'])
@@ -394,7 +436,10 @@ def general_intersection_over_union(bbox1, bbox2):
         - intersection
     )
 
-    return intersection / union
+    if return_components:
+        return intersection, union
+    else:
+        return intersection / union
 
 
 def general_overlap(gt_list, pred_list):
@@ -454,7 +499,14 @@ def general_get_imageset_gids(ibs, imageset_text, unique=True, **kwargs):
 
 
 def general_parse_gt_annots(
-    ibs, aid_list, include_parts=True, species_mapping={}, gt_species_mapping={}, **kwargs
+    ibs,
+    gid,
+    aid_list,
+    include_parts=True,
+    restrict_to_boundary=True,
+    species_mapping={},
+    gt_species_mapping={},
+    **kwargs,
 ):
     gid_list = ibs.get_annot_gids(aid_list)
 
@@ -466,7 +518,9 @@ def general_parse_gt_annots(
     for gid, aid in zip(gid_list, aid_list):
         width, height = ibs.get_image_sizes(gid)
 
-        bbox = ibs.get_annot_bboxes(aid)
+        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        reference_tile_gid = gid if is_tile else None
+        bbox = ibs.get_annot_bboxes(aid, reference_tile_gid=reference_tile_gid)
         theta = ibs.get_annot_thetas(aid)
 
         # Transformation matrix
@@ -483,7 +537,17 @@ def general_parse_gt_annots(
         xbr = int(max(x_points))
         ytl = int(min(y_points))
         ybr = int(max(y_points))
-        bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+        # bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+
+        xtl = xtl / width
+        ytl = ytl / height
+        xbr = xbr / width
+        ybr = ybr / height
+        if restrict_to_boundary:
+            xtl = max(0.0, min(1.0, xtl))
+            ytl = max(0.0, min(1.0, ytl))
+            xbr = max(0.0, min(1.0, xbr))
+            ybr = max(0.0, min(1.0, ybr))
 
         species = ibs.get_annot_species_texts(aid)
         viewpoint = ibs.get_annot_viewpoints(aid)
@@ -508,7 +572,9 @@ def general_parse_gt_annots(
         part_rowid_list = ibs.get_annot_part_rowids(aid)
         if include_parts:
             for part_rowid in part_rowid_list:
-                bbox = ibs.get_part_bboxes(part_rowid)
+                bbox = ibs.get_part_bboxes(
+                    part_rowid, reference_tile_gid=reference_tile_gid
+                )
                 theta = ibs.get_part_thetas(part_rowid)
 
                 # Transformation matrix
@@ -525,7 +591,17 @@ def general_parse_gt_annots(
                 xbr = int(max(x_points))
                 ytl = int(min(y_points))
                 ybr = int(max(y_points))
-                bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+                # bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
+
+                xtl = xtl / width
+                ytl = ytl / height
+                xbr = xbr / width
+                ybr = ybr / height
+                if restrict_to_boundary:
+                    xtl = max(0.0, min(1.0, xtl))
+                    ytl = max(0.0, min(1.0, ytl))
+                    xbr = max(0.0, min(1.0, xbr))
+                    ybr = max(0.0, min(1.0, ybr))
 
                 tag = ibs.get_part_tag_text(part_rowid)
 
@@ -538,12 +614,12 @@ def general_parse_gt_annots(
                     'gid': gid,
                     'aid': aid,
                     'part_id': part_rowid,
-                    'xtl': bbox[0] / width,
-                    'ytl': bbox[1] / height,
-                    'xbr': (bbox[0] + bbox[2]) / width,
-                    'ybr': (bbox[1] + bbox[3]) / height,
-                    'width': bbox[2] / width,
-                    'height': bbox[3] / height,
+                    'xtl': xtl,
+                    'ytl': ytl,
+                    'xbr': xbr,
+                    'ybr': ybr,
+                    'width': xbr - xtl,
+                    'height': ybr - ytl,
                     'class': tag,
                     'viewpoint': viewpoint,
                     'interest': interest,
@@ -589,14 +665,15 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
 ##########################################################################################
 
 
-def localizer_parse_pred_dirty(ibs, test_gid_list, species_mapping_, **kwargs):
-
+def localizer_parse_pred_dirty(ibs, test_gid_list=None, species_mapping_={}, **kwargs):
     depc = ibs.depc_image
 
     uuid_list = ibs.get_image_uuids(test_gid_list)
     size_list = ibs.get_image_sizes(test_gid_list)
 
     # Unsure, but we need to call this multiple times?  Lazy loading bug?
+    # depc.delete_property('localizations', test_gid_list, config=kwargs)
+
     bboxes_list = depc.get_property(
         'localizations', test_gid_list, 'bboxes', config=kwargs
     )
@@ -776,11 +853,16 @@ def localizer_parse_pred(
     return pred_dict
 
 
-def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None, **kwargs):
+def localizer_precision_recall_algo(
+    ibs, samples=SAMPLES, test_gid_list=None, ignore_filter_func=None, **kwargs
+):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
+
+    if ignore_filter_func is None:
+        ignore_filter_func = _ignore_filter_identity_func
 
     logger.info('\tGather Ground-Truth')
     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
@@ -799,11 +881,14 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None, **
         ]
         for dict_, dict_tag in dict_list:
             for image_uuid in dict_:
-                dict_[image_uuid] = [
-                    val
-                    for val in dict_[image_uuid]
-                    if val.get('class', None) in species_set_
-                ]
+                temp = []
+                for val in dict_[image_uuid]:
+                    if val.get('class', None) not in species_set_:
+                        continue
+                    if ignore_filter_func(ibs, val):
+                        continue
+                    temp.append(val)
+                dict_[image_uuid] = temp
 
     values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, **kwargs)
     conf_list, tp_list, fp_list, total = values
@@ -871,7 +956,9 @@ def localizer_assignments(pred_list, gt_list, gt_list_=[], min_overlap=0.5):
     return match_list
 
 
-def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
+def localizer_tp_fp(
+    uuid_list, gt_dict, pred_dict, min_overlap=0.5, return_match_dict=False, **kwargs
+):
     total = 0.0
 
     interest_species_set = set()
@@ -883,6 +970,7 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
                 interest_species_set.add(species)
 
     match_list = []
+    match_dict = {}
     for image_uuid in uuid_list:
         gt_list = []
         gt_list_ = []
@@ -896,10 +984,15 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
             else:
                 gt_list.append(gt)
 
-        total += len(gt_list)
+        total_ = len(gt_list)
+        total += total_
 
         # Match predictions
         match_list_ = localizer_assignments(pred_list, gt_list, gt_list_, min_overlap)
+        match_dict[image_uuid] = (
+            match_list_,
+            total_,
+        )
         for match_ in match_list_:
             match_list.append(match_)
 
@@ -929,7 +1022,10 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
     # logger.info('\t con [-10:]     : %r' % (conf_list[-10:], ))
     # logger.info('\t num_annotations: %r' % (total, ))
 
-    return conf_list, tp_list, fp_list, total
+    if return_match_dict:
+        return conf_list, tp_list, fp_list, total, match_dict
+    else:
+        return conf_list, tp_list, fp_list, total
 
 
 def localizer_precision_recall_algo_plot(ibs, **kwargs):
@@ -1048,12 +1144,20 @@ def localizer_iou_recall_algo_plot(ibs, **kwargs):
 
 
 def localizer_confusion_matrix_algo_plot(
-    ibs, label=None, target_conf=None, test_gid_list=None, **kwargs
+    ibs,
+    label=None,
+    target_conf=None,
+    test_gid_list=None,
+    ignore_filter_func=None,
+    **kwargs,
 ):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
+
+    if ignore_filter_func is None:
+        ignore_filter_func = _ignore_filter_identity_func
 
     logger.info('\tGather Ground-Truth')
     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
@@ -1072,11 +1176,14 @@ def localizer_confusion_matrix_algo_plot(
         ]
         for dict_, dict_tag in dict_list:
             for image_uuid in dict_:
-                dict_[image_uuid] = [
-                    val
-                    for val in dict_[image_uuid]
-                    if val.get('class', None) in species_set_
-                ]
+                temp = []
+                for val in dict_[image_uuid]:
+                    if val.get('class', None) not in species_set_:
+                        continue
+                    if ignore_filter_func(ibs, val):
+                        continue
+                    temp.append(val)
+                dict_[image_uuid] = temp
 
     values = localizer_tp_fp(test_uuid_list, gt_dict, pred_dict, **kwargs)
     conf_list, tp_list, fp_list, total = values
@@ -1137,7 +1244,13 @@ def localizer_confusion_matrix_algo_plot(
 
 @register_ibs_method
 def localizer_precision_recall(
-    ibs, config_dict=None, output_path=None, test_gid_list=None, **kwargs
+    ibs,
+    config_dict=None,
+    output_path=None,
+    test_gid_list=None,
+    ignore_filter_func=None,
+    overwrite_config_keys=False,
+    **kwargs,
 ):
     if config_dict is None:
         if test_gid_list is not None:
@@ -2033,8 +2146,13 @@ def localizer_precision_recall(
         # Backwards compatibility hack
         if test_gid_list is not None:
             for config_ in config_list:
-                if 'test_gid_list' not in config_:
+                if overwrite_config_keys or 'test_gid_list' not in config_:
                     config_['test_gid_list'] = test_gid_list
+
+        if ignore_filter_func is not None:
+            for config_ in config_list:
+                if overwrite_config_keys or 'ignore_filter_func' not in config_:
+                    config_['ignore_filter_func'] = ignore_filter_func
 
         ibs.localizer_precision_recall_algo_display(
             config_list, config_tag=config_key, output_path=output_path, **config
@@ -2153,6 +2271,9 @@ def localizer_precision_recall_algo_display(
             localizer_iou_recall_algo_plot(ibs, color=color_, plot_point=False, **config_)
             for color_, config_ in zip(color_list, config_list)
         ]
+        plt.plot(
+            [min_overlap, min_overlap], [0.0, 1.0], color=(0.5, 0.5, 0.5), linestyle='--'
+        )
 
         # area_list = [ ret[0] for ret in ret_list ]
         # tup2_list = [ ret[3] for ret in ret_list ]
@@ -2495,18 +2616,20 @@ def localizer_precision_recall_algo_display_animate(ibs, config_list, **kwargs):
 
 
 def classifier_cameratrap_precision_recall_algo(
-    ibs, positive_imageset_id, negative_imageset_id, **kwargs
+    ibs, positive_imageset_id, negative_imageset_id, test_gid_list=None, **kwargs
 ):
     depc = ibs.depc_image
-    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-    test_gid_set_ = list(test_gid_set_)
+
+    if test_gid_list is None:
+        test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+        test_gid_list = list(test_gid_set_)
 
     positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
     negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
 
     test_gid_set = []
     label_list = []
-    for gid in test_gid_set_:
+    for gid in test_gid_list:
         if gid in positive_gid_set:
             label = 'positive'
         elif gid in negative_gid_set:
@@ -2527,7 +2650,9 @@ def classifier_cameratrap_precision_recall_algo(
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence in zip(prediction_list, confidence_list)
     ]
-    return general_precision_recall_algo(ibs, label_list, confidence_list)
+    return general_precision_recall_algo(
+        ibs, label_list, confidence_list, index_list=test_gid_set, **kwargs
+    )
 
 
 def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
@@ -2543,7 +2668,7 @@ def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
+def classifier_cameratrap_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     logger.info('Processing ROC for: {!r}'.format(label))
     (
@@ -2565,22 +2690,26 @@ def classifier_cameratrap_confusion_matrix_algo_plot(
     conf,
     positive_imageset_id,
     negative_imageset_id,
+    test_gid_list=None,
     output_cases=False,
+    filter_fn_func=None,
     **kwargs,
 ):
     logger.info(
         'Processing Confusion Matrix for: {!r} (Conf = {:0.02f})'.format(label, conf)
     )
     depc = ibs.depc_image
-    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-    test_gid_set_ = list(test_gid_set_)
+
+    if test_gid_list is None:
+        test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+        test_gid_list = list(test_gid_set_)
 
     positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
     negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
 
     test_gid_set = []
     label_list = []
-    for gid in test_gid_set_:
+    for gid in test_gid_list:
         if gid in positive_gid_set:
             label = 'positive'
         elif gid in negative_gid_set:
@@ -2604,6 +2733,36 @@ def classifier_cameratrap_confusion_matrix_algo_plot(
     prediction_list = [
         'positive' if confidence >= conf else 'negative' for confidence in confidence_list
     ]
+
+    print('Using filter_fn_func = {!r}'.format(filter_fn_func))
+    if filter_fn_func is not None:
+        fn_filter_total = 0
+        fn_filter_converted = 0
+
+        aids_list = ibs.get_image_aids(test_gid_set)
+        gid_aids_mapping = dict(zip(test_gid_set, aids_list))
+
+        prediction_list_ = []
+        zipped = list(zip(test_gid_set, label_list, prediction_list))
+        for test_gid, label, prediction in zipped:
+            prediction_ = prediction
+            if label == 'positive' and prediction == 'negative':
+                fn_filter_total += 1
+                values = (test_gid, label, prediction, zipped)
+                flag = filter_fn_func(ibs, 2, values, gid_aids_mapping)
+                if not flag:
+                    prediction_ = 'positive'
+                    fn_filter_converted += 1
+            prediction_list_.append(prediction_)
+
+        print(
+            'fn_filter_converted = %d / %d'
+            % (
+                fn_filter_converted,
+                fn_filter_total,
+            )
+        )
+        prediction_list = prediction_list_
 
     if output_cases:
         output_path = 'cameratrap-confusion-incorrect'
@@ -2641,7 +2800,17 @@ def classifier_cameratrap_confusion_matrix_algo_plot(
 
 @register_ibs_method
 def classifier_cameratrap_precision_recall_algo_display(
-    ibs, positive_imageset_id, negative_imageset_id, config_list=None, figsize=(20, 20)
+    ibs,
+    positive_imageset_id,
+    negative_imageset_id,
+    test_gid_list=None,
+    figsize=(20, 20),
+    config_list=None,
+    target_recall=None,
+    force_target_recall=False,
+    offset_black=0,
+    desired_index=None,
+    filter_fn_func=None,
 ):
     import matplotlib.pyplot as plt
 
@@ -2677,7 +2846,8 @@ def classifier_cameratrap_precision_recall_algo_display(
             # {'label': 'Retrained Model (3.5%)', 'classifier_weight_filepath': 'megan1.5'},
             # {'label': 'Retrained Model (5%)',   'classifier_weight_filepath': 'megan1.6'},
         ]
-    color_list = pt.distinct_colors(len(config_list), randomize=False)
+    color_list = [(0, 0, 0)] * offset_black
+    color_list += pt.distinct_colors(len(config_list) - len(color_list), randomize=False)
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -2692,14 +2862,28 @@ def classifier_cameratrap_precision_recall_algo_display(
             color=color,
             positive_imageset_id=positive_imageset_id,
             negative_imageset_id=negative_imageset_id,
+            test_gid_list=test_gid_list,
+            target_recall=target_recall,
+            force_target_recall=force_target_recall,
+            filter_fn_func=filter_fn_func,
             **config,
         )
         for color, config in zip(color_list, config_list)
     ]
-    area_list = [ret[0] for ret in ret_list]
+
     conf_list = [ret[1] for ret in ret_list]
-    index = np.argmax(area_list)
-    # index = 0
+    if target_recall is None:
+        # Get the highest AP
+        area_list = [ret[0] for ret in ret_list]
+    else:
+        # Get the highest recall
+        area_list = [ret[2][2][0] for ret in ret_list]
+
+    if desired_index in ['argmax', None]:
+        index = np.argmax(area_list)
+    else:
+        index = desired_index
+
     best_label1 = config_list[index]['label']
     best_config1 = config_list[index]
     best_color1 = color_list[index]
@@ -2711,6 +2895,26 @@ def classifier_cameratrap_precision_recall_algo_display(
         ),
         y=1.10,
     )
+
+    if target_recall is None:
+        plt.title(
+            'Precision-Recall Curve (Best: %s, AP = %0.04f)'
+            % (
+                best_label1,
+                best_area1,
+            ),
+            y=1.16,
+        )
+    else:
+        plt.title(
+            'Precision-Recall Curve (Best: %s, Precision = %0.02f)'
+            % (
+                best_label1,
+                best_area1,
+            ),
+            y=1.16,
+        )
+
     plt.legend(
         bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
         loc=3,
@@ -2732,13 +2936,18 @@ def classifier_cameratrap_precision_recall_algo_display(
             color=color,
             positive_imageset_id=positive_imageset_id,
             negative_imageset_id=negative_imageset_id,
+            test_gid_list=test_gid_list,
+            filter_fn_func=filter_fn_func,
             **config,
         )
         for color, config in zip(color_list, config_list)
     ]
     area_list = [ret[0] for ret in ret_list]
     conf_list = [ret[1] for ret in ret_list]
-    index = np.argmax(area_list)
+    if desired_index in ['argmax', None]:
+        index = np.argmax(area_list)
+    else:
+        index = desired_index
     # index = 0
     best_label2 = config_list[index]['label']
     best_config2 = config_list[index]
@@ -2746,7 +2955,11 @@ def classifier_cameratrap_precision_recall_algo_display(
     best_area2 = area_list[index]
     best_conf2 = conf_list[index]
     plt.title(
-        'ROC Curve (Best: {}, AP = {:0.02f})'.format(best_label2, best_area2), y=1.10
+        'ROC Curve (Best: {}, AP = {:0.02f})'.format(
+            best_label2,
+            best_area2,
+        ),
+        y=1.10,
     )
     plt.legend(
         bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
@@ -2768,12 +2981,21 @@ def classifier_cameratrap_precision_recall_algo_display(
         axes_=axes_,
         positive_imageset_id=positive_imageset_id,
         negative_imageset_id=negative_imageset_id,
+        test_gid_list=test_gid_list,
         output_cases=True,
+        filter_fn_func=filter_fn_func,
         **best_config1,
     )
     axes_.set_xlabel('Predicted (Correct = {:0.02f}%)'.format(correct_rate * 100.0))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('P-R Confusion Matrix (OP = {:0.02f})'.format(best_conf1), y=1.12)
+    plt.title(
+        'P-R Confusion Matrix (Model: %s, OP = %0.02f)'
+        % (
+            best_label1,
+            best_conf1,
+        ),
+        y=1.12,
+    )
 
     axes_ = plt.subplot(224)
     axes_.set_aspect(1)
@@ -2787,13 +3009,32 @@ def classifier_cameratrap_precision_recall_algo_display(
         axes_=axes_,
         positive_imageset_id=positive_imageset_id,
         negative_imageset_id=negative_imageset_id,
+        test_gid_list=test_gid_list,
+        filter_fn_func=filter_fn_func,
         **best_config2,
     )
     axes_.set_xlabel('Predicted (Correct = {:0.02f}%)'.format(correct_rate * 100.0))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('ROC Confusion Matrix (OP = {:0.02f})'.format(best_conf2), y=1.12)
+    plt.title(
+        'ROC Confusion Matrix (Model: %s, OP = %0.02f)'
+        % (
+            best_label2,
+            best_conf2,
+        ),
+        y=1.12,
+    )
 
-    fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
+    if target_recall is None:
+        fig_filename = 'classifier-cameratrap-precision-recall-roc.png'
+    else:
+        fig_filename = (
+            'classifier-cameratrap-precision-recall-roc-target-recall-%0.02f.png'
+            % (target_recall,)
+        )
+
+    if filter_fn_func is not None:
+        fig_filename = fig_filename.replace('.png', '-recovery.png')
+
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 
@@ -3014,7 +3255,7 @@ def classifier2_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def classifier2_roc_algo_plot(ibs, **kwargs):
+def classifier2_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     logger.info('Processing ROC for: {!r}'.format(label))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(
@@ -3359,7 +3600,7 @@ def labeler_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def labeler_roc_algo_plot(ibs, **kwargs):
+def labeler_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     category_list = kwargs['category_list']
     logger.info(
@@ -3663,7 +3904,7 @@ def canonical_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def canonical_roc_algo_plot(ibs, **kwargs):
+def canonical_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     logger.info('Processing ROC for: {!r}'.format(label))
     conf_list, pr_list, re_list, tpr_list, fpr_list = canonical_precision_recall_algo(
@@ -3903,6 +4144,10 @@ def _canonical_get_boxes(ibs, gid_list, species):
     bbox_set = []
     zipped = zip(aid_list, flag_list, part_rowids_list, part_types_list)
     for aid, flag, part_rowid_list, part_type_list in zipped:
+        gid = ibs.get_annot_gids(aid)
+        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        reference_tile_gid = gid if is_tile else None
+
         part_rowid_ = None
         if flag:
             for part_rowid, part_type in zip(part_rowid_list, part_type_list):
@@ -3911,7 +4156,9 @@ def _canonical_get_boxes(ibs, gid_list, species):
                     part_rowid_ = part_rowid
 
         if part_rowid_ is not None:
-            axtl, aytl, aw, ah = ibs.get_annot_bboxes(aid)
+            axtl, aytl, aw, ah = ibs.get_annot_bboxes(
+                aid, reference_tile_gid=reference_tile_gid
+            )
             axbr, aybr = axtl + aw, aytl + ah
             pxtl, pytl, pw, ph = ibs.get_part_bboxes(part_rowid_)
             pxbr, pybr = pxtl + pw, pytl + ph
@@ -4532,7 +4779,7 @@ def aoi2_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def aoi2_roc_algo_plot(ibs, **kwargs):
+def aoi2_roc_algo_plot(ibs, target_recall=None, **kwargs):
     label = kwargs['label']
     logger.info('Processing ROC for: {!r}'.format(label))
     conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(
@@ -4609,9 +4856,14 @@ def aoi2_confusion_matrix_algo_plot(
             image = _resize(image, t_width=600, verbose=False)
             height_, width_, channels_ = image.shape
 
+            is_tile = ibs.get_vulcan_image_tile_flags(test_gid)
+            reference_tile_gid = test_gid if is_tile else None
+
             for test_aid in manifest_dict[test_gid]:
                 label, prediction = manifest_dict[test_gid][test_aid]
-                bbox = ibs.get_annot_bboxes(test_aid)
+                bbox = ibs.get_annot_bboxes(
+                    test_aid, reference_tile_gid=reference_tile_gid
+                )
                 xtl, ytl, width, height = bbox
                 xbr = xtl + width
                 ybr = ytl + height
@@ -4789,11 +5041,13 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
 
     gt_dict = {}
     for gid, uuid in zip(gid_list, uuid_list):
+        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        reference_tile_gid = gid if is_tile else None
         width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)
+        bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=reference_tile_gid)
         gt_list = []
-        for aid in aid_list:
-            bbox = ibs.get_annot_bboxes(aid)
+        for aid, bbox in zip(aid_list, bbox_list):
             temp = {
                 'gid': gid,
                 'xtl': bbox[0] / width,

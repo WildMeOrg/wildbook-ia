@@ -1991,6 +1991,32 @@ def update_2_0_0(db, ibs=None):
     pass
 
 
+def update_3_0_0(db, ibs=None):
+    # This update is simply a status marker for the software state
+    pass
+
+
+def update_4_0_0(db, ibs=None):
+    # This update is simply a status marker for the software state
+    pass
+
+
+def update_4_1_0(db, ibs=None):
+    db.modify_table(
+        const.IMAGE_TABLE,
+        (
+            (None, 'image_tile_parent_rowid', 'INTEGER', None),
+            (None, 'image_tile_xtl', 'INTEGER', None),
+            (None, 'image_tile_ytl', 'INTEGER', None),
+            (None, 'image_tile_width', 'INTEGER', None),
+            (None, 'image_tile_height', 'INTEGER', None),
+            (None, 'image_tile_border_flag', 'INTEGER', None),
+            (None, 'image_tile_config_json', 'TEXT', None),
+            (None, 'image_tile_config_hashid', 'TEXT', None),
+        ),
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -2053,6 +2079,9 @@ VALID_VERSIONS = ut.odict(
         ('1.8.2', (None, update_1_8_2, None)),
         ('1.8.3', (None, update_1_8_3, None)),
         ('2.0.0', (None, update_2_0_0, None)),
+        ('3.0.0', (None, update_3_0_0, None)),
+        ('4.0.0', (None, update_4_0_0, None)),
+        ('4.1.0', (None, update_4_1_0, None)),
     ]
 )
 """

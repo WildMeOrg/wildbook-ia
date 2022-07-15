@@ -10,7 +10,7 @@ import logging
 # from wbia.algo.detect import darknet
 import utool
 
-from wbia.algo.detect import assigner, grabmodels, randomforest, yolo
+from wbia.algo.detect import assigner, densenet, grabmodels, randomforest, yolo
 
 print, rrr, profile = utool.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -74,6 +74,7 @@ def reload_subs(verbose=True):
 
     get_rrr(grabmodels)(verbose=verbose)
     get_rrr(randomforest)(verbose=verbose)
+    get_rrr(densenet)(verbose=verbose)
     get_rrr(yolo)(verbose=verbose)
     # get_rrr(selectivesearch)(verbose=verbose)
     # get_rrr(ssd)(verbose=verbose)
@@ -92,6 +93,7 @@ rrrr = reload_subs
 IMPORT_TUPLES = [
     ('grabmodels', None),
     ('randomforest', None),
+    ('densenet', None),
     ('yolo', None),
     ('assigner', None),
     # ('selectivesearch', None),

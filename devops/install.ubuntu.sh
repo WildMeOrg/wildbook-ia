@@ -197,7 +197,6 @@ git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.gi
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
 git clone https://github.com/WildMeOrg/wbia-plugin-blend.git
 
-
 cd ${CODE}
 git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-curvrank.git
 cd wbia-plugin-curvrank/wbia_curvrank

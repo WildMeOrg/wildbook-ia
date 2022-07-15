@@ -9977,3 +9977,52 @@ def nms_aids(ibs, aid_list, **kwargs):
     keep_aid_list = ut.take(aid_list, keep_indices)
 
     return keep_aid_list
+
+
+@register_ibs_method
+def check_tile_consistency(ibs, gid_list=None, **kwargs):
+    r"""
+    Args:
+        ibs (IBEISController):  wbia controller object
+        gid_list (list): (default = None)
+
+    CommandLine:
+        python -m wbia.other.ibsfuncs --exec-check_tile_consistency
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from wbia.other.ibsfuncs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb(defaultdb='testdb1')
+        >>> gid_list = None
+        >>> result = check_image_consistency(ibs, gid_list)
+        >>> print(result)
+    """
+    # TODO: more consistency checks
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids(is_tile=False)
+
+    all_tile_gid_set = set(ibs.get_valid_gids(is_tile=True))
+
+    level_error_set = set()
+    for tile_gid in all_tile_gid_set:
+        try:
+            ibs.get_vulcan_image_tile_level(tile_gid)
+        except RuntimeError:
+            level_error_set.add(tile_gid)
+
+    error_list = []
+    tile_gids_list = ibs.compute_tiles(gid_list, **kwargs)
+    for gid, tile_gid_list in zip(gid_list, tile_gids_list):
+        error = False
+        for tile_gid in tile_gid_list:
+            if tile_gid not in all_tile_gid_set:
+                error = True
+            if tile_gid in level_error_set:
+                error = True
+        if error:
+            error_list.append(gid)
+
+    logger.info('Found %d error GIDs' % (len(error_list),))
+    if len(error_list) > 0:
+        ibs.depc_image.get_property('tiles', error_list, 'gids', recompute=True)

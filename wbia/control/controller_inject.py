@@ -113,8 +113,14 @@ MICROSOFT_API_ENABLED = ut.get_argflag('--web') and ut.get_argflag(
 MICROSOFT_API_PREFIX = '/v0.1/wildbook/'
 MICROSOFT_API_DEBUG = True
 
-if MICROSOFT_API_ENABLED:
-    WEB_DEBUG_INCLUDE_TRACE = MICROSOFT_API_DEBUG
+VULCAN_API_ENABLED = ut.get_argflag('--web') and ut.get_argflag(
+    '--vulcan'
+)  # True == Vulcan Deployment (i.e., only allow VULCAN_API_PREFIX prefix below)
+VULCAN_API_PREFIX = '/v0.1/vulcan/'
+VULCAN_API_DEBUG = True
+
+if MICROSOFT_API_ENABLED or VULCAN_API_ENABLED:
+    WEB_DEBUG_INCLUDE_TRACE = MICROSOFT_API_DEBUG or VULCAN_API_DEBUG
 
 
 STRICT_VERSION_API = (
@@ -390,12 +396,23 @@ def translate_wbia_webreturn(
     jQuery_callback=None,
     cache=None,
     __skip_microsoft_validation__=False,
+    __skip_vulcan_validation__=False,
 ):
     if MICROSOFT_API_ENABLED and not __skip_microsoft_validation__:
         if rawreturn is not None:
             assert isinstance(
                 rawreturn, dict
             ), 'Microsoft APIs must return a Python dictionary'
+        template = rawreturn
+    elif VULCAN_API_ENABLED and not __skip_vulcan_validation__:
+        if rawreturn is not None:
+            try:
+                assert isinstance(
+                    rawreturn, dict
+                ), 'Vulcan APIs must return a Python dictionary'
+            except Exception:
+                print(ut.repr3(rawreturn))
+                raise
         template = rawreturn
     else:
         if code is None:
@@ -583,7 +600,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
         except WebException:
             raise
         except Exception as ex2:  # NOQA
-            if MICROSOFT_API_ENABLED:
+            if MICROSOFT_API_ENABLED or VULCAN_API_ENABLED:
                 if isinstance(ex2, TypeError) and 'required positional' in str(ex2):
                     parameter = str(ex2).split(':')[1].strip().strip("'")
                     raise WebMissingInput('Missing required parameter', parameter)
@@ -830,7 +847,11 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
     if GLOBAL_APP_ENABLED:
 
         def register_api(
-            rule, __api_plural_check__=True, __api_microsoft_check__=True, **options
+            rule,
+            __api_plural_check__=True,
+            __api_microsoft_check__=True,
+            __api_vulcan_check__=True,
+            **options,
         ):
             global API_SEEN_SET
             assert rule.endswith('/'), 'An API should always end in a forward-slash'
@@ -852,6 +873,14 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                     return ut.identity
                 else:
                     logger.info('Registering API rule={!r}'.format(rule_))
+
+            if VULCAN_API_ENABLED and __api_vulcan_check__:
+                if not rule.startswith(VULCAN_API_PREFIX):
+                    # msg = 'API rule=%r is does not adhere to the Vulcan format, ignoring.' % (rule_, )
+                    # warnings.warn(msg)
+                    return ut.identity
+                else:
+                    print('Registering API rule={!r}'.format(rule_))
 
             try:
                 if not MICROSOFT_API_ENABLED:
@@ -1127,6 +1156,7 @@ def get_wbia_flask_route(__name__):
             __route_postfix_check__=True,
             __route_authenticate__=True,
             __route_microsoft_check__=True,
+            __route_vulcan_check__=True,
             **options,
         ):
 
@@ -1141,6 +1171,15 @@ def get_wbia_flask_route(__name__):
                     return ut.identity
                 else:
                     logger.info('Registering Route rule={!r}'.format(rule))
+
+            if VULCAN_API_ENABLED and __route_vulcan_check__:
+                __route_authenticate__ = False
+                if not rule.startswith(VULCAN_API_PREFIX):
+                    # msg = 'Route rule=%r not allowed with the Microsoft format, ignoring.' % (rule, )
+                    # warnings.warn(msg)
+                    return ut.identity
+                else:
+                    print('Registering Route rule={!r}'.format(rule))
 
             if __route_prefix_check__:
                 assert not rule.startswith(
@@ -1221,6 +1260,7 @@ def get_wbia_flask_route(__name__):
                             message,
                             jQuery_callback,
                             __skip_microsoft_validation__=True,
+                            __skip_vulcan_validation__=True,
                         )
                     return result
 

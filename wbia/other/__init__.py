@@ -14,6 +14,7 @@ from wbia.other import (
     detecttrain,
     duct_tape,
     ibsfuncs,
+    vulcanfuncs,
 )
 
 print, rrr, profile = utool.inject2(__name__, '[wbia.other]')
@@ -84,6 +85,7 @@ def reload_subs(verbose=True):
     get_rrr(detectgrave)(verbose=verbose)
     get_rrr(detecttrain)(verbose=verbose)
     get_rrr(ibsfuncs)(verbose=verbose)
+    get_rrr(vulcanfuncs)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -103,6 +105,7 @@ IMPORT_TUPLES = [
     ('detectgrave', None),
     ('detecttrain', None),
     ('ibsfuncs', None),
+    ('vulcanfuncs', None),
 ]
 """
 Regen Command:

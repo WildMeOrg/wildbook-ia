@@ -48,7 +48,6 @@ RUN set -ex \
  && git fetch origin \
  && git checkout main
 
-
 # Clone third-party WBIA plug-in repositories
 RUN set -ex \
  && cd /wbia \

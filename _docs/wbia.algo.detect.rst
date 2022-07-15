@@ -123,6 +123,13 @@ wbia.algo.detect.yolo module
     :undoc-members:
     :show-inheritance:
 
+wbia.algo.detect.wic module
+---------------------------
+
+.. automodule:: wbia.algo.detect.wic
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------

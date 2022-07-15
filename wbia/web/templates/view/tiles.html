@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+  th.no-items
+  {
+    text-align: center;
+    padding: 25px 0px !important;
+    font-size: 20px;
+    font-weight: 200;
+    font-style: italic;
+  }
+
+  img.ajax-image-load
+  {
+    height: 150px;
+    width: auto;
+    border: none;
+  }
+
+</style>
+{% endblock %}
+{% block content %}
+  {% if filtered %}
+    {% if num_imgsetids > 0 %}
+      <div class="alert alert-info" role="alert">
+        Filtering for imgsetids: {{ imgsetid_list }}
+        <a href="{{ url_for('view_tiles') }}" class="close"><span aria-hidden="true">&times;</span></a>
+      </div>
+    {% endif %}
+    {% if num_gids > 0 %}
+      <div class="alert alert-info" role="alert">
+        Filtering for gids: {{ gid_list }}
+        <a href="{{ url_for('view_tiles') }}?imgsetid={{ imgsetid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <div class="footer-bar">
+    <div class="row marketing">
+      <div class="col-sm-3 col-md-3 col-lg-3">
+        {% if page_previous != None %}
+        <a href="{{ url_for('view_tiles') }}?imgsetid={{ imgsetid_list_str }}&page=1"><h3 class="small-margin">First (1)</h3></a>
+        <h3>|</h3>
+        <a href="{{ url_for('view_tiles') }}?imgsetid={{ imgsetid_list_str }}&page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})</h3></a>
+        {% endif %}
+      </div>
+
+      <div class="col-sm-6 col-md-6 col-lg-6">
+      <i>You are currently viewing</i>
+      <br/>
+      <h3>Page {{ page }} ({{ page_start }} - {{ page_end }})</h3>
+      </div>
+
+      <div class="col-sm-3 col-md-3 col-lg-3">
+        {% if page_next != None %}
+        <a href="{{ url_for('view_tiles') }}?imgsetid={{ imgsetid_list_str }}&page={{ page_next }}"><h3 class="small-margin">Next ({{ page_next }})</h3></a>
+        <h3>|</h3>
+        <a href="{{ url_for('view_tiles') }}?imgsetid={{ imgsetid_list_str }}&page={{ page_total }}"><h3 class="small-margin">Last ({{ page_total }})</h3></a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="row marketing">
+    <div class="col-lg-12">
+      <table class="table table-striped table-fixed">
+        <thead>
+          <tr>
+            <th>GID</th>
+            <th>Thumbnail</th>
+            <th>Image Name</th>
+            <th>Date / Time</th>
+            <th>GPS</th>
+            <th class="table-cell-wrap">Party</th>
+            <th class="table-cell-wrap">Contributor</th>
+            <th class="table-cell-wrap">Notes</th>
+            <th>Annotations</th>
+            <th>ImageSet</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if num_images == 0 %}
+            <tr>
+              <th class="no-items" colspan="99">Sorry, no images to display</th>
+            </tr>
+          {% else %}
+            {% for (gid, imgsetid_list_str_, name, unixtime, datetime, gps, party, contributor, notes, reviewed) in image_list %}
+            <tr {% if reviewed %}class="success"{% endif %}>
+              <th scope="row">{{ gid }}</th>
+              <td><a href="{{ url_for('review_detection') }}?gid={{ gid }}&refer={{ REFER_SRC_ENCODED }}"><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ gid }}" /></a></td>
+              <td>{{ name }}</td>
+              <td>{{ datetime }}</td>
+              <td>{{ gps }}</td>
+              <td class="table-cell-wrap">{{ party }}</td>
+              <td class="table-cell-wrap">{{ contributor }}</td>
+              <td class="table-cell-wrap">{{ notes }}</td>
+              <td><a href="{{ url_for('view_annotations') }}?gid={{ gid }}">Review</a></td>
+              {% if num_imgsetids > 0 %}
+                <td><a href="{{ url_for('view_tilesets') }}?imgsetid={{ imgsetid_list_str_ }}">Go to</a></td>
+              {% elif num_gids > 0 %}
+                <td><a href="{{ url_for('view_tiles') }}?imgsetid={{ imgsetid_list_str_ }}">Go to</a></td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endblock %}
+{% block content_custom_javascript %}
+<script type="text/javascript">
+  var loading = [];
+  var requests = [];
+  var buffer = 5;
+
+  function lazy_load_images()
+  {
+    while(loading.length > buffer)
+    {
+      index = loading.length - 1;
+      requests[index].abort();
+      removeIndexFromArray(index, requests);
+      removeIndexFromArray(index, loading);
+    }
+
+    $(".ajax-image-load").filter(":visible").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+      load_image_src(this);
+    });
+  }
+
+  function load_image_src(element)
+  {
+    var gid = $(element).attr('gid');
+    if(!contains(loading, gid) && loading.length <= buffer)
+    {
+      // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
+      request = $.ajax( "/ajax/image/src/" + gid + "?thumbnail=true")
+      .done(function( response ) {
+        // Load SRC into Image
+        $(element).attr('src', response);
+        // Remove image class
+        $(element).removeClass('ajax-image-unloaded');
+        // Remove value from the arrays
+        var index = findValueIndexFromArray(gid, loading);
+        removeIndexFromArray(index, requests);
+        removeIndexFromArray(index, loading);
+        // Logging
+        console.log(gid);
+        console.log(loading);
+        console.log(requests);
+      });
+      loading.push(gid);
+      requests.push(request);
+    }
+  }
+
+  $(document).ready(function(){
+      $(window).scroll(function(){
+        lazy_load_images();
+      });
+
+      setInterval(function() {
+        lazy_load_images();
+      }, 500) ;
+
+      lazy_load_images();
+  });
+</script>
+{% endblock %}
