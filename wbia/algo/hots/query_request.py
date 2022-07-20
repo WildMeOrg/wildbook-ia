@@ -131,7 +131,6 @@ def new_wbia_query_request(
         dcfg = qreq_.extern_data_config2
         qcfg = qreq_.extern_query_config2
         ut.dict_intersection(qcfg.__dict__, dcfg.__dict__)
-        from wbia.expt import cfghelpers
         cfg_list = [qcfg.__dict__, dcfg.__dict__]
         nonvaried_cfg, varied_cfg_list = ut.partition_varied_cfg_list(
             cfg_list, recursive=True)

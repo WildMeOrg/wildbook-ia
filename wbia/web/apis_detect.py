@@ -1251,23 +1251,3 @@ def get_working_species(ibs):
     else:
         working_species_tups = species_tup_list
     return working_species_tups
-
-
-@register_ibs_method
-@register_api('/api/detect/whaleSharkInjury/', methods=['PUT', 'GET'])
-def detect_ws_injury(ibs, gid_list):
-    """
-    Classify if a whale shark is injured.
-
-    Args:
-        gid_list (list): list of image ids to run classification on
-
-    Returns:
-        result_list (dictionary): predictions is list of strings representing a possible tag.
-            confidences is a list of floats of correspoinding cofidence to the prediction
-
-    """
-    from wbia.scripts import labelShark
-
-    labels = labelShark.classifyShark(ibs, gid_list)
-    return labels

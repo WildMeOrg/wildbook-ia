@@ -18,7 +18,6 @@ BUNDLE_DPATH = unixpath('~/local/vim/vimfiles/bundle')
 IBEIS_REPOS_URLS, IBEIS_REPOS = repo_list(
     [
         'https://github.com/Erotemic/utool.git',
-        'https://github.com/Erotemic/guitool.git',
         'https://github.com/Erotemic/plottool.git',
         'https://github.com/Erotemic/vtool.git',
         'https://github.com/Erotemic/hesaff.git',

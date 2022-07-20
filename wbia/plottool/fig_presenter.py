@@ -51,20 +51,6 @@ def get_geometry(fnum):
     return (x, y, w, h)
 
 
-# def get_screen_info():
-#    # TODO Move dependency to guitool
-#    desktop = QtWidgets.QDesktopWidget()
-#    mask = desktop.mask()  # NOQA
-#    layout_direction = desktop.layoutDirection()  # NOQA
-#    screen_number = desktop.screenNumber()  # NOQA
-#    normal_geometry = desktop.normalGeometry()  # NOQA
-#    num_screens = desktop.screenCount()  # NOQA
-#    avail_rect = desktop.availableGeometry()  # NOQA
-#    screen_rect = desktop.screenGeometry()  # NOQA
-#    QtWidgets.QDesktopWidget().availableGeometry().center()  # NOQA
-#    normal_geometry = desktop.normalGeometry()  # NOQA
-
-
 # @profile
 def get_all_figures():
     manager_list = mpl._pylab_helpers.Gcf.get_all_fig_managers()
@@ -125,7 +111,6 @@ def get_main_win_base():
     except Exception as ex:
         try:
             ut.printex(ex, 'warning', '[fig_presenter]')
-            # from wbia.guitool.__PYQT__ import QtGui
             QMainWin = backend.QtWidgets.QMainWindow
         except Exception as ex1:
             ut.printex(ex1, 'warning', '[fig_presenter]')
@@ -145,73 +130,14 @@ def get_all_windows():
         return []
 
 
-# @profile
-def all_figures_tile(
-    max_rows=None,
-    row_first=True,
-    no_tile=False,
-    monitor_num=None,
-    percent_w=None,
-    percent_h=None,
-    hide_toolbar=True,
-):
-    """
-    Lays out all figures in a grid. if wh is a scalar, a golden ratio is used
-    """
-    # print('[plottool] all_figures_tile()')
-    if no_tile:
-        return
-
-    current_backend = mpl.get_backend()
-    if not current_backend.startswith('Qt'):
-        # print('current_backend=%r is not a Qt backend. cannot tile.' % current_backend)
-        return
-
-    all_wins = get_all_windows()
-    num_wins = len(all_wins)
-    if num_wins == 0:
-        return
-
-    from wbia.plottool import screeninfo
-
-    valid_positions = screeninfo.get_valid_fig_positions(
-        num_wins,
-        max_rows,
-        row_first,
-        monitor_num,
-        percent_w=percent_w,
-        percent_h=percent_h,
-    )
-
-    QMainWin = get_main_win_base()
-    for ix, win in enumerate(all_wins):
-        isqt4_mpl = isinstance(win, QMainWin)
-        from wbia.guitool.__PYQT__ import QtGui  # NOQA
-        from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
-
-        isqt4_back = isinstance(win, QtWidgets.QMainWindow)
-        isqt4_widget = isinstance(win, QtWidgets.QWidget)
-        (x, y, w, h) = valid_positions[ix]
-        # printDBG('tile %d-th win: xywh=%r' % (ix, (x, y, w, h)))
-        if not isqt4_mpl and not isqt4_back and not isqt4_widget:
-            raise NotImplementedError('%r-th Backend %r is not a Qt Window' % (ix, win))
-        try:
-            if hide_toolbar:
-                toolbar = win.findChild(QtWidgets.QToolBar)
-                toolbar.setVisible(False)
-            win.setGeometry(x, y, w, h)
-        except Exception as ex:
-            ut.printex(ex)
-
-
-def all_figures_bring_to_front():
-    try:
-        all_figures = get_all_figures()
-        for fig in iter(all_figures):
-            bring_to_front(fig)
-    except Exception as ex:
-        if not hasattr(fig, '_no_raise_plottool'):
-            ut.printex(ex, iswarning=True)
+# def all_figures_bring_to_front():
+#     try:
+#         all_figures = get_all_figures()
+#         for fig in iter(all_figures):
+#             bring_to_front(fig)
+#     except Exception as ex:
+#         if not hasattr(fig, '_no_raise_plottool'):
+#             ut.printex(ex, iswarning=True)
 
 
 def close_all_figures():
@@ -237,28 +163,11 @@ def get_figure_window(fig):
     return qwin
 
 
-def bring_to_front(fig):
-    if VERBOSE:
-        print('[pt] bring_to_front')
-    # what is difference between show and show normal?
-    qtwin = get_figure_window(fig)
-    qtwin.raise_()
-    # if not ut.WIN32:
-    # NOT sure on the correct order of these
-    # can cause the figure geometry to be unset
-    from wbia.guitool.__PYQT__.QtCore import Qt
-
-    qtwin.activateWindow()
-    qtwin.setWindowFlags(Qt.WindowStaysOnTopHint)
-    qtwin.setWindowFlags(Qt.WindowFlags(0))
-    qtwin.show()
-
-
 def show():
     if VERBOSE:
         print('[pt] show')
     all_figures_show()
-    all_figures_bring_to_front()
+    # all_figures_bring_to_front()
     # plt.show()
 
 
@@ -278,7 +187,7 @@ def update():
     if VERBOSE:
         print('[pt] update')
     draw()
-    all_figures_bring_to_front()
+    # all_figures_bring_to_front()
 
 
 def iupdate():
@@ -316,7 +225,7 @@ def present(*args, **kwargs):
         # print('[fig_presenter] Presenting figures...')
         # with warnings.catch_warnings():
         #    warnings.simplefilter("ignore")
-        all_figures_tile(*args, **kwargs)
+        # all_figures_tile(*args, **kwargs)
         # Both of these lines cause the weird non-refresh black border behavior
         all_figures_show()
-        all_figures_bring_to_front()
+        # all_figures_bring_to_front()

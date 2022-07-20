@@ -141,13 +141,7 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
         >>> result = set_workdir(work_dir, allow_gui)
     """
     if work_dir is None:
-        if allow_gui:
-            try:
-                work_dir = guiselect_workdir()
-            except ImportError:
-                allow_gui = False
-        if not allow_gui:
-            work_dir = ut.truepath(input('specify a workdir: '))
+        work_dir = ut.truepath(input('specify a workdir: '))
     if work_dir is None or not exists(work_dir):
         raise AssertionError('invalid workdir=%r' % work_dir)
     _wbia_cache_write(WORKDIR_CACHEID, work_dir)
@@ -172,28 +166,6 @@ def get_rawdir():
     workdir = get_workdir()
     rawdir = ut.truepath(join(workdir, '../raw'))
     return rawdir
-
-
-def guiselect_workdir():
-    """Prompts the user to specify a work directory"""
-    from wbia import guitool
-
-    guitool.ensure_qtapp()
-    # Gui selection
-    work_dir = guitool.select_directory('Select a work directory')
-
-    # Make sure selection is ok
-    if not exists(work_dir):
-        try_again = guitool.user_option(
-            paremt=None,
-            msg='Directory %r does not exist.' % work_dir,
-            title='get work dir failed',
-            options=['Try Again'],
-            use_cache=False,
-        )
-        if try_again == 'Try Again':
-            return guiselect_workdir()
-    return work_dir
 
 
 def get_dbalias_dict():

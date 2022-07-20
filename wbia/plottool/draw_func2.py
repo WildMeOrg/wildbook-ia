@@ -63,7 +63,6 @@ DARKEN = ut.get_argval(
 # logger.info('DARKEN = %r' % (DARKEN,))
 
 all_figures_bring_to_front = fig_presenter.all_figures_bring_to_front
-all_figures_tile = fig_presenter.all_figures_tile
 close_all_figures = fig_presenter.close_all_figures
 close_figure = fig_presenter.close_figure
 iup = fig_presenter.iup

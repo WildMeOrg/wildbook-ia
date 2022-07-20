@@ -224,7 +224,7 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> # ENABLE_DOCTEST
         >>> from wbia.expt.experiment_helpers import *  # NOQA
         >>> import wbia
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> acfg_name_list = testdata_acfg_names(['default', 'uncontrolled'])
         >>> acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
         >>> acfg_list = ut.flatten(acfg_combo_list)
@@ -238,7 +238,7 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> # ENABLE_DOCTEST
         >>> from wbia.expt.experiment_helpers import *  # NOQA
         >>> import wbia
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> # double colon :: means expand consistently and force const size
         >>> acfg_name_list = testdata_acfg_names(['unctrl', 'ctrl::unctrl'])
         >>> acfg_name_list = testdata_acfg_names(['unctrl', 'varysize', 'ctrl::unctrl'])
@@ -248,7 +248,7 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> printkw = dict()
         >>> annotation_configs.print_acfg_list(acfg_list, **printkw)
     """
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
 
     named_defaults_dict = ut.dict_take(
         annotation_configs.__dict__, annotation_configs.TEST_NAMES
@@ -319,7 +319,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
         wbia -m wbia get_annotcfg_list:0 -a timectrl timectrl:view=left --db PZ_MTEST
 
     """
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
 
     if verbose is None:
         verbose = ut.VERBOSE
@@ -402,7 +402,7 @@ def get_annotcfg_list(
         >>> # DISABLE_DOCTEST
         >>> from wbia.expt.experiment_helpers import *  # NOQA
         >>> import wbia
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> filter_dups = not ut.get_argflag('--nofilter-dups')
         >>> acfg_name_list = testdata_acfg_names()
@@ -423,7 +423,7 @@ def get_annotcfg_list(
         >>> from wbia.expt.experiment_helpers import *  # NOQA
         >>> import wbia
         >>> from wbia.init import main_helpers
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> aids = ibs.get_valid_aids()
         >>> main_helpers.monkeypatch_encounters(ibs, aids, days=50)
@@ -436,7 +436,7 @@ def get_annotcfg_list(
     """
     if ut.VERBOSE:
         logger.info('[harn.help] building acfg_list using %r' % (acfg_name_list,))
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
 
     acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
 

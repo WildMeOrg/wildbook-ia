@@ -2,7 +2,7 @@
 import logging
 from os.path import split, splitext, join, exists, realpath
 import datetime
-import distutils
+import packaging
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -26,8 +26,8 @@ def compare_string_versions(a, b):
         >>> print(result)
         1, -1, 0
     """
-    va = distutils.version.LooseVersion(a)
-    vb = distutils.version.LooseVersion(b)
+    va = packaging.version.Version(a)
+    vb = packaging.version.Version(b)
     if va > vb:
         return 1
     elif va < vb:

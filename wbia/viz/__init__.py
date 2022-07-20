@@ -17,7 +17,6 @@ from wbia.viz import viz_name
 from wbia.viz import viz_nearest_descriptors
 from wbia.viz import viz_qres
 from wbia.viz import viz_sver
-from wbia.viz import viz_graph2
 from wbia.viz import viz_other
 
 from wbia.viz import viz_helpers as vh
@@ -28,7 +27,7 @@ from wbia.viz.viz_name import show_name
 from wbia.viz.viz_qres import show_qres, show_qres_top, show_qres_analysis
 from wbia.viz.viz_sver import show_sver, _compute_svvars
 from wbia.viz.viz_nearest_descriptors import show_nearest_descriptors
-from wbia.viz.viz_hough import show_hough_image, show_probability_chip
+from wbia.viz.viz_hough import show_probability_chip
 from wbia.viz.viz_other import chip_montage
 
 import utool
@@ -42,8 +41,6 @@ __LOADED__ = False
 
 def import_subs():
     global __LOADED__
-    from wbia.viz import interact
-
     __LOADED__ = True
 
 

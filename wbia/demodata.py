@@ -4,7 +4,7 @@ import utool
 from os.path import join, realpath
 from itertools import cycle
 
-from wbia.tests.helpers import get_testdata_dir
+from tests.helpers import get_testdata_dir
 
 
 print, rrr, profile = utool.inject2(__name__)

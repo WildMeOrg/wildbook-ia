@@ -12,18 +12,6 @@ def main():
 
     ub.doctest_package('wbia.algo.graph', ignore_patterns=['*_grave*'])
 
-    # import utool as ut
-    # ignore_prefix = [
-    #     #'wbia.tests',
-    #     'wbia.control.__SQLITE3__',
-    #     '_autogen_explicit_controller']
-    # ignore_suffix = ['_grave']
-    # func_to_module_dict = {
-    #     # 'demo_bayesnet': 'wbia.unstable.demobayes',
-    # }
-    # ut.main_function_tester('wbia.algo.graph', ignore_prefix, ignore_suffix,
-    #                         func_to_module_dict=func_to_module_dict)
-
 
 if __name__ == '__main__':
     r"""

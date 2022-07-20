@@ -2,7 +2,6 @@
 """
 CommandLine;
     # Reset IBEIS database (can skip if done)
-    python -m wbia.tests.reset_testdbs --reset_mtest
     python -m wbia --tf reset_mtest
 
 Notes:
@@ -395,7 +394,6 @@ def wildbook_signal_imgsetid_list(
         python -m wbia --web --db PZ_MTEST
 
         # Reset IBEIS database
-        python -m wbia.tests.reset_testdbs --reset_mtest
         python -m wbia  reset_mtest
 
         # Completely remove Wildbook database

@@ -13,8 +13,6 @@ ut.noinject(__name__, '[plottool.__init__]')
 
 
 # Hopefully this was imported sooner. TODO remove dependency
-# from wbia.guitool import __PYQT__
-# import wbia.guitool.__PYQT__ as __PYQT__
 from . import __MPL_INIT__
 
 __MPL_INIT__.init_matplotlib()

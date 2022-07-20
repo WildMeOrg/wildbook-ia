@@ -317,17 +317,6 @@ class AbstractInteraction(object):
     def on_click_outside(self, event):
         pass
 
-    def show_popup_menu(self, options, event):
-        """
-        context menu
-        """
-        import wbia.guitool as gt
-
-        height = self.fig.canvas.geometry().height()
-        qpoint = gt.newQPoint(event.x, height - event.y)
-        qwin = self.fig.canvas
-        gt.popup_menu(qwin, qpoint, options)
-
     def clear_parent_axes(self, ax):
         """for clearing axes that we appended anything to"""
         child_axes = ph.get_plotdat(ax, 'child_axes', [])

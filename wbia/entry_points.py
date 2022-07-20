@@ -50,20 +50,6 @@ def _init_matplotlib():
     __MPL_INIT__.init_matplotlib()
 
 
-def _init_gui(activate=True):
-    from wbia import guitool
-
-    if NOT_QUIET:
-        logger.info('[main] _init_gui()')
-    guitool.ensure_qtapp()
-    from wbia.gui import guiback
-
-    back = guiback.MainWindowBackend()
-    if activate:
-        guitool.activate_qwindow(back.mainwin)
-    return back
-
-
 def _init_wbia(
     dbdir=None, verbose=None, use_cache=True, web=None, daily_backup=True, **kwargs
 ):
@@ -166,24 +152,6 @@ def _init_numpy():
 
 # -----------------------
 # private loop functions
-
-
-def _guitool_loop(main_locals, ipy=False):
-    from wbia import guitool, params
-
-    logger.info('[main] guitool loop')
-    back = main_locals.get('back', None)
-    if back is not None:
-        loop_freq = params.args.loop_freq
-        ipy = ipy or params.args.cmd
-        guitool.qtapp_loop(
-            qwin=back.mainwin, ipy=ipy, frequency=loop_freq, init_signals=False
-        )
-        if ipy:  # If we're in IPython, the qtapp loop won't block, so we need to refresh
-            back.refresh_state()
-    else:
-        if NOT_QUIET:
-            logger.info('WARNING: back was not expected to be None')
 
 
 def set_newfile_permissions():
@@ -303,9 +271,6 @@ def main(
     try:
         # Build IBEIS Control object
         ibs = _init_wbia(dbdir)
-        if gui and USE_GUI:
-            back = _init_gui(activate=kwargs.get('activate', True))
-            back.connect_wbia_control(ibs)
     except Exception as ex:
         logger.info('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
@@ -689,16 +654,6 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     params.parse_args()
     import utool as ut
 
-    # logger.info('current process = %r' % (multiprocessing.current_process().name,))
-    # == 'MainProcess':
-    if rungui and not params.args.nogui:
-        try:
-            _guitool_loop(main_locals, ipy=ipy)
-        except Exception as ex:
-            ut.printex(ex, 'error in main_loop')
-            raise
-    # if not persist or params.args.cmd:
-    #    main_close()
     # Put locals in the exec namespace
     ipycmd_execstr = ut.ipython_execstr()
     locals_execstr = ut.execstr_dict(main_locals, 'main_locals')

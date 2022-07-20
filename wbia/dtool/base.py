@@ -503,7 +503,6 @@ class Config(ut.NiceRepr, ut.DictLike):
             >>> dlg.show()
             >>> import wbia.plottool as pt
             >>> self = dlg.widget
-            >>> guitool.qtapp_loop(qwin=dlg)
             >>> updated_config = self.config  # NOQA
             >>> print('updated_config = %r' % (updated_config,))
         """
@@ -517,15 +516,6 @@ class Config(ut.NiceRepr, ut.DictLike):
             tablename = 'Unnamed'
         UnnamedConfig = make_configclass(dict_, tablename)
         return UnnamedConfig
-
-    def make_qt_dialog(cfg, parent=None, title='Edit Config', msg='Confim'):
-        import wbia.guitool as gt
-
-        gt.ensure_qapp()  # must be ensured before any embeding
-        dlg = gt.ConfigConfirmWidget.as_dialog(title=title, msg=msg, config=cfg)
-        dlg.resize(700, 500)
-        dlg.show()
-        return dlg
 
     def getstate_todict_recursive(cfg):
         from wbia import dtool

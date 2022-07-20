@@ -3,15 +3,8 @@
 # flake8: noqa
 import logging
 from wbia.algo.detect import grabmodels
-from wbia.algo.detect import randomforest
-from wbia.algo.detect import yolo
 from wbia.algo.detect import assigner
 
-# from wbia.algo.detect import train_assigner
-# from wbia.algo.detect import selectivesearch
-# from wbia.algo.detect import ssd
-# from wbia.algo.detect import fasterrcnn
-# from wbia.algo.detect import darknet
 import utool
 
 print, rrr, profile = utool.inject2(__name__)
@@ -75,12 +68,6 @@ def reload_subs(verbose=True):
         return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
 
     get_rrr(grabmodels)(verbose=verbose)
-    get_rrr(randomforest)(verbose=verbose)
-    get_rrr(yolo)(verbose=verbose)
-    # get_rrr(selectivesearch)(verbose=verbose)
-    # get_rrr(ssd)(verbose=verbose)
-    # get_rrr(fasterrcnn)(verbose=verbose)
-    # get_rrr(darknet)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -93,13 +80,7 @@ rrrr = reload_subs
 
 IMPORT_TUPLES = [
     ('grabmodels', None),
-    ('randomforest', None),
-    ('yolo', None),
     ('assigner', None),
-    # ('selectivesearch', None),
-    # ('ssd', None),
-    # ('fasterrcnn', None),
-    # ('darknet', None),
 ]
 """
 Regen Command:

@@ -93,14 +93,6 @@ def vdd(ibs=None, qaid_list=None):
     utool.view_directory(ibs.get_dbdir())
 
 
-@devcmd('show')
-def show_aids(ibs, qaid_list):
-    from wbia.viz import interact
-
-    for aid in qaid_list:
-        interact.ishow_chip(ibs, aid, fnum=df2.next_fnum())
-
-
 @devcmd()
 def change_names(ibs, qaid_list):
     """Test to changes names"""

@@ -6389,14 +6389,6 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
     # metadata['rchip'] = metadata.getitem('chips', is_eager=False)
     # metadata['dlen_sqrd'] = metadata.getitem('chip_dlensqrd', is_eager=False)
     # metadata['rchip_fpath'] = metadata.getitem('chip_fpath', is_eager=False)
-    try:
-        from wbia.viz.interact import interact_chip
-
-        metadata[
-            'annot_context_options'
-        ] = lambda: interact_chip.build_annot_context_options(ibs, aid)
-    except ImportError:
-        pass
     return metadata
 
 

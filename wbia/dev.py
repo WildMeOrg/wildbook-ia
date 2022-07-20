@@ -144,7 +144,6 @@ from wbia._devcmds_wbia import (  # NOQA
     list_unconverted_hsdbs,
     openworkdirs_test,
     query_aids,
-    show_aids,
     sver_aids,
     vdd,
 )
@@ -152,9 +151,6 @@ from wbia._devcmds_wbia import (  # NOQA
 # IBEIS
 from wbia.init import main_helpers  # NOQA
 from wbia.other import dbinfo  # NOQA
-from wbia.expt import experiment_configs  # NOQA
-from wbia.expt import harness  # NOQA
-from wbia.expt.experiment_drawing import draw_annot_scoresep  # NOQA
 from wbia import params  # NOQA
 
 print, rrr, profile = utool.inject2(__name__)
@@ -315,12 +311,12 @@ def get_ibslist(ibs):
     return ibs_list
 
 
-@devcmd('gv_scores')
-def compgrav_draw_score_sep(ibs, qaid_list, daid_list):
-    print('[dev] compgrav_draw_score_sep')
-    ibs_list = get_ibslist(ibs)
-    for ibs_ in ibs_list:
-        draw_annot_scoresep(ibs_, qaid_list)
+# @devcmd('gv_scores')
+# def compgrav_draw_score_sep(ibs, qaid_list, daid_list):
+#     print('[dev] compgrav_draw_score_sep')
+#     ibs_list = get_ibslist(ibs)
+#     for ibs_ in ibs_list:
+#         draw_annot_scoresep(ibs_, qaid_list)
 
 
 # --------------------
@@ -458,28 +454,6 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     # RUNS EXPERIMENT HARNESS OVER VALID TESTNAMES SPECIFIED WITH -t
     # ------
 
-    # Config driven test functions
-    # Allow any testcfg to be in tests like: vsone_1 or vsmany_3
-    test_cfg_name_list = []
-    for test_cfg_name in experiment_configs.TEST_NAMES:
-        if intest(test_cfg_name):
-            test_cfg_name_list.append(test_cfg_name)
-    # Hack to allow for very customized harness tests
-    for testname in input_test_list[:]:
-        if testname.startswith('custom:'):
-            test_cfg_name_list.append(testname)
-            mark_test_handled(testname)
-    if len(test_cfg_name_list):
-        fnum = pt.next_fnum()
-        # Run Experiments
-        # backwards compatibility yo
-        acfgstr_name_list = {'OVERRIDE_HACK': (qaid_list, daid_list)}
-        assert (
-            False
-        ), 'This way of running tests no longer works. It may be fixed in the future'
-        # acfg
-        harness.test_configurations(ibs, acfgstr_name_list, test_cfg_name_list)
-
     valid_test_helpstr_list.append('    # --- Help ---')
 
     if intest('help'):
@@ -564,62 +538,6 @@ def get_sortbystr(str_list, key_list, strlbl=None, keylbl=None):
         return ''.join(boxlines)
 
     return boxjoin(sorted_strs, header)
-
-
-# @devcmd('test_feats')
-# def tst_feats(ibs, qaid_list, daid_list=None):
-#     """
-#     test_feats shows features using several different parameters
-
-#     Args:
-#         ibs (IBEISController):
-#         qaid_list (int): query annotation id
-
-#     CommandLine:
-#         python dev.py -t test_feats --db PZ_MTEST --all --qindex 0 --show -w
-
-#     Example:
-#         >>> import wbia
-#         >>> ibs = wbia.opendb('testdb1')
-#         >>> qaid_list = [1]
-#     """
-#     from wbia import viz
-#     from wbia.expt import experiment_configs
-#     import utool as ut
-
-#     NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
-#     varyparams_list = [experiment_configs.featparams]
-
-#     def tst_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list):
-#         for dict_ in ut.progiter(alldictcomb, lbl='FeatCFG Combo: '):
-#             cfgstr_ = ut.repr2(dict_)
-#             if count == 0:
-#                 # On first run just record info
-#                 kpts = ibs.get_annot_kpts(aid)
-#                 nKpts_list.append(len(kpts))
-#                 cfgstr_list.append(cfgstr_)
-#             if count == 1:
-#                 kpts = ibs.get_annot_kpts(aid)
-#                 # If second run happens display info
-#                 cfgpackstr = utool.packstr(cfgstr_, textwidth=80,
-#                                               breakchars=',', newline_prefix='',
-#                                               break_words=False, wordsep=',')
-#                 title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgpackstr
-#                 viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
-#                               title_suffix=title_suffix, darken=.8,
-#                               ell_linewidth=2, ell_alpha=.6, config=dict_)
-
-#     alldictcomb = utool.flatten(map(utool.all_dict_combinations, varyparams_list))
-#     for count in range(NUM_PASSES):
-#         nKpts_list = []
-#         cfgstr_list = []
-#         for aid in qaid_list:
-#             test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list)
-#             #for dict_ in alldictcomb:
-#         if count == 0:
-#             nKpts_list = np.array(nKpts_list)
-#             cfgstr_list = np.array(cfgstr_list)
-#             print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
 
 
 def run_dev(ibs):
@@ -889,9 +807,6 @@ def ggr_random_name_splits():
         >>> from wbia.viz.viz_graph2 import *  # NOQA
         >>> ggr_random_name_splits()
     """
-    import wbia.guitool as gt
-
-    gt.ensure_qtapp()
     # nid_list = ibs.get_valid_nids(filter_empty=True)
     import wbia
 

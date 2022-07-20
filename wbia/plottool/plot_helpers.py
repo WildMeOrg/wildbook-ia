@@ -136,41 +136,13 @@ def get_bbox_centers(bbox_list):
     return bbox_centers
 
 
-def qt4ensure():
-    qtensure()
-    # if ut.inIPython():
-    #     import IPython
-    #     #IPython.get_ipython().magic('pylab qt4')
-    #     IPython.get_ipython().magic('pylab qt4 --no-import-all')
+# def qt4ensure():
+#     # qtensure()
+#     # if ut.inIPython():
+#     #     import IPython
+#     #     #IPython.get_ipython().magic('pylab qt4')
+#     #     IPython.get_ipython().magic('pylab qt4 --no-import-all')
 
-
-def qtensure():
-    import wbia.guitool as gt
-
-    if ut.inIPython():
-        import IPython
-
-        ipython = IPython.get_ipython()
-        if ipython is None:
-            # we must have exited ipython at some point
-            return
-        if gt.__PYQT__.GUITOOL_PYQT_VERSION == 5:
-            """
-            sudo apt-get install python3-pyqt5.qtsvg
-            """
-            # import os
-            # os.environ['QT_API'] = 'pyqt5'
-            # import matplotlib
-            # matplotlib.use('Qt5Agg')
-            # IPython.get_ipython().magic('matplotlib qt5')
-            # IPython.get_ipython().magic('pylab qt4')
-            ipython.magic('pylab qt5 --no-import-all')
-        else:
-            # IPython.get_ipython().magic('pylab qt4')
-            ipython.magic('pylab qt4 --no-import-all')
-
-
-ensureqt = qt4ensure
 
 # ==========================#
 #  --- TESTING FUNCS ---   #

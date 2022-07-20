@@ -748,49 +748,6 @@ class _ChipMatchVisualization(object):
             mpl.interactive(was_interactive)
         return image
 
-    def qt_inspect_gui(cm, ibs, ranks_top=6, qreq_=None, name_scoring=False):
-        r"""
-        Args:
-            ibs (IBEISController):  wbia controller object
-            ranks_top (int): (default = 6)
-            qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
-            name_scoring (bool): (default = False)
-
-        Returns:
-            QueryResult: qres_wgt -  object of feature correspondences and scores
-
-        CommandLine:
-            python -m wbia.algo.hots.chip_match --exec-qt_inspect_gui --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from wbia.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
-            >>> cm = cm_list[0]
-            >>> cm.score_name_nsum(qreq_)
-            >>> ranks_top = 6
-            >>> name_scoring = False
-            >>> qres_wgt = cm.qt_inspect_gui(ibs, ranks_top, qreq_, name_scoring)
-            >>> ut.quit_if_noshow()
-            >>> import wbia.guitool
-            >>> guitool.qtapp_loop(qwin=qres_wgt)
-        """
-        logger.info('[cm] qt_inspect_gui')
-        from wbia.gui import inspect_gui
-        from wbia import guitool
-
-        guitool.ensure_qapp()
-        cm_list = [cm]
-        logger.info('[inspect_matches] make_qres_widget')
-        qres_wgt = inspect_gui.QueryResultsWidget(
-            ibs, cm_list, ranks_top=ranks_top, name_scoring=name_scoring, qreq_=qreq_
-        )
-        logger.info('[inspect_matches] show')
-        qres_wgt.show()
-        logger.info('[inspect_matches] raise')
-        qres_wgt.raise_()
-        return qres_wgt
-
 
 class _ChipMatchScorers(object):
     """
@@ -1117,7 +1074,7 @@ class _AnnotMatchConvenienceGetter(object):
             'dnid': cm.dnid_list,
             'score': cm.annot_score_list,
             'rank': cm.annot_score_list.argsort()[::-1].argsort(),
-            'truth': (cm.dnid_list == cm.qnid).astype(np.int),
+            'truth': (cm.dnid_list == cm.qnid).astype(np.int64),
         }
         annot_df = pd.DataFrame(data)
         annot_df.sort_values(by='rank', inplace=True)
@@ -1131,7 +1088,7 @@ class _AnnotMatchConvenienceGetter(object):
             'dnid': cm.unique_nids,
             'score': cm.name_score_list,
             'rank': cm.name_score_list.argsort()[::-1].argsort(),
-            'truth': (cm.unique_nids == cm.qnid).astype(np.int),
+            'truth': (cm.unique_nids == cm.qnid).astype(np.int64),
         }
         name_df = pd.DataFrame(data)
         name_df.sort_values(by='rank', inplace=True)

@@ -589,7 +589,7 @@ class NameRelabel(object):
         new_labels = [   1,    2,    2, 3, 4, 5, 5, 6, 3, 3, 7, 7]
         """
         infr.print('rectifying name lists', 3)
-        from wbia.scripts import name_recitifer
+        from scripts import name_recitifer
 
         newlabel_to_oldnames = ut.group_items(old_names, new_labels)
         unique_newlabels = list(newlabel_to_oldnames.keys())
@@ -619,7 +619,7 @@ class NameRelabel(object):
         Reuses as many names as possible
         """
         # Determine which names can be reused
-        from wbia.scripts import name_recitifer
+        from scripts import name_recitifer
 
         infr.print('grouping names for rectification', 3)
         grouped_oldnames_ = [

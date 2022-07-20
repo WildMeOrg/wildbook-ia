@@ -123,7 +123,7 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwa
 def sample_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwargs):
     """filter + sampling"""
     # hack
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
 
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -160,7 +160,7 @@ def get_default_annot_filter_form():
         >>> print(ut.repr2(filter_kw, align=True))
         >>> print(', '.join(filter_kw.keys()))
     """
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
 
     iden_defaults = annotation_configs.INDEPENDENT_DEFAULTS.copy()
     filter_kw = iden_defaults
@@ -300,7 +300,7 @@ def get_acfg_cacheinfo(ibs, aidcfg):
 def expand_single_acfg(ibs, aidcfg, verbose=None):
     """
     for main_helpers"""
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
 
     if verbose is None:
         verbose = VERB_TESTDATA
@@ -373,7 +373,7 @@ def hack_remove_label_errors(ibs, expanded_aids, verbose=None):
 @profile
 def hack_extra(ibs, expanded_aids):
     # SUCH HACK to get a larger database
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
 
     _aidcfg = annotation_configs.default['dcfg']
     _aidcfg['sample_per_name'] = 1
@@ -420,7 +420,7 @@ def expand_acfgs_consistently(
         >>> # ENABLE_DOCTEST
         >>> from wbia.init.filter_annots import *  # NOQA
         >>> from wbia.init import main_helpers
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> from wbia.expt.experiment_helpers import parse_acfg_combo_list
         >>> import wbia
         >>> ibs = wbia.opendb('PZ_MTEST')
@@ -440,7 +440,7 @@ def expand_acfgs_consistently(
         >>> main_helpers.unmonkeypatch_encounters(ibs)
         >>> ut.assert_eq(len(expanded_aids_combo_list), 5)
     """
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
     import copy
 
     if verbose is None:
@@ -1093,7 +1093,7 @@ def expand_acfgs(
         >>> # ENABLE_DOCTEST
         >>> from wbia.init.filter_annots import *  # NOQA
         >>> import wbia
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aidcfg = copy.deepcopy(annotation_configs.default)
         >>> aidcfg['qcfg']['species'] = 'primary'
@@ -1104,7 +1104,7 @@ def expand_acfgs(
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
     """
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
 
     if verbose is None:
         verbose = VERB_TESTDATA
@@ -1295,7 +1295,7 @@ def filter_annots_independent(
         >>> # DISABLE_DOCTEST
         >>> from wbia.init.filter_annots import *  # NOQA
         >>> import wbia
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> avail_aids = input_aids = ibs.get_valid_aids()
         >>> aidcfg = annotation_configs.default['dcfg']
@@ -1933,7 +1933,7 @@ def sample_annots_wrt_ref(
 @profile
 def multi_sampled_seaturtle_queries():
     import wbia
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
     from wbia.expt import experiment_helpers
     from wbia.init.filter_annots import expand_acfgs
     import copy
@@ -2010,7 +2010,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> # DISABLE_DOCTEST
         >>> from wbia.init.filter_annots import *  # NOQA
         >>> import wbia
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> ibs = wbia.opendb(defaultdb='PZ_MTEST')
         >>> avail_aids = input_aids = ibs.get_valid_aids()
         >>> aidcfg = copy.deepcopy(annotation_configs.default['dcfg'])
@@ -2030,7 +2030,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> # DISABLE_DOCTEST
         >>> from wbia.init.filter_annots import *  # NOQA
         >>> import wbia
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> db = 'seaturtles'  # 'testdb1'
         >>> ibs = wbia.opendb(defaultdb=db)
         >>> aidcfg = copy.deepcopy(annotation_configs.default)['qcfg']
@@ -2047,7 +2047,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
     """
     import vtool as vt
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
 
     def get_cfg(key):
         default_dict = annotation_configs.SAMPLE_DEFAULTS

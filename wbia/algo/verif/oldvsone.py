@@ -140,9 +140,8 @@ def demo_single_pairwise_feature_vector():
             class_to_edge[class_name] = edge
 
         import wbia.plottool as pt
-        import wbia.guitool as gt
 
-        gt.ensure_qapp()
+        # gt.ensure_qapp()
         pt.qtensure()
 
         fnum = 1

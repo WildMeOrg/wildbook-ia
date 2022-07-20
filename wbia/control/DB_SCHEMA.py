@@ -1648,7 +1648,7 @@ def post_1_5_2(db, ibs=None, verbose=False):
     if ibs is not None:
         from PIL import Image  # NOQA
         from wbia.algo.preproc.preproc_image import parse_exif
-        from wbia.scripts import fix_annotation_orientation_issue as faoi
+        from scripts import fix_annotation_orientation_issue as faoi
         from os.path import exists
 
         def _parse_orient(gpath):

@@ -795,23 +795,6 @@ class GraphVisualization(object):
         viz_chip.show_many_chips(infr.ibs, aids, fnum=fnum)
         return fig
 
-    def start_qt_interface(infr, loop=True):
-        import wbia.guitool as gt
-        from wbia.viz.viz_graph2 import AnnotGraphWidget
-        from wbia.plottool import abstract_interaction
-        import wbia.plottool as pt
-
-        pt.qtensure()
-        gt.ensure_qtapp()
-        # win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='review')
-        win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=None)
-        abstract_interaction.register_interaction(win)
-        if loop:
-            gt.qtapp_loop(qwin=win, freq=10)
-        else:
-            win.show()
-        return win
-
     def debug_edge_repr(infr):
         logger.info('DEBUG EDGE REPR')
         for u, v, d in infr.graph.edges(data=True):

@@ -122,7 +122,7 @@ def get_dbinfo(
         >>> #ibs = wbia.opendb(defaultdb='testdb1')
         >>> # <HACK FOR FILTERING>
         >>> #from wbia.expt import cfghelpers
-        >>> #from wbia.expt import annotation_configs
+        >>> #from wbia import annotation_configs
         >>> #from wbia.init import filter_annots
         >>> #named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
         >>> #                                   annotation_configs.TEST_NAMES)

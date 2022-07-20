@@ -561,15 +561,6 @@ def fix_bidirectional_annotmatch(ibs):
     ibs.set_annotmatch_evidence_decision(ams, new_truths)
     ibs.set_annotmatch_tag_text(ams, new_tag_texts)
 
-    if False:
-        import wbia.guitool as gt
-
-        gt.ensure_qapp()
-        ut.qtensure()
-        from wbia.gui import inspect_gui
-
-        inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
-
 
 def fix_annotmatch_pzmaster1():
     """
@@ -692,15 +683,6 @@ def fix_annotmatch_pzmaster1():
         ams = ibs.add_annotmatch_undirected(aids1, aids2)
         ibs.set_annotmatch_evidence_decision(ams, new_truths)
         ibs.set_annotmatch_tag_text(ams, new_tag_texts)
-
-        if False:
-            import wbia.guitool as gt
-
-            gt.ensure_qapp()
-            ut.qtensure()
-            from wbia.gui import inspect_gui
-
-            inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
 
         # pairs2 = pairs1.T[::-1].T
         # idx1, idx2 = ut.isect_indices(list(map(tuple, pairs1)),
@@ -920,106 +902,7 @@ def remerge_subset():
         infr2.write_wbia_annotmatch_feedback()
         infr2.write_wbia_name_assignment()
 
-    # if False:
-    #     # Fix any inconsistency
-    #     infr2.start_qt_interface(loop=False)
-    #     test_nodes = [5344, 5430, 5349, 5334, 5383, 2280, 2265, 2234, 5399,
-    #                   5338, 2654]
-    #     import networkx as nx
-    #     nx.is_connected(infr2.graph.subgraph(test_nodes))
-    #     # infr = wbia.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)
-
-    #     # randomly sample some new labels to verify
-    #     import wbia.guitool as gt
-    #     from wbia.gui import inspect_gui
-    #     gt.ensure_qapp()
-    #     ut.qtensure()
-    #     old_groups = ut.group_items(name_delta.index.tolist(), name_delta['old_name'])
-    #     del old_groups['____']
-
-    #     new_groups = ut.group_items(name_delta.index.tolist(), name_delta['new_name'])
-
-    #     from wbia.algo.hots import simulate
-    #     c = simulate.compare_groups(
-    #         list(new_groups.values()),
-    #         list(old_groups.values()),
-    #     )
-    #     ut.map_vals(len, c)
-    #     for aids in c['pred_splits']:
-    #         old_nids = ibs2.get_annot_nids(aids)
-    #         new_nids = ut.take_column(infr2.gen_node_attrs('name_label', aids), 1)
-    #         split_aids = ut.take_column(ut.group_items(aids, new_nids).values(), 0)
-    #         aid1, aid2 = split_aids[0:2]
-
-    #         if False:
-    #             inspect_gui.show_vsone_tuner(ibs2, aid1, aid2)
-    #     infr2.start_qt_interface(loop=False)
-
-    # if False:
-    #     # import wbia
-    #     ibs1 = wbia.opendb('PZ_PB_RF_TRAIN')
-    #     infr1 = wbia.AnnotInference(aids='all', ibs=ibs1, verbose=3)
-    #     infr1.initialize_graph()
-    #     # infr1.reset_feedback('staging')
-    #     infr1.reset_feedback('annotmatch')
-    #     infr1.apply_feedback_edges()
-    #     infr1.relabel_using_reviews()
-    #     infr1.apply_review_inference()
-    #     infr1.start_qt_interface(loop=False)
-    # delta = infr2.match_state_delta()
-    # logger.info('delta = %r' % (delta,))
-
-    # infr2.ensure_mst()
-    # infr2.relabel_using_reviews()
-    # infr2.apply_review_inference()
-
-    # mst_edges = infr2.find_mst_edges()
-    # set(infr2.graph.edges()).intersection(mst_edges)
-
     return
-    """
-    TODO:
-        Task 2:
-            Build AnnotInfr for ibs2 then add all decision from
-            ibs1 to the internal feedback dict.
-
-            Ensure that all other (esp old name-id related) edges are correctly
-            placed, then overrite with new vals (
-                make sure implicit vals do not cuase conflicts with new
-                explicit vals, but old explicit vals should cause a conflict).
-            Then just commit to staging and then commit to annotmatch and
-            re-infer the names.
-    """
-
-    # Print some info about the delta
-    # def _to_tup(x):
-    #     return tuple(x) if isinstance(x, list) else x
-    # changetype_list = list(zip(
-    #     delta['old_decision'], delta['new_decision'],
-    #     map(_to_tup, delta['old_tags']),
-    #     map(_to_tup, delta['new_tags'])))
-    # changetype_hist = ut.dict_hist(changetype_list, ordered=True)
-    # logger.info(ut.align(ut.repr4(changetype_hist), ':'))
-
-    # import pandas as pd
-    # pd.options.display.max_rows = 20
-    # pd.options.display.max_columns = 40
-    # pd.options.display.width = 160
-    # pd.options.display.float_format = lambda x: '%.4f' % (x,)
-
-    # a, b = 86,    6265
-    # c, d = to_aids1[a], to_aids1[b]
-    # inspect_gui.show_vsone_tuner(ibs2, a, b)
-    # inspect_gui.show_vsone_tuner(ibs1, to_aids1[a], to_aids1[b])
-    # am1 = ibs1.get_annotmatch_rowids_between([to_aids1[a]],
-    #                                          [to_aids1[b]])
-    # am2 = ibs2.get_annotmatch_rowids_between([a], [b])
-    # logger.info(ibs1.db.get_table_csv('annotmatch', rowids=am1))
-    # logger.info(ibs2.db.get_table_csv('annotmatch', rowids=am2))
-
-    # inspect_gui.show_vsone_tuner(ibs2, 8, 242)
-    # inspect_gui.show_vsone_tuner(ibs2, 86, 103)
-    # inspect_gui.show_vsone_tuner(ibs2, 86, 6265)
 
 
 def find_overlap_annots(ibs1, ibs2, method='annots'):

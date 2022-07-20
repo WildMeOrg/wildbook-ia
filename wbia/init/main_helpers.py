@@ -161,7 +161,7 @@ def testdata_aids(
     Example:
         >>> # ENABLE_DOCTEST
         >>> from wbia.init.main_helpers import *  # NOQA
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> import wbia
         >>> #ibs = wbia.opendb(defaultdb='PZ_ViewPoints')
         >>> ibs = wbia.opendb(defaultdb='testdb1')
@@ -173,7 +173,7 @@ def testdata_aids(
     """
     import wbia
     from wbia.init import filter_annots
-    from wbia.expt import annotation_configs
+    from wbia import annotation_configs
     from wbia.expt import cfghelpers
 
     if verbose is None or verbose >= 1:
@@ -312,7 +312,7 @@ def testdata_expanded_aids(
         >>> # ENABLE_DOCTEST
         >>> from wbia.init.main_helpers import *  # NOQA
         >>> import wbia
-        >>> from wbia.expt import annotation_configs
+        >>> from wbia import annotation_configs
         >>> ibs, qaid_list, daid_list, aidcfg = testdata_expanded_aids(return_annot_info=True)
         >>> print('Printing annot config')
         >>> annotation_configs.print_acfg(aidcfg)

@@ -37,7 +37,6 @@ if ut.is_developer():
 
 # If we dont initialize plottool before <something>
 # then it causes a crash in windows. Its so freaking weird.
-# something is not guitool, wbia.viz
 # has to be before control, can be after constants, params, and entry_points
 # import wbia.plottool
 
@@ -85,19 +84,10 @@ try:
     from wbia.init import main_helpers
 
     from wbia import algo
-    from wbia import research
 
-    from wbia import expt
-    from wbia import templates
-    from wbia.templates import generate_notebook
     from wbia.control.controller_inject import register_preprocs
     from wbia import core_annots
     from wbia import core_images
-
-    try:
-        from wbia.scripts import postdoc
-    except ImportError:
-        pass
 except Exception as ex:
     ut.printex(ex, 'Error when importing wbia', tb=True)
     raise

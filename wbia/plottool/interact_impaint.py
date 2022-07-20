@@ -10,13 +10,8 @@ References:
     http://stackoverflow.com/questions/20289939/pause-execution-until-button-press
 """
 import utool as ut
-import matplotlib.pyplot as plt
 import numpy as np
 
-try:
-    import vtool as vt
-except ImportError:
-    pass
 from wbia.plottool import abstract_interaction
 import math
 
@@ -177,82 +172,27 @@ class PaintInteraction(PAINTER_BASE):
         # self.draw()
 
 
-def impaint_mask2(img, init_mask=None):
-    """
-    python -m wbia.plottool.interact_impaint --exec-draw_demo --show
-    """
-    if False:
-        QT = False  # NOQA
-        # if QT:
-        #    from wbia.guitool import mpl_embed
-        #    import wbia.guitool
-        #    guitool.ensure_qapp()  # must be ensured before any embeding
-        #    wgt = mpl_embed.QtAbstractMplInteraction()
-        #    fig = wgt.fig
-        #    ax = wgt.axes
-        # else:
-        #    fig = plt.figure(1)
-        #    ax = plt.subplot(111)
-        # if init_mask is None:
-        #    mask = np.zeros(img.shape, np.uint8) + 255
-        # else:
-        #    mask = init_mask
-        # ax.imshow(img, interpolation='nearest', alpha=1)
-        # ax.imshow(mask, interpolation='nearest', alpha=0.6)
-        # ax.grid(False)
-        # ax.set_xticks([])
-        # ax.set_yticks([])
+# def draw_demo():
+#     r"""
+#     CommandLine:
+#         python -m wbia.plottool.interact_impaint --exec-draw_demo --show
 
-        # pstartntr = _OldPainter(fig, ax, mask)
-        # ax.set_title('Click on the image to draw. exit to finish')
-        # print('Starting interaction')
-        # if not QT:
-        #    plt.show(block=True)
-        # else:
-        #    guitool.qtapp_loop(wgt, frequency=100, init_signals=True)
-        #    wgt.show()
-        # # input('hack to block... press enter when done')
-    else:
-        pntr = PaintInteraction(img, init_mask=init_mask)
-        # pntr.show_page()
-        # print('Starting interaction')
-        pntr.start()
-        pntr.show()
-
-        # Hacky code to block until the interaction is actually done
-        # pntr.show()
-        import time
-        from wbia.guitool.__PYQT__ import QtGui as QtWidgets
-
-        while pntr.is_running:
-            QtWidgets.qApp.processEvents()
-            time.sleep(0.05)
-        # plt.show()
-    print('Finished interaction')
-    return pntr.mask
-
-
-def draw_demo():
-    r"""
-    CommandLine:
-        python -m wbia.plottool.interact_impaint --exec-draw_demo --show
-
-    Example:
-        >>> # SCRIPT
-        >>> from wbia.plottool.interact_impaint import *  # NOQA
-        >>> result = draw_demo()
-        >>> print(result)
-        >>> import wbia.plottool as pt
-        >>> pt.show_if_requested()
-    """
-    fpath = ut.grab_test_imgpath('zebra.png')
-    img = vt.imread(fpath)
-    mask = impaint_mask2(img)
-    print('mask = %r' % (mask,))
-    print('mask.sum() = %r' % (mask.sum(),))
-    if False:
-        plt.imshow(vt.blend_images_multiply(img, mask))
-        ax = plt.gca()
-        ax.grid(False)
-        ax.set_xticks([])
-        ax.set_yticks([])
+#     Example:
+#         >>> # SCRIPT
+#         >>> from wbia.plottool.interact_impaint import *  # NOQA
+#         >>> result = draw_demo()
+#         >>> print(result)
+#         >>> import wbia.plottool as pt
+#         >>> pt.show_if_requested()
+#     """
+#     fpath = ut.grab_test_imgpath('zebra.png')
+#     img = vt.imread(fpath)
+#     # mask = impaint_mask2(img)
+#     print('mask = %r' % (mask,))
+#     print('mask.sum() = %r' % (mask.sum(),))
+#     if False:
+#         plt.imshow(vt.blend_images_multiply(img, mask))
+#         ax = plt.gca()
+#         ax.grid(False)
+#         ax.set_xticks([])
+#         ax.set_yticks([])

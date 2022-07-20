@@ -648,49 +648,6 @@ class InfrReviewers(object):
                 user_request = 'finished:stopiteration'
             return user_request
 
-    def qt_edge_reviewer(infr, edge=None):
-        import wbia.guitool as gt
-
-        gt.ensure_qapp()
-        from wbia.viz import viz_graph2
-
-        infr.manual_wgt = viz_graph2.AnnotPairDialog(
-            edge=edge, infr=infr, standalone=False, cfgdict=infr.verifier_params
-        )
-        if edge is not None:
-            # infr.emit_manual_review(edge, priority=None)
-            infr.manual_wgt.seek(0)
-            # infr.manual_wgt.show()
-        return infr.manual_wgt
-
-    def qt_review_loop(infr):
-        r"""
-        TODO: The loop parts should be a non-mixin class
-
-        Qt review loop entry point
-
-        CommandLine:
-            python -m wbia.algo.graph.mixin_loops qt_review_loop --show
-
-        Example:
-            >>> # SCRIPT
-            >>> import utool as ut
-            >>> import wbia
-            >>> ibs = wbia.opendb('PZ_MTEST')
-            >>> infr = wbia.AnnotInference(ibs, 'all', autoinit=True)
-            >>> infr.ensure_mst()
-            >>> # Add dummy priorities to each edge
-            >>> infr.set_edge_attrs('prob_match', ut.dzip(infr.edges(), [1]))
-            >>> infr.prioritize('prob_match', infr.edges(), reset=True)
-            >>> infr.params['redun.enabled'] = False
-            >>> win = infr.qt_review_loop()
-            >>> import wbia.guitool as gt
-            >>> gt.qtapp_loop(qwin=win, freq=10)
-        """
-        infr.qt_edge_reviewer()
-        # infr.resume()
-        return infr.manual_wgt
-
 
 if False:
     # Testing generating using threads

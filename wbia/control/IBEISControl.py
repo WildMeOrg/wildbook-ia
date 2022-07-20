@@ -67,7 +67,6 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'wbia.other.detectgrave',
     'wbia.other.detecttrain',
     'wbia.init.filter_annots',
-    'wbia.research.metrics',
     'wbia.control.manual_featweight_funcs',
     'wbia.control._autogen_party_funcs',
     'wbia.control.manual_annotmatch_funcs',
@@ -200,7 +199,8 @@ for modname in ut.ProgIter(
     try:
         # ut.import_modname(modname)
         ub.import_module_from_name(modname)
-    except ImportError:
+    except (ImportError, AttributeError):
+        # raise
         if 'wbia_cnn' in modname:
             import warnings
 
