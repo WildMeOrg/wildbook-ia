@@ -4580,6 +4580,22 @@ def gradient_magnitude(image_filepath):
     return result
 
 
+@register_route('/review/identification/lca/refer/', methods=['POST'])
+def review_identification_lca_refer(aids, **kwargs):
+    ibs = current_app.ibs
+
+    annot_uuid_set = set(ibs.get_annot_uuids(aids))
+    annot_uuid_list = sorted(annot_uuid_set - set([None]))
+
+    print('Starting LCA with %d annotations' % (len(annot_uuid_list),))
+
+    return review_identification_graph(
+        annot_uuid_list=annot_uuid_list,
+        backend='lca',
+        **kwargs,
+    )
+
+
 @register_route('/review/identification/graph/refer/', methods=['GET'])
 def review_identification_graph_refer(
     imgsetid,

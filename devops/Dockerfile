@@ -113,6 +113,16 @@ RUN set -ex \
  && rm -rf /var/cache/apt \
  && rm -rf /var/lib/apt/lists/*
 
+# Fix OpenCV
+RUN set -ex \
+ && /virtualenv/env3/bin/pip uninstall -y \
+     opencv-python \
+     opencv-contrib-python \
+     opencv-python-headless \
+     opencv-contrib-python-headless \
+ && /virtualenv/env3/bin/pip install --upgrade \
+     opencv-contrib-python-headless
+
 # Run smoke tests
 RUN set -ex \
  && mkdir -p /data \
