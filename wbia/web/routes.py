@@ -5008,6 +5008,7 @@ def review_identification_graph(
         >>> ut.show_if_requested()
     """
     ibs = current_app.ibs
+    import uuid
 
     if ibs.dbname == 'ZEBRA_Kaia':
         kaia = True
@@ -5015,6 +5016,12 @@ def review_identification_graph(
 
     if hogwild_species == 'None':
         hogwild_species = None
+
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
 
     progress = None
     hogwild_graph_uuid = None
