@@ -113,6 +113,11 @@ RUN set -ex \
  && rm -rf /var/cache/apt \
  && rm -rf /var/lib/apt/lists/*
 
+# Fix Lasagne
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-cnn \
+ && /bin/bash run_developer_setup.sh'
+
 # Fix OpenCV
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
