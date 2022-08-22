@@ -13,11 +13,12 @@ TODO: need to split up into sub modules:
     within this file
 """
 import logging
-import utool as ut
-from wbia.control import controller_inject
-from wbia import annotmatch_funcs  # NOQA
-import pytz
 
+import pytz
+import utool as ut
+
+from wbia import annotmatch_funcs  # NOQA
+from wbia.control import controller_inject
 
 PST = pytz.timezone('US/Pacific')
 

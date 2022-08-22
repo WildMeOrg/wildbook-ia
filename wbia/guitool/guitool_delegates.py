@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from wbia.guitool.__PYQT__ import QtCore, QtGui
-from wbia.guitool.__PYQT__ import QtWidgets
-from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
 import utool as ut
+
+from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION, QtCore, QtGui, QtWidgets
 
 ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
 

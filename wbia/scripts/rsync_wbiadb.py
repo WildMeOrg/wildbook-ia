@@ -6,6 +6,7 @@ CommandLine:
     python -m wbia.scripts.rsync_wbiadb --dryrun
 """
 import logging
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -19,8 +20,8 @@ def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=F
     it is an old hots database)
     """
     logger.info('[sync_wbiadb] Syncing')
-    logger.info('  * dbname=%r ' % (dbname,))
-    logger.info('  * remote_uri=%r' % (remote_uri,))
+    logger.info('  * dbname={!r} '.format(dbname))
+    logger.info('  * remote_uri={!r}'.format(remote_uri))
     logger.info('  * mode=%r' % (mode))
     import wbia
 
@@ -48,7 +49,7 @@ def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=F
         if dryrun:
             ut.assert_exists(local_src)
     else:
-        raise AssertionError('unknown mode=%r' % (mode,))
+        raise AssertionError('unknown mode={!r}'.format(mode))
 
 
 def rsync_ibsdb_main():
@@ -89,7 +90,7 @@ def rsync_ibsdb_main():
     )
     dry_run = ut.get_argflag(('--dryrun', '--dry-run', '--dry'))
 
-    assert mode in valid_modes, 'mode=%r must be in %r' % (mode, valid_modes)
+    assert mode in valid_modes, 'mode={!r} must be in {!r}'.format(mode, valid_modes)
     remote_key = ut.get_argval('--remote', type_=str, default='hyrule')
     remote_map = {
         'hyrule': 'hyrule.cs.rpi.edu',
@@ -115,7 +116,7 @@ def rsync_ibsdb_main():
     remote_uri = user + '@' + remote + ':' + remote_workdir
 
     if mode == 'list':
-        logger.info('remote = %r' % (remote,))
+        logger.info('remote = {!r}'.format(remote))
         logger.info('need to list')
         remote_paths = ut.list_remote(remote_uri)
         logger.info('REMOTE LS -- TODO need to get only wbia dirs')
@@ -123,7 +124,7 @@ def rsync_ibsdb_main():
     elif mode in ['push', 'pull']:
         logger.info('dbnames = {!r}'.format(dbnames))
         for dbname in ut.ProgIter(dbnames, label='sync db'):
-            ut.change_term_title('RSYNC IBEISDB %r' % (dbname,))
+            ut.change_term_title('RSYNC IBEISDB {!r}'.format(dbname))
             sync_wbiadb(remote_uri, dbname, mode, workdir, port, dry_run)
 
 

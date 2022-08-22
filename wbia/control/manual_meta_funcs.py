@@ -2,12 +2,14 @@
 """
 controller functions for contributors, versions, configs, and other metadata
 """
-import logging
 import functools
+import logging
+
 import utool as ut
+
 from wbia import constants as const
-from wbia.control import accessor_decors, controller_inject
 from wbia.algo import Config
+from wbia.control import accessor_decors, controller_inject
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, print_, profile = ut.inject2(__name__)
@@ -70,7 +72,7 @@ def add_contributors(
         loc_zip_list = [''] * len(tag_list)
     if notes_list is None:
         notes_list = [
-            'Created %s' % (datetime.datetime.now(),) for _ in range(len(tag_list))
+            'Created {}'.format(datetime.datetime.now()) for _ in range(len(tag_list))
         ]
 
     loc_zip_list = [_valid_zip(_zip) for _zip in loc_zip_list]
@@ -189,10 +191,10 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=Fal
     name_first = ibs.get_dbname()
     name_last = ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs.get_dbdir()
     logger.info(
-        '[collect_transfer_data] Contributor default first name: %s' % (name_first,)
+        '[collect_transfer_data] Contributor default first name: {}'.format(name_first)
     )
     logger.info(
-        '[collect_transfer_data] Contributor default last name:  %s' % (name_last,)
+        '[collect_transfer_data] Contributor default last name:  {}'.format(name_last)
     )
     if user_prompt:
         name_first = input(
@@ -218,16 +220,16 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=Fal
             '\n[collect_transfer_data] Your location was be determined automatically.'
         )
         logger.info(
-            '[collect_transfer_data] Contributor default city: %s' % (location_city,)
+            '[collect_transfer_data] Contributor default city: {}'.format(location_city)
         )
         logger.info(
-            '[collect_transfer_data] Contributor default state: %s' % (location_state,)
+            '[collect_transfer_data] Contributor default state: {}'.format(location_state)
         )
         logger.info(
-            '[collect_transfer_data] Contributor default zip: %s' % (location_country,)
+            '[collect_transfer_data] Contributor default zip: {}'.format(location_country)
         )
         logger.info(
-            '[collect_transfer_data] Contributor default country: %s' % (location_zip,)
+            '[collect_transfer_data] Contributor default country: {}'.format(location_zip)
         )
         if user_prompt:
             location_city = input(
@@ -622,11 +624,11 @@ def get_contributor_name_string(ibs, contributor_rowid_list, include_tag=False):
         tag_list = ibs.get_contributor_tag(contributor_rowid_list)
         name_list = zip(first_list, last_list, tag_list)
         contributor_name_list = [
-            '%s %s (%s)' % (first, last, tag) for first, last, tag in name_list
+            '{} {} ({})'.format(first, last, tag) for first, last, tag in name_list
         ]
     else:
         name_list = zip(first_list, last_list)
-        contributor_name_list = ['%s %s' % (first, last) for first, last in name_list]
+        contributor_name_list = ['{} {}'.format(first, last) for first, last in name_list]
 
     return contributor_name_list
 
@@ -723,7 +725,7 @@ def get_contributor_location_string(ibs, contributor_rowid_list):
     country_list = ibs.get_contributor_country(contributor_rowid_list)
     location_list = zip(city_list, state_list, zip_list, country_list)
     contributor_list = [
-        '%s, %s\n%s %s' % (city, state, _zip, country)
+        '{}, {}\n{} {}'.format(city, state, _zip, country)
         for city, state, _zip, country in location_list
     ]
     return contributor_list
@@ -1023,12 +1025,16 @@ def _init_config(ibs):
         general_config = ut.load_cPkl(config_fpath, verbose=ut.VERBOSE)
     except (FileNotFoundError, IOError):
         logger.warning(
-            'failed to load general config %r, creating empty config' % (config_fpath,)
+            'failed to load general config {!r}, creating empty config'.format(
+                config_fpath
+            )
         )
         general_config = {}
         ut.save_cPkl(config_fpath, general_config, verbose=ut.VERBOSE)
     current_species = general_config.get('current_species', None)
-    logger.info('[_init_config] general_config.current_species = %r' % (current_species,))
+    logger.info(
+        '[_init_config] general_config.current_species = {!r}'.format(current_species)
+    )
     # </GENERAL CONFIG>
     #####
     # species_list = ibs.get_database_species()
@@ -1040,7 +1046,7 @@ def _init_config(ibs):
     cfgname = 'cfg' if current_species is None else current_species
     if ut.VERBOSE and ut.NOT_QUIET:
         # logger.info('[_init_config] Loading database with species_list = %r ' % (species_list,))
-        logger.info('[_init_config] Using cfgname=%r' % (cfgname,))
+        logger.info('[_init_config] Using cfgname={!r}'.format(cfgname))
     # try to be intelligent about the default speceis
     ibs._load_named_config(cfgname)
 

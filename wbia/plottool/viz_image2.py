@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import utool
-from . import draw_func2 as df2
+
 from wbia.plottool import custom_constants
+
+from . import draw_func2 as df2
 
 # (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_img2]', DEBUG=False)
 utool.noinject(__name__, '[viz_img2]')

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
+
+import six
 import utool as ut
+
 from wbia import _wbia_object
 from wbia.control.controller_inject import make_ibs_register_decorator
-import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[images]')
 logger = logging.getLogger('wbia')

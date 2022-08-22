@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-import logging
-import utool as ut
 import itertools as it
+import logging
+
+import six
+import utool as ut
+
 from wbia import _wbia_object
 from wbia.control.controller_inject import make_ibs_register_decorator
-import six
 
 (print, rrr, profile) = ut.inject2(__name__, '[annot]')
 logger = logging.getLogger('wbia')
@@ -443,7 +445,7 @@ class _AnnotGroupPropInjector(BASE_TYPE):
 
         # TODO: move to wbia object as a group call
         def _make_unflat_getter(objname, attrname):
-            ibs_funcname = 'get_%s_%s' % (objname, attrname)
+            ibs_funcname = 'get_{}_{}'.format(objname, attrname)
 
             def ibs_unflat_getter(self, *args, **kwargs):
                 ibs_callable = getattr(self._ibs, ibs_funcname)
@@ -456,7 +458,7 @@ class _AnnotGroupPropInjector(BASE_TYPE):
 
         for attrname in ANNOT_BASE_ATTRS:
             if hasattr(metaself, attrname):
-                logger.info('Cannot inject annot group attrname = %r' % (attrname,))
+                logger.info('Cannot inject annot group attrname = {!r}'.format(attrname))
                 continue
             ibs_unflat_getter = _make_unflat_getter('annot', attrname)
             setattr(metaself, '_unflat_get_' + attrname, ibs_unflat_getter)
@@ -483,7 +485,7 @@ class AnnotGroups(ut.NiceRepr):
         num = len(self.annots_list)
         mean = np.mean(len_list)
         std = np.std(len_list)
-        nice = '(n=%r, μ=%.1f, σ=%.1f)' % (num, mean, std)
+        nice = '(n={!r}, μ={:.1f}, σ={:.1f})'.format(num, mean, std)
         return nice
 
     def __iter__(self):

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
 import time
-import utool as ut
+
 import matplotlib as mpl
+import utool as ut
+
 from wbia.plottool import custom_figure
 
 # from .custom_constants import golden_wh
@@ -194,7 +196,9 @@ def all_figures_tile(
         (x, y, w, h) = valid_positions[ix]
         # printDBG('tile %d-th win: xywh=%r' % (ix, (x, y, w, h)))
         if not isqt4_mpl and not isqt4_back and not isqt4_widget:
-            raise NotImplementedError('%r-th Backend %r is not a Qt Window' % (ix, win))
+            raise NotImplementedError(
+                '{!r}-th Backend {!r} is not a Qt Window'.format(ix, win)
+            )
         try:
             if hide_toolbar:
                 toolbar = win.findChild(QtWidgets.QToolBar)

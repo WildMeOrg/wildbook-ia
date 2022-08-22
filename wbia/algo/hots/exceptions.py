@@ -3,6 +3,7 @@
 # import utool
 # print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[hsexcept]', DEBUG=False)
 import logging
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)

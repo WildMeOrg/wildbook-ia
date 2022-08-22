@@ -9,6 +9,4 @@ import utool as ut
 
 ut.noinject(__name__, '[wbia.dbio.__init__]', DEBUG=False)
 
-from wbia.dbio import ingest_hsdb
-from wbia.dbio import ingest_database
-from wbia.dbio import export_subset
+from wbia.dbio import export_subset, ingest_database, ingest_hsdb

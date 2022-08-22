@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
-import wbia.plottool.draw_func2 as df2
+
 import numpy as np
+import utool as ut
+
+import wbia.plottool as pt
+import wbia.plottool.draw_func2 as df2
 from wbia.other import ibsfuncs
 from wbia.plottool import plot_helpers as ph
-import wbia.plottool as pt
-import utool as ut
 from wbia.viz import viz_chip
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -115,8 +117,10 @@ def show_multiple_chips(
         ibs, aid_list, chips=(not in_image or annote), feats=annote
     )
 
-    logger.info('[viz_name] * annot_vuuid=%r' % ((ibs.get_annot_visual_uuids(aid_list),)))
-    logger.info('[viz_name] * aid_list=%r' % ((aid_list,)))
+    logger.info(
+        '[viz_name] * annot_vuuid={!r}'.format(ibs.get_annot_visual_uuids(aid_list))
+    )
+    logger.info('[viz_name] * aid_list={!r}'.format(aid_list))
 
     DOBOTH = ut.get_argflag('--doboth')
 
@@ -137,9 +141,9 @@ def show_multiple_chips(
     fig.clf()
     ax_list1 = []
     for px, aid in enumerate(aid_list):
-        logger.info('px = %r' % (px,))
+        logger.info('px = {!r}'.format(px))
         _fig, _ax1 = viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
-        logger.info('other_aids = %r' % (ibs.get_annot_contact_aids(aid),))
+        logger.info('other_aids = {!r}'.format(ibs.get_annot_contact_aids(aid)))
         ax = df2.gca()
         ax_list1.append(_ax1)
         if aid in sel_aids:
@@ -190,7 +194,6 @@ def show_multiple_chips(
 
             # !!!
             # http://matplotlib.org/users/transforms_tutorial.html
-
             # invTransFigure_fn1 = fig.transFigure.inverted().transform
             # invTransFigure_fn2 = fig.transFigure.inverted().transform
             # logger.info(ax_list1)
@@ -207,8 +210,8 @@ def show_multiple_chips(
                 #    # Weird bug
                 #    bbox1 = bbox1[1]
                 logger.info('--')
-                logger.info('ax1 = %r' % (ax1,))
-                logger.info('ax2 = %r' % (ax2,))
+                logger.info('ax1 = {!r}'.format(ax1))
+                logger.info('ax2 = {!r}'.format(ax2))
                 chipshape = ph.get_plotdat(ax1, 'chipshape')
                 # _bbox1 = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
                 # bbox1 = (0, 0, _bbox1.width * fig.dpi, _bbox1.height * fig.dpi)
@@ -220,21 +223,21 @@ def show_multiple_chips(
                 annotation_bbox_list = ph.get_plotdat(ax2, 'annotation_bbox_list')
                 bbox2 = annotation_bbox_list[index]
 
-                logger.info('bbox1 = %r' % (bbox1,))
-                logger.info('bbox2 = %r' % (bbox2,))
+                logger.info('bbox1 = {!r}'.format(bbox1))
+                logger.info('bbox2 = {!r}'.format(bbox2))
 
                 vert_list1 = np.array(vt.verts_from_bbox(bbox1))
                 vert_list2 = np.array(vt.verts_from_bbox(bbox2))
 
-                logger.info('vert_list1 = %r' % (vert_list1,))
-                logger.info('vert_list2 = %r' % (vert_list2,))
+                logger.info('vert_list1 = {!r}'.format(vert_list1))
+                logger.info('vert_list2 = {!r}'.format(vert_list2))
                 # for vx in [0, 1, 2, 3]:
                 for vx in [0, 1]:
                     vert1 = vert_list1[vx].tolist()
                     vert2 = vert_list2[vx].tolist()
                     logger.info('  ***')
-                    logger.info('  * vert1 = %r' % (vert1,))
-                    logger.info('  * vert2 = %r' % (vert2,))
+                    logger.info('  * vert1 = {!r}'.format(vert1))
+                    logger.info('  * vert2 = {!r}'.format(vert2))
 
                     coordsA = coordsB = 'data'
                     # coords = 'axes points'
@@ -376,7 +379,7 @@ def show_name(
         aid_list = ut.take(aid_list, index_list)
 
     name = ibs.get_name_texts((nid,))
-    logger.info('[viz_name] * name=%r aid_list=%r' % (name, aid_list))
+    logger.info('[viz_name] * name={!r} aid_list={!r}'.format(name, aid_list))
 
     show_multiple_chips(
         ibs,
@@ -396,7 +399,7 @@ def show_name(
     use_figtitle = not ut.get_argflag('--no-figtitle')
 
     if use_figtitle:
-        figtitle = 'Name View nid=%r name=%r' % (nid, name)
+        figtitle = 'Name View nid={!r} name={!r}'.format(nid, name)
         df2.set_figtitle(figtitle)
     # if not annote:
     #    title += ' noannote'

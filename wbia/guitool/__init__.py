@@ -4,6 +4,7 @@
 __version__ = '2.0.1'
 
 import logging
+
 import utool as ut
 
 ut.noinject(__name__, '[guitool.__init__]')
@@ -18,27 +19,28 @@ ut.noinject(__name__, '[guitool.__init__]')
 #    raise
 #    #pass
 
+import utool
+
 # print('__guitool__1')
-from wbia.guitool import __PYQT__
+from wbia.guitool import (
+    __PYQT__,
+    api_item_model,
+    api_item_widget,
+    api_table_view,
+    api_tree_view,
+    guitool_components,
+    guitool_decorators,
+    guitool_delegates,
+    guitool_dialogs,
+    guitool_main,
+    guitool_misc,
+    guitool_tables,
+    qtype,
+    stripe_proxy_model,
+)
 
 # print('__guitool__2')
 
-from wbia.guitool import api_item_model
-from wbia.guitool import api_table_view
-from wbia.guitool import api_tree_view
-from wbia.guitool import api_item_widget
-from wbia.guitool import stripe_proxy_model
-
-from wbia.guitool import guitool_tables
-from wbia.guitool import guitool_dialogs
-from wbia.guitool import guitool_decorators
-from wbia.guitool import guitool_delegates
-from wbia.guitool import guitool_components
-from wbia.guitool import guitool_main
-from wbia.guitool import guitool_misc
-from wbia.guitool import qtype
-
-import utool
 
 print, rrr, profile = utool.inject2(__name__, '[guitool]')
 logger = logging.getLogger('wbia')
@@ -112,73 +114,74 @@ else:
     # to True)
     DOELSE = True
 
-# This screws up dynamic_import if it is placed before
-from wbia.guitool.guitool_tables import *
-from wbia.guitool.guitool_dialogs import *
-from wbia.guitool.guitool_decorators import *
-from wbia.guitool.guitool_delegates import *
-from wbia.guitool.guitool_components import *
-from wbia.guitool.guitool_main import *
-from wbia.guitool.guitool_misc import *
 from wbia.guitool.api_item_model import *
+from wbia.guitool.api_item_widget import *
 from wbia.guitool.api_table_view import *
 from wbia.guitool.api_tree_view import *
-from wbia.guitool.api_item_widget import *
-from wbia.guitool.stripe_proxy_model import *
 from wbia.guitool.filter_proxy_model import *
+from wbia.guitool.guitool_components import *
+from wbia.guitool.guitool_decorators import *
+from wbia.guitool.guitool_delegates import *
+from wbia.guitool.guitool_dialogs import *
+from wbia.guitool.guitool_main import *
+from wbia.guitool.guitool_misc import *
+
+# This screws up dynamic_import if it is placed before
+from wbia.guitool.guitool_tables import *
 from wbia.guitool.qtype import *
+from wbia.guitool.stripe_proxy_model import *
 
 if DOELSE:
     pass
     # <AUTOGEN_INIT>
 
-    from wbia.guitool import guitool_main
-    from wbia.guitool import guitool_components
-    from wbia.guitool import guitool_dialogs
-    from wbia.guitool import guitool_decorators
-    from wbia.guitool import guitool_misc
-    from wbia.guitool import api_item_model
-    from wbia.guitool import api_tree_view
-    from wbia.guitool import api_table_view
-    from wbia.guitool import qtype
-    from wbia.guitool import stripe_proxy_model
-    from wbia.guitool import filter_proxy_model
-    from wbia.guitool.guitool_main import (
-        GUITOOL_PYQT_VERSION,
-        GuitoolApplication,
-        IS_ROOT_WINDOW,
-        QAPP,
-        QUIET,
-        VERBOSE,
-        activate_qwindow,
-        ensure_qapp,
-        ensure_qtapp,
-        exit_application,
-        get_qtapp,
-        ping_python_interpreter,
-        qtapp_loop,
-        qtapp_loop_nonblocking,
-        remove_pyqt_input_hook,
+    import utool
+
+    from wbia.guitool import (
+        api_item_model,
+        api_table_view,
+        api_tree_view,
+        filter_proxy_model,
+        guitool_components,
+        guitool_decorators,
+        guitool_dialogs,
+        guitool_main,
+        guitool_misc,
+        qtype,
+        stripe_proxy_model,
     )
+    from wbia.guitool.api_item_model import (
+        API_MODEL_BASE,
+        VERBOSE_MODEL,
+        APIItemModel,
+        ChangeLayoutContext,
+        QVariantHack,
+        default_method_decorator,
+        simple_thumbnail_widget,
+        updater,
+    )
+    from wbia.guitool.api_table_view import APITableView
+    from wbia.guitool.api_tree_view import API_VIEW_BASE, APITreeView, testdata_tree_view
+    from wbia.guitool.filter_proxy_model import BASE_CLASS, FilterProxyModel
     from wbia.guitool.guitool_components import (
         ALIGN_DICT,
+        DEBUG_WIDGET,
+        PROG_TEXT,
+        WIDGET_BASE,
         BlockSignals,
         ConfigConfirmWidget,
-        DEBUG_WIDGET,
         GuiProgContext,
         GuitoolWidget,
-        PROG_TEXT,
         ProgHook,
         ResizableTextEdit,
         SimpleTree,
         Spoiler,
-        WIDGET_BASE,
         adjust_font,
         fix_child_attr_heirarchy,
         fix_child_size_heirarchy,
-        getAvailableFonts,
         get_nested_attr,
         get_widget_text_width,
+        getAvailableFonts,
         layoutSplitter,
         make_style_sheet,
         msg_event,
@@ -207,9 +210,10 @@ if DOELSE:
         rectify_qt_const,
         walk_widget_heirarchy,
     )
+    from wbia.guitool.guitool_decorators import DEBUG, checks_qt_error, signal_, slot_
     from wbia.guitool.guitool_dialogs import (
-        ResizableMessageBox,
         SELDIR_CACHEID,
+        ResizableMessageBox,
         are_you_sure,
         build_nested_qmenu,
         connect_context_menu,
@@ -225,11 +229,22 @@ if DOELSE:
         user_option,
         user_question,
     )
-    from wbia.guitool.guitool_decorators import (
-        DEBUG,
-        checks_qt_error,
-        signal_,
-        slot_,
+    from wbia.guitool.guitool_main import (
+        GUITOOL_PYQT_VERSION,
+        IS_ROOT_WINDOW,
+        QAPP,
+        QUIET,
+        VERBOSE,
+        GuitoolApplication,
+        activate_qwindow,
+        ensure_qapp,
+        ensure_qtapp,
+        exit_application,
+        get_qtapp,
+        ping_python_interpreter,
+        qtapp_loop,
+        qtapp_loop_nonblocking,
+        remove_pyqt_input_hook,
     )
     from wbia.guitool.guitool_misc import (
         ALT_KEY,
@@ -243,35 +258,19 @@ if DOELSE:
         make_option_dict,
         make_word_hotlinks,
     )
-    from wbia.guitool.api_item_model import (
-        APIItemModel,
-        API_MODEL_BASE,
-        ChangeLayoutContext,
-        QVariantHack,
-        VERBOSE_MODEL,
-        default_method_decorator,
-        simple_thumbnail_widget,
-        updater,
-    )
-    from wbia.guitool.api_tree_view import (
-        APITreeView,
-        API_VIEW_BASE,
-        testdata_tree_view,
-    )
-    from wbia.guitool.api_table_view import APITableView
     from wbia.guitool.qtype import (
-        ItemDataRoles,
         LOCALE,
-        QLocale,
-        QString,
         QT_BUTTON_TYPES,
         QT_COMBO_TYPES,
         QT_DELEGATE_TYPES,
         QT_ICON_TYPES,
         QT_IMAGE_TYPES,
         QT_PIXMAP_TYPES,
-        QVariant,
         SIMPLE_CASTING,
+        ItemDataRoles,
+        QLocale,
+        QString,
+        QVariant,
         cast_from_qt,
         cast_into_qt,
         infer_coltype,
@@ -282,16 +281,11 @@ if DOELSE:
         to_qcolor,
     )
     from wbia.guitool.stripe_proxy_model import (
-        STRIPE_PROXY_BASE,
         STRIP_PROXY_META_CLASS,
         STRIP_PROXY_SIX_BASE,
+        STRIPE_PROXY_BASE,
         StripeProxyModel,
     )
-    from wbia.guitool.filter_proxy_model import (
-        BASE_CLASS,
-        FilterProxyModel,
-    )
-    import utool
 
     print, rrr, profile = utool.inject2(__name__, '[guitool]')
 
@@ -308,7 +302,7 @@ if DOELSE:
         import wbia.guitool
 
         # Implicit reassignment.
-        seen_ = set([])
+        seen_ = set()
         for tup in IMPORT_TUPLES:
             if len(tup) > 2 and tup[2]:
                 continue  # dont import package names
@@ -335,7 +329,7 @@ if DOELSE:
             def fbrrr(*args, **kwargs):
                 """fallback reload"""
                 if verbose > 0:
-                    print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
+                    print('Auto-reload (using rrr) not setup for mod={!r}'.format(mod))
 
             return fbrrr
 

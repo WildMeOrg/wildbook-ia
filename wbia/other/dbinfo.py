@@ -3,16 +3,18 @@
 get_dbinfo is probably the only usefull funciton in here
 # This is not the cleanest module
 """
-# TODO: ADD COPYRIGHT TAG
-import logging
-from wbia import constants as const
 import collections
 import functools
+
+# TODO: ADD COPYRIGHT TAG
+import logging
+from os.path import abspath, join, split
+
+import matplotlib.pyplot as plt
 import numpy as np
 import utool as ut
-import matplotlib.pyplot as plt
-from os.path import join, abspath, split
 
+from wbia import constants as const
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -181,7 +183,7 @@ def get_dbinfo(
         if isinstance(aid_list, str):
             # Hack to get experiment stats on aids
             acfg_name_list = [aid_list]
-            logger.info('Specified custom aids via acfgname %s' % (acfg_name_list,))
+            logger.info('Specified custom aids via acfgname {}'.format(acfg_name_list))
             from wbia.expt import experiment_helpers
 
             acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
@@ -271,8 +273,9 @@ def get_dbinfo(
 
     # Occurrence Info
     def compute_annot_occurrence_ids(ibs, aid_list, config):
-        from wbia.algo.preproc import preproc_occurrence
         import utool as ut
+
+        from wbia.algo.preproc import preproc_occurrence
 
         gid_list = ibs.get_annot_gids(aid_list)
         gid2_aids = ut.group_items(aid_list, gid_list)
@@ -383,7 +386,7 @@ def get_dbinfo(
                 return '[' + (', '.join(list(map(lambda x: '%.1f' % x, var)))) + ']'
 
             ret = ',\n    '.join(
-                ['%s:%s' % (key, arr2str(val)) for key, val in stat_dict.items()]
+                ['{}:{}'.format(key, arr2str(val)) for key, val in stat_dict.items()]
             )
             return '{\n    ' + ret + '\n}'
 
@@ -402,8 +405,8 @@ def get_dbinfo(
         chip_size_stats = wh_print_stats(annotation_size_list)
         imgsize_stat_lines = [
             (' # Img in dir                 = %d' % len(gpath_list)),
-            (' Image Size Stats  = %s' % (img_size_stats,)),
-            (' * Chip Size Stats = %s' % (chip_size_stats,)),
+            (' Image Size Stats  = {}'.format(img_size_stats)),
+            (' * Chip Size Stats = {}'.format(chip_size_stats)),
         ]
     else:
         imgsize_stat_lines = []
@@ -438,10 +441,10 @@ def get_dbinfo(
     if with_map:
 
         def plot_kenya(ibs, ax, gps_list=[], focus=False, focus2=False, margin=0.1):
-            import utool as ut
-            import pandas as pd
             import geopandas
+            import pandas as pd
             import shapely
+            import utool as ut
 
             if focus2:
                 focus = True
@@ -544,14 +547,14 @@ def get_dbinfo(
     def get_annot_age_stats(aid_list):
         annot_age_months_est_min = ibs.get_annot_age_months_est_min(aid_list)
         annot_age_months_est_max = ibs.get_annot_age_months_est_max(aid_list)
-        age_dict = ut.ddict((lambda: 0))
+        age_dict = ut.ddict(lambda: 0)
         for min_age, max_age in zip(annot_age_months_est_min, annot_age_months_est_max):
             if max_age is None:
                 max_age = min_age
             if min_age is None:
                 min_age = max_age
             if max_age is None and min_age is None:
-                logger.info('Found UNKNOWN Age: %r, %r' % (min_age, max_age))
+                logger.info('Found UNKNOWN Age: {!r}, {!r}'.format(min_age, max_age))
                 age_dict['UNKNOWN'] += 1
             elif (min_age is None or min_age < 12) and max_age < 12:
                 age_dict['Infant'] += 1
@@ -730,10 +733,10 @@ def get_dbinfo(
         review_aid_nid_dict = dict(zip(review_aid_list, review_nid_list))
 
         known_aids = set(aid2_occurxs.keys())
-        known_encounters = set([])
+        known_encounters = set()
         for nid, occurxs in nid2_occurxs.items():
             for occurx in occurxs:
-                encounter = '%s,%s' % (
+                encounter = '{},{}'.format(
                     occurx,
                     nid,
                 )
@@ -755,17 +758,17 @@ def get_dbinfo(
                 if value_ not in annot_review_participation_dict:
                     annot_review_participation_dict[value_] = {
                         '__KNOWN__': known_aids,
-                        '__HIT__': set([]),
+                        '__HIT__': set(),
                     }
                 for env_flag_, enc_value_ in enc_values_:
                     if enc_value_ not in encounter_review_participation_dict:
                         encounter_review_participation_dict[enc_value_] = {
                             '__KNOWN__': known_encounters,
-                            '__HIT__': set([]),
+                            '__HIT__': set(),
                         }
 
                 for aid, nid, occurx in zip(review_aids, review_nids, review_occurxs):
-                    encounter = '%s,%s' % (
+                    encounter = '{},{}'.format(
                         occurx,
                         nid,
                     )
@@ -920,8 +923,8 @@ def get_dbinfo(
                     if canonical_:
                         ggr_num_aoi_add += 1
 
-        print('CA REMOVED: %s' % (ca_removed_aids,))
-        print('CA ADDED: %s' % (ca_added_aids,))
+        print('CA REMOVED: {}'.format(ca_removed_aids))
+        print('CA ADDED: {}'.format(ca_added_aids))
 
         removed_chip_paths = ibs.get_annot_chip_fpath(ca_removed_aids)
         added_chip_paths = ibs.get_annot_chip_fpath(ca_added_aids)
@@ -1012,8 +1015,8 @@ def get_dbinfo(
         [
             ('--' * num_tabs),
             # ('# Annots per Name (multiton) = %s' % (align2(multiton_stats),)),
-            ('# Annots per Image           = %s' % (align2(gx2_nAnnots_stats),)),
-            ('# Annots per Species         = %s' % (align_dict2(species2_nAids),)),
+            ('# Annots per Image           = {}'.format(align2(gx2_nAnnots_stats))),
+            ('# Annots per Species         = {}'.format(align_dict2(species2_nAids))),
         ]
         if not short
         else []
@@ -1037,12 +1040,12 @@ def get_dbinfo(
         [
             ('GGR Annots: '),
             # ('     +-Relevant:            %s' % (ggr_num_relevant,)),
-            ("     +- Grevy's Species:    %s" % (ggr_num_species,)),
-            ('     |  +-AoIs:             %s' % (ggr_num_aois,)),
-            ('     |  |  +-Right Side:    %s' % (ggr_num_viewpoints,)),
-            ('     |  |  +-Good Quality:  %s' % (ggr_num_qualities,)),
-            ('     |  |  +-Filter:        %s' % (ggr_num_filter,)),
-            ('     |  +-CAs:              %s' % (ggr_num_cas,)),
+            ("     +- Grevy's Species:    {}".format(ggr_num_species)),
+            ('     |  +-AoIs:             {}'.format(ggr_num_aois)),
+            ('     |  |  +-Right Side:    {}'.format(ggr_num_viewpoints)),
+            ('     |  |  +-Good Quality:  {}'.format(ggr_num_qualities)),
+            ('     |  |  +-Filter:        {}'.format(ggr_num_filter)),
+            ('     |  +-CAs:              {}'.format(ggr_num_cas)),
             (
                 '     +-CA & Filter Overlap: %s (CA removed %d, added %d)'
                 % (ggr_num_filter_overlap, ggr_num_filter_remove, ggr_num_filter_add)
@@ -1066,7 +1069,7 @@ def get_dbinfo(
         if valid_nid < 0:
             continue
         if valid_nid not in name_dates_stats:
-            name_dates_stats[valid_nid] = set([])
+            name_dates_stats[valid_nid] = set()
         name_dates_stats[valid_nid].add(date_str)
 
     if with_ggr:
@@ -1108,12 +1111,12 @@ def get_dbinfo(
             ggr_name_dates_stats['2016/01/31'],
             ggr_name_dates_stats['GGR-16 D1 AND D2'],
         )
-        ggr_name_dates_stats['GGR-16 PL INDEX'] = '%0.01f +/- %0.01f' % (
+        ggr_name_dates_stats['GGR-16 PL INDEX'] = '{:0.01f} +/- {:0.01f}'.format(
             ggr16_pl_index,
             ggr16_pl_error,
         )
         total = ggr_name_dates_stats['GGR-16 D1 OR D2']
-        ggr_name_dates_stats['GGR-16 COVERAGE'] = '%0.01f (%0.01f - %0.01f)' % (
+        ggr_name_dates_stats['GGR-16 COVERAGE'] = '{:0.01f} ({:0.01f} - {:0.01f})'.format(
             100.0 * total / ggr16_pl_index,
             100.0 * total / (ggr16_pl_index + ggr16_pl_error),
             100.0 * min(1.0, total / (ggr16_pl_index - ggr16_pl_error)),
@@ -1124,12 +1127,12 @@ def get_dbinfo(
             ggr_name_dates_stats['2018/01/28'],
             ggr_name_dates_stats['GGR-18 D1 AND D2'],
         )
-        ggr_name_dates_stats['GGR-18 PL INDEX'] = '%0.01f +/- %0.01f' % (
+        ggr_name_dates_stats['GGR-18 PL INDEX'] = '{:0.01f} +/- {:0.01f}'.format(
             ggr18_pl_index,
             ggr18_pl_error,
         )
         total = ggr_name_dates_stats['GGR-18 D1 OR D2']
-        ggr_name_dates_stats['GGR-18 COVERAGE'] = '%0.01f (%0.01f - %0.01f)' % (
+        ggr_name_dates_stats['GGR-18 COVERAGE'] = '{:0.01f} ({:0.01f} - {:0.01f})'.format(
             100.0 * total / ggr18_pl_index,
             100.0 * total / (ggr18_pl_index + ggr18_pl_error),
             100.0 * min(1.0, total / (ggr18_pl_index - ggr18_pl_error)),
@@ -1140,14 +1143,14 @@ def get_dbinfo(
     occurrence_block_lines = (
         [
             ('--' * num_tabs),
-            '# Occurrences                    = %s' % (len(occurid2_aids),),
+            '# Occurrences                    = {}'.format(len(occurid2_aids)),
             '# Occurrences with Named         = %s'
             % (len(set(ut.flatten(aid2_occurxs.values()))),),
             '#      +- GPS Filter             = %s'
             % (occurence_config.get('use_gps', False),),
             '#      +- GPS Threshold KM/Sec.  = %0.04f'
             % (occurrence_blackbox.KM_PER_SEC,),
-            '#      +- Time Filter            = %s' % (True,),
+            '#      +- Time Filter            = {}'.format(True),
             '#      +- Time Threshold Sec.    = %0.1f'
             % (occurence_config.get('seconds_thresh', None),),
             (
@@ -1219,11 +1222,11 @@ def get_dbinfo(
         # ('# Img with timestamp         = %d' % len(valid_unixtime_list)),
         None
         if short
-        else ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
-        ('GGR Days                     = %s' % (align_dict2(ggr_dates_stats),))
+        else ('Img Time Stats               = {}'.format(align2(unixtime_statstr))),
+        ('GGR Days                     = {}'.format(align_dict2(ggr_dates_stats)))
         if with_ggr
         else None,
-        ('GGR Name Stats               = %s' % (align_dict2(ggr_name_dates_stats),))
+        ('GGR Name Stats               = {}'.format(align_dict2(ggr_name_dates_stats)))
         if with_ggr
         else None,
     ]
@@ -1297,8 +1300,9 @@ def hackshow_names(ibs, aid_list, fnum=None):
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    import wbia.plottool as pt
     import vtool as vt
+
+    import wbia.plottool as pt
 
     grouped_aids, nid_list = ibs.group_annots_by_name(aid_list)
     grouped_aids = [aids for aids in grouped_aids if len(aids) > 1]
@@ -1384,8 +1388,9 @@ def show_time_distributions(ibs, unixtime_list):
     num_total = len(unixtime_list)
     unixtime_list = unixtime_list[~np.isnan(unixtime_list)]
 
-    from wbia.scripts.thesis import TMP_RC
     import matplotlib as mpl
+
+    from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)
 

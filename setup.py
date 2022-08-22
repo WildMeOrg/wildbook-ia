@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-from os.path import exists
 from collections import OrderedDict
+from os.path import exists
 
 from setuptools import find_packages
 from skbuild import setup
@@ -105,8 +105,8 @@ def parse_requirements(fname='requirements.txt', with_version=True):
         python -c "import setup; print(setup.parse_requirements())"
         python -c "import setup; print(chr(10).join(setup.parse_requirements(with_version=True)))"
     """
-    from os.path import exists
     import re
+    from os.path import exists
 
     require_fpath = fname
 

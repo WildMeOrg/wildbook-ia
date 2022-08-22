@@ -6,23 +6,23 @@ TODO:
 
     python -m utool.util_inspect check_module_usage --pat="query_request.py"
 """
+import hashlib
+import itertools as it
 import logging
 from os.path import join
-from wbia import dtool
-import itertools as it
-import hashlib
-import vtool as vt
-import utool as ut
+
 import numpy as np
-from wbia.algo.hots import neighbor_index_cache
+import utool as ut
+import vtool as vt
+
+import wbia.constants as const
+from wbia import dtool
 
 # from wbia.algo.hots import multi_index
 # from wbia.algo.hots import scorenorm
 # from wbia.algo.hots import distinctiveness_normalizer
-from wbia.algo.hots import query_params
-from wbia.algo.hots import chip_match
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
-import wbia.constants as const
+from wbia.algo.hots import chip_match, neighbor_index_cache, query_params
 
 # import warnings
 (print, rrr, profile) = ut.inject2(__name__)
@@ -161,7 +161,7 @@ def new_wbia_query_request(
     #     piperoot = None
 
     if verbose > 2:
-        logger.info('[qreq] piperoot = %r' % (piperoot,))
+        logger.info('[qreq] piperoot = {!r}'.format(piperoot))
     if piperoot is not None and piperoot in ['smk']:
         from wbia.algo.smk import smk_pipeline
 
@@ -257,11 +257,11 @@ def new_wbia_query_request(
         # qreq_.data_config2_ = data_config2_
         qreq_.unique_species = unique_species_  # HACK
         if verbose > 1:
-            logger.info('[qreq] * unique_species = %s' % (qreq_.unique_species,))
+            logger.info('[qreq] * unique_species = {}'.format(qreq_.unique_species))
     if verbose:
         logger.info('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
-        logger.info('[qreq] * data_hashid  = %s' % (qreq_.get_data_hashid(),))
-        logger.info('[qreq] * query_hashid = %s' % (qreq_.get_query_hashid(),))
+        logger.info('[qreq] * data_hashid  = {}'.format(qreq_.get_data_hashid()))
+        logger.info('[qreq] * query_hashid = {}'.format(qreq_.get_query_hashid()))
         logger.info('[qreq] L___ New IBEIS QRequest ___ ')
     return qreq_
 
@@ -284,7 +284,7 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids, verbose=None):
     # candetect = (len(unique_species) == 1 and
     #              ibs.has_species_detector(unique_species[0]))
 
-    ut.cprint('unique_species = %r' % (unique_species,), 'yellow')
+    ut.cprint('unique_species = {!r}'.format(unique_species), 'yellow')
     candetect = True
     for species in set(unique_species):
         if species == const.UNKNOWN:
@@ -309,7 +309,7 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids, verbose=None):
                         '[qreq]  * len(unique_species) = %r' % len(unique_species)
                     )
                 else:
-                    logger.info('[qreq]  * unique_species = %r' % (unique_species,))
+                    logger.info('[qreq]  * unique_species = {!r}'.format(unique_species))
         # logger.info('[qreq]  * valid species = %r' % (
         #    ibs.get_species_with_detectors(),))
         # cfg._featweight_cfg.featweight_enabled = 'ERR'
@@ -318,7 +318,9 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids, verbose=None):
     else:
         # logger.info(ibs.get_annot_species_texts(aid_list))
         if verbose:
-            logger.info('[qreq] Using fgweights of unique_species=%r' % (unique_species,))
+            logger.info(
+                '[qreq] Using fgweights of unique_species={!r}'.format(unique_species)
+            )
     return unique_species
 
 
@@ -1237,7 +1239,9 @@ class QueryRequest(ut.NiceRepr):
         else:
             index_method = qreq_.qparams.index_method
             if prog_hook is not None:
-                prog_hook.set_progress(0, 1, lbl='Loading %s indexer' % (index_method,))
+                prog_hook.set_progress(
+                    0, 1, lbl='Loading {} indexer'.format(index_method)
+                )
             if index_method == 'single':
                 # TODO: SYSTEM updatable indexer
                 if ut.VERYVERBOSE or verbose:
@@ -1254,7 +1258,7 @@ class QueryRequest(ut.NiceRepr):
             #    indexer = multi_index.request_wbia_mindexer(
             #        qreq_, verbose=verbose)
             else:
-                raise ValueError('unknown index_method=%r' % (index_method,))
+                raise ValueError('unknown index_method={!r}'.format(index_method))
             # if qreq_.prog_hook is not None:
             #    hook.set_progress(4, 4, lbl='building indexer')
             qreq_.indexer = indexer

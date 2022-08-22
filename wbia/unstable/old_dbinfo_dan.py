@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 # TODO: ADD COPYRIGHT TAG
 import logging
-import utool as ut
+
 import numpy as np
-from wbia.algo.graph.state import POSTV, NEGTV
+import utool as ut
+
+from wbia.algo.graph.state import NEGTV, POSTV
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -233,25 +235,25 @@ def dans_splits(ibs):
     ]
     num_needs_tag = sum(needs_tag)
     num_had_split = len(needs_tag) - num_needs_tag
-    logger.info('num_had_split = %r' % (num_had_split,))
-    logger.info('num_needs_tag = %r' % (num_needs_tag,))
+    logger.info('num_had_split = {!r}'.format(num_had_split))
+    logger.info('num_needs_tag = {!r}'.format(num_needs_tag))
 
     # all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
     # all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.match_tags]
     # num_nondan = sum(all_has_split) - num_had_split
     # logger.info('num_nondan = %r' % (num_nondan,))
 
-    from wbia.algo.graph import graph_iden
-    from wbia.viz import viz_graph2
     import wbia.guitool as gt
     import wbia.plottool as pt
+    from wbia.algo.graph import graph_iden
+    from wbia.viz import viz_graph2
 
     pt.qt4ensure()
     gt.ensure_qtapp()
 
     aids_list = ut.compress(grouped_aids, needs_tag)
     aids_list = [a for a in aids_list if len(a) > 1]
-    logger.info('len(aids_list) = %r' % (len(aids_list),))
+    logger.info('len(aids_list) = {!r}'.format(len(aids_list)))
 
     for aids in aids_list:
         infr = graph_iden.AnnotInference(ibs, aids)
@@ -298,13 +300,13 @@ def fix_splits_interaction(ibs):
     ]
     if ut.get_argflag('--reverse'):
         tosplit_annots = tosplit_annots[::-1]
-    logger.info('len(tosplit_annots) = %r' % (len(tosplit_annots),))
+    logger.info('len(tosplit_annots) = {!r}'.format(len(tosplit_annots)))
     aids_list = [a.aids for a in tosplit_annots]
 
-    from wbia.algo.graph import graph_iden
-    from wbia.viz import viz_graph2
     import wbia.guitool as gt
     import wbia.plottool as pt
+    from wbia.algo.graph import graph_iden
+    from wbia.viz import viz_graph2
 
     pt.qt4ensure()
     gt.ensure_qtapp()
@@ -409,9 +411,9 @@ def split_analysis(ibs):
     bad_idx = sorted(ut.unique(ut.flatten([inf_idx, nan_idx])))
     ok_idx = ut.index_complement(bad_idx, len(max_speeds))
 
-    logger.info('#nan_idx = %r' % (len(nan_idx),))
-    logger.info('#inf_idx = %r' % (len(inf_idx),))
-    logger.info('#ok_idx = %r' % (len(ok_idx),))
+    logger.info('#nan_idx = {!r}'.format(len(nan_idx)))
+    logger.info('#inf_idx = {!r}'.format(len(inf_idx)))
+    logger.info('#ok_idx = {!r}'.format(len(ok_idx)))
 
     ok_speeds = max_speeds[ok_idx]
     ok_nids = ut.take(nid_list, ok_idx)
@@ -443,13 +445,14 @@ def split_analysis(ibs):
     inf_annots = ut.take(annots_list, inf_idx)
     flagged_annots = inf_annots + flagged_ok_annots
 
-    logger.info('MAX_SPEED = %r km/h' % (MAX_SPEED,))
+    logger.info('MAX_SPEED = {!r} km/h'.format(MAX_SPEED))
     logger.info('%d annots with infinite speed' % (len(inf_annots),))
     logger.info('%d annots with large speed' % (len(flagged_ok_annots),))
     logger.info('Marking all pairs of annots above the threshold as non-matching')
 
-    from wbia.algo.graph import graph_iden
     import networkx as nx
+
+    from wbia.algo.graph import graph_iden
 
     progkw = dict(freq=1, bs=True, est_window=len(flagged_annots))
 
@@ -465,12 +468,12 @@ def split_analysis(ibs):
         good_edges_list.append(good_edges)
     all_bad_edges = ut.flatten(bad_edges_list)
     good_edges_list = ut.flatten(good_edges_list)
-    logger.info('num_bad_edges = %r' % (len(ut.flatten(bad_edges_list)),))
-    logger.info('num_bad_edges = %r' % (len(ut.flatten(good_edges_list)),))
+    logger.info('num_bad_edges = {!r}'.format(len(ut.flatten(bad_edges_list))))
+    logger.info('num_bad_edges = {!r}'.format(len(ut.flatten(good_edges_list))))
 
     if 1:
-        from wbia.viz import viz_graph2
         import wbia.guitool as gt
+        from wbia.viz import viz_graph2
 
         gt.ensure_qtapp()
 
@@ -509,7 +512,7 @@ def split_analysis(ibs):
                 'edge_case_hist: '
                 + ut.repr3(
                     [
-                        '%s %s' % (txt, sum(flags_))
+                        '{} {}'.format(txt, sum(flags_))
                         for flags_, txt in zip(flags_list, positive_tags)
                     ]
                 )
@@ -524,11 +527,11 @@ def split_analysis(ibs):
                 % (ut.conj_phrase(positive_tags, 'or'),)
             )
             logger.info('--- Sampling wrt edges ---')
-            logger.info('edge_sample_size  = %r' % (edge_sample_size,))
-            logger.info('edge_population_size = %r' % (len(aid_pairs),))
+            logger.info('edge_sample_size  = {!r}'.format(edge_sample_size))
+            logger.info('edge_population_size = {!r}'.format(len(aid_pairs)))
             logger.info('num_positive_edges = %r' % (sum(is_positive)))
             logger.info('--- Sampling wrt names ---')
-            logger.info('name_population_size = %r' % (pop,))
+            logger.info('name_population_size = {!r}'.format(pop))
             vt.calc_error_bars_from_sample(
                 sample_size, num_positive, pop, conf_level=0.95
             )
@@ -669,12 +672,12 @@ def split_analysis(ibs):
         for sizes in new_sizes_list
     ]
     reasonable_infr = ut.compress(splittable_infrs, flags2)
-    logger.info('#reasonable_infr = %r' % (len(reasonable_infr),))
+    logger.info('#reasonable_infr = {!r}'.format(len(reasonable_infr)))
 
     for infr in ut.InteractiveIter(reasonable_infr):
         annots = ibs.annots(infr.aids)
         edge_to_speeds = annots.get_speeds()
-        logger.info('max_speed = %r' % (max(edge_to_speeds.values()),))
+        logger.info('max_speed = {!r}'.format(max(edge_to_speeds.values())))
         infr.initialize_visual_node_attrs()
         infr.show_graph(use_image=True, only_reviewed=True)
 
@@ -686,7 +689,7 @@ def split_analysis(ibs):
     for infr in ut.InteractiveIter(random_infr):
         annots = ibs.annots(infr.aids)
         edge_to_speeds = annots.get_speeds()
-        logger.info('max_speed = %r' % (max(edge_to_speeds.values()),))
+        logger.info('max_speed = {!r}'.format(max(edge_to_speeds.values())))
         infr.initialize_visual_node_attrs()
         infr.show_graph(use_image=True, only_reviewed=True)
 
@@ -847,8 +850,8 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
     logger.info('%d annots on day 2' % (len(aids_day2)))
     logger.info('%d names on day 1' % (nsight1,))
     logger.info('%d names on day 2' % (nsight2,))
-    logger.info('resight = %r' % (resight,))
-    logger.info('lp_index = %r ± %r' % (lp_index, lp_error))
+    logger.info('resight = {!r}'.format(resight))
+    logger.info('lp_index = {!r} ± {!r}'.format(lp_index, lp_error))
     return nsight1, nsight2, resight, lp_index, lp_error
 
 
@@ -893,7 +896,7 @@ def draw_twoday_count(ibs, visit_info_list_):
                 #    #logger.info('edge_nodes = %r' % (edge_nodes,))
                 bad_aids = edge_nodes - set(aids)
                 if len(bad_aids) > 0:
-                    logger.info('bad_aids = %r' % (bad_aids,))
+                    logger.info('bad_aids = {!r}'.format(bad_aids))
                 unlinked_aids = set(aids) - edge_nodes
                 mst_links = list(ut.itertwo(list(unlinked_aids) + list(edge_nodes)[:1]))
                 bad_aids.add(None)
@@ -952,13 +955,13 @@ def draw_twoday_count(ibs, visit_info_list_):
             )
         )
 
-        import wbia.plottool as pt
         import networkx as nx
+
+        import wbia.plottool as pt
 
         # pt.qt4ensure()
         # len(list(nx.connected_components(graph1)))
         # logger.info(ut.graph_info(graph1))
-
         # Layout graph
         layoutkw = dict(
             prog='neato',
@@ -1231,8 +1234,9 @@ def tst_name_consistency(ibs):
         >>> #ibs = wbia.opendb(db='GZ_ALL')
 
     """
-    from wbia.other import ibsfuncs
     import utool as ut
+
+    from wbia.other import ibsfuncs
 
     max_ = -1
     # max_ = 10
@@ -1241,10 +1245,10 @@ def tst_name_consistency(ibs):
     ax2_nid = ibs.get_annot_name_rowids(valid_aids)
     nx2_aids = ibs.get_name_aids(valid_nids)
 
-    logger.info('len(valid_aids) = %r' % (len(valid_aids),))
-    logger.info('len(valid_nids) = %r' % (len(valid_nids),))
-    logger.info('len(ax2_nid) = %r' % (len(ax2_nid),))
-    logger.info('len(nx2_aids) = %r' % (len(nx2_aids),))
+    logger.info('len(valid_aids) = {!r}'.format(len(valid_aids)))
+    logger.info('len(valid_nids) = {!r}'.format(len(valid_nids)))
+    logger.info('len(ax2_nid) = {!r}'.format(len(ax2_nid)))
+    logger.info('len(nx2_aids) = {!r}'.format(len(nx2_aids)))
 
     # annots are grouped by names, so mapping aid back to nid should
     # result in each list having the same value

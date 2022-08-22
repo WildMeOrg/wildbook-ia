@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
-from wbia import dtool
+import warnings
+
+import numpy as np
 import utool as ut
 import vtool as vt
 from vtool._pyflann_backend import pyflann as pyflann
+
+from wbia import dtool
 from wbia.algo.smk import pickle_flann
-import numpy as np
-import warnings
 from wbia.control.controller_inject import register_preprocs
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -270,7 +272,7 @@ def compute_vocab(depc, fid_list, config):
                 max_no_improvement=10,
                 reassignment_ratio=0.01,
             )
-            logger.info('minibatch_params = %s' % (ut.repr4(minibatch_params),))
+            logger.info('minibatch_params = {}'.format(ut.repr4(minibatch_params)))
             clusterer = sklearn.cluster.MiniBatchKMeans(
                 compute_labels=False, random_state=rng, verbose=2, **minibatch_params
             )

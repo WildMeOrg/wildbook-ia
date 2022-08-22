@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
+
 import numpy as np
-import vtool as vt
-from scipy.spatial import distance
 import scipy.cluster.hierarchy
 import sklearn.cluster
+import utool as ut
+import vtool as vt
+from scipy.spatial import distance
 
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_occurrence]')
 logger = logging.getLogger('wbia')
@@ -506,10 +507,11 @@ def plot_gps_html(gps_list):
         >>> unixtime_list = unixtime_list_.compress(isvalid)  # NOQA
         >>> plot_image_gps(gps_list)
     """
-    import wbia.plottool as pt
     import gmplot
     import matplotlib as mpl
     import vtool as vt
+
+    import wbia.plottool as pt
 
     pt.qt4ensure()
 

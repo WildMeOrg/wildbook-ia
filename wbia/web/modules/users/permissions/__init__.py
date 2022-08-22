@@ -6,6 +6,7 @@ RESTful API permissions
 """
 
 import logging
+
 from flask_sqlalchemy import BaseQuery
 from permission import Permission as BasePermission
 

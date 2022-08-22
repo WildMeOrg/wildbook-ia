@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
+
+import utool as ut
+
 from wbia import constants as const
 from wbia.control.accessor_decors import adder, getter_1to1, ider
-import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)

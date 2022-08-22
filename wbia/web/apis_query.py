@@ -6,18 +6,20 @@ SeeAlso:
     routes.review_identification
 """
 import logging
-from wbia.control import controller_inject
-from wbia.algo.hots import pipeline
-from flask import url_for, request, current_app  # NOQA
-from os.path import join, dirname, abspath, exists
+import traceback
+from datetime import datetime
+from os.path import abspath, dirname, exists, join
+
 import cv2
 import numpy as np  # NOQA
-import utool as ut
-from wbia.web import appfuncs as appf
-from wbia import constants as const
-import traceback
 import requests
-from datetime import datetime
+import utool as ut
+from flask import current_app, request, url_for  # NOQA
+
+from wbia import constants as const
+from wbia.algo.hots import pipeline
+from wbia.control import controller_inject
+from wbia.web import appfuncs as appf
 
 # (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -249,7 +251,7 @@ def ensure_review_image(
     )
     match_thumb_filepath = join(match_thumb_path, match_thumb_filename)
     if verbose:
-        logger.info('Checking: %r' % (match_thumb_filepath,))
+        logger.info('Checking: {!r}'.format(match_thumb_filepath))
 
     if exists(match_thumb_filepath):
         image = cv2.imread(match_thumb_filepath)
@@ -465,7 +467,7 @@ def review_graph_match_html(
     except Exception:
         # ??? HACK
         # FIXME:
-        logger.info('[!!!!] review_pair = %r' % (review_pair,))
+        logger.info('[!!!!] review_pair = {!r}'.format(review_pair))
         review_pair = review_pair[0]
         annot_uuid_1 = review_pair['annot_uuid_1']
         annot_uuid_2 = review_pair['annot_uuid_2']
@@ -610,8 +612,8 @@ def review_query_chips_test(**kwargs):
     )
     template_html = """
         <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
-        %s
-    """ % (
+        {}
+    """.format(
         template_html,
     )
     return template_html
@@ -851,17 +853,17 @@ def log_render_status(ibs, *args):
     json_log_path = ibs.get_logdir_local()
     json_log_filename = 'render.log'
     json_log_filepath = os.path.join(json_log_path, json_log_filename)
-    logger.info('Logging renders added to: %r' % (json_log_filepath,))
+    logger.info('Logging renders added to: {!r}'.format(json_log_filepath))
 
-    status = '%s' % (args[-1],)
+    status = '{}'.format(args[-1])
     if status not in RENDER_STATUS:
         RENDER_STATUS[status] = 0
     RENDER_STATUS[status] += 1
 
     try:
         with open(json_log_filepath, 'a') as json_log_file:
-            line = ','.join(['%s' % (arg,) for arg in args])
-            line = '%s\n' % (line,)
+            line = ','.join(['{}'.format(arg) for arg in args])
+            line = '{}\n'.format(line)
             json_log_file.write(line)
     except Exception:
         logger.info('WRITE RENDER.LOG FAILED')
@@ -908,9 +910,11 @@ def query_chips_graph(
     return_summary=True,
     **kwargs,
 ):
-    from wbia.unstable.orig_graph_iden import OrigAnnotInference
-    import theano  # NOQA
     import uuid
+
+    import theano  # NOQA
+
+    from wbia.unstable.orig_graph_iden import OrigAnnotInference
 
     def convert_to_uuid(nid):
         try:
@@ -922,16 +926,16 @@ def query_chips_graph(
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    logger.info('query_config_dict = %r' % (query_config_dict,))
+    logger.info('query_config_dict = {!r}'.format(query_config_dict))
 
     curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', None)
     if curvrank_daily_tag is not None:
         if len(curvrank_daily_tag) > 144:
             curvrank_daily_tag_ = ut.hashstr27(curvrank_daily_tag)
-            curvrank_daily_tag_ = 'wbia-shortened-%s' % (curvrank_daily_tag_,)
+            curvrank_daily_tag_ = 'wbia-shortened-{}'.format(curvrank_daily_tag_)
             logger.info('[WARNING] curvrank_daily_tag too long (Probably an old job)')
-            logger.info('[WARNING] Original: %r' % (curvrank_daily_tag,))
-            logger.info('[WARNING] Shortened: %r' % (curvrank_daily_tag_,))
+            logger.info('[WARNING] Original: {!r}'.format(curvrank_daily_tag))
+            logger.info('[WARNING] Shortened: {!r}'.format(curvrank_daily_tag_))
             query_config_dict['curvrank_daily_tag'] = curvrank_daily_tag_
 
     num_qaids = len(qaid_list)
@@ -978,7 +982,7 @@ def query_chips_graph(
 
     if cache_images:
         reference = ut.hashstr27(qreq_.get_cfgstr())
-        cache_path = join(cache_dir, 'qreq_cfgstr_%s' % (reference,))
+        cache_path = join(cache_dir, 'qreq_cfgstr_{}'.format(reference))
         ut.ensuredir(cache_path)
 
     cm_dict = {}
@@ -1282,10 +1286,11 @@ def query_chips_graph(
 def query_chips_graph_match_thumb(
     extern_reference, query_annot_uuid, database_annot_uuid, version
 ):
-    from PIL import Image  # NOQA
-    import vtool as vt
     from io import BytesIO
+
+    import vtool as vt
     from flask import send_file
+    from PIL import Image  # NOQA
 
     ibs = current_app.ibs
     args = (
@@ -1297,19 +1302,19 @@ def query_chips_graph_match_thumb(
 
     cache_dir = join(ibs.cachedir, 'query_match')
 
-    reference_path = join(cache_dir, 'qreq_cfgstr_%s' % (extern_reference,))
+    reference_path = join(cache_dir, 'qreq_cfgstr_{}'.format(extern_reference))
     if not exists(reference_path):
         message = 'dannot_extern_reference is unknown'
         raise controller_inject.WebMatchThumbException(*args, message=message)
 
-    qannot_path = join(reference_path, 'qannot_uuid_%s' % (query_annot_uuid,))
+    qannot_path = join(reference_path, 'qannot_uuid_{}'.format(query_annot_uuid))
     if not exists(qannot_path):
-        message = 'query_annot_uuid is unknown for the given reference %s' % (
+        message = 'query_annot_uuid is unknown for the given reference {}'.format(
             extern_reference,
         )
         raise controller_inject.WebMatchThumbException(*args, message=message)
 
-    dannot_path = join(qannot_path, 'dannot_uuid_%s' % (database_annot_uuid,))
+    dannot_path = join(qannot_path, 'dannot_uuid_{}'.format(database_annot_uuid))
     if not exists(dannot_path):
         message = (
             'database_annot_uuid is unknown for the given reference %s and query_annot_uuid %s'
@@ -1329,7 +1334,7 @@ def query_chips_graph_match_thumb(
 
     assert version in ['clean', 'matches', 'heatmask']
 
-    version_path = join(dannot_path, 'version_%s_orient_horizontal.png' % (version,))
+    version_path = join(dannot_path, 'version_{}_orient_horizontal.png'.format(version))
     if not exists(version_path):
         message = (
             'match thumb version is unknown for the given reference %s, query_annot_uuid %s, database_annot_uuid %s'
@@ -1614,7 +1619,7 @@ def query_chips_graph_v2(
     elif backend in ['lca', 'clusters']:
         from wbia_lca._plugin import LCAClient as GraphClient
     else:
-        raise NotImplementedError('Requested backend %r not supported' % (backend,))
+        raise NotImplementedError('Requested backend {!r} not supported'.format(backend))
 
     logger.info('[apis_query] Creating GraphClient')
 
@@ -1705,8 +1710,9 @@ def query_chips_graph_v2(
 def review_graph_match_config_v2(
     ibs, graph_uuid, aid1=None, aid2=None, view_orientation='vertical', view_version=1
 ):
-    from wbia.algo.verif import pairfeat
     from flask import session
+
+    from wbia.algo.verif import pairfeat
 
     EDGES_KEY = '_EDGES_'
     EDGES_MAX = 10
@@ -1782,7 +1788,7 @@ def review_graph_match_config_v2(
     # image_matches = ensure_review_image_v2(ibs, match, draw_matches=True,
     #                                        view_orientation=view_orientation)
 
-    logger.info('Using View Version: %r' % (view_version,))
+    logger.info('Using View Version: {!r}'.format(view_version))
     if view_version == 1:
         image_heatmask = ensure_review_image_v2(
             ibs, match, draw_heatmask=True, view_orientation=view_orientation
@@ -1971,7 +1977,7 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
             # it to null.
             'meta_decision': 'null',
             'tags': [] if len(tags) == 0 else tags.split(';'),
-            'user_id': 'user:web:%s' % (user_id,),
+            'user_id': 'user:web:{}'.format(user_id),
             'confidence': confidence,
             'timestamp_s1': user_times['server_time_start'],
             'timestamp_c1': user_times['client_time_start'],

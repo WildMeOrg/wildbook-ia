@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-from wbia.control import controller_inject
-import utool as ut
 import time
+
+import utool as ut
+
+from wbia.control import controller_inject
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -325,7 +327,7 @@ def docker_container_urls_from_name(ibs, container_name, clone=None):
 @register_ibs_method
 def docker_container_urls(ibs, container, docker_get_config):
     _internal_port = docker_get_config.get('run_args', {}).get('_internal_port', None)
-    logger.info('[docker_container_urls] Found _internal_port: %s' % (_internal_port,))
+    logger.info('[docker_container_urls] Found _internal_port: {}'.format(_internal_port))
     option_list = ibs.docker_container_IP_port_options(container)
     url_list = []
     for option in option_list:
@@ -334,9 +336,9 @@ def docker_container_urls(ibs, container, docker_get_config):
             # Try to use internal port, if known
             port = _internal_port
         if port is None:
-            url = '%s' % (ip,)
+            url = '{}'.format(ip)
         else:
-            url = '%s:%s' % (ip, port)
+            url = '{}:{}'.format(ip, port)
         url_list.append(url)
     return url_list
 
@@ -389,7 +391,7 @@ def docker_check_container(
             % (retry_index + 1, retry_count)
         )
         for url in url_list:
-            logger.info('\tChecking URL: %s' % (url,))
+            logger.info('\tChecking URL: {}'.format(url))
             if check_func(url):
                 valid_url_list.append(url)
         if len(valid_url_list) > 0:

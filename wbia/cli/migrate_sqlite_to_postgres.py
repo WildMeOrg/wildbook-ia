@@ -9,12 +9,11 @@ import click
 import sqlalchemy
 
 from wbia.dtool.copy_sqlite_to_postgres import (
-    copy_sqlite_to_postgres,
-    SqliteDatabaseInfo,
     PostgresDatabaseInfo,
+    SqliteDatabaseInfo,
     compare_databases,
+    copy_sqlite_to_postgres,
 )
-
 
 logger = logging.getLogger('wbia')
 

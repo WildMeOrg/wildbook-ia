@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-import logging
-import numpy as np
-import utool as ut
-import ubelt as ub
-import pandas as pd
 import itertools as it
+import logging
+
+import numpy as np
+import pandas as pd
+import ubelt as ub
+import utool as ut
+
 import wbia.constants as const
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, NULL
 from wbia.algo.graph.refresh import RefreshCriteria
+from wbia.algo.graph.state import INCMP, NEGTV, NULL, POSTV
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -129,7 +131,9 @@ class InfrLoops(object):
                     # Fix positive redundancy of anything within the loop
                     yield from infr.pos_redun_gen()
 
-                logger.info('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
+                logger.info(
+                    'prob_any_remain = {!r}'.format(infr.refresh.prob_any_remain())
+                )
                 logger.info(
                     'infr.refresh.num_meaningful = {!r}'.format(
                         infr.refresh.num_meaningful

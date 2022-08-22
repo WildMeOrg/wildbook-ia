@@ -1,16 +1,26 @@
 # -*- coding: utf-8 -*-
-import logging
 import itertools as it
-import networkx as nx
+import logging
 import operator
+
+import networkx as nx
 import numpy as np
 import utool as ut
 import vtool as vt
+
 from wbia import constants as const
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
-from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
-from wbia.algo.graph.nx_utils import e_
 from wbia.algo.graph import nx_utils as nxu
+from wbia.algo.graph.nx_utils import e_
+from wbia.algo.graph.state import (  # NOQA
+    DIFF,
+    INCMP,
+    NEGTV,
+    NULL,
+    POSTV,
+    SAME,
+    UNKWN,
+    UNREV,
+)
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -129,7 +139,7 @@ class AttrAccess(object):
             elif on_missing == 'default':
                 data = {}
             elif on_missing == 'error':
-                raise KeyError('graph does not have edge %r ' % (edge,))
+                raise KeyError('graph does not have edge {!r} '.format(edge))
         return data
 
     def get_edge_dataframe(infr, edges=None, all=False):
@@ -209,7 +219,7 @@ class Convenience(object):
         label_to_nodes = ut.group_items(node_to_label.keys(), node_to_label.values())
         logger.info('CC info')
         for name, cc in label_to_nodes.items():
-            logger.info('\nname = %r' % (name,))
+            logger.info('\nname = {!r}'.format(name))
             edges = list(nxu.edges_between(infr.graph, cc))
             logger.info(infr.get_edge_df_text(edges))
 
@@ -299,33 +309,33 @@ class Convenience(object):
         logger.info('================')
 
         nid1_, nid2_ = ibs.get_annot_nids([aid1, aid2])
-        logger.info('AIDS        aid1, aid2 = %r, %r' % (aid1, aid2))
-        logger.info('INFR NAMES: nid1, nid2 = %r, %r' % (nid1, nid2))
+        logger.info('AIDS        aid1, aid2 = {!r}, {!r}'.format(aid1, aid2))
+        logger.info('INFR NAMES: nid1, nid2 = {!r}, {!r}'.format(nid1, nid2))
         if nid1 == nid2:
-            logger.info('INFR cc = %r' % (sorted(cc1),))
+            logger.info('INFR cc = {!r}'.format(sorted(cc1)))
         else:
-            logger.info('INFR cc1 = %r' % (sorted(cc1),))
-            logger.info('INFR cc2 = %r' % (sorted(cc2),))
+            logger.info('INFR cc1 = {!r}'.format(sorted(cc1)))
+            logger.info('INFR cc2 = {!r}'.format(sorted(cc2)))
 
         if (nid1 == nid2) != (nid1_ == nid2_):
             ut.cprint('DISAGREEMENT IN GRAPH AND DB', 'red')
         else:
             ut.cprint('GRAPH AND DB AGREE', 'green')
 
-        logger.info('IBS  NAMES: nid1, nid2 = %r, %r' % (nid1_, nid2_))
+        logger.info('IBS  NAMES: nid1, nid2 = {!r}, {!r}'.format(nid1_, nid2_))
         if nid1_ == nid2_:
-            logger.info('IBS CC: %r' % (sorted(ibs.get_name_aids(nid1_)),))
+            logger.info('IBS CC: {!r}'.format(sorted(ibs.get_name_aids(nid1_))))
         else:
-            logger.info('IBS CC1: %r' % (sorted(ibs.get_name_aids(nid1_)),))
-            logger.info('IBS CC2: %r' % (sorted(ibs.get_name_aids(nid2_)),))
+            logger.info('IBS CC1: {!r}'.format(sorted(ibs.get_name_aids(nid1_))))
+            logger.info('IBS CC2: {!r}'.format(sorted(ibs.get_name_aids(nid2_))))
 
         # Does this exist in annotmatch?
         in_am = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])
-        logger.info('in_am = %r' % (in_am,))
+        logger.info('in_am = {!r}'.format(in_am))
 
         # Does this exist in staging?
         staging_rowids = ibs.get_review_rowids_from_edges([(aid1, aid2)])[0]
-        logger.info('staging_rowids = %r' % (staging_rowids,))
+        logger.info('staging_rowids = {!r}'.format(staging_rowids))
 
         if False:
             # Make absolutely sure
@@ -334,7 +344,7 @@ class Convenience(object):
             has_aid1 = (stagedf[aid_cols] == aid1).any(axis=1)
             from_aid1 = stagedf[has_aid1]
             conn_aid2 = (from_aid1[aid_cols] == aid2).any(axis=1)
-            logger.info('# connections = %r' % (conn_aid2.sum(),))
+            logger.info('# connections = {!r}'.format(conn_aid2.sum()))
 
         # Next check indirect relationships
         graph = infr.graph
@@ -713,7 +723,7 @@ class AssertInvariants(object):
 
         # Self loops should correspond to the number of inconsistent components
         neg_self_loop_nids = sorted(
-            [ne[0] for ne in list(nx.selfloop_edges(infr.neg_metagraph))]
+            ne[0] for ne in list(nx.selfloop_edges(infr.neg_metagraph))
         )
         incon_nids = sorted(infr.nid_to_errors.keys())
         assert neg_self_loop_nids == incon_nids

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import numpy as np
 import utool as ut
 
@@ -257,7 +258,7 @@ def gridsearch_ratio_thresh(matches):
         subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=0.8)
         best_ratio_thresh = subx[suby.argmax()]
         skf_results.append(best_ratio_thresh)
-    logger.info('skf_results.append = %r' % (np.mean(skf_results),))
+    logger.info('skf_results.append = {!r}'.format(np.mean(skf_results)))
     import utool
 
     utool.embed()

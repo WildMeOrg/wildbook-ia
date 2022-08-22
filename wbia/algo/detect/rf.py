@@ -3,9 +3,10 @@
 Interface to Darknet object proposals.
 """
 import logging
-import utool as ut
 from os import listdir
-from os.path import join, isfile, isdir
+from os.path import isdir, isfile, join
+
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[rf]')
 logger = logging.getLogger('wbia')
@@ -66,6 +67,7 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
         iter
     """
     import multiprocessing
+
     import numpy as np
 
     # Get correct weight if specified with shorthand
@@ -82,11 +84,9 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     is_ensemble = isdir(weight_filepath)
     if is_ensemble:
         weight_filepath_list = sorted(
-            [
-                join(weight_filepath, filename)
-                for filename in listdir(weight_filepath)
-                if isfile(join(weight_filepath, filename))
-            ]
+            join(weight_filepath, filename)
+            for filename in listdir(weight_filepath)
+            if isfile(join(weight_filepath, filename))
         )
     else:
         weight_filepath_list = [weight_filepath]
@@ -129,7 +129,9 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
 
         nTasks = len(args_list)
         logger.info(
-            'Processing vectors in parallel using vector_batch = %r' % (vector_batch,)
+            'Processing vectors in parallel using vector_batch = {!r}'.format(
+                vector_batch
+            )
         )
 
     # Perform inference

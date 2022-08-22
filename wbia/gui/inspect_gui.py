@@ -13,16 +13,15 @@ TODO:
 """
 import logging
 from functools import partial
-from wbia.guitool.__PYQT__ import QtCore
-from wbia.guitool.__PYQT__ import QtWidgets
-from wbia.guitool.__PYQT__.QtCore import Qt
-from wbia.plottool import fig_presenter
-import wbia.guitool as gt
-from wbia.algo.graph.nx_utils import connected_component_subgraphs
 
 import utool as ut
-from wbia.gui import id_review_api
-from wbia.gui import guiexcept
+
+import wbia.guitool as gt
+from wbia.algo.graph.nx_utils import connected_component_subgraphs
+from wbia.gui import guiexcept, id_review_api
+from wbia.guitool.__PYQT__ import QtCore, QtWidgets
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.plottool import fig_presenter
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -156,7 +155,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         qres_wgt.ibs = ibs
         qres_wgt.qreq_ = qreq_
         qres_wgt.query_title = query_title
-        qres_wgt.qaid2_cm = dict([(cm.qaid, cm) for cm in cm_list])
+        qres_wgt.qaid2_cm = {cm.qaid: cm for cm in cm_list}
 
         qres_wgt.review_cfg = id_review_api.REVIEW_CFG_DEFAULTS.copy()
         qres_wgt.review_cfg = ut.update_existing(
@@ -232,7 +231,7 @@ class QueryResultsWidget(gt.APIItemWidget):
 
         ts = ut.get_timestamp(isutc=True, timezone=True)
         log_fpath = ut.unixjoin(
-            review_log_dir, 'review_log_%s_%s.json' % (qres_wgt.qreq_.ibs.dbname, ts)
+            review_log_dir, 'review_log_{}_{}.json'.format(qres_wgt.qreq_.ibs.dbname, ts)
         )
 
         # LOG ALL CHANGES MADE TO NAMES
@@ -282,9 +281,9 @@ class QueryResultsWidget(gt.APIItemWidget):
         dlg.resize(700, 500)
         self = dlg.widget
         dlg.exec_()
-        logger.info('config = %r' % (config,))
+        logger.info('config = {!r}'.format(config))
         updated_config = self.config  # NOQA
-        logger.info('updated_config = %r' % (updated_config,))
+        logger.info('updated_config = {!r}'.format(updated_config))
         qres_wgt.review_cfg = updated_config.asdict()
         qres_wgt.repopulate()
 
@@ -394,8 +393,8 @@ class QueryResultsWidget(gt.APIItemWidget):
 
         # if len(selected_qtindex_list) == 1:
         for qtindex in selected_qtindex_list:
-            logger.info('event = %r ' % (event,))
-            logger.info('event.key() = %r ' % (event.key(),))
+            logger.info('event = {!r} '.format(event))
+            logger.info('event.key() = {!r} '.format(event.key()))
             qtindex = selected_qtindex_list[0]
             ibs = qres_wgt.ibs
             aid1, aid2 = qres_wgt.get_aidpair_from_qtindex(qtindex)
@@ -524,7 +523,7 @@ class QueryResultsWidget(gt.APIItemWidget):
             qtindex = selected_qtindex_list[0]
             # aid1, aid2 = qres_wgt.get_aidpair_from_qtindex(qtindex)
             thresh = qtindex.model().get_header_data('score', qtindex)
-            logger.info('thresh = %r' % (thresh,))
+            logger.info('thresh = {!r}'.format(thresh))
 
             rows = qres_wgt.review_api.ider()
             scores_ = qres_wgt.review_api.get(
@@ -708,7 +707,7 @@ def set_annot_pair_as_positive_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
             on_nontrivial_merge=on_nontrivial_merge,
             logger=kwargs.get('logger', None),
         )
-        logger.info('status = %r' % (status,))
+        logger.info('status = {!r}'.format(status))
     except guiexcept.NeedsUserInput:
         review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
     except guiexcept.UserCancel:
@@ -735,7 +734,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
             on_nontrivial_split=on_nontrivial_split,
             logger=kwargs.get('logger', None),
         )
-        logger.info('status = %r' % (status,))
+        logger.info('status = {!r}'.format(status))
     except guiexcept.NeedsUserInput:
         options = ['Flag for later', 'Review now']
         reply = gt.user_option(
@@ -856,7 +855,7 @@ def get_aidpair_context_menu_options(
             show_chip_match_features_option = (
                 'Show chip feature matches',
                 [
-                    ('to aid=%r' % (aid_,), partial_show_chip_matches_to(aid_))
+                    ('to aid={!r}'.format(aid_), partial_show_chip_matches_to(aid_))
                     for aid_ in aid_list
                 ],
             )
@@ -959,11 +958,11 @@ def get_aidpair_context_menu_options(
 
         def dev_debug():
             logger.info('=== DBG ===')
-            logger.info('ibs = %r' % (ibs,))
-            logger.info('cm = %r' % (cm,))
-            logger.info('aid1 = %r' % (aid1,))
-            logger.info('aid2 = %r' % (aid2,))
-            logger.info('qreq_ = %r' % (qreq_,))
+            logger.info('ibs = {!r}'.format(ibs))
+            logger.info('cm = {!r}'.format(cm))
+            logger.info('aid1 = {!r}'.format(aid1))
+            logger.info('aid2 = {!r}'.format(aid2))
+            logger.info('qreq_ = {!r}'.format(qreq_))
             cm.print_inspect_str(qreq_)
             cm.print_rawinfostr()
 
@@ -1004,8 +1003,8 @@ def make_vsone_tuner(
         >>> gt.qtapp_loop(qwin=self, freq=10)
 
     """
-    from vtool import inspect_matches
     import vtool as vt
+    from vtool import inspect_matches
 
     if cfgdict is not None:
         assert qreq_ is None, 'specify only one cfg or qreq_'
@@ -1086,8 +1085,8 @@ def make_annotpair_context_options(ibs, aid1, aid2, qreq_):
         config2_list_ = [qreq_.extern_query_config2, qreq_.extern_data_config2]
 
     chip_contex_options = []
-    logger.info('config2_list_ = %r' % (config2_list_,))
-    logger.info('aid_list2 = %r' % (aid_list2,))
+    logger.info('config2_list_ = {!r}'.format(config2_list_))
+    logger.info('aid_list2 = {!r}'.format(aid_list2))
     for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_), start=1):
         chip_contex_options += [
             (
@@ -1145,19 +1144,21 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
     case_hotlink_list = gt.make_word_hotlinks(case_list, used_chars)
     pair_tag_options = []
     if True or ut.VERBOSE:
-        logger.info('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2))
-        logger.info('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
-        logger.info('[inspect_gui] tags = %r' % (tags,))
+        logger.info('[inspect_gui] aid1, aid2 = {!r}, {!r}'.format(aid1, aid2))
+        logger.info('[inspect_gui] annotmatch_rowid = {!r}'.format(annotmatch_rowid))
+        logger.info('[inspect_gui] tags = {!r}'.format(tags))
     if ut.VERBOSE:
         logger.info('[inspect_gui] Making case hotlist: ' + ut.repr2(case_hotlink_list))
 
     def _wrap_set_annotmatch_prop(prop, toggle_val):
         if ut.VERBOSE:
-            logger.info('[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val))
+            logger.info(
+                '[SETTING] Clicked set prop={!r} to val={!r}'.format(prop, toggle_val)
+            )
         am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
         if ut.VERBOSE:
-            logger.info('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2))
-            logger.info('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
+            logger.info('[SETTING] aid1, aid2 = {!r}, {!r}'.format(aid1, aid2))
+            logger.info('[SETTING] annotmatch_rowid = {!r}'.format(am_rowid))
         ibs.set_annotmatch_prop(prop, [am_rowid], [toggle_val])
         if ut.VERBOSE:
             logger.info('[SETTING] done')
@@ -1168,9 +1169,9 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
             else:
                 tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
                 tags = [_.lower() for _ in tags]
-            logger.info('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2))
-            logger.info('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
-            logger.info('[inspect_gui] tags = %r' % (tags,))
+            logger.info('[inspect_gui] aid1, aid2 = {!r}, {!r}'.format(aid1, aid2))
+            logger.info('[inspect_gui] annotmatch_rowid = {!r}'.format(annotmatch_rowid))
+            logger.info('[inspect_gui] tags = {!r}'.format(tags))
 
     for case, case_hotlink in zip(case_list, case_hotlink_list):
         toggle_val = case.lower() not in tags

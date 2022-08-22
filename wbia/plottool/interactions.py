@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import utool as ut
+
 from .. import plottool as pt
 from . import abstract_interaction
 from . import interact_helpers as ih
@@ -9,7 +10,7 @@ def check_if_subinteract(func):
     try:
         if ut.VERBOSE:
             print('Checking if subinteraction')
-            print('func = %r' % (func,))
+            print('func = {!r}'.format(func))
         is_sub = issubclass(func, abstract_interaction.AbstractInteraction)
     except TypeError:
         is_sub = False
@@ -163,10 +164,10 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         if ih.clicked_inside_axis(event):
             func = pt.get_plotdat(ax, 'plot_func', None)
             if ut.VERBOSE:
-                print('func = %r' % (func,))
+                print('func = {!r}'.format(func))
             if func is not None:
                 if ut.VERBOSE:
-                    print('calling func = %r' % (func,))
+                    print('calling func = {!r}'.format(func))
                 fnum = pt.next_fnum()
                 # pt.figure(fnum=fnum)
                 pnum = (1, 1, 1)
@@ -218,7 +219,7 @@ def zoom_factory(ax=None, zoomable_list=[], base_scale=1.1):
             # deal with zoom out
             scale_factor = base_scale
         else:
-            raise NotImplementedError('event.button=%r' % (event.button,))
+            raise NotImplementedError('event.button={!r}'.format(event.button))
             # deal with something that should never happen
             scale_factor = 1
             print(event.button)

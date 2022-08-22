@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
+
 import numpy as np
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -24,10 +25,11 @@ def multidb_montage():
         >>> from wbia.scripts.specialdraw import *  # NOQA
         >>> multidb_montage()
     """
+    import numpy as np
+    import vtool as vt
+
     import wbia
     import wbia.plottool as pt
-    import vtool as vt
-    import numpy as np
 
     pt.ensureqt()
     dbnames = [
@@ -85,17 +87,16 @@ def featweight_fig():
         >>> ut.show_if_requested()
     """
     # ENABLE_DOCTEST
-    import wbia
-
     # import wbia.plottool as pt
     import matplotlib as mpl
+
+    import wbia
     from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)
     from wbia.core_annots import gen_featweight_worker
 
     # test_featweight_worker()
-
     # ibs = wbia.opendb(defaultdb='GZ_Master1')
     # aid = ut.get_argval('--aid', type_=list, default=2810)
     ibs = wbia.opendb(defaultdb='PZ_MTEST')
@@ -145,10 +146,10 @@ def simple_vsone_matches():
         >>> simple_vsone_matches()
         >>> ut.show_if_requested()
     """
-    import wbia
-
     # import wbia.plottool as pt
     import matplotlib as mpl
+
+    import wbia
     from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)
@@ -196,8 +197,9 @@ def double_depcache_graph():
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import wbia
     import networkx as nx
+
+    import wbia
     import wbia.plottool as pt
 
     pt.ensureqt()
@@ -351,8 +353,9 @@ def double_depcache_graph():
 
 
 def lighten_hex(hexcolor, amount):
-    import wbia.plottool as pt
     import matplotlib.colors as colors
+
+    import wbia.plottool as pt
 
     return pt.color_funcs.lighten_rgb(colors.hex2color(hexcolor), amount)
 
@@ -373,6 +376,7 @@ def general_identify_flow():
         >>> ut.show_if_requested()
     """
     import networkx as nx
+
     import wbia.plottool as pt
 
     pt.ensureqt()
@@ -695,9 +699,10 @@ def merge_viewpoint_graph():
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import wbia.plottool as pt
-    import wbia
     import networkx as nx
+
+    import wbia
+    import wbia.plottool as pt
 
     defaultdb = 'PZ_Master1'
     ibs = wbia.opendb(defaultdb=defaultdb)
@@ -813,10 +818,11 @@ def setcover_example():
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
+    import networkx as nx
+
     import wbia
     import wbia.plottool as pt
     from wbia.viz import viz_graph
-    import networkx as nx
 
     pt.ensureqt()
     ibs = wbia.opendb(defaultdb='testdb2')
@@ -937,8 +943,8 @@ def k_redun_demo():
     """
     import wbia
     import wbia.plottool as pt
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV
     from wbia.viz import viz_graph
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP
 
     # import networkx as nx
     pt.ensureqt()
@@ -1086,7 +1092,7 @@ def graph_iden_cut_demo():
         for edge in new_edges:
             infr.queue.push(edge, -1)
 
-        from wbia.algo.graph.state import POSTV, NEGTV, INCMP
+        from wbia.algo.graph.state import INCMP, NEGTV, POSTV
 
         while True:
             edge, priority = infr.pop()
@@ -1212,7 +1218,7 @@ def show_id_graph():
         if len(pccs) >= MAX_NUM:
             break
 
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNREV  # NOQA
 
     subinfr = parent_infr.subgraph(ut.flatten(pccs))
     subinfr._viz_image_config['thumbsize'] = 700
@@ -1374,10 +1380,11 @@ def intraoccurrence_connected():
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
+    import networkx as nx
+
     import wbia
     import wbia.plottool as pt
     from wbia.viz import viz_graph
-    import networkx as nx
 
     pt.ensureqt()
     ibs = wbia.opendb(defaultdb='PZ_Master1')
@@ -1643,11 +1650,11 @@ def scalespace():
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import numpy as np
-
     # import matplotlib.pyplot as plt
     import cv2
+    import numpy as np
     import vtool as vt
+
     import wbia.plottool as pt
 
     pt.qt4ensure()
@@ -1671,7 +1678,7 @@ def scalespace():
         img_level = imgRaw[::step, ::step]
         # Compute interval relative scales
         interval = np.array(list(range(num_intervals)))
-        relative_scales = 2 ** ((interval / num_intervals))
+        relative_scales = 2 ** (interval / num_intervals)
         sigma_intervals = initial_sigma * relative_scales
         octave_intervals = []
         for sigma in sigma_intervals:
@@ -1761,7 +1768,7 @@ def event_space():
     from matplotlib import pyplot as plt
 
     # import numpy as np
-    from matplotlib_venn import venn3, venn2, venn3_circles
+    from matplotlib_venn import venn2, venn3, venn3_circles
 
     plt.figure(figsize=(4, 4))
     v = venn3(subsets=(1, 1, 1, 1, 1, 1, 1), set_labels=('A', 'B', 'C'))
@@ -1774,8 +1781,8 @@ def event_space():
     c[0].set_ls('dotted')
     plt.show()
 
-    same = set(['comparable', 'incomparable', 'same'])
-    diff = set(['comparable', 'incomparable', 'diff'])
+    same = {'comparable', 'incomparable', 'same'}
+    diff = {'comparable', 'incomparable', 'diff'}
     # comparable = set(['comparable', 'same', 'diff'])
     # incomparable = set(['incomparable', 'same', 'diff'])
     subsets = [same, diff]  # , comparable, incomparable]
@@ -1874,9 +1881,10 @@ def draw_inconsistent_pcc():
     CommandLine:
         python -m wbia.scripts.specialdraw draw_inconsistent_pcc --show
     """
-    from wbia.algo.graph import demo
-    import wbia.plottool as pt
     import matplotlib as mpl
+
+    import wbia.plottool as pt
+    from wbia.algo.graph import demo
     from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)
@@ -1897,7 +1905,7 @@ def draw_inconsistent_pcc():
     )
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
-    from wbia.algo.graph.state import POSTV, NEGTV
+    from wbia.algo.graph.state import NEGTV, POSTV
 
     pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
@@ -1914,7 +1922,7 @@ def draw_inconsistent_pcc():
     )
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
-    from wbia.algo.graph.state import POSTV, NEGTV
+    from wbia.algo.graph.state import NEGTV, POSTV
 
     pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
@@ -1931,9 +1939,10 @@ def draw_graph_id():
     CommandLine:
         python -m wbia.scripts.specialdraw draw_graph_id --show
     """
-    from wbia.algo.graph import demo
-    import wbia.plottool as pt
     import matplotlib as mpl
+
+    import wbia.plottool as pt
+    from wbia.algo.graph import demo
     from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)
@@ -1959,7 +1968,7 @@ def draw_graph_id():
     )
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV
 
     pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
@@ -1973,15 +1982,15 @@ def redun_demo2():
     r"""
     python -m wbia.scripts.specialdraw redun_demo2 --show
     """
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
-    from wbia.algo.graph import demo
-
     # from wbia.algo.graph import nx_utils
     import wbia.plottool as pt
+    from wbia.algo.graph import demo
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV  # NOQA
 
     # import networkx as nx
     pt.ensureqt()
     import matplotlib as mpl
+
     from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)
@@ -2056,14 +2065,15 @@ def redun_demo3():
     python -m wbia.scripts.specialdraw redun_demo3 --show
     python -m wbia.scripts.specialdraw redun_demo3 --saveparts=~/slides/incon_redun.jpg --dpi=300
     """
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+    import wbia.plottool as pt
     from wbia.algo.graph import demo
     from wbia.algo.graph import nx_utils as nxu
-    import wbia.plottool as pt
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV  # NOQA
 
     # import networkx as nx
     pt.ensureqt()
     import matplotlib as mpl
+
     from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)
@@ -2101,7 +2111,7 @@ def redun_demo3():
     import networkx as nx
 
     for e in nxu.edges_between(nx.complement(infr.graph), ccs[0], ccs[1]):
-        logger.info('e = %r' % (e,))
+        logger.info('e = {!r}'.format(e))
         infr.add_feedback(e, evidence_decision=INCMP)
     infr.graph.graph.update(graphkw)
     infr.show(pnum=pnum_(), **showkw)
@@ -2120,14 +2130,15 @@ def system_diagram():
         python -m wbia.scripts.specialdraw system_diagram --show
 
     """
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+    import wbia.plottool as pt
     from wbia.algo.graph import demo
     from wbia.algo.graph import nx_utils as nxu  # NOQA
-    import wbia.plottool as pt
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNREV  # NOQA
 
     # import networkx as nx
     pt.ensureqt()
     import matplotlib as mpl
+
     from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)

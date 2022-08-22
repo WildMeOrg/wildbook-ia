@@ -3,12 +3,14 @@
 ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview  # NOQA
 """
 import logging
+from functools import reduce
 from os.path import join
+
 import numpy as np
 import utool as ut
 import vtool as vt
+
 from wbia.expt import draw_helpers
-from functools import reduce
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -82,8 +84,8 @@ def scorediff(ibs, testres, f=None, verbose=None):
         num_fail_bins = int(fail_max / width)
         succ_bins = np.linspace(0, succ_max, num_succ_bins + 1)
         fail_bins = np.linspace(-fail_max, 0, num_fail_bins + 1)
-        logger.info('succ_bins = %r' % (succ_bins,))
-        logger.info('fail_bins = %r' % (fail_bins,))
+        logger.info('succ_bins = {!r}'.format(succ_bins))
+        logger.info('fail_bins = {!r}'.format(fail_bins))
         succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=succ_bins)
         fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=fail_bins)
         # bin_max = (score_diffs.max() - score_diffs.min()) / 50
@@ -128,7 +130,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
             edgecolor='none',
             xlabel='difference between the best correct score and the best incorrect score',
             ylabel='frequency (number of query annotations)',
-            title='Score differences for %s' % (species_nice,),
+            title='Score differences for {}'.format(species_nice),
             xmin=-10,
             xmax=30,
             use_legend=True,
@@ -194,10 +196,10 @@ def scorediff(ibs, testres, f=None, verbose=None):
                 #    logger.info(l.get_label())
                 pts = np.array([top_scores, score_diffs]).T
                 idx, dist = vt.closest_point(np.array([event.xdata, event.ydata]), pts)
-                logger.info('idx = %r' % (idx,))
-                logger.info('dist = %r' % (dist,))
+                logger.info('idx = {!r}'.format(idx))
+                logger.info('dist = {!r}'.format(dist))
                 aid = aid_list[idx]
-                logger.info('aid = %r' % (aid,))
+                logger.info('aid = {!r}'.format(aid))
                 if event.button == 3:  # right-click
                     cm = cm_list[idx]
                     from wbia.gui import inspect_gui
@@ -268,8 +270,9 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         import IPython
         IPython.get_ipython().magic('pylab qt4')
     """
-    import wbia.plottool as pt
     import vtool as vt
+
+    import wbia.plottool as pt
     from wbia.expt import cfghelpers
 
     if ut.VERBOSE:
@@ -277,7 +280,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
-    logger.info('filt_cfg = %r' % (filt_cfg,))
+    logger.info('filt_cfg = {!r}'.format(filt_cfg))
 
     # assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
     test_qaids = testres.get_test_qaids()
@@ -331,7 +334,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         grouped_scores.append(score_group)
 
     def attr_callback(qaid):
-        logger.info('callback qaid = %r' % (qaid,))
+        logger.info('callback qaid = {!r}'.format(qaid))
         testres.interact_individual_result(qaid)
         reconstruct_str = (
             'python -m wbia.dev -e cases '
@@ -472,7 +475,7 @@ def draw_casetag_hist(
         gf_tags = testres.get_gf_tags()
         truth2_prop, prop2_mat = testres.get_truth2_prop()
         score_thresh = testres.find_score_thresh_cutoff()
-        logger.info('score_thresh = %r' % (score_thresh,))
+        logger.info('score_thresh = {!r}'.format(score_thresh))
         # TODO: I want the point that the prob true is greater than prob false
         gt_is_problem = truth2_prop['gt']['score'] < score_thresh
         gf_is_problem = truth2_prop['gf']['score'] >= score_thresh
@@ -668,25 +671,20 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     for const_idx, const_val in enumerate(const_basis):
         pnum = pnum_()
         if verbose:
-            logger.info('---- NEXT PNUM=%r --- ' % (pnum,))
-            logger.info('const_key = %r' % (const_key,))
-            logger.info('const_val = %r' % (const_val,))
-            logger.info('const_idx = %r' % (const_idx,))
+            logger.info('---- NEXT PNUM={!r} --- '.format(pnum))
+            logger.info('const_key = {!r}'.format(const_key))
+            logger.info('const_val = {!r}'.format(const_val))
+            logger.info('const_idx = {!r}'.format(const_idx))
         const_basis_cfgx_list = const_basis_cfgx_lists[const_idx]
         rank_list = ut.take(percent_le1_list, const_basis_cfgx_list)
         # Figure out what the values are for other dimensions
-        agree_param_vals = dict(
-            [
-                (
-                    key,
-                    [
-                        testres.get_param_val_from_cfgx(cfgx, key)
-                        for cfgx in const_basis_cfgx_list
-                    ],
-                )
-                for key in nd_labels_full
+        agree_param_vals = {
+            key: [
+                testres.get_param_val_from_cfgx(cfgx, key)
+                for cfgx in const_basis_cfgx_list
             ]
-        )
+            for key in nd_labels_full
+        }
 
         # Make a list of points that need plotting
         known_nd_data = np.array(list(agree_param_vals.values())).T
@@ -718,13 +716,13 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
             title = (
                 'accuracy when '
                 + annotation_configs.shorten_to_alias_labels(const_key)
-                + '=%r' % (const_val,)
+                + '={!r}'.format(const_val)
             )
         if verbose:
-            logger.info('title = %r' % (title,))
+            logger.info('title = {!r}'.format(title))
             # logger.info('nd_labels = %r' % (nd_labels,))
-            logger.info('target_label = %r' % (target_label,))
-            logger.info('known_nd_data = %r' % (known_nd_data,))
+            logger.info('target_label = {!r}'.format(target_label))
+            logger.info('known_nd_data = {!r}'.format(known_nd_data))
             # logger.info('known_target_points = %r' % (known_target_points,))
 
         # PLOT3D = not ut.get_argflag('--no3dsurf')
@@ -952,7 +950,7 @@ def temp_multidb_cmc():
             'zebra_plains': 'Plains Zebras',
             'giraffe_masai': 'Masai Giraffes',
         }.get(species, species_nice)
-        label = ('%6.2f%% @ rank #1' % (cmc[0],)) + ' - ' + species_nice
+        label = ('{:6.2f}% @ rank #1'.format(cmc[0])) + ' - ' + species_nice
         label_list.append(label)
         ydata_list.append(cmc)
 
@@ -1086,7 +1084,7 @@ def draw_rank_cmc(
         shorten=True, join_acfgs=join_acfgs, sep=kwargs.get('sep', '')
     )
     label_list = [
-        ('%6.2f%%' % (percent,)) + ' - ' + label
+        ('{:6.2f}%'.format(percent)) + ' - ' + label
         for label, percent in zip(cfglbl_list, cfgx2_cumhist_percent.T[0])
     ]
 
@@ -1098,7 +1096,7 @@ def draw_rank_cmc(
         '--test_cfgx_slice', type_='fuzzy_subset', default=test_cfgx_slice
     )
     if test_cfgx_slice is not None:
-        logger.info('test_cfgx_slice = %r' % (test_cfgx_slice,))
+        logger.info('test_cfgx_slice = {!r}'.format(test_cfgx_slice))
         cfgx2_cumhist_percent = np.array(ut.take(cfgx2_cumhist_percent, test_cfgx_slice))
         label_list = ut.take(label_list, test_cfgx_slice)
         color_list = ut.take(color_list, test_cfgx_slice)
@@ -1262,8 +1260,9 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
         >>> draw_case_timedeltas(ibs, testres)
         >>> ut.show_if_requested()
     """
-    import wbia.plottool as pt
     import datetime
+
+    import wbia.plottool as pt
 
     plotkw = {}
     plotkw['markersize'] = 12
@@ -1315,7 +1314,7 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None, verbose=Fals
 
     numnan_list = [(~np.isfinite(X)).sum() for X in X_data_list]
     xdata_list = [X[~np.isnan(X)] for X in X_data_list]
-    max_score = max([0 if len(xdata) == 0 else xdata.max() for xdata in xdata_list])
+    max_score = max(0 if len(xdata) == 0 else xdata.max() for xdata in xdata_list)
 
     bins = [
         datetime.timedelta(seconds=0).total_seconds(),
@@ -1456,6 +1455,7 @@ def draw_match_cases(
 
     if True:
         import matplotlib as mpl
+
         from wbia.scripts.thesis import TMP_RC
 
         mpl.rcParams.update(TMP_RC)
@@ -1499,7 +1499,7 @@ def draw_match_cases(
     if DO_COPY_QUEUE:
         cpq = draw_helpers.IndividualResultsCopyTaskQueue()
     if ut.NOT_QUIET:
-        logger.info('case_figdir = %r' % (case_figdir,))
+        logger.info('case_figdir = {!r}'.format(case_figdir))
     ##########################
 
     # ### INTERACTIVE SETUP ###
@@ -1511,7 +1511,7 @@ def draw_match_cases(
 
     def toggle_fast_mode():
         show_kwargs['fastmode'] = not show_kwargs['fastmode']
-        logger.info("show_kwargs['fastmode'] = %r" % (show_kwargs['fastmode'],))
+        logger.info("show_kwargs['fastmode'] = {!r}".format(show_kwargs['fastmode']))
 
     custom_actions = [
         ('present', ['s'], 'present', pt.present),
@@ -1563,9 +1563,9 @@ def draw_match_cases(
         if 0 or ut.VERBOSE:
             logger.info('=== QUERY INFO ===')
             logger.info('=== QUERY INFO ===')
-            logger.info('qaid = %r' % (qaid,))
-            logger.info('qx = %r' % (qx,))
-            logger.info('cfgxs = %r' % (cfgxs,))
+            logger.info('qaid = {!r}'.format(qaid))
+            logger.info('qx = {!r}'.format(qx))
+            logger.info('cfgxs = {!r}'.format(cfgxs))
             # print testres info about this item
             take_cfgs = ut.partial(ut.take, index_list=cfgxs)
             take_qx = ut.partial(ut.take, index_list=qx)
@@ -1615,7 +1615,7 @@ def draw_match_cases(
                     qaid,
                     cfgx,
                 )
-                logger.info('bar_label = %r' % (bar_label,))
+                logger.info('bar_label = {!r}'.format(bar_label))
                 if show_in_notebook:
                     # hack to show vertical line in notebook
                     if len(cfg_colors) > 0:
@@ -1647,15 +1647,15 @@ def draw_match_cases(
                         pt.plt.show()
                 if cmdaug is not None:
                     # Hack for candidacy
-                    analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))
-                    logger.info('analysis_fpath = %r' % (analysis_fpath,))
+                    analysis_fpath = join(figdir, 'figuresC/case_{}.png'.format(cmdaug))
+                    logger.info('analysis_fpath = {!r}'.format(analysis_fpath))
                 if show_in_notebook:
                     pt.plt.show()
 
                 # elif not show:
                 if False:
                     fig = pt.gcf()
-                    logger.info('analysis_fpath = %r' % (analysis_fpath,))
+                    logger.info('analysis_fpath = {!r}'.format(analysis_fpath))
                     fig.savefig(analysis_fpath)
                     vt.clipwhite_ondisk(
                         analysis_fpath, analysis_fpath, verbose=ut.VERBOSE

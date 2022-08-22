@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
-from os.path import basename, join, splitext, exists, isdir, islink, abspath
-import pandas as pd
 import re
-import numpy as np
-import utool as ut
+from os.path import abspath, basename, exists, isdir, islink, join, splitext
+
 import matplotlib as mpl
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+import numpy as np
+import pandas as pd
+import utool as ut
+
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -101,7 +103,7 @@ class DBInputs(object):
         computer_id = ut.get_argval('--comp', default=ut.get_computer_name())
 
         conf_dpath = ut.ensuredir((expanduser(self.base_dpath), 'configured'))
-        comp_dpath = ut.ensuredir((join(conf_dpath, computer_id)))
+        comp_dpath = ut.ensuredir(join(conf_dpath, computer_id))
 
         link_dpath = ut.ensuredir((self.base_dpath, 'link'))
 
@@ -178,7 +180,7 @@ class DBInputs(object):
                     self._precollect()
                 ut.cprint('Checking new fpath', 'yellow')
                 fpath = join(str(self.dpath), expt_name + '.pkl')
-                logger.info('fpath = %r' % (fpath,))
+                logger.info('fpath = {!r}'.format(fpath))
                 if not exists(fpath):
                     ut.cprint('Results still missing need to re-measure', 'red')
                     # assert False
@@ -208,9 +210,9 @@ class DBInputs(object):
         #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
         #     >>> ChapX.measure(expt_name, dbnames)
         """
-        logger.info('expt_name = %r' % (expt_name,))
-        logger.info('dbnames = %r' % (dbnames,))
-        logger.info('args = %r' % (args,))
+        logger.info('expt_name = {!r}'.format(expt_name))
+        logger.info('dbnames = {!r}'.format(dbnames))
+        logger.info('args = {!r}'.format(args))
         dbnames = ut.smart_cast(dbnames, list)
         for dbname in dbnames:
             self = ChapX(dbname)
@@ -244,9 +246,9 @@ class DBInputs(object):
         #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
         #     >>> Chap3.draw(expt_name, dbnames)
         """
-        logger.info('expt_name = %r' % (expt_name,))
-        logger.info('dbnames = %r' % (dbnames,))
-        logger.info('args = %r' % (args,))
+        logger.info('expt_name = {!r}'.format(expt_name))
+        logger.info('dbnames = {!r}'.format(dbnames))
+        logger.info('args = {!r}'.format(args))
         dbnames = ut.smart_cast(dbnames, list)
 
         if len(dbnames) > 1:
@@ -411,8 +413,9 @@ def find_minority_class_ccs(infr):
 
 
 def test_mcc():
-    import wbia.plottool as pt
     import sklearn.metrics
+
+    import wbia.plottool as pt
 
     num = 100
     xdata = np.linspace(0, 1, num * 2)
@@ -535,9 +538,9 @@ class ExpandingSample(ut.NiceRepr):
         verbose = 0
         if verbose:
             logger.info(pd.DataFrame.from_records(info_list))
-            logger.info('#qaids = %r' % (len(sample.qaids),))
-            logger.info('num_need = %r' % (n_need,))
-            logger.info('max_dsize = %r' % (max_dsize,))
+            logger.info('#qaids = {!r}'.format(len(sample.qaids)))
+            logger.info('num_need = {!r}'.format(n_need))
+            logger.info('max_dsize = {!r}'.format(max_dsize))
         return sample.qaids, daids_list, info_list
 
 
@@ -666,7 +669,7 @@ class Tabular(object):
         top, header, mid, bot = split_tabular(text)
         colfmt = self._rectify_colfmt()
         if colfmt is not None:
-            top = '\\begin{tabular}{%s}' % (colfmt,)
+            top = '\\begin{{tabular}}{{{}}}'.format(colfmt)
 
         if self.theadify:
             import textwrap

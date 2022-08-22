@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
-from wbia.algo.graph import demo
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 
+import utool as ut
+
+from wbia.algo.graph import demo
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNREV
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

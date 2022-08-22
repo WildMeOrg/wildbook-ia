@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 import logging
 import warnings
-from . import draw_func2 as df2
-from itertools import zip_longest
 from functools import reduce
-import scipy.stats
+from itertools import zip_longest
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import utool as ut  # NOQA
 import numpy as np
+import scipy.stats
+import utool as ut  # NOQA
+
+from . import draw_func2 as df2
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -165,9 +167,9 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     extra_plot_kw_keys = ['spread_alpha', 'autolabel', 'edgecolor', 'fill']
     plot_kw_keys += extra_plot_kw_keys
     plot_ks_vals = [parsekw_list(key, kwargs) for key in plot_kw_keys]
-    plot_list_kw = dict(
-        [(key, vals) for key, vals in zip(plot_kw_keys, plot_ks_vals) if vals is not None]
-    )
+    plot_list_kw = {
+        key: vals for key, vals in zip(plot_kw_keys, plot_ks_vals) if vals is not None
+    }
 
     if 'color' not in plot_list_kw:
         plot_list_kw['color'] = pt.distinct_colors(num_lines)
@@ -277,7 +279,7 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
                         xpos = rect.get_x() + rect.get_width() / 2.0
                         ypos = 1.05 * height
                         ha, va = 'center', 'bottom'
-                    barlbl = '%.3f' % (numlbl,)
+                    barlbl = '{:.3f}'.format(numlbl)
                     ax.text(xpos, ypos, barlbl, ha=ha, va=va)
 
         # logger.info('extra_kw = %r' % (extra_kw,))
@@ -442,9 +444,9 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     ymax = kwargs.get('ymax', ax.get_ylim()[1])
 
     if str(xmax) == 'data':
-        xmax = max([xd.max() for xd in xdata_list])
+        xmax = max(xd.max() for xd in xdata_list)
     if str(xmin) == 'data':
-        xmin = min([xd.min() for xd in xdata_list])
+        xmin = min(xd.min() for xd in xdata_list)
 
     # Setup axes ticks
     num_xticks = kwargs.get('num_xticks', None)
@@ -705,7 +707,7 @@ def plot_multiple_scores(
 
         if nd_labels[1] is None:
             label_list = [
-                '%.2f%% %s=%r%s' % (max_score, nd_labels[0], max_nd0, marker)
+                '{:.2f}% {}={!r}{}'.format(max_score, nd_labels[0], max_nd0, marker)
                 for max_nd0, max_score, marker in zip(
                     max_nd0_list, max_score_list, multiple_max_markers
                 )
@@ -719,7 +721,7 @@ def plot_multiple_scores(
                 )
             ]
     else:
-        label_list = ['%s=%r' % (nd_labels[1], val) for val in nd_basis[1]]
+        label_list = ['{}={!r}'.format(nd_labels[1], val) for val in nd_basis[1]]
 
     fig = multi_plot(
         xdata,
@@ -921,8 +923,8 @@ def draw_hist_subbin_maxima(
         use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
-    logger.info('submaxima_x = %r' % (submaxima_x,))
-    logger.info('submaxima_y = %r' % (submaxima_y,))
+    logger.info('submaxima_x = {!r}'.format(submaxima_x))
+    logger.info('submaxima_y = {!r}'.format(submaxima_y))
     # return (submaxima_x, submaxima_y)
 
 
@@ -1068,11 +1070,10 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
 
     """
     from matplotlib.transforms import Bbox, TransformedBbox, blended_transform_factory
-
     from mpl_toolkits.axes_grid1.inset_locator import (
-        BboxPatch,
         BboxConnector,
         BboxConnectorPatch,
+        BboxPatch,
     )
 
     def connect_bbox(
@@ -1338,12 +1339,12 @@ def plot_score_histograms(
 
     def make_bins2(width, start, end):
         num_bins = int((end - start) // width)
-        logger.info('num_bins = %r' % (num_bins,))
+        logger.info('num_bins = {!r}'.format(num_bins))
         return [start + (width * count) for count in range(num_bins)]
 
     if bin_width is not None:
-        total_min = np.floor(min([min(scores) for scores in scores_list]))
-        total_max = np.ceil(max([max(scores) for scores in scores_list]))
+        total_min = np.floor(min(min(scores) for scores in scores_list))
+        total_max = np.ceil(max(max(scores) for scores in scores_list))
         # ave_diff = np.mean(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
         # std_diff = np.std(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
         # (total_max - total_min) / bin_width
@@ -1353,8 +1354,8 @@ def plot_score_histograms(
         bin_list = [bins] * len(scores_list)
     else:
         # _, agg_bins = np.histogram(agg_scores, 'auto')
-        bin_width = min([np.diff(np.histogram(scores)[1])[0] for scores in scores_list])
-        logger.info('bin_width = %r' % (bin_width,))
+        bin_width = min(np.diff(np.histogram(scores)[1])[0] for scores in scores_list)
+        logger.info('bin_width = {!r}'.format(bin_width))
         # total_min = np.floor(min([min(scores) for scores in scores_list]))
         # total_max = np.ceil(max([max(scores) for scores in scores_list]))
         # start = total_min - bin_width / 2
@@ -1416,7 +1417,7 @@ def plot_score_histograms(
             elif histnorm == 'frequency':
                 freq, _bins = np.histogram(data, bins)
             else:
-                raise ValueError('Unknown mode histnorm=%r' % (histnorm,))
+                raise ValueError('Unknown mode histnorm={!r}'.format(histnorm))
 
             # Accumulate ydata
             freq_list.append(freq)
@@ -1503,7 +1504,7 @@ def plot_score_histograms(
 
     if overlay_score_domain is not None:
         ax = df2.gca()
-        p_max = max([prob.max() for prob in overlay_prob_given_list])
+        p_max = max(prob.max() for prob in overlay_prob_given_list)
         scale_factor = _n_max / p_max
         for lblx in list(range(len(scores_list))):
             color = score_colors[lblx]
@@ -1520,7 +1521,7 @@ def plot_score_histograms(
     if score_thresh is not None:
         ydomain = np.linspace(_n_min, _n_max, 10)
         xvalues = [score_thresh] * len(ydomain)
-        plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
+        plt.plot(xvalues, ydomain, 'g-', label='score thresh={:.2f}'.format(score_thresh))
 
     size = kwargs.get('legendsize', mpl.rcParams['legend.fontsize'])
     df2.legend(loc='best', size=size)
@@ -1614,14 +1615,14 @@ def plot_probabilities(
         df2.plt.plot(xdata, [prob_thresh] * len(xdata), 'g-', label='prob thresh')
 
     if score_thresh is not None:
-        ydata_min = min([_ydata.min() for _ydata in prob_list])
-        ydata_max = max([_ydata.max() for _ydata in prob_list])
+        ydata_min = min(_ydata.min() for _ydata in prob_list)
+        ydata_max = max(_ydata.max() for _ydata in prob_list)
         ydomain = np.linspace(ydata_min, ydata_max, 10)
         df2.plt.plot(
             [score_thresh] * len(ydomain),
             ydomain,
             'g-',
-            label='score thresh=%.2f' % (score_thresh,),
+            label='score thresh={:.2f}'.format(score_thresh),
         )
     ax = df2.gca()
     if kwargs.get('remove_yticks', False):
@@ -1759,7 +1760,7 @@ def plot_sorted_scores(
             indicies,
             [thresh] * len(indicies),
             'g-',
-            label=score_label + ' thresh=%.2f' % (thresh,),
+            label=score_label + ' thresh={:.2f}'.format(thresh),
         )
 
     if logscale:
@@ -1913,8 +1914,8 @@ def estimate_pdf(data, bw_factor):
         data_pdf.covariance_factor = bw_factor
     except Exception as ex:
         logger.info('[df2] ! Exception while estimating kernel density')
-        logger.info('[df2] data=%r' % (data,))
-        logger.info('[df2] ex=%r' % (ex,))
+        logger.info('[df2] data={!r}'.format(data))
+        logger.info('[df2] ex={!r}'.format(ex))
         raise
     return data_pdf
 
@@ -2096,11 +2097,12 @@ def plot_search_surface(
         >>> fnum = 1
         >>> ax = plot_search_surface(known_nd_data, known_target_points, nd_labels, target_label, fnum)
     """
-    import wbia.plottool as pt
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
+    import wbia.plottool as pt
+
     fnum = pt.ensure_fnum(fnum)
-    logger.info('fnum = %r' % (fnum,))
+    logger.info('fnum = {!r}'.format(fnum))
     # pt.figure(fnum=fnum, pnum=pnum, doclf=pnum is None, projection='3d')
     pt.figure(fnum=fnum, pnum=pnum, doclf=pnum is None)
 
@@ -2150,7 +2152,7 @@ def plot_search_surface(
                 nd_labels[0]
                 + ' (const:'
                 + nd_labels[1]
-                + '=%r)' % (known_nd_data.T[1][0],)
+                + '={!r})'.format(known_nd_data.T[1][0])
             )
         else:
             ax.set_xlabel(nd_labels[0])
@@ -2492,6 +2494,7 @@ def draw_histogram(
 
 def draw_time_distribution(unixtime_list, bw=None):
     import vtool as vt
+
     import wbia.plottool as pt
 
     if len(unixtime_list) > 0:
@@ -2619,8 +2622,9 @@ def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
         >>> pt.show_if_requested()
         >>> print(result)
     """
-    import wbia.plottool as pt
     from wordcloud import WordCloud
+
+    import wbia.plottool as pt
 
     if ax is None:
         fnum = pt.ensure_fnum(fnum)

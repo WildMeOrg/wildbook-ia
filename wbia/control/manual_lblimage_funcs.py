@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
 import uuid
-from wbia import constants as const
-from wbia.control.accessor_decors import (
-    adder,
-    getter_1to1,
-    getter_1toM,
-)
+
 import utool as ut
+
+from wbia import constants as const
+from wbia.control.accessor_decors import adder, getter_1to1, getter_1toM
 
 # from wbia.other import ibsfuncs
 from wbia.control.controller_inject import make_ibs_register_decorator

@@ -7,10 +7,12 @@ CommandLine:
     python -m wbia.templates.template_generator --key imageset_image_relationship --onlyfn
 """
 import logging
+
+import utool as ut
+
 from wbia import constants as const
 from wbia.control import accessor_decors
 from wbia.control.controller_inject import make_ibs_register_decorator
-import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

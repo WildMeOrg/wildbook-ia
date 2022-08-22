@@ -30,17 +30,21 @@ CommandLine:
 """
 import logging
 import re
+
 import numpy as np
 
 try:
     import vtool as vt
 except ImportError:
     pass
-import utool as ut
 import itertools as it
+
 import matplotlib as mpl
-from . import draw_func2 as df2
+import utool as ut
+
 from wbia.plottool import abstract_interaction
+
+from . import draw_func2 as df2
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -356,9 +360,9 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         poly.metadata_tag.set_position((tag_pos[0] + 5, tag_pos[1] + 50))
 
     def print_info(poly):
-        logger.info('poly = %r' % (poly,))
-        logger.info('poly.tag_text = %r' % (poly.species_tag.get_text(),))
-        logger.info('poly.metadata = %r' % (poly.metadata,))
+        logger.info('poly = {!r}'.format(poly))
+        logger.info('poly.tag_text = {!r}'.format(poly.species_tag.get_text()))
+        logger.info('poly.metadata = {!r}'.format(poly.metadata))
 
     def get_poly_mask(poly, shape):
         h, w = shape[0:2]
@@ -510,15 +514,13 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
         ax.set_clip_on(False)
         ax.set_title(
-            (
-                '\n'.join(
-                    [
-                        'Click and drag to select/move/resize/orient an ANNOTATION',
-                        # 'Press enter to clear the species tag of the selected ANNOTATION',
-                        'Press tab to cycle through annotation species',
-                        # 'Type to edit the ANNOTATION species (press tab to autocomplete)'
-                    ]
-                )
+            '\n'.join(
+                [
+                    'Click and drag to select/move/resize/orient an ANNOTATION',
+                    # 'Press enter to clear the species tag of the selected ANNOTATION',
+                    'Press tab to cycle through annotation species',
+                    # 'Type to edit the ANNOTATION species (press tab to autocomplete)'
+                ]
             )
         )
 
@@ -827,11 +829,11 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     def edit_poly_parts(self, poly):
         if poly is None and self.parent_poly is not None:
             self._selected_poly = self.parent_poly
-        logger.info('self.parent_poly = %r' % (self.parent_poly,))
+        logger.info('self.parent_poly = {!r}'.format(self.parent_poly))
         self.parent_poly = poly
         if poly is not None:
             self._selected_poly = self.get_most_recently_added_poly()
-        logger.info('self._selected_poly = %r' % (self._selected_poly,))
+        logger.info('self._selected_poly = {!r}'.format(self._selected_poly))
         if poly is None:
             self.ax.imshow(vt.convert_colorspace(self.img, 'RGB'))
         else:
@@ -994,7 +996,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             logger.info('[interact_annot] on_pick')
         if not self._poly_held:
             artist = event.artist
-            logger.info('[interact_annot] picked artist = %r' % (artist,))
+            logger.info('[interact_annot] picked artist = {!r}'.format(artist))
             self._selected_poly = artist
             self._poly_held = True
             if event.dblclick and not self.in_edit_parts_mode:
@@ -1326,8 +1328,8 @@ def check_min_wh(coords):
     w2 = coords[2][0] - coords[3][0]
     h1 = coords[3][1] - coords[0][1]
     h2 = coords[2][1] - coords[1][1]
-    assert np.isclose(w1, w2), 'w1: %r, w2: %r' % (w1, w2)
-    assert np.isclose(h1, h2), 'h1: %r, h2: %r' % (h1, h2)
+    assert np.isclose(w1, w2), 'w1: {!r}, w2: {!r}'.format(w1, w2)
+    assert np.isclose(h1, h2), 'h1: {!r}, h2: {!r}'.format(h1, h2)
     w, h = w1, h1
     # logger.info('w, h = (%r, %r)' % (w1, h1))
     return (MIN_W < w) and (MIN_H < h)

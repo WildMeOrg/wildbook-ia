@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from sphinx.ext.autodoc import between
-from datetime import date
-import sys
 import os
+import sys
+from datetime import date
+
+from sphinx.ext.autodoc import between
 
 sys.path.append(sys.path.insert(0, os.path.abspath('../')))
 

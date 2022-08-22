@@ -4,12 +4,10 @@ Flask-SQLAlchemy adapter
 ------------------------
 """
 import sqlite3
-
-from sqlalchemy import engine, MetaData
+import uuid
 
 from flask_sqlalchemy import SQLAlchemy as BaseSQLAlchemy
-
-import uuid
+from sqlalchemy import MetaData, engine
 
 
 def set_sqlite_pragma(dbapi_connection, connection_record):

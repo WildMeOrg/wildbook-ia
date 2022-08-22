@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 # import matplotlib.image as mpimg
-from wbia.plottool import viz_image2
-from wbia.plottool import interact_annotations
-from . import draw_func2 as df2
-from wbia.plottool import plot_helpers as ph
-from wbia.plottool import interact_helpers as ih
-from wbia.plottool import abstract_interaction
-
-from matplotlib.widgets import Button  # NOQA
-import matplotlib.pyplot as plt  # NOQA
 import matplotlib as mpl  # NOQA
+import matplotlib.pyplot as plt  # NOQA
+from matplotlib.widgets import Button  # NOQA
+
+from wbia.plottool import abstract_interaction, interact_annotations
+from wbia.plottool import interact_helpers as ih
+from wbia.plottool import plot_helpers as ph
+from wbia.plottool import viz_image2
+
+from . import draw_func2 as df2
 
 try:
     import vtool as vt
@@ -105,6 +105,7 @@ class MultiImageInteraction(BASE_CLASS):
 
     def dump_to_disk(self, dpath, num=None, prefix='temp_img'):
         import numpy as np
+
         import wbia.plottool as pt
 
         dpath = ut.ensurepath(dpath)
@@ -262,7 +263,7 @@ class MultiImageInteraction(BASE_CLASS):
 
     def on_click_inside(self, event, ax):
         index = ph.get_plotdat(ax, 'index')
-        print('index = %r' % (index,))
+        print('index = {!r}'.format(index))
         if index is not None:
             if self.MOUSE_BUTTONS[event.button] == 'right':
                 if self.context_option_funcs is not None:
@@ -274,7 +275,7 @@ class MultiImageInteraction(BASE_CLASS):
                 gpath = self.gpath_list[index]
                 if ut.is_funclike(gpath):
                     print('gpath_isfunklike')
-                    print('gpath = %r' % (gpath,))
+                    print('gpath = {!r}'.format(gpath))
                     import wbia.plottool as pt
 
                     fnum = pt.next_fnum()
@@ -282,9 +283,9 @@ class MultiImageInteraction(BASE_CLASS):
                     df2.update()
                 else:
                     bbox_list = self.bboxes_list[index]
-                    print('Bbox of figure: %r' % (bbox_list,))
+                    print('Bbox of figure: {!r}'.format(bbox_list))
                     theta_list = self.thetas_list[index]
-                    print('theta_list = %r' % (theta_list,))
+                    print('theta_list = {!r}'.format(theta_list))
                     # img = mpimg.imread(gpath)
                     if isinstance(gpath, str):
                         img = vt.imread(gpath)

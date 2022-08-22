@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
-from . import draw_func2 as df2
-from wbia.plottool import plot_helpers as ph
+
+from wbia.plottool import abstract_interaction
 from wbia.plottool import interact_helpers as ih
+from wbia.plottool import plot_helpers as ph
 from wbia.plottool.viz_featrow import draw_feat_row
 from wbia.plottool.viz_keypoints import show_keypoints
-from wbia.plottool import abstract_interaction
+
+from . import draw_func2 as df2
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

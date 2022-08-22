@@ -30,6 +30,7 @@ Issues:
 currently a weight of zero is hacked in
 """
 import logging
+
 import numpy as np
 import utool as ut
 

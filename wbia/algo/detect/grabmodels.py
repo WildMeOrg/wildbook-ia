@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
 from os.path import exists, join, realpath
+
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[grabmodels]')
 logger = logging.getLogger('wbia')

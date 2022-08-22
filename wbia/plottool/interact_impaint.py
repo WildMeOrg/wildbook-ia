@@ -9,16 +9,17 @@ References:
     http://stackoverflow.com/questions/22410663/block-qmainwindow-while-child-widget-is-alive-pyqt
     http://stackoverflow.com/questions/20289939/pause-execution-until-button-press
 """
-import utool as ut
 import matplotlib.pyplot as plt
 import numpy as np
+import utool as ut
 
 try:
     import vtool as vt
 except ImportError:
     pass
-from wbia.plottool import abstract_interaction
 import math
+
+from wbia.plottool import abstract_interaction
 
 ut.noinject('impaint')
 
@@ -148,7 +149,7 @@ class PaintInteraction(PAINTER_BASE):
 
     def on_scroll(self, event):
         self.brush_size = max(self.brush_size + event.step, 1)
-        print('self.brush_size = %r' % (self.brush_size,))
+        print('self.brush_size = {!r}'.format(self.brush_size))
 
     def on_key_press(self, event):
         if event.key == 't':
@@ -156,8 +157,8 @@ class PaintInteraction(PAINTER_BASE):
             self.color1_idx = (self.color1_idx + 1) % len(self.valid_colors1)
             key = (self.valid_colors1.keys())[self.color1_idx]
             self.color1 = self.valid_colors1[key]
-            print('self.color1_idx = %r' % (self.color1_idx,))
-            print('key = %r' % (key,))
+            print('self.color1_idx = {!r}'.format(self.color1_idx))
+            print('key = {!r}'.format(key))
             self.update_title()
             self.draw()
 
@@ -222,6 +223,7 @@ def impaint_mask2(img, init_mask=None):
         # Hacky code to block until the interaction is actually done
         # pntr.show()
         import time
+
         from wbia.guitool.__PYQT__ import QtGui as QtWidgets
 
         while pntr.is_running:
@@ -248,8 +250,8 @@ def draw_demo():
     fpath = ut.grab_test_imgpath('zebra.png')
     img = vt.imread(fpath)
     mask = impaint_mask2(img)
-    print('mask = %r' % (mask,))
-    print('mask.sum() = %r' % (mask.sum(),))
+    print('mask = {!r}'.format(mask))
+    print('mask.sum() = {!r}'.format(mask.sum()))
     if False:
         plt.imshow(vt.blend_images_multiply(img, mask))
         ax = plt.gca()

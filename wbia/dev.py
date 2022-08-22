@@ -57,8 +57,8 @@ import logging  # NOQA
 try:
     import rich
     from rich.logging import RichHandler
-    from rich.theme import Theme
     from rich.style import Style
+    from rich.theme import Theme
 
     console_kwargs = {
         'theme': Theme(
@@ -106,28 +106,18 @@ root_logger.setLevel(logging.INFO)  # NOQA
 logging.basicConfig(level=logging.INFO)  # NOQA
 
 import sys  # NOQA
-import numpy as np  # NOQA
+from os.path import expanduser, join, split  # NOQA
 
-from wbia._devscript import devcmd, DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS  # NOQA
-import utool as ut  # NOQA
+import numpy as np  # NOQA
 import utool  # NOQA
+import utool as ut  # NOQA
+
+import wbia  # NOQA
 
 # from wbia.algo.hots import smk
 import wbia.plottool as pt  # NOQA
-import wbia  # NOQA
-
-# import multiprocessing
-# if __name__ == '__main__':
-#     multiprocessing.freeze_support()
-#     wbia._preload()
-# utool.util_importer.dynamic_import(__name__, ('_devcmds_wbia', None),
-#                                   developing=True)
-from wbia._devscript import devcmd, devprecmd  # NOQA
-from os.path import split, join, expanduser  # NOQA
-from wbia.plottool import draw_func2 as df2  # NOQA
+from wbia import params  # NOQA
 from wbia import sysres  # NOQA
-from wbia.other import ibsfuncs  # NOQA
-from wbia.dbio import ingest_hsdb  # NOQA
 from wbia._devcmds_wbia import (  # NOQA
     GZ_VIEWPOINT_EXPORT_PAIRS,
     MOTHERS_VIEWPOINT_EXPORT_PAIRS,
@@ -149,13 +139,28 @@ from wbia._devcmds_wbia import (  # NOQA
     vdd,
 )
 
-# IBEIS
-from wbia.init import main_helpers  # NOQA
-from wbia.other import dbinfo  # NOQA
+# import multiprocessing
+# if __name__ == '__main__':
+#     multiprocessing.freeze_support()
+#     wbia._preload()
+# utool.util_importer.dynamic_import(__name__, ('_devcmds_wbia', None),
+#                                   developing=True)
+from wbia._devscript import (  # NOQA
+    DEVCMD_FUNCTIONS,
+    DEVPRECMD_FUNCTIONS,
+    devcmd,
+    devprecmd,
+)
+from wbia.dbio import ingest_hsdb  # NOQA
 from wbia.expt import experiment_configs  # NOQA
 from wbia.expt import harness  # NOQA
 from wbia.expt.experiment_drawing import draw_annot_scoresep  # NOQA
-from wbia import params  # NOQA
+
+# IBEIS
+from wbia.init import main_helpers  # NOQA
+from wbia.other import dbinfo  # NOQA
+from wbia.other import ibsfuncs  # NOQA
+from wbia.plottool import draw_func2 as df2  # NOQA
 
 print, rrr, profile = utool.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -356,7 +361,7 @@ def run_devprecmds():
                 else:
                     ret = ret2
                 print('+===================')
-                print('| running precmd = %s' % (args,))
+                print('| running precmd = {}'.format(args))
                 return ret
         return False
 
@@ -383,7 +388,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     print('[DEV] RUN EXPERIMENTS %s' % ibs.get_dbname())
     print('==========================')
     input_test_list = params.args.tests[:]
-    print('input_test_list = %s' % (ut.repr2(input_test_list),))
+    print('input_test_list = {}'.format(ut.repr2(input_test_list)))
     # fnum = 1
 
     valid_test_list = []  # build list for printing in case of failure
@@ -405,7 +410,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
                 else:
                     ret = ret2
                 print('\n+===================')
-                print(' [dev] running testname = %s' % (args,))
+                print(' [dev] running testname = {}'.format(args))
                 print('+-------------------\n')
                 return ret
         return False
@@ -645,8 +650,8 @@ def run_dev(ibs):
             assert len(daid_list) > 0, 'daid_list!'
         except AssertionError as ex:
             message = ' (try using command line argument --expanded-aids to enable)'
-            utool.printex(ex, 'len(qaid_list) = 0%s' % (message,), iswarning=True)
-            utool.printex(ex, 'or len(daid_list) = 0%s' % (message,), iswarning=True)
+            utool.printex(ex, 'len(qaid_list) = 0{}'.format(message), iswarning=True)
+            utool.printex(ex, 'or len(daid_list) = 0{}'.format(message), iswarning=True)
             # qaid_list = ibs.get_valid_aids()[0]
 
         if len(qaid_list) > 0 or True:
@@ -853,7 +858,7 @@ def devmain():
     command = ut.get_argval('--eval', type_=str, default=None)
     if command is not None:
         result = eval(command, globals(), locals())
-        print('result = %r' % (result,))
+        print('result = {!r}'.format(result))
         # ibs.search_annot_notes('360')
 
     #
@@ -935,7 +940,7 @@ def ggr_random_name_splits():
 
         data = quantumrandom.uint16()
         seed = data.sum()
-        print('seed = %r' % (seed,))
+        print('seed = {!r}'.format(seed))
         # import Crypto.Random
         # from Crypto import Random
         # quantumrandom.get_data()
@@ -989,7 +994,7 @@ def ggr_random_name_splits():
     groups = wbia.annots.AnnotGroups(grouped_annots, ibs)
     match_tags = [ut.unique(ut.flatten(t)) for t in groups.match_tags]
     tag_case_hist = ut.dict_hist(ut.flatten(match_tags))
-    print('name_pop = %r' % (pop,))
+    print('name_pop = {!r}'.format(pop))
     print(
         'Annots per Multiton Name' + ut.repr3(ut.get_stats(pername_list, use_median=True))
     )

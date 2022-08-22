@@ -3,9 +3,11 @@
 Dependencies: flask, tornado
 """
 import logging
+
+import utool as ut
+
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
-import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

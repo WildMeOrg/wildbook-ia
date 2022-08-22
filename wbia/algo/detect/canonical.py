@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
-import logging
-from os.path import expanduser, join
-import utool as ut
-import numpy as np
-import cv2
-import random
-import tqdm
-import time
-import os
 import copy
+import logging
+import os
+import random
+import time
+from os.path import expanduser, join
+
+import cv2
+import numpy as np
 import PIL
+import tqdm
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[canonical]')
 logger = logging.getLogger('wbia')
@@ -115,8 +116,8 @@ class ImageFilePathList(torch.utils.data.Dataset):
             targets = []
             for filepath in filepaths:
                 path, ext = os.path.splitext(filepath)
-                target = '%s.csv' % (path,)
-                assert os.path.exists(target), 'Missing target %s for %s' % (
+                target = '{}.csv'.format(path)
+                assert os.path.exists(target), 'Missing target {} for {}'.format(
                     target,
                     filepath,
                 )
@@ -171,11 +172,11 @@ class ImageFilePathList(torch.utils.data.Dataset):
         fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
         fmt_str += '    Number of samples: {}\n'.format(self.__len__())
         tmp = '    Transforms (if any): '
-        fmt_str += '{0}{1}\n'.format(
+        fmt_str += '{}{}\n'.format(
             tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp))
         )
         tmp = '    Target Transforms (if any): '
-        fmt_str += '{0}{1}'.format(
+        fmt_str += '{}{}'.format(
             tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp))
         )
         return fmt_str
@@ -356,7 +357,7 @@ def finetune(
             time_elapsed // 60, time_elapsed % 60
         )
     )
-    logger.info('Suggested correction offsets: %r' % (best_correction,))
+    logger.info('Suggested correction offsets: {!r}'.format(best_correction))
 
     # load best model weights
     model.load_state_dict(best_model_state)
@@ -411,7 +412,7 @@ def visualize_augmentations(dataset, augmentation, tag, num=20):
     canvas = np.vstack(canvas_list)
 
     canvas_filepath = expanduser(
-        join('~', 'Desktop', 'canonical-augmentation-%s.png' % (tag,))
+        join('~', 'Desktop', 'canonical-augmentation-{}.png'.format(tag))
     )
     plt.imsave(canvas_filepath, canvas)
 
@@ -597,7 +598,9 @@ def test(gpath_list, canonical_weight_filepath=None, **kwargs):
         archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=True)
     else:
         raise RuntimeError(
-            'canonical_weight_filepath %r not recognized' % (canonical_weight_filepath,)
+            'canonical_weight_filepath {!r} not recognized'.format(
+                canonical_weight_filepath
+            )
         )
 
     assert os.path.exists(archive_path)
@@ -618,7 +621,7 @@ def test(gpath_list, canonical_weight_filepath=None, **kwargs):
         weights_path_list = [weights_path_list[ensemble_index]]
         assert len(weights_path_list) > 0
 
-    logger.info('Using weights in the ensemble: %s ' % (ut.repr3(weights_path_list),))
+    logger.info('Using weights in the ensemble: {} '.format(ut.repr3(weights_path_list)))
     result_list = test_ensemble(gpath_list, weights_path_list, **kwargs)
     for result in result_list:
         x0 = max(result['x0'], 0.0)

@@ -10,21 +10,23 @@ TODO: need to split up into sub modules:
     within this file
 """
 import logging
-from os.path import exists, expanduser, join, abspath
-import numpy as np
-import vtool as vt
-import utool as ut
+import random
+from os.path import abspath, exists, expanduser, join
+
 import cv2
+import numpy as np
+import utool as ut
+import vtool as vt
+
 import wbia.constants as const
 from wbia.control import controller_inject
 from wbia.other.detectfuncs import (
-    general_parse_gt,
-    general_get_imageset_gids,
-    localizer_parse_pred,
     _resize,
+    general_get_imageset_gids,
     general_overlap,
+    general_parse_gt,
+    localizer_parse_pred,
 )
-import random
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectcore]')
@@ -70,14 +72,15 @@ def export_to_xml(
     """Create training XML for training models."""
     import random
     from datetime import date
+
     from wbia.detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 
-    logger.info('Received species_mapping = %r' % (species_mapping,))
+    logger.info('Received species_mapping = {!r}'.format(species_mapping))
 
     if species_list is None:
         species_list = sorted(set(species_mapping.values()))
 
-    logger.info('Using species_list = %r' % (species_list,))
+    logger.info('Using species_list = {!r}'.format(species_list))
 
     def _add_annotation(
         annotation,
@@ -127,10 +130,12 @@ def export_to_xml(
             info['interest'] = '1' if interest else '0'
 
         if part_type is not None:
-            species_name = '%s+%s' % (species_name, part_type)
+            species_name = '{}+{}'.format(species_name, part_type)
 
         area = w_ * h_
-        logger.info('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area))
+        logger.info(
+            '\t\tAdding {!r} with area {:0.04f} pixels^2'.format(species_name, area)
+        )
 
         annotation.add_object(species_name, (xmax, xmin, ymax, ymin), **info)
 
@@ -188,7 +193,7 @@ def export_to_xml(
             filename = fulldir.pop()
             extension = filename.split('.')[-1]  # NOQA
             out_name = '%d_%06d' % (current_year, index)
-            out_img = '%s.jpg' % (out_name,)
+            out_img = '{}.jpg'.format(out_name)
 
             _image = ibs.get_images(gid)
             height, width, channels = _image.shape
@@ -274,7 +279,7 @@ def export_to_xml(
                             part_type=part_type,
                         )
 
-            out_filename = '%s.xml' % (out_name,)
+            out_filename = '{}.xml'.format(out_name)
             dst_annot = join(annotdir, out_filename)
 
             if gid in test_gid_set:
@@ -294,7 +299,9 @@ def export_to_xml(
 
             # Write XML
             logger.info(
-                'Copying:\n%r\n%r\n%r\n\n' % (image_path, dst_img, (width, height))
+                'Copying:\n{!r}\n{!r}\n{!r}\n\n'.format(
+                    image_path, dst_img, (width, height)
+                )
             )
             xml_data = open(dst_annot, 'w')
             xml_data.write(annotation.xml())
@@ -306,10 +313,10 @@ def export_to_xml(
                 out_filename = '%d_%06d.xml' % (current_year, index)
                 dst_annot = join(annotdir, out_filename)
         else:
-            logger.info('Skipping:\n%r\n\n' % (image_path,))
+            logger.info('Skipping:\n{!r}\n\n'.format(image_path))
 
     for key in sets_dict.keys():
-        manifest_filename = '%s.txt' % (key,)
+        manifest_filename = '{}.txt'.format(key)
         manifest_filepath = join(mainsetsdir, manifest_filename)
         with open(manifest_filepath, 'w') as file_:
             sets_dict[key].append('')
@@ -340,27 +347,27 @@ def export_to_coco(
     **kwargs,
 ):
     """Create training COCO dataset for training models."""
-    from datetime import date
     import datetime
-    import random
     import json
+    import random
+    from datetime import date
 
-    logger.info('Received species_mapping = %r' % (species_mapping,))
-    logger.info('Received viewpoint_mapping = %r' % (viewpoint_mapping,))
+    logger.info('Received species_mapping = {!r}'.format(species_mapping))
+    logger.info('Received viewpoint_mapping = {!r}'.format(viewpoint_mapping))
 
     if species_list is None:
         species_list = sorted(set(species_mapping.values()))
 
-    logger.info('Using species_list = %r' % (species_list,))
+    logger.info('Using species_list = {!r}'.format(species_list))
 
     current_year = int(date.today().year)
     datadir = abspath(join(ibs.get_cachedir(), 'coco'))
     annotdir = join(datadir, 'annotations')
     imagedir = join(datadir, 'images')
     image_dir_dict = {
-        'train': join(imagedir, 'train%s' % (current_year,)),
-        'val': join(imagedir, 'val%s' % (current_year,)),
-        'test': join(imagedir, 'test%s' % (current_year,)),
+        'train': join(imagedir, 'train{}'.format(current_year)),
+        'val': join(imagedir, 'val{}'.format(current_year)),
+        'test': join(imagedir, 'test{}'.format(current_year)),
     }
 
     ut.delete(datadir)
@@ -371,7 +378,7 @@ def export_to_coco(
         ut.ensuredir(image_dir_dict[dataset])
 
     info = {
-        'description': 'Wild Me %s Dataset' % (ibs.dbname,),
+        'description': 'Wild Me {} Dataset'.format(ibs.dbname),
         # 'url'          : 'http://www.greatgrevysrally.com',
         'url': 'http://www.wildme.org',
         'version': '1.0',
@@ -531,7 +538,7 @@ def export_to_coco(
                     dataset = 'val'
             else:
                 # raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
-                logger.info('GID = %r was not in the TRAIN_SET or TEST_SET' % (gid,))
+                logger.info('GID = {!r} was not in the TRAIN_SET or TEST_SET'.format(gid))
                 dataset = 'test'
 
         width, height = ibs.get_image_sizes(gid)
@@ -564,8 +571,8 @@ def export_to_coco(
             image_gps_lat, image_gps_lon = None
         else:
             image_gps_lat, image_gps_lon = image_gps
-            image_gps_lat = '%03.06f' % (image_gps_lat,)
-            image_gps_lon = '%03.06f' % (image_gps_lon,)
+            image_gps_lat = '{:03.06f}'.format(image_gps_lat)
+            image_gps_lon = '{:03.06f}'.format(image_gps_lon)
 
         output_dict[dataset]['images'].append(
             {
@@ -586,7 +593,9 @@ def export_to_coco(
         )
 
         logger.info(
-            'Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height))
+            'Copying:\n{!r}\n{!r}\n{!r}\n\n'.format(
+                image_path, image_filepath, (width, height)
+            )
         )
 
         aid_list = ibs.get_image_aids(gid)
@@ -659,7 +668,9 @@ def export_to_coco(
                 individuals,
             )
             logger.info(
-                '\t\tAdding annot %r with area %0.04f pixels^2' % (species_name, area)
+                '\t\tAdding annot {!r} with area {:0.04f} pixels^2'.format(
+                    species_name, area
+                )
             )
 
             if include_reviews:
@@ -674,7 +685,7 @@ def export_to_coco(
                 for user, aid_tuple, decision in zipped:
                     if 'user:web' not in user:
                         continue
-                    match = list(set(aid_tuple) - set([aid]))
+                    match = list(set(aid_tuple) - {aid})
                     assert len(match) == 1
                     ids.append(match[0])
                     decisions.append(decision.lower())
@@ -693,7 +704,7 @@ def export_to_coco(
                     part_uuid_list, part_bbox_list, part_theta_list, part_type_list
                 )
                 for part_uuid, part_bbox, part_theta, part_type in part_zipped:
-                    part_species_name = '%s+%s' % (species_name, part_type)
+                    part_species_name = '{}+{}'.format(species_name, part_type)
 
                     part_species_name = species_mapping.get(
                         part_species_name, part_species_name
@@ -770,7 +781,7 @@ def export_to_coco(
             output_dict[dataset]['annotations'][index] = annot
 
     for dataset in output_dict:
-        json_filename = 'instances_%s%s.json' % (dataset, current_year)
+        json_filename = 'instances_{}{}.json'.format(dataset, current_year)
         json_filepath = join(annotdir, json_filename)
 
         with open(json_filepath, 'w') as json_file:
@@ -866,7 +877,7 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
             total = threshold
         if total not in distro_dict:
             distro_dict[total] = 0
-        total = '%s' % (total,) if total < threshold else '%s+' % (total,)
+        total = '{}'.format(total) if total < threshold else '{}+'.format(total)
         distro_dict[total] += 1
         for aid in aid_list:
             species = ibs.get_annot_species_texts(aid)
@@ -883,7 +894,7 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
     logger.info('')
 
     for species in sorted(species_dict.keys()):
-        logger.info('Species viewpoint distribution: %r' % (species,))
+        logger.info('Species viewpoint distribution: {!r}'.format(species))
         viewpoint_dict = species_dict[species]
         total = 0
         for viewpoint in const.VIEWTEXT_TO_VIEWPOINT_RADIANS:
@@ -944,8 +955,9 @@ def visualize_pascal_voc_dataset(
         >>> # dataset_path = '/Users/jason.parham/Downloads/VOCdevkit/VOC2018/'
         >>> ibs.visualize_pascal_voc_dataset(dataset_path, randomize=True)
     """
-    from wbia.detecttools.wbiadata import IBEIS_Data
     import random
+
+    from wbia.detecttools.wbiadata import IBEIS_Data
 
     num_examples = int(num_examples)
     assert num_examples > 0
@@ -1079,7 +1091,7 @@ def classifier_visualize_training_localizations(
     color = (255, 0, 0)
     _draw(image_dict, list_, color)
 
-    logger.info('Write images to %r' % (output_path,))
+    logger.info('Write images to {!r}'.format(output_path))
     # Write images to disk
     for gid in image_dict:
         output_filename = 'localizations_gid_%d.png' % (gid,)

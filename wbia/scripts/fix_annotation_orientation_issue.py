@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
+
+import numpy as np
 import utool as ut
 import vtool as vt
-import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -167,7 +168,9 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                         % args
                     )
                     if fixed_percentage < min_percentage:
-                        logger.info('\tWARNING: FIXING DID NOT CORRECT AID %r' % (aid,))
+                        logger.info(
+                            '\tWARNING: FIXING DID NOT CORRECT AID {!r}'.format(aid)
+                        )
                         unfixable_gid_list.append(gid)
-    logger.info('Un-fixable gid_list = %r' % (unfixable_gid_list,))
+    logger.info('Un-fixable gid_list = {!r}'.format(unfixable_gid_list))
     return unfixable_gid_list

@@ -16,15 +16,15 @@ Zebra Experiment:
         -a ctrl:qmingt=2
 """
 import logging
-from wbia import dtool
-import utool as ut
+
 import numpy as np
-from wbia.algo.smk import match_chips5 as mc5
-from wbia.algo.smk import vocab_indexer
-from wbia.algo.smk import inverted_index
-from wbia.algo.smk import smk_funcs
-from wbia import core_annots
+import utool as ut
+
+from wbia import core_annots, dtool
 from wbia.algo import Config as old_config  # NOQA
+from wbia.algo.smk import inverted_index
+from wbia.algo.smk import match_chips5 as mc5
+from wbia.algo.smk import smk_funcs, vocab_indexer
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -190,7 +190,7 @@ class SMKRequest(mc5.EstimatorRequest):
             defaultdb='Oxford', a='oxford',
             p='default:proot=smk,nAssign=1,num_words=64000,SV=False,can_match_sameimg=True,dim_size=None')
         """
-        logger.info('Ensure data for %s' % (qreq_,))
+        logger.info('Ensure data for {}'.format(qreq_))
 
         # qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
@@ -392,8 +392,7 @@ class SMK(ut.NiceRepr):
             >>> cm.ishow_analysis(qreq_)
             >>> ut.show_if_requested()
         """
-        from wbia.algo.hots import chip_match
-        from wbia.algo.hots import pipeline
+        from wbia.algo.hots import chip_match, pipeline
 
         alpha = qreq_.qparams['smk_alpha']
         thresh = qreq_.qparams['smk_thresh']
@@ -422,7 +421,10 @@ class SMK(ut.NiceRepr):
         shortlist = ut.Shortlist(shortsize)
         # gammaX = smk.gamma(X, wx_to_weight, agg, alpha, thresh)
         _prog = ut.ProgPartial(
-            lbl='smk scoring qaid=%r' % (qaid,), enabled=verbose, bs=True, adjust=True
+            lbl='smk scoring qaid={!r}'.format(qaid),
+            enabled=verbose,
+            bs=True,
+            adjust=True,
         )
 
         wx_to_weight = qreq_.dinva.wx_to_weight
@@ -454,7 +456,10 @@ class SMK(ut.NiceRepr):
         cm.fm_list = []
         cm.fsv_list = []
         _prog = ut.ProgPartial(
-            lbl='smk build cm qaid=%r' % (qaid,), enabled=verbose, bs=True, adjust=True
+            lbl='smk build cm qaid={!r}'.format(qaid),
+            enabled=verbose,
+            bs=True,
+            adjust=True,
         )
         for item in _prog(shortlist):
             (score, score_list, Y, X_idx, Y_idx) = item
@@ -563,9 +568,10 @@ def testdata_smk(*args, **kwargs):
     >>> from wbia.algo.smk.smk_pipeline import *  # NOQA
     >>> kwargs = {}
     """
-    import wbia
     import sklearn
     import sklearn.model_selection
+
+    import wbia
 
     # import sklearn.model_selection
     ibs, aid_list = wbia.testdata_aids(defaultdb='PZ_MTEST')

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
+
 from wbia import viz
-from wbia.viz import viz_helpers as vh
 from wbia.plottool import interact_helpers as ih
+from wbia.viz import viz_helpers as vh
 
 (print, rrr, profile) = ut.inject2(__name__, '[interact_sver]')
 logger = logging.getLogger('wbia')

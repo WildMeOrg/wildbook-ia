@@ -3,13 +3,14 @@
 Helper module that helps expand parameters for grid search
 TODO: move into custom pipe_cfg and annot_cfg modules
 """
-import logging
-import utool as ut
-import sys
 import itertools
-from wbia.expt import experiment_configs
-from wbia.expt import cfghelpers
+import logging
+import sys
+
+import utool as ut
+
 from wbia.algo import Config
+from wbia.expt import cfghelpers, experiment_configs
 from wbia.init import filter_annots
 
 print, rrr, profile = ut.inject2(__name__)
@@ -336,9 +337,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
             expanded_aids_list_.append((qaids, daids))
             acfg_list_.append(acfg)
     if verbose:
-        duplicate_configs = dict(
-            [(key_, val_) for key_, val_ in seen_.items() if len(val_) > 1]
-        )
+        duplicate_configs = {key_: val_ for key_, val_ in seen_.items() if len(val_) > 1}
         if len(duplicate_configs) > 0:
             logger.info('The following configs produced duplicate annnotation configs')
             for key, val in duplicate_configs.items():
@@ -346,7 +345,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
                 _tup = annotation_configs.compress_acfg_list_for_printing(val)
                 nonvaried_compressed_dict, varied_compressed_dict_list = _tup
                 logger.info('+--')
-                logger.info('key = %r' % (key,))
+                logger.info('key = {!r}'.format(key))
                 logger.info(
                     'duplicate_varied_cfgs = %s'
                     % (ut.repr2(varied_compressed_dict_list),)
@@ -363,7 +362,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
                 % (len(acfg_list_), len(acfg_list))
             )
         if verbose > 2:
-            logger.info('[harn.help] parsed from: %r' % (acfg_name_list,))
+            logger.info('[harn.help] parsed from: {!r}'.format(acfg_name_list))
     return expanded_aids_list_, acfg_list_
 
 
@@ -435,7 +434,7 @@ def get_annotcfg_list(
         >>> main_helpers.unmonkeypatch_encounters(ibs)
     """
     if ut.VERBOSE:
-        logger.info('[harn.help] building acfg_list using %r' % (acfg_name_list,))
+        logger.info('[harn.help] building acfg_list using {!r}'.format(acfg_name_list))
     from wbia.expt import annotation_configs
 
     acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
@@ -499,8 +498,8 @@ def get_annotcfg_list(
         ('--acfginfo', '--ainfo', '--aidcfginfo', '--print-acfg', '--printacfg')
     ):
         ut.colorprint('[experiment_helpers] Requested AcfgInfo ... ', 'red')
-        logger.info('combo_slice = %r' % (combo_slice,))
-        logger.info('acfg_slice = %r' % (acfg_slice,))
+        logger.info('combo_slice = {!r}'.format(combo_slice))
+        logger.info('acfg_slice = {!r}'.format(acfg_slice))
         annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
         ut.colorprint('[experiment_helpers] exiting due to AcfgInfo info request', 'red')
         sys.exit(0)

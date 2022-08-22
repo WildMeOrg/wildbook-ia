@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
-from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
-from wbia.guitool.__PYQT__.QtCore import Qt
 import os
-from os.path import dirname
 import platform
-from utool import util_cache, util_path
+from os.path import dirname
+
 import utool as ut
+from utool import util_cache, util_path
+
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from wbia.guitool.__PYQT__.QtCore import Qt
 
 ut.noinject(__name__, '[guitool.dialogs]', DEBUG=False)
 
@@ -32,8 +34,8 @@ def are_you_sure(parent=None, msg=None, title='Confirmation', default=None):
     """Prompt user for conformation before changing something"""
     msg = 'Are you sure?' if msg is None else msg
     print('[gt] Asking User if sure')
-    print('[gt] title = %s' % (title,))
-    print('[gt] msg =\n%s' % (msg,))
+    print('[gt] title = {}'.format(title))
+    print('[gt] msg =\n{}'.format(msg))
     if ut.get_argflag('-y') or ut.get_argflag('--yes'):
         # DONT ASK WHEN SPECIFIED
         return True
@@ -96,7 +98,7 @@ def user_option(
         >>> #gt.guitool_main.qtapp_loop()
     """
     if ut.VERBOSE:
-        print('[gt] user_option:\n %r: %s' % (title, msg))
+        print('[gt] user_option:\n {!r}: {}'.format(title, msg))
     # Recall decision
     cache_id = title + msg
     if use_cache:
@@ -114,7 +116,9 @@ def user_option(
         msgbox.addButton(QtWidgets.QPushButton(opt), role)
     # Set default button
     if default is not None:
-        assert default in options, 'default=%r is not in options=%r' % (default, options)
+        assert default in options, 'default={!r} is not in options={!r}'.format(
+            default, options
+        )
         for qbutton in msgbox.buttons():
             if default == qbutton.text():
                 msgbox.setDefaultButton(qbutton)
@@ -181,7 +185,7 @@ def user_input(parent=None, msg='msg', title='user_input', text=''):
 
 
 def user_info(parent=None, msg='msg', title='user_info'):
-    print('[gt] dlg.user_info title=%r, msg=%r' % (title, msg))
+    print('[gt] dlg.user_info title={!r}, msg={!r}'.format(title, msg))
     msgbox = _newMsgBox(msg, title, parent)
     msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
     msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
@@ -334,7 +338,9 @@ def select_directory(
         >>> result = str(dpath)
         >>> print(result)
     """
-    print('[gt] select_directory(caption=%r, directory=%r)' % (caption, directory))
+    print(
+        '[gt] select_directory(caption={!r}, directory={!r})'.format(caption, directory)
+    )
     if directory is None:
         directory_ = _guitool_cache_read(SELDIR_CACHEID, default='.')
     else:
@@ -391,7 +397,9 @@ def select_directories(
         >>> result = str(dpath)
         >>> print(result)
     """
-    print('[gt] select_directory(caption=%r, directory=%r)' % (caption, directory))
+    print(
+        '[gt] select_directory(caption={!r}, directory={!r})'.format(caption, directory)
+    )
     if directory is None:
         directory_ = _guitool_cache_read(SELDIR_CACHEID, default='.')
     else:

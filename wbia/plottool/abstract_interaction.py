@@ -6,14 +6,16 @@ Known Interactions that use AbstractInteraction:
     wbia.NameInteraction
 """
 import re
-import utool as ut
+
 import matplotlib as mpl
+import utool as ut
 
 ut.noinject(__name__, '[abstract_iteract]')
-from . import draw_func2 as df2  # NOQA
 from wbia.plottool import fig_presenter  # NOQA
-from wbia.plottool import plot_helpers as ph  # NOQA
 from wbia.plottool import interact_helpers as ih  # NOQA
+from wbia.plottool import plot_helpers as ph  # NOQA
+
+from . import draw_func2 as df2  # NOQA
 
 # (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 # '[abstract_iteract]')
@@ -29,7 +31,7 @@ __REGISTERED_INTERACTIONS__ = []
 def register_interaction(self):
     global __REGISTERED_INTERACTIONS__
     if VERBOSE:
-        print('[pt] Registering intearction: self=%r' % (self,))
+        print('[pt] Registering intearction: self={!r}'.format(self))
     __REGISTERED_INTERACTIONS__.append(self)
     if VERBOSE:
         print(
@@ -41,7 +43,7 @@ def register_interaction(self):
 def unregister_interaction(self):
     global __REGISTERED_INTERACTIONS__
     if VERBOSE:
-        print('[pt] Unregistering intearction: self=%r' % (self,))
+        print('[pt] Unregistering intearction: self={!r}'.format(self))
     try:
         __REGISTERED_INTERACTIONS__.remove(self)
     except ValueError:

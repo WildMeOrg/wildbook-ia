@@ -1,23 +1,31 @@
 # -*- coding: utf-8 -*-
+import itertools as it
 import logging
-import wbia.plottool as pt
-import utool as ut
-from wbia.algo.verif import vsone
-from wbia.scripts._thesis_helpers import DBInputs
-from wbia.scripts.thesis import Sampler  # NOQA
-from wbia.scripts._thesis_helpers import Tabular, upper_one, ave_str
-from wbia.scripts._thesis_helpers import dbname_to_species_nice
-from wbia.scripts._thesis_helpers import TMP_RC, W, H, DPI
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+from os.path import basename, exists, join, splitext  # NOQA
+
+import matplotlib as mpl
 import numpy as np  # NOQA
 import pandas as pd
 import ubelt as ub  # NOQA
-import itertools as it
-import matplotlib as mpl
-from os.path import basename, join, splitext, exists  # NOQA
-import wbia.constants as const
+import utool as ut
 import vtool as vt
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+
+import wbia.constants as const
+import wbia.plottool as pt
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
+from wbia.algo.verif import vsone
+from wbia.scripts._thesis_helpers import (
+    DPI,
+    TMP_RC,
+    DBInputs,
+    H,
+    Tabular,
+    W,
+    ave_str,
+    dbname_to_species_nice,
+    upper_one,
+)
+from wbia.scripts.thesis import Sampler  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -645,8 +653,9 @@ def draw_match_states():
             NEGTV: list(infr.neg_graph.edges())[0],
             INCMP: list(infr.incmp_graph.edges())[0],
         }
-    import wbia.plottool as pt
     import vtool as vt
+
+    import wbia.plottool as pt
 
     for key, edge in chosen.items():
         match = infr._make_matches_from(
@@ -782,7 +791,7 @@ def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=0.4):
     xdata = np.arange(1, num_ranks + 1)
     cdfs_trunc = cdfs[:, 0:num_ranks]
     label_list = [
-        '%6.3f%% - %s' % (cdf[0] * 100, lbl) for cdf, lbl in zip(cdfs_trunc, labels)
+        '{:6.3f}% - {}'.format(cdf[0] * 100, lbl) for cdf, lbl in zip(cdfs_trunc, labels)
     ]
 
     # ymin = .4
@@ -2427,7 +2436,7 @@ class VerifierExpt(DBInputs):
 
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
 
-        logger.info('task_key = %r' % (task_key,))
+        logger.info('task_key = {!r}'.format(task_key))
         if task_key == 'photobomb_state':
             method = 'max-mcc'
             method = res.get_thresholds('mcc', 'maximize')

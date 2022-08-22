@@ -3,13 +3,15 @@
 Dependencies: flask, tornado
 """
 import logging
-from wbia.control import controller_inject
-from wbia.web import appfuncs as appf
 from os.path import abspath, expanduser, join
+
+import cv2
+import numpy as np
 import utool as ut
 import vtool as vt
-import numpy as np
-import cv2
+
+from wbia.control import controller_inject
+from wbia.web import appfuncs as appf
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -85,6 +87,7 @@ def experiments_image_src(tag=None, **kwargs):
 @register_route('/experiments/interest/', methods=['GET'])
 def experiments_interest(dbtag1='demo-jasonp', dbtag2='demo-chuck', **kwargs):
     from uuid import UUID
+
     from wbia.other.detectfuncs import general_overlap, general_parse_gt
 
     dbtag1 = str(dbtag1)
@@ -121,7 +124,7 @@ def experiments_interest(dbtag1='demo-jasonp', dbtag2='demo-chuck', **kwargs):
         gid1 = ibs1.get_image_gids_from_uuid(uuid1)
         gid2 = ibs2.get_image_gids_from_uuid(uuid2)
 
-        logger.info('%s %s' % (index1, index2))
+        logger.info('{} {}'.format(index1, index2))
         stats = None
         if uuid1 is not None and uuid2 is not None:
             if uuid1 == uuid2:
@@ -141,7 +144,7 @@ def experiments_interest(dbtag1='demo-jasonp', dbtag2='demo-chuck', **kwargs):
 
                 pair_list1 = set(enumerate(index_list1))
                 pair_list2 = set(enumerate(index_list2))
-                pair_list2 = set([_[::-1] for _ in pair_list2])
+                pair_list2 = {_[::-1] for _ in pair_list2}
                 pair_union = pair_list1 | pair_list2
                 pair_intersect = pair_list1 & pair_list2
                 pair_diff_sym = pair_list1 ^ pair_list2
@@ -209,7 +212,7 @@ def voting_uuid_list(ibs, team_list):
         ibs.get_image_annot_uuids(ibs.get_image_gids_from_uuid(image_uuid_list))
     )
     for team in team_list:
-        logger.info('Checking team %r' % (team,))
+        logger.info('Checking team {!r}'.format(team))
         try:
             gid_list = team.get_image_gids_from_uuid(image_uuid_list)
             assert None not in gid_list
@@ -350,7 +353,7 @@ def experiments_voting_counts(ibs, **kwargs):
     if total == 0:
         total_str = 'Undefined'
     else:
-        total_str = '%0.2f' % (100.0 * float(count) / total,)
+        total_str = '{:0.2f}'.format(100.0 * float(count) / total)
 
     stage1_count_list = [count, total_str, total]
 
@@ -385,9 +388,9 @@ def experiments_voting_counts(ibs, **kwargs):
         count_list = np.array(count_list)
         avg = np.mean(count_list)
         std = np.std(count_list)
-        count_str = '%0.2f' % (avg,)
-        deviation_str = '%0.2f' % (std,)
-        percentage_str = '%0.2f' % (100.0 * sum(precentage_list) / total,)
+        count_str = '{:0.2f}'.format(avg)
+        deviation_str = '{:0.2f}'.format(std)
+        percentage_str = '{:0.2f}'.format(100.0 * sum(precentage_list) / total)
 
     stage2_count_list = [count_str, deviation_str, percentage_str]
 
@@ -418,7 +421,7 @@ def experiments_voting_variance(ibs, team_index, **kwargs):
         accuracy_str = 'Undefined'
     else:
         correct = total - incorrect
-        accuracy_str = '%0.02f' % (100.0 * (correct / total),)
+        accuracy_str = '{:0.02f}'.format(100.0 * (correct / total))
     return team_index, incorrect, accuracy_str
 
 

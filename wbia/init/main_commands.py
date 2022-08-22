@@ -5,13 +5,15 @@ TODO: Rename to wbia/init/commands.py
 TODO; remove params module
 """
 import logging
-import utool as ut
 import sys
+from os.path import join
+
+import utool as ut
+
 from wbia import constants as const
 from wbia import params
-from wbia.other import ibsfuncs
 from wbia.init import sysres
-from os.path import join
+from wbia.other import ibsfuncs
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -55,8 +57,8 @@ def preload_commands(dbdir, **kwargs):
     # if params.args.logdir is not None:
     #     sysres.set_logdir(params.args.logdir)
     if params.args.get_logdir:
-        logger.info(' Current local  log dir = %s' % (sysres.get_logdir_local(),))
-        logger.info(' Current global log dir = %s' % (sysres.get_logdir_global(),))
+        logger.info(' Current local  log dir = {}'.format(sysres.get_logdir_local()))
+        logger.info(' Current global log dir = {}'.format(sysres.get_logdir_global()))
     if params.args.view_logdir:
         ut.view_directory(sysres.get_logdir_local())
         ut.view_directory(sysres.get_logdir_global())
@@ -118,20 +120,20 @@ def postload_commands(ibs, back):
         ('--select-imgsetid', '--imgsetid', '--occur', '--gsid'), None
     )
     if select_imgsetid is not None:
-        logger.info('\n+ --- CMD SELECT IMGSETID=%r ---' % (select_imgsetid,))
+        logger.info('\n+ --- CMD SELECT IMGSETID={!r} ---'.format(select_imgsetid))
         # Whoa: this doesnt work. weird.
         # back.select_imgsetid(select_imgsetid)
         # This might be the root of gui problems
         # back.front._change_imageset(select_imgsetid)
         back.front.select_imageset_tab(select_imgsetid)
-        logger.info('L ___ CMD SELECT IMGSETID=%r ___\n' % (select_imgsetid,))
+        logger.info('L ___ CMD SELECT IMGSETID={!r} ___\n'.format(select_imgsetid))
     # Send commands to GUIBack
     if params.args.select_aid is not None:
         if back is not None:
             try:
                 ibsfuncs.assert_valid_aids(ibs, (params.args.select_aid,))
             except AssertionError:
-                logger.info('Valid RIDs are: %r' % (ibs.get_valid_aids(),))
+                logger.info('Valid RIDs are: {!r}'.format(ibs.get_valid_aids()))
                 raise
             back.select_aid(params.args.select_aid)
     if params.args.select_gid is not None:
@@ -176,7 +178,7 @@ def postload_commands(ibs, back):
         metadata = ibs.get_annot_lazy_dict(aid)
         annot_context_options = metadata['annot_context_options']
         aidcmd_dict = dict(annot_context_options)
-        logger.info('aidcmd_dict = %s' % (ut.repr3(aidcmd_dict),))
+        logger.info('aidcmd_dict = {}'.format(ut.repr3(aidcmd_dict)))
         command = aidcmd_dict[aidcmd]
         command()
         # import utool

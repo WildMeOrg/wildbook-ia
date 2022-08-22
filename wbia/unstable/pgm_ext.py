@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
+
 import numpy as np
+import utool as ut
+
 from wbia.unstable import pgm_viz
 
 try:
@@ -38,7 +40,7 @@ def define_model(cpd_list):
 def customize_model(model):
     model.var2_cpd = {cpd.variable: cpd for cpd in model.cpds}
     model.ttype2_cpds = ut.groupby_attr(model.cpds, 'ttype')
-    model._templates = list(set([cpd._template_ for cpd in model.var2_cpd.values()]))
+    model._templates = list({cpd._template_ for cpd in model.var2_cpd.values()})
     model.ttype2_template = {t.ttype: t for t in model._templates}
 
     def pretty_evidence(model, evidence):
@@ -55,7 +57,7 @@ def customize_model(model):
                 ut.colorprint(temp_cpd._cpdstr('psql'), 'brightcyan')
 
     def print_priors(model, ignore_ttypes=[], title='Priors', color='blue'):
-        ut.colorprint('\n --- %s ---' % (title,), color=color)
+        ut.colorprint('\n --- {} ---'.format(title), color=color)
         for ttype, cpds in model.ttype2_cpds.items():
             if ttype not in ignore_ttypes:
                 for fs_ in ut.ichunks(cpds, 4):
@@ -399,7 +401,7 @@ def print_factors(model, factor_list):
     else:
         semtypes = [0] * len(factor_list)
     for type_, factors in ut.group_items(factor_list, semtypes).items():
-        logger.info('Result Factors (%r)' % (type_,))
+        logger.info('Result Factors ({!r})'.format(type_))
         factors = ut.sortedby(factors, [f.variables[0] for f in factors])
         for fs_ in ut.ichunks(factors, 4):
             ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
@@ -702,7 +704,7 @@ def map_example():
     marg_factors = infr.query(['A0', 'B0']).values()
     print_factors(model, marg_factors)
     map_res = infr.map_query()
-    logger.info('map_res = %r' % (map_res,))
+    logger.info('map_res = {!r}'.format(map_res))
     return model
 
 
@@ -795,8 +797,8 @@ def markovmodel_test():
     """
     >>> from wbia.algo.hots.pgm_ext import *  # NOQA
     """
-    from pgmpy.models import MarkovModel
     from pgmpy.factors import Factor
+    from pgmpy.models import MarkovModel
 
     markovmodel = MarkovModel([('A', 'B'), ('B', 'C'), ('C', 'D'), ('D', 'A')])
     factor_a_b = Factor(variables=['A', 'B'], cardinality=[2, 2], values=[100, 5, 5, 100])

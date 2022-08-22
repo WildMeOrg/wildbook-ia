@@ -3,19 +3,18 @@
 Extended Api Namespace implementation with an application-specific helpers
 --------------------------------------------------------------------------
 """
+import logging
 from contextlib import contextmanager
 from functools import wraps
-import logging
 
 import sqlalchemy
+from marshmallow import ValidationError
 
-from flask_restx_patched.namespace import Namespace as BaseNamespace
 from flask_restx_patched._http import HTTPStatus
+from flask_restx_patched.namespace import Namespace as BaseNamespace
 
 from . import http_exceptions
 from .webargs_parser import CustomWebargsParser
-
-from marshmallow import ValidationError
 
 log = logging.getLogger(__name__)
 

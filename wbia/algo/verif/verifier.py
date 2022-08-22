@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import numpy as np
 import pandas as pd
 import utool as ut
-from wbia.algo.verif import pairfeat
-from wbia.algo.verif import sklearn_utils
 import vtool as vt
+
+from wbia.algo.verif import pairfeat, sklearn_utils
 
 # import itertools as it
 # from os.path import join
@@ -196,11 +197,11 @@ class IntraVerifier(BaseVerifier):
         have_edges = ut.emap(tuple, have_uv.tolist())
         need_edges = ut.emap(tuple, need_uv.tolist())
         want_edges = ut.emap(tuple, want_uv.tolist())
-        assert set(have_edges) & set(need_edges) == set([])
+        assert set(have_edges) & set(need_edges) == set()
         assert set(have_edges) | set(need_edges) == set(want_edges)
 
         # Predict on unseen edges using an ensemble of evaluation classifiers
-        logger.info('Predicting %s probabilities' % (task_key,))
+        logger.info('Predicting {} probabilities'.format(task_key))
         eclf_probs = verif.ensemble.predict_proba_df(need_edges)
 
         # Combine probabilities --- get probabilites for each sample

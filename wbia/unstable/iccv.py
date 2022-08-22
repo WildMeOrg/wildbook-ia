@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
+import pathlib
+
 import numpy as np
 import pandas as pd
 import utool as ut
-import pathlib
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP
+
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -15,8 +17,8 @@ def qt_review():
     CommandLine:
         python -m wbia.scripts.iccv qt_review
     """
-    import wbia.guitool as gt
     import wbia
+    import wbia.guitool as gt
 
     app = gt.ensure_qapp()[0]  # NOQA
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
@@ -106,8 +108,9 @@ def gt_review():
         >>> result = gt_review()
         >>> print(result)
     """
-    import wbia
     import ubelt as ub
+
+    import wbia
 
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
 
@@ -148,7 +151,7 @@ def gt_review():
 
         labels, groupxs = ut.group_indices(real.values)
         for label, groupx in zip(labels, groupxs):
-            logger.info('label = %r' % (label,))
+            logger.info('label = {!r}'.format(label))
             real_probs_ = real_probs.iloc[groupx]
             pred_probs_ = pred_probs.iloc[groupx]
             diff = real_probs_ - pred_probs_
@@ -285,7 +288,7 @@ def debug_expanded_aids(ibs, expanded_aids_list, verbose=1):
     for qaids, daids in expanded_aids_list:
         stats = ibs.get_annotconfig_stats(qaids, daids, **cfgargs)
         hashids = (stats['qaid_stats']['qhashid'], stats['daid_stats']['dhashid'])
-        logger.info('hashids = %r' % (hashids,))
+        logger.info('hashids = {!r}'.format(hashids))
         if verbose > 1:
             logger.info(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
 
@@ -308,7 +311,7 @@ def encounter_stuff(ibs, aids):
             qaids, daids, use_hist=False, combo_enc_info=False
         )
         hashids = (stats['qaid_stats']['qhashid'], stats['daid_stats']['dhashid'])
-        logger.info('hashids = %r' % (hashids,))
+        logger.info('hashids = {!r}'.format(hashids))
         # logger.info(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
 
 
@@ -335,7 +338,7 @@ def iccv_data(defaultdb=None):
         filt_kw['min_pername'] = 3
 
     expt_aids = ibs.filter_annots_general(**filt_kw)
-    logger.info('len(expt_aids) = %r' % (len(expt_aids),))
+    logger.info('len(expt_aids) = {!r}'.format(len(expt_aids)))
 
     if ibs.dbname == 'PZ_Master1':
         mtest_aids = wbia.dbio.export_subset.find_overlap_annots(
@@ -348,7 +351,7 @@ def iccv_data(defaultdb=None):
         expt_aids.extend(pbtest_aids)
         expt_aids = sorted(set(expt_aids))
         logger.info('Expanding dataset')
-        logger.info('len(expt_aids) = %r' % (len(expt_aids),))
+        logger.info('len(expt_aids) = {!r}'.format(len(expt_aids)))
 
     main_helpers.monkeypatch_encounters(ibs, aids=expt_aids, **enc_kw)
 
@@ -440,9 +443,11 @@ def draw_cmcs(dbname):
         >>> print(result)
     """
     # DRAW RESULTS
-    import vtool as vt
-    import wbia.plottool as pt
     import pathlib
+
+    import vtool as vt
+
+    import wbia.plottool as pt
 
     if dbname is None:
         dbname = 'PZ_Master1'
@@ -476,10 +481,10 @@ def draw_cmcs(dbname):
     ranks = 20
     xdata = np.arange(1, ranks + 1)
     for k, phi in sorted(phis.items()):
-        ax.plot(xdata, np.cumsum(phi[:ranks]), label='annots per query: %s' % (k,))
+        ax.plot(xdata, np.cumsum(phi[:ranks]), label='annots per query: {}'.format(k))
     ax.set_xlabel('Rank')
     ax.set_ylabel('Cumulative Probability')
-    ax.set_title('Rank CMC for %s' % (species,))
+    ax.set_title('Rank CMC for {}'.format(species))
     ax.set_ylim(ax.get_ylim()[0], 1)
     ax.set_ylim(0.7, 1)
     ax.set_xlim(0.9, ranks)
@@ -509,8 +514,9 @@ def iccv_roc(dbname):
         >>> result = iccv_roc(dbname)
         >>> print(result)
     """
-    import wbia.plottool as pt
     import vtool as vt
+
+    import wbia.plottool as pt
     from wbia.scripts.script_vsone import OneVsOneProblem
 
     ibs, expt_aids, train_aids, test_aids, species = iccv_data(dbname)
@@ -593,7 +599,7 @@ def iccv_roc(dbname):
     info['pblm_hyperparams']['pairwise_feats']['summary_ops'] = list(
         info['pblm_hyperparams']['pairwise_feats']['summary_ops']
     )
-    suffix = 'nAids=%r,nNids=%r,nPairs=%r' % (
+    suffix = 'nAids={!r},nNids={!r},nPairs={!r}'.format(
         len(expt_annots),
         len(set(expt_annots.nids)),
         len(pblm.samples),
@@ -637,10 +643,11 @@ def draw_saved_roc(dbname):
     """
     # Draw the ROC in another process for quick iterations to appearance
     # DRAW RESULTS
-    import wbia.plottool as pt
+    import matplotlib as mpl
     import sklearn.metrics
     import vtool as vt
-    import matplotlib as mpl
+
+    import wbia.plottool as pt
 
     pt.qtensure()
 
@@ -677,21 +684,21 @@ def draw_saved_roc(dbname):
     fnum = 11
     fnum = pt.ensure_fnum(fnum)
     fig = pt.figure(fnum=fnum)
-    pt.plot(clf_fpr, clf_tpr, label='pairwise AUC=%.3f' % (clf_auc,))
-    pt.plot(lnbnn_fpr, lnbnn_tpr, label='LNBNN AUC=%.3f' % (lnbnn_auc,))
+    pt.plot(clf_fpr, clf_tpr, label='pairwise AUC={:.3f}'.format(clf_auc))
+    pt.plot(lnbnn_fpr, lnbnn_tpr, label='LNBNN AUC={:.3f}'.format(lnbnn_auc))
     ax = pt.gca()
     ax.set_xlabel('false positive rate')
     ax.set_ylabel('true positive rate')
     species = species.lower()
     if species[0] == 'g':
         species = 'G' + species[1:]
-    ax.set_title('Positive match ROC for %s' % (species,))
+    ax.set_title('Positive match ROC for {}'.format(species))
     ax.legend()
     pt.adjust_subplots(top=0.8, bottom=0.2, left=0.12, right=0.9, wspace=0.2, hspace=0.2)
     fig.set_size_inches([7.4375, 3.125])
     fig.savefig(str(fig_fpath))
     clip_fpath = vt.clipwhite_ondisk(str(fig_fpath))
-    logger.info('clip_fpath = %r' % (clip_fpath,))
+    logger.info('clip_fpath = {!r}'.format(clip_fpath))
 
     clf_bins = info['clf_bins']
     clf_pos_freq = info['clf_pos_freq']
@@ -821,7 +828,7 @@ def end_to_end():
             # ensure thresholds are over .5
             thresh_df[POSTV] = max(0.51, thresh_df[POSTV])
             thresh_df[NEGTV] = max(0.51, thresh_df[NEGTV])
-        logger.info('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
+        logger.info('fpr_thresholds = {}'.format(ut.repr3(fpr_thresholds)))
         thresh_cacher.save(fpr_thresholds)
 
     clf_cacher = ut.Cacher(
@@ -966,7 +973,7 @@ def end_to_end():
             name=dials['name'],
         )
         infr.init_simulation(**new_dials)
-        logger.info('new_dials = %s' % (ut.repr4(new_dials),))
+        logger.info('new_dials = {}'.format(ut.repr4(new_dials)))
         infr.reset(state='empty')
         infr.main_loop(max_loops=dials['max_loops'])
         metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
@@ -1011,7 +1018,7 @@ def end_to_end():
             ut.save_cPkl(str(ete_info_fpath), ete_info)
         except Exception:
             for k, v in vars(ete_info['infr']).items():
-                logger.info('k = %r' % (k,))
+                logger.info('k = {!r}'.format(k))
                 pickle.dumps(v)
             raise
 
@@ -1074,16 +1081,16 @@ def draw_ete(dbname):
             groups_nid = ut.ddict(list)
             groups_type = ut.ddict(list)
             for edge, error in list(infr.measure_error_edges()):
-                logger.info('error = %s' % (ut.repr2(error),))
+                logger.info('error = {}'.format(ut.repr2(error)))
                 data = infr.graph.get_edge_data(*edge)
-                logger.info('user_id = %r' % (data['user_id'],))
+                logger.info('user_id = {!r}'.format(data['user_id']))
                 aid1, aid2 = edge
                 nid1 = infr.graph.nodes[aid1]['orig_name_label']
                 nid2 = infr.graph.nodes[aid2]['orig_name_label']
                 cc1 = infr.nid_to_gt_cc[nid1]
                 cc2 = infr.nid_to_gt_cc[nid2]
-                logger.info('nid1, nid2 = %r, %r' % (nid1, nid2))
-                logger.info('len1, len2 = %r, %r' % (len(cc1), len(cc2)))
+                logger.info('nid1, nid2 = {!r}, {!r}'.format(nid1, nid2))
+                logger.info('len1, len2 = {!r}, {!r}'.format(len(cc1), len(cc2)))
                 list(ut.nx_edges_between(infr.graph, cc1, cc2))
                 groups_type[(error['real'], error['pred'])].append(edge)
                 groups_nid[(nid1, nid2)].append((edge, error))
@@ -1171,7 +1178,7 @@ def draw_ete(dbname):
     ax.set_ylabel('# of errors')
     # ax.legend()
     pt.set_figtitle(
-        'End-to-end accuracy and error for %s' % (species,),
+        'End-to-end accuracy and error for {}'.format(species),
         fontweight='normal',
         fontfamily='DejaVu Sans',
     )
@@ -1188,8 +1195,8 @@ def draw_ete(dbname):
     import vtool as vt
 
     clip_fpath = vt.clipwhite_ondisk(str(plot_fpath))
-    logger.info('plot_fpath = %r' % (plot_fpath,))
-    logger.info('clip_fpath = %r' % (clip_fpath,))
+    logger.info('plot_fpath = {!r}'.format(plot_fpath))
+    logger.info('clip_fpath = {!r}'.format(clip_fpath))
 
     # infr.show(fnum=3, groupby='name_label')
     ut.show_if_requested()
@@ -1322,12 +1329,12 @@ def learn_phi():
     # t = 'baseline'
     # ibs, testres = main_helpers.testdata_expts(dbname, a=a, t=t)
     import wbia
+    import wbia.plottool as pt
+    from wbia.expt import test_result
+    from wbia.init import main_helpers
 
     # from wbia.init.filter_annots import annot_crossval
     from wbia.init.filter_annots import encounter_crossval
-    from wbia.init import main_helpers
-    from wbia.expt import test_result
-    import wbia.plottool as pt
 
     pt.qtensure()
 

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import functools
-from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
-from wbia.guitool.__PYQT__.QtCore import Qt  # NOQA
+
 import utool as ut
 from utool._internal.meta_util_six import get_funcname
+
+from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from wbia.guitool.__PYQT__.QtCore import Qt  # NOQA
 
 ut.noinject(__name__, '[guitool.decorators]', DEBUG=False)
 
@@ -47,7 +49,7 @@ def checks_qt_error(func):
             result = func(self, *args, **kwargs)
         except Exception as ex:
             funcname = get_funcname(func)
-            msg = 'caught exception in %r' % (funcname,)
+            msg = 'caught exception in {!r}'.format(funcname)
             ut.printex(ex, msg, tb=True, pad_stdout=True)
             raise
         return result

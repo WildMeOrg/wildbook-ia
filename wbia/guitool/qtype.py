@@ -2,11 +2,13 @@
 
 # from wbia.guitool.__PYQT__.QtCore import Qt
 import logging
-from wbia.guitool.__PYQT__.QtCore import QLocale
-import utool as ut
 import uuid
+
 import numpy as np
+import utool as ut
+
 from wbia.guitool.__PYQT__ import QtGui
+from wbia.guitool.__PYQT__.QtCore import QLocale
 from wbia.guitool.guitool_decorators import checks_qt_error
 
 QVariant = None
@@ -46,10 +48,10 @@ ItemDataRoles = {
 LOCALE = QLocale()
 
 # Custom types of data that can be displayed (usually be a delegate)
-QT_PIXMAP_TYPES = set((QtGui.QPixmap, 'PIXMAP'))
-QT_ICON_TYPES = set((QtGui.QIcon, 'ICON'))
-QT_BUTTON_TYPES = set(('BUTTON',))
-QT_COMBO_TYPES = set(('COMBO',))
+QT_PIXMAP_TYPES = {QtGui.QPixmap, 'PIXMAP'}
+QT_ICON_TYPES = {QtGui.QIcon, 'ICON'}
+QT_BUTTON_TYPES = {'BUTTON'}
+QT_COMBO_TYPES = {'COMBO'}
 
 
 QT_IMAGE_TYPES = set(list(QT_PIXMAP_TYPES) + list(QT_ICON_TYPES))
@@ -146,7 +148,7 @@ def cast_into_qt(data):
     elif data is None:
         return 'None'
     else:
-        return 'Unknown qtype: %r for data=%r' % (type(data), data)
+        return 'Unknown qtype: {!r} for data={!r}'.format(type(data), data)
 
 
 @checks_qt_error

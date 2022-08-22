@@ -5,10 +5,12 @@ CommandLine:
 """
 import logging
 from functools import partial
-from wbia.viz import viz_helpers as vh
-import wbia.guitool as gt
+
 import numpy as np
 import utool as ut
+
+import wbia.guitool as gt
+from wbia.viz import viz_helpers as vh
 
 (print, rrr, profile) = ut.inject2(__name__, '[id_review_api]')
 logger = logging.getLogger('wbia')
@@ -95,6 +97,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> print(review_edges)
     """
     import vtool as vt
+
     from wbia.algo.hots import chip_match
 
     automatch_kw = REVIEW_CFG_DEFAULTS.copy()
@@ -185,12 +188,10 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
             score_namepair_groups = vt.apply_grouping(score_arr, namepair_groupxs)
             unique_rowx2 = np.array(
                 sorted(
-                    [
-                        groupx[score_group.argmax()]
-                        for groupx, score_group in zip(
-                            namepair_groupxs, score_namepair_groups
-                        )
-                    ]
+                    groupx[score_group.argmax()]
+                    for groupx, score_group in zip(
+                        namepair_groupxs, score_namepair_groups
+                    )
                 ),
                 dtype=np.int32,
             )
@@ -324,8 +325,8 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
 
     def get_pair_tags(edge):
         aid1, aid2 = edge
-        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        assert not ut.isiterable(aid1), 'aid1={!r}, aid2={!r}'.format(aid1, aid2)
+        assert not ut.isiterable(aid2), 'aid1={!r}, aid2={!r}'.format(aid1, aid2)
         am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])
         tag_text = ibs.get_annotmatch_tag_text(am_rowids)[0]
         if tag_text is None:
@@ -498,8 +499,8 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
 def get_match_status(ibs, aid_pair):
     """Data role for status column"""
     aid1, aid2 = aid_pair
-    assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-    assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    assert not ut.isiterable(aid1), 'aid1={!r}, aid2={!r}'.format(aid1, aid2)
+    assert not ut.isiterable(aid2), 'aid1={!r}, aid2={!r}'.format(aid1, aid2)
     text = ibs.get_match_text(aid1, aid2)
     if text is None:
         raise AssertionError('impossible state id_review_api')
@@ -509,8 +510,8 @@ def get_match_status(ibs, aid_pair):
 def get_reviewed_status(ibs, aid_pair):
     """Data role for status column"""
     aid1, aid2 = aid_pair
-    assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-    assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    assert not ut.isiterable(aid1), 'aid1={!r}, aid2={!r}'.format(aid1, aid2)
+    assert not ut.isiterable(aid2), 'aid1={!r}, aid2={!r}'.format(aid1, aid2)
     # FIXME: use new api
     state = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
     state_to_text = {
@@ -518,7 +519,7 @@ def get_reviewed_status(ibs, aid_pair):
         2: 'Auto-reviewed',
         1: 'User-reviewed',
     }
-    default = '??? unknown mode %r' % (state,)
+    default = '??? unknown mode {!r}'.format(state)
     text = state_to_text.get(state, default)
     return text
 
@@ -680,12 +681,14 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
         >>> ut.startfile(match_thumb_fpath_, quote=True)
     """
     # import wbia.viz
-    from wbia.viz import viz_matches
-    import cv2
     import io
-    import wbia.plottool as pt
-    import vtool as vt
+
+    import cv2
     import matplotlib as mpl
+    import vtool as vt
+
+    import wbia.plottool as pt
+    from wbia.viz import viz_matches
 
     if cm.__class__.__name__ == 'PairwiseMatch':
         # HACK DO THIS THE VTOOL WAY

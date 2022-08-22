@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
-import wbia.plottool as pt
-import utool as ut
+
 import numpy as np
+import utool as ut
+
+import wbia.plottool as pt
 from wbia.other import ibsfuncs
-from wbia.viz import viz_helpers as vh
-from wbia.viz import viz_chip
 from wbia.viz import viz_matches  # NOQA
+from wbia.viz import viz_chip
+from wbia.viz import viz_helpers as vh
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -29,7 +31,7 @@ def show_qres_top(ibs, cm, qreq_=None, **kwargs):
     figtitle = kwargs.get('figtitle', '')
     if len(figtitle) > 0:
         figtitle = ' ' + figtitle
-    kwargs['figtitle'] = ('q%s -- TOP %r' % (aidstr, N)) + figtitle
+    kwargs['figtitle'] = ('q{} -- TOP {!r}'.format(aidstr, N)) + figtitle
     return show_qres(
         ibs,
         cm,
@@ -110,7 +112,9 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
                 figtitle = 'WARNING: no matches found!' + ibsfuncs.aidstr(cm.qaid)
             else:
                 topscore = cm.get_annot_scores(top_aids)[0]
-                figtitle = 'q%s -- topscore=%r' % (ibsfuncs.aidstr(cm.qaid), topscore)
+                figtitle = 'q{} -- topscore={!r}'.format(
+                    ibsfuncs.aidstr(cm.qaid), topscore
+                )
     else:
         logger.info('[analysis] showing a given list of aids')
         top_aids = aid_list
@@ -350,21 +354,23 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         nAllGt = len(allgt_aids)
         logger.info('[show_qres]========================')
         logger.info('[show_qres]----------------')
-        logger.info('[show_qres] * annot_mode=%r' % (annot_mode,))
-        logger.info('[show_qres] #nTop=%r #missed_gts=%r/%r' % (nTop, nSelGt, nAllGt))
+        logger.info('[show_qres] * annot_mode={!r}'.format(annot_mode))
+        logger.info(
+            '[show_qres] #nTop={!r} #missed_gts={!r}/{!r}'.format(nTop, nSelGt, nAllGt)
+        )
         logger.info('[show_qres] * -----')
-        logger.info('[show_qres] * nRows=%r' % (nRows,))
-        logger.info('[show_qres] * nGtSubplts=%r' % (nGtSubplts,))
-        logger.info('[show_qres] * nTopNSubplts=%r' % (nTopNSubplts,))
-        logger.info('[show_qres] * nQuerySubplts=%r' % (nQuerySubplts,))
+        logger.info('[show_qres] * nRows={!r}'.format(nRows))
+        logger.info('[show_qres] * nGtSubplts={!r}'.format(nGtSubplts))
+        logger.info('[show_qres] * nTopNSubplts={!r}'.format(nTopNSubplts))
+        logger.info('[show_qres] * nQuerySubplts={!r}'.format(nQuerySubplts))
         logger.info('[show_qres] * -----')
-        logger.info('[show_qres] * nGTCols=%r' % (nGTCols,))
+        logger.info('[show_qres] * nGTCols={!r}'.format(nGTCols))
         logger.info('[show_qres] * -----')
-        logger.info('[show_qres] * fnum=%r' % (fnum,))
-        logger.info('[show_qres] * figtitle=%r' % (figtitle,))
-        logger.info('[show_qres] * max_nCols=%r' % (max_nCols,))
-        logger.info('[show_qres] * show_query=%r' % (show_query,))
-        logger.info('[show_qres] * kwargs=%s' % (ut.repr2(kwargs),))
+        logger.info('[show_qres] * fnum={!r}'.format(fnum))
+        logger.info('[show_qres] * figtitle={!r}'.format(figtitle))
+        logger.info('[show_qres] * max_nCols={!r}'.format(max_nCols))
+        logger.info('[show_qres] * show_query={!r}'.format(show_query))
+        logger.info('[show_qres] * kwargs={}'.format(ut.repr2(kwargs)))
 
     # HACK:
     _color_list = pt.distinct_colors(nTop)
@@ -481,7 +487,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                 #    logger.info('skipping pnum=%r' % (pnum,))
                 continue
             if DEBUG_SHOW_QRES:
-                logger.info('pnum=%r' % (pnum,))
+                logger.info('pnum={!r}'.format(pnum))
             orank = oranks[0] + 1
             _show_matches_fn(aid, orank, pnum)
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from os.path import join, exists, dirname, normpath
-import sys
-import os
 import ctypes as C
+import os
+import sys
+from os.path import dirname, exists, join, normpath
 
 # TODO: rectify with the ctypes interface in pyhesaff
 
@@ -61,7 +61,7 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
             for lib_dpath in get_lib_dpath_list(root_dir):
                 lib_fpath = normpath(join(lib_dpath, lib_fname))
                 if verbose:
-                    print('\tChecking %r' % (lib_fpath,))
+                    print('\tChecking {!r}'.format(lib_fpath))
                 if exists(lib_fpath):
                     if verbose:
                         print('\n[c] Checked: '.join(tried_fpaths))
@@ -126,8 +126,8 @@ def load_clib(libname, root_dir):
         print('[C!] Caught Exception:\n%s' % ex)
         errsuffix = 'Was the library correctly compiled? Maybe rebuild?'
     print('[C!] cwd=%r' % os.getcwd())
-    print('[C!] load_clib(libname=%r root_dir=%r)' % (libname, root_dir))
+    print('[C!] load_clib(libname={!r} root_dir={!r})'.format(libname, root_dir))
     print('[C!] lib_fpath = %r' % lib_fpath)
-    errmsg = '[C] Cannot LOAD %r dynamic library. ' % (libname,) + errsuffix
+    errmsg = '[C] Cannot LOAD {!r} dynamic library. '.format(libname) + errsuffix
     print(errmsg)
     raise ImportError(errmsg)

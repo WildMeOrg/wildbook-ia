@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import os
+
+from tqdm import tqdm
+
 from wbia.detecttools.directory import Directory
 from wbia.detecttools.wbiadata import common as com
 from wbia.detecttools.wbiadata.wbia_image import IBEIS_Image
-from tqdm import tqdm
 
 
 class IBEIS_Data(object):  # NOQA
@@ -95,11 +97,15 @@ class IBEIS_Data(object):  # NOQA
                 rois = '% 5d' % (rois,)
             except Exception:
                 pass
-            print('%s%s\t%s' % (category + ' ' * (spacing - len(category)), images, rois))
+            print(
+                '{}{}\t{}'.format(
+                    category + ' ' * (spacing - len(category)), images, rois
+                )
+            )
 
         key_list = list(ibsd.distribution_rois.keys())
         key_list += ['TOTAL', 'CATEGORY']
-        _max = max([len(category) for category in key_list]) + 3
+        _max = max(len(category) for category in key_list) + 3
 
         _print_line('CATEGORY', _max, 'IMGs', 'ROIs')
         if 'BACKGROUND' in ibsd.distribution_images:
@@ -129,7 +135,7 @@ class IBEIS_Data(object):  # NOQA
                 line = line.strip().split(' ')
                 _dict[line[0]] = int(line[-1])
         except IOError as e:
-            print('<%r> %s' % (e, filepath))
+            print('<{!r}> {}'.format(e, filepath))
 
         return _dict
 
@@ -151,7 +157,7 @@ class IBEIS_Data(object):  # NOQA
                     line = line.strip().split(' ')
                     _dict[line[0]] = int(line[-1])
             except IOError as e:
-                print('<%r> %s' % (e, filepath))
+                print('<{!r}> {}'.format(e, filepath))
 
             return _dict
 
@@ -237,12 +243,12 @@ class IBEIS_Data(object):  # NOQA
                     if val not in positive_category:
                         neg_rois += 1
 
-        print('%s\t%s\t%s\t%s\t%s' % ('       ', 'Pos', 'Neg', 'Val', 'Test'))
+        print('{}\t{}\t{}\t{}\t{}'.format('       ', 'Pos', 'Neg', 'Val', 'Test'))
         print(
             '%s\t%s\t%s\t%s\t%s'
             % ('Images:', len(positives), len(negatives), len(validation), len(test))
         )
-        print('%s\t%s\t%s\t%s\t%s' % ('ROIs:  ', pos_rois, neg_rois, '', ''))
+        print('{}\t{}\t{}\t{}\t{}'.format('ROIs:  ', pos_rois, neg_rois, '', ''))
 
         return (positives, pos_rois), (negatives, neg_rois), validation, test
 

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+from os.path import basename, dirname, join
+
 import utool as ut
-from os.path import join, dirname, basename
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -70,7 +71,7 @@ def get_injured_sharks():
 
     all_img_urls = list(set(ut.flatten(key_to_urls.values())))
     num_all = len(all_img_urls)  # NOQA
-    logger.info('num_all = %r' % (num_all,))
+    logger.info('num_all = {!r}'.format(num_all))
 
     # Determine super-categories
     categories = ['nicks', 'scar', 'trunc']
@@ -107,7 +108,7 @@ def get_injured_sharks():
     logger.info(ut.repr3(cat_to_keys))
     logger.info(ut.repr3(cat_hist))
 
-    key_to_cat = dict([(val, key) for key, vals in cat_to_keys.items() for val in vals])
+    key_to_cat = {val: key for key, vals in cat_to_keys.items() for val in vals}
 
     # ingestset = {
     #    '__class__': 'ImageSet',
@@ -154,7 +155,7 @@ def get_injured_sharks():
     )
 
     dldir = ut.truepath('~/tmpsharks')
-    from os.path import commonprefix, basename  # NOQA
+    from os.path import basename, commonprefix  # NOQA
 
     prefix = commonprefix(all_urls)
     suffix_list = [url_[len(prefix) :] for url_ in all_urls]
@@ -237,7 +238,7 @@ def get_injured_sharks():
     clist['gid'] = gid_list
 
     failed_flags = ut.flag_None_items(clist['gid'])
-    logger.info('# failed %s' % (sum(failed_flags),))
+    logger.info('# failed {}'.format(sum(failed_flags)))
     passed_flags = ut.not_list(failed_flags)
     clist = clist.compress(passed_flags)
     ut.assert_all_not_None(clist['gid'])
@@ -291,9 +292,10 @@ def get_injured_sharks():
 
     if False:
         # Show overlap matrix
-        import wbia.plottool as pt
-        import pandas as pd
         import numpy as np
+        import pandas as pd
+
+        import wbia.plottool as pt
 
         dict_ = overlaps
         s = pd.Series(dict_, index=pd.MultiIndex.from_tuples(overlaps))
@@ -347,8 +349,9 @@ def get_injured_sharks():
     class TmpImage(ut.NiceRepr):
         pass
 
+    from skimage import color, data, exposure
     from skimage.feature import hog
-    from skimage import data, color, exposure
+
     import wbia.plottool as pt
 
     image2 = color.rgb2gray(data.astronaut())  # NOQA
@@ -442,7 +445,7 @@ def detect_sharks(ibs, gids):
             res2 = (gid, bbox_list[idx : idx + 1], theta_list[idx : idx + 1])
             results_list2.append(res2)
 
-    ut.dict_hist(([t[1].shape[0] for t in results_list]))
+    ut.dict_hist([t[1].shape[0] for t in results_list])
 
     localized_imgs = ibs.images(ut.take_column(results_list2, 0))
     assert all([len(a) == 1 for a in localized_imgs.aids])
@@ -540,7 +543,7 @@ def purge_ensure_one_annot_per_images(ibs):
     # Fix any empty images
     images = ibs.images()
     empty_images = ut.where(np.array(images.num_annotations) == 0)
-    logger.info('empty_images = %r' % (empty_images,))
+    logger.info('empty_images = {!r}'.format(empty_images))
     # list(map(basename, map(dirname, images.uris_original)))
 
     def VecPipe(func):

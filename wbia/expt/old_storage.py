@@ -2,6 +2,7 @@
 import logging
 
 import utool as ut
+
 from wbia import guitool
 
 print, rrr, profile = ut.inject2(__name__, '[expt_harn]')
@@ -89,7 +90,9 @@ class ResultMetadata(object):
         ]
         col_name_list = ['qaids'] + col_name_list
         column_list = [qaids] + column_list
-        logger.info('depth_profile(column_list) = %r' % (ut.depth_profile(column_list),))
+        logger.info(
+            'depth_profile(column_list) = {!r}'.format(ut.depth_profile(column_list))
+        )
         return col_name_list, column_list
 
 
@@ -158,8 +161,8 @@ def make_metadata_custom_api(metadata):
     column_list = ut.take(column_list, sortx)
 
     col_lens = list(map(len, column_list))
-    logger.info('col_name_list = %r' % (col_name_list,))
-    logger.info('col_lens = %r' % (col_lens,))
+    logger.info('col_name_list = {!r}'.format(col_name_list))
+    logger.info('col_lens = {!r}'.format(col_lens))
     assert len(col_lens) > 0, 'no columns'
     assert col_lens[0] > 0, 'no rows'
     assert all([len_ == col_lens[0] for len_ in col_lens]), 'inconsistant data'

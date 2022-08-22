@@ -3,16 +3,17 @@
 # import warning
 import logging
 import warnings
-import numpy as np
-import utool as ut
-import pandas as pd
 
+import numpy as np
+import pandas as pd
+import utool as ut
+
+# from sklearn.model_selection._split import (_BaseKFold, KFold)
+from sklearn.model_selection._split import _BaseKFold
 from sklearn.utils.validation import check_array
 
 # from sklearn.utils import check_random_state
 
-# from sklearn.model_selection._split import (_BaseKFold, KFold)
-from sklearn.model_selection._split import _BaseKFold
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -153,6 +154,7 @@ class StratifiedGroupKFold(_BaseKFold):
 
 def temp(samples):
     from sklearn import model_selection
+
     from wbia.algo.verif import sklearn_utils
 
     def check_balance(idxs):
@@ -168,10 +170,10 @@ def temp(samples):
             y_test_ratio = y_test_freq / y_test_freq.sum()
             y_train_ratio = y_train_freq / y_train_freq.sum()
             balance_error = np.sum((y_test_ratio - y_train_ratio) ** 2)
-            logger.info('n_group_isect = %r' % (n_group_isect,))
-            logger.info('y_test_ratio = %r' % (y_test_ratio,))
-            logger.info('y_train_ratio = %r' % (y_train_ratio,))
-            logger.info('balance_error = %r' % (balance_error,))
+            logger.info('n_group_isect = {!r}'.format(n_group_isect))
+            logger.info('y_test_ratio = {!r}'.format(y_test_ratio))
+            logger.info('y_train_ratio = {!r}'.format(y_train_ratio))
+            logger.info('balance_error = {!r}'.format(balance_error))
 
     X = np.empty((len(samples), 0))
     y = samples.encoded_1d().values
@@ -461,7 +463,7 @@ def classification_report2(
     # np.nan
 
     if verbose:
-        cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
+        cfsm_str = confusion_df.to_string(float_format=lambda x: '{:.1f}'.format(x))
         logger.info('Confusion Matrix (real × pred) :')
         logger.info(ut.hz_str('    ', cfsm_str))
 
@@ -481,9 +483,9 @@ def classification_report2(
     # and BM * MK MCC?
 
     def matthews_corrcoef(y_true, y_pred, sample_weight=None):
-        from sklearn.preprocessing import LabelEncoder
         from sklearn.metrics import confusion_matrix
         from sklearn.metrics._classification import _check_targets
+        from sklearn.preprocessing import LabelEncoder
 
         y_type, y_true, y_pred = _check_targets(y_true, y_pred)
         if y_type not in {'binary', 'multiclass'}:
@@ -527,7 +529,7 @@ def classification_report2(
         for k, v in mcc_significance_scales.items():
             if np.abs(mcc) >= k:
                 if verbose:
-                    logger.info('classifier correlation is %s' % (v,))
+                    logger.info('classifier correlation is {}'.format(v))
                 break
         if verbose:
             float_precision = 2

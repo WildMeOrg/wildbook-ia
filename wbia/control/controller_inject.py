@@ -8,35 +8,36 @@ TODO:
 
 python -c "import wbia"
 """
+import base64
+
+# import numpy as np
+import hmac
 import logging
-import utool as ut
+import os
+import random
+import string
 import sys
-from wbia import dtool
-from datetime import timedelta
-from functools import update_wrapper
-import warnings
-from functools import wraps
-from os.path import abspath, join, dirname
 
 # import simplejson as json
 # import json
 # import pickle
 import traceback
+import warnings
+from datetime import timedelta
+from functools import update_wrapper, wraps
 from hashlib import sha1
-import os
+from os.path import abspath, dirname, join
 
-# import numpy as np
-import hmac
+import utool as ut
+
 from wbia import constants as const
-import string
-import random
-import base64
+from wbia import dtool
 
 # <flask>
 # TODO: allow optional flask import
 try:
     import flask
-    from flask import session, request
+    from flask import request, session
 
     HAS_FLASK = True
 except Exception:
@@ -139,17 +140,17 @@ def get_flask_app(templates_auto_reload=True):
         tempalte_dpath = join(root_dpath, 'web', 'templates')
         static_dpath = join(root_dpath, 'web', 'static')
         if ut.VERBOSE:
-            logger.info('[get_flask_app] root_dpath = %r' % (root_dpath,))
-            logger.info('[get_flask_app] tempalte_dpath = %r' % (tempalte_dpath,))
-            logger.info('[get_flask_app] static_dpath = %r' % (static_dpath,))
-            logger.info('[get_flask_app] GLOBAL_APP_NAME = %r' % (GLOBAL_APP_NAME,))
+            logger.info('[get_flask_app] root_dpath = {!r}'.format(root_dpath))
+            logger.info('[get_flask_app] tempalte_dpath = {!r}'.format(tempalte_dpath))
+            logger.info('[get_flask_app] static_dpath = {!r}'.format(static_dpath))
+            logger.info('[get_flask_app] GLOBAL_APP_NAME = {!r}'.format(GLOBAL_APP_NAME))
         GLOBAL_APP = flask.Flask(
             GLOBAL_APP_NAME, template_folder=tempalte_dpath, static_folder=static_dpath
         )
 
         if ut.VERBOSE:
             logger.info(
-                '[get_flask_app] USING FLASK SECRET KEY: %r' % (GLOBAL_APP_SECRET,)
+                '[get_flask_app] USING FLASK SECRET KEY: {!r}'.format(GLOBAL_APP_SECRET)
             )
         GLOBAL_APP.secret_key = GLOBAL_APP_SECRET
 
@@ -194,7 +195,7 @@ class WebException(ut.NiceRepr, Exception):
 
         if PROMETHEUS:
             ibs = flask.current_app.ibs
-            tag = '%s' % (self.code,)
+            tag = '{}'.format(self.code)
             ibs.prometheus_increment_exception(tag)
 
     def get_rawreturn(self, debug_stack_trace=False):
@@ -207,7 +208,7 @@ class WebException(ut.NiceRepr, Exception):
             return self.rawreturn
 
     def __nice__(self):
-        return '(%r: %r)' % (self.code, self.message)
+        return '({!r}: {!r})'.format(self.code, self.message)
 
 
 class WebMissingUUIDException(WebException):
@@ -416,8 +417,10 @@ def translate_wbia_webreturn(
     response = ut.to_json(template)
 
     if jQuery_callback is not None and isinstance(jQuery_callback, str):
-        logger.info('[web] Including jQuery callback function: %r' % (jQuery_callback,))
-        response = '%s(%s)' % (jQuery_callback, response)
+        logger.info(
+            '[web] Including jQuery callback function: {!r}'.format(jQuery_callback)
+        )
+        response = '{}({})'.format(jQuery_callback, response)
     return response
 
 
@@ -431,7 +434,9 @@ def _process_input(multidict=None):
     kwargs2 = {}
     for (arg, value) in multidict.lists():
         if len(value) > 1:
-            raise WebException('Cannot specify a parameter more than once: %r' % (arg,))
+            raise WebException(
+                'Cannot specify a parameter more than once: {!r}'.format(arg)
+            )
         # value = str(value[0])
         value = value[0]
         if (
@@ -441,7 +446,7 @@ def _process_input(multidict=None):
             and '{' not in value
             and '}' not in value
         ):
-            value = '[%s]' % (value,)
+            value = '[{}]'.format(value)
         if value in ['True', 'False']:
             value = value.lower()
         try:
@@ -449,10 +454,10 @@ def _process_input(multidict=None):
         except Exception:
             # try making string and try again...
             try:
-                value_ = '"%s"' % (value,)
+                value_ = '"{}"'.format(value)
                 converted = ut.from_json(value_)
             except Exception as ex:
-                logger.info('FAILED TO JSON CONVERT: %s' % (ex,))
+                logger.info('FAILED TO JSON CONVERT: {}'.format(ex))
                 logger.info(ut.repr3(value))
                 converted = value
         if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
@@ -468,7 +473,7 @@ def _process_input(multidict=None):
             temp_list = []
             for _ in converted:
                 if isinstance(_, dict):
-                    temp_list.append('%s' % (_,))
+                    temp_list.append('{}'.format(_))
                 else:
                     temp_list.append(_)
             converted = type_(temp_list)
@@ -501,7 +506,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
         Finished test
 
     """
-    assert len(args) == 0, 'There should not be any args=%r' % (args,)
+    assert len(args) == 0, 'There should not be any args={!r}'.format(args)
 
     # logger.info('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
@@ -511,7 +516,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
     elif 'metrics' in funcstr:
         pass
     else:
-        logger.info('[TRANSLATE] Calling: %s' % (funcstr,))
+        logger.info('[TRANSLATE] Calling: {}'.format(funcstr))
 
     try:
         key_list = sorted(list(kwargs.keys()))
@@ -543,7 +548,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
                             mod,
                         )
                 else:
-                    message_ = '%s' % (values,)
+                    message_ = '{}'.format(values)
             except Exception:
                 type_ = 'UNKNOWN'
                 message_ = 'ERROR IN PARSING'
@@ -561,7 +566,9 @@ def translate_wbia_webcall(func, *args, **kwargs):
                 key_ = key_.rjust(length1)
                 type_ = type_.ljust(length2)
                 try:
-                    logger.info('[TRANSLATE] \t %s (%s) : %s' % (key_, type_, message_))
+                    logger.info(
+                        '[TRANSLATE] \t {} ({}) : {}'.format(key_, type_, message_)
+                    )
                 except UnicodeEncodeError:
                     logger.info('[TRANSLATE] \t %s (%s) : UNICODE ERROR')
     except Exception:
@@ -590,17 +597,17 @@ def translate_wbia_webcall(func, *args, **kwargs):
                 msg_list = []
                 # msg_list.append('Error in translate_wbia_webcall')
                 msg_list.append('Expected Function Definition: ' + ut.func_defsig(func))
-                msg_list.append('Received Function Definition: %s' % (funcstr,))
+                msg_list.append('Received Function Definition: {}'.format(funcstr))
                 msg_list.append('Received Function Parameters:')
                 for key in kwargs:
                     value = kwargs[key]
-                    value_str = '%r' % (value,)
+                    value_str = '{!r}'.format(value)
                     value_str = ut.truncate_str(value_str, maxlen=256)
-                    msg_list.append('\t%r: %s' % (key, value_str))
+                    msg_list.append('\t{!r}: {}'.format(key, value_str))
                 # msg_list.append('\targs = %r' % (args,))
                 # msg_list.append('flask.request.args = %r' % (flask.request.args,))
                 # msg_list.append('flask.request.form = %r' % (flask.request.form,))
-                msg_list.append('%s: %s' % (type(ex2).__name__, ex2))
+                msg_list.append('{}: {}'.format(type(ex2).__name__, ex2))
                 if WEB_DEBUG_INCLUDE_TRACE:
                     trace = str(traceback.format_exc())
                     msg_list.append(trace)
@@ -686,7 +693,7 @@ def get_signature(key, message):
 
 def get_url_authorization(url):
     hash_ = get_signature(GLOBAL_APP_SECRET, url)
-    hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_)
+    hash_challenge = '{}:{}'.format(GLOBAL_APP_NAME, hash_)
     return hash_challenge
 
 
@@ -813,7 +820,7 @@ def remote_api_wrapper(func):
     return remote_api_call
 
 
-API_SEEN_SET = set([])
+API_SEEN_SET = set()
 
 
 def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
@@ -832,7 +839,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
             ), 'An api should always have a specified methods list'
             rule_ = rule + ':'.join(options['methods'])
             if rule_ in API_SEEN_SET:
-                msg = 'An API rule (%s) has been duplicated' % (rule_,)
+                msg = 'An API rule ({}) has been duplicated'.format(rule_)
                 warnings.warn(msg + '. Ignoring duplicate (may break web)')
                 return ut.identity
                 # raise AssertionError(msg)
@@ -844,7 +851,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                     # warnings.warn(msg)
                     return ut.identity
                 else:
-                    logger.info('Registering API rule=%r' % (rule_,))
+                    logger.info('Registering API rule={!r}'.format(rule_))
 
             try:
                 if not MICROSOFT_API_ENABLED:
@@ -869,11 +876,13 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                     'metadata',
                 ]
                 for check in check_list:
-                    assert '/api/%s/' % (check,) not in rule, 'failed check=%r' % (check,)
+                    assert (
+                        '/api/{}/'.format(check) not in rule
+                    ), 'failed check={!r}'.format(check)
             except Exception:
                 iswarning = not ut.SUPER_STRICT
                 ut.printex(
-                    'CONSIDER RENAMING API RULE: %r' % (rule,),
+                    'CONSIDER RENAMING API RULE: {!r}'.format(rule),
                     iswarning=iswarning,
                     tb=True,
                 )
@@ -953,7 +962,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         rawreturn, success, code, message = resp_tup
                     except WebException as webex:
                         # ut.printex(webex)
-                        logger.info('CAUGHT2: %r' % (webex,))
+                        logger.info('CAUGHT2: {!r}'.format(webex))
                         rawreturn = webex.get_rawreturn(
                             DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE
                         )
@@ -962,7 +971,7 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                         message = webex.message
                         jQuery_callback = None
                     except Exception as ex:
-                        logger.info('CAUGHT2: %r' % (ex,))
+                        logger.info('CAUGHT2: {!r}'.format(ex))
                         # ut.printex(ex)
                         rawreturn = None
                         if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
@@ -1131,12 +1140,12 @@ def get_wbia_flask_route(__name__):
                     # warnings.warn(msg)
                     return ut.identity
                 else:
-                    logger.info('Registering Route rule=%r' % (rule,))
+                    logger.info('Registering Route rule={!r}'.format(rule))
 
             if __route_prefix_check__:
                 assert not rule.startswith(
                     '/api/'
-                ), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule,)
+                ), 'Cannot start a route rule ({!r}) with the prefix "/api/"'.format(rule)
             else:
                 __route_authenticate__ = False
             if __route_postfix_check__:
@@ -1201,7 +1210,9 @@ def get_wbia_flask_route(__name__):
                         rawreturn = str(traceback.format_exc())
                         success = False
                         code = 400
-                        message = 'Route error, Python Exception thrown: %r' % (str(ex),)
+                        message = 'Route error, Python Exception thrown: {!r}'.format(
+                            str(ex)
+                        )
                         jQuery_callback = None
                         result = translate_wbia_webreturn(
                             rawreturn,
@@ -1235,7 +1246,7 @@ def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001, **k
     route = route_list[0]
     api_route = route.rule
     assert api_route.startswith('/api/'), 'Must be an API route'
-    method_list = sorted(list(route.methods - set(['HEAD', 'OPTIONS'])))
+    method_list = sorted(list(route.methods - {'HEAD', 'OPTIONS'}))
     remote_api_method = method_list[0].upper()
 
     assert api_route is not None, 'Route could not be found'
@@ -1250,12 +1261,12 @@ def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001, **k
             value = str(list(value))
         kwargs[key] = value
 
-    logger.info('[REMOTE] %s' % ('-' * 80,))
-    logger.info('[REMOTE] Calling remote IBEIS API: %r' % (remote_api_url,))
-    logger.info('[REMOTE] \tMethod:  %r' % (remote_api_method,))
+    logger.info('[REMOTE] {}'.format('-' * 80))
+    logger.info('[REMOTE] Calling remote IBEIS API: {!r}'.format(remote_api_url))
+    logger.info('[REMOTE] \tMethod:  {!r}'.format(remote_api_method))
     if ut.DEBUG2 or ut.VERBOSE:
-        logger.info('[REMOTE] \tHeaders: %s' % (ut.repr2(headers),))
-        logger.info('[REMOTE] \tKWArgs:  %s' % (ut.repr2(kwargs),))
+        logger.info('[REMOTE] \tHeaders: {}'.format(ut.repr2(headers)))
+        logger.info('[REMOTE] \tKWArgs:  {}'.format(ut.repr2(kwargs)))
 
     # Make request to server
     try:
@@ -1272,17 +1283,17 @@ def api_remote_wbia(remote_wbia_url, remote_api_func, remote_wbia_port=5001, **k
                 remote_api_url, headers=headers, data=kwargs, verify=False
             )
         else:
-            message = '_api_result got unsupported method=%r' % (remote_api_method,)
+            message = '_api_result got unsupported method={!r}'.format(remote_api_method)
             raise KeyError(message)
     except requests.exceptions.ConnectionError as ex:
-        message = '_api_result could not connect to server %s' % (ex,)
+        message = '_api_result could not connect to server {}'.format(ex)
         raise IOError(message)
     response = req.text
     converted = ut.from_json(value)
     response = converted.get('response', None)
     logger.info('[REMOTE] got response')
     if ut.DEBUG2:
-        logger.info('response = %s' % (response,))
+        logger.info('response = {}'.format(response))
     return response
 
 

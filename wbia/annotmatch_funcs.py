@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
-import ubelt as ub  # NOQA
-import numpy as np
 from functools import partial  # NOQA
+
+import numpy as np
+import ubelt as ub  # NOQA
+import utool as ut
+
 from wbia.control import controller_inject
 
 print, rrr, profile = ut.inject2(__name__)
@@ -481,7 +483,7 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
     user_id = ut.get_user_name() + '@' + ut.get_computer_name()
     ibs.set_annotmatch_reviewer(annotmatch_rowids, ['user:' + user_id])
     ibs.set_annotmatch_confidence(annotmatch_rowids, [confidence])
-    logger.info('... set truth=%r' % (truth,))
+    logger.info('... set truth={!r}'.format(truth))
 
 
 @register_ibs_method
@@ -524,7 +526,9 @@ def set_annot_pair_as_positive_match(
     def _set_annot_name_rowids(aid_list, nid_list):
         if not ut.QUIET:
             logger.info(
-                '... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list)
+                '... _set_annot_name_rowids(aids={!r}, nids={!r})'.format(
+                    aid_list, nid_list
+                )
             )
             logger.info('... names = %r' % (ibs.get_name_texts(nid_list)))
         assert len(aid_list) == len(nid_list), 'list must correspond'
@@ -558,7 +562,7 @@ def set_annot_pair_as_positive_match(
         status = _combo_aids_list
         return status
 
-    logger.info('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
+    logger.info('[marking_match] aid1 = {!r}, aid2 = {!r}'.format(aid1, aid2))
 
     nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
     if nid1 == nid2:
@@ -630,7 +634,7 @@ def set_annot_pair_as_negative_match(
     """
 
     def _set_annot_name_rowids(aid_list, nid_list):
-        logger.info('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
+        logger.info('... _set_annot_name_rowids({!r}, {!r})'.format(aid_list, nid_list))
         if not dryrun:
             if logger_ is not None:
                 log = logger_.info

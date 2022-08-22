@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from wbia.plottool import viz_image2
+import numpy as np
+import utool
+
 from wbia.plottool import draw_func2 as df2
 from wbia.plottool import plot_helpers as ph
-import utool
-import numpy as np
+from wbia.plottool import viz_image2
 from wbia.plottool.tests.test_helpers import dummy_bbox, imread_many
 
 
@@ -15,7 +16,7 @@ def _test_viz_image(imgpaths):
     fnum = 1
     img_list = imread_many(imgpaths)
     nRows, nCols = ph.get_square_row_cols(nImgs)
-    print('[viz*] r=%r, c=%r' % (nRows, nCols))
+    print('[viz*] r={!r}, c={!r}'.format(nRows, nCols))
     # gs2 = gridspec.GridSpec(nRows, nCols)
     pnum_ = df2.get_pnum_func(nRows, nCols)
 

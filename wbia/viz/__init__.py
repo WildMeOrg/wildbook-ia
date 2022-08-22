@@ -4,34 +4,35 @@
 # flake8: noqa
 
 import logging
+
 import utool as ut
 
 ut.noinject(__name__, '[wbia.viz.__init__]', DEBUG=False)
 
-from wbia.viz import viz_chip
-from wbia.viz import viz_helpers
-from wbia.viz import viz_hough
-from wbia.viz import viz_image
-from wbia.viz import viz_matches
-from wbia.viz import viz_name
-from wbia.viz import viz_nearest_descriptors
-from wbia.viz import viz_qres
-from wbia.viz import viz_sver
-from wbia.viz import viz_graph2
-from wbia.viz import viz_other
-
-from wbia.viz import viz_helpers as vh
-from wbia.viz.viz_helpers import draw, kp_info, show_keypoint_gradient_orientations
-from wbia.viz.viz_image import show_image
-from wbia.viz.viz_chip import show_chip
-from wbia.viz.viz_name import show_name
-from wbia.viz.viz_qres import show_qres, show_qres_top, show_qres_analysis
-from wbia.viz.viz_sver import show_sver, _compute_svvars
-from wbia.viz.viz_nearest_descriptors import show_nearest_descriptors
-from wbia.viz.viz_hough import show_hough_image, show_probability_chip
-from wbia.viz.viz_other import chip_montage
-
 import utool
+
+from wbia.viz import viz_chip, viz_graph2
+from wbia.viz import viz_helpers
+from wbia.viz import viz_helpers as vh
+from wbia.viz import (
+    viz_hough,
+    viz_image,
+    viz_matches,
+    viz_name,
+    viz_nearest_descriptors,
+    viz_other,
+    viz_qres,
+    viz_sver,
+)
+from wbia.viz.viz_chip import show_chip
+from wbia.viz.viz_helpers import draw, kp_info, show_keypoint_gradient_orientations
+from wbia.viz.viz_hough import show_hough_image, show_probability_chip
+from wbia.viz.viz_image import show_image
+from wbia.viz.viz_name import show_name
+from wbia.viz.viz_nearest_descriptors import show_nearest_descriptors
+from wbia.viz.viz_other import chip_montage
+from wbia.viz.viz_qres import show_qres, show_qres_analysis, show_qres_top
+from wbia.viz.viz_sver import _compute_svvars, show_sver
 
 print, rrr, profile = utool.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -59,7 +60,7 @@ def reassign_submodule_attributes(verbose=True):
     import wbia.viz
 
     # Implicit reassignment.
-    seen_ = set([])
+    seen_ = set()
     for tup in IMPORT_TUPLES:
         submodname, fromimports = tup
         submod = getattr(wbia.viz, submodname)

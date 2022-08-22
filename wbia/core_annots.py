@@ -47,17 +47,19 @@ Setup:
     >>> aid_list = ibs.get_valid_aids()[0:2]
 """
 import logging
-from vtool import image_filters
-from wbia import dtool
 import math
+
+import cv2
+import numpy as np
 import utool as ut
 import vtool as vt
-import numpy as np
-import cv2
+from vtool import image_filters
+
 import wbia.constants as const
-from wbia.control.controller_inject import register_preprocs, register_subprops
-from wbia.algo.hots.chip_match import ChipMatch
+from wbia import dtool
 from wbia.algo.hots import neighbor_index
+from wbia.algo.hots.chip_match import ChipMatch
+from wbia.control.controller_inject import register_preprocs, register_subprops
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -122,7 +124,7 @@ def compute_chipthumb(depc, aid_list, config=None):
         >>> pt.show_if_requested()
     """
     logger.info('Chips Thumbs')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
 
     ibs = depc.controller
 
@@ -154,7 +156,7 @@ def compute_chipthumb(depc, aid_list, config=None):
     # Checks
     invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
     invalid_aids = ut.compress(aid_list, invalid_flags)
-    assert len(invalid_aids) == 0, 'invalid aids=%r' % (invalid_aids,)
+    assert len(invalid_aids) == 0, 'invalid aids={!r}'.format(invalid_aids)
 
     if in_image:
         imgsz_list = ibs.get_image_sizes(gid_list)
@@ -343,7 +345,7 @@ def compute_chip(depc, aid_list, config=None):
         >>> pt.show_if_requested()
     """
     logger.info('Preprocess Chips')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
 
     ibs = depc.controller
 
@@ -417,7 +419,7 @@ def gen_chip_configure_and_compute(
     bbox_size_list = ut.take_column(bbox_list, [2, 3])
     invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
     invalid_rowids = ut.compress(rowid_list, invalid_flags)
-    assert len(invalid_rowids) == 0, 'invalid rowids=%r' % (invalid_rowids,)
+    assert len(invalid_rowids) == 0, 'invalid rowids={!r}'.format(invalid_rowids)
 
     if resize_dim == 'wh':
         assert isinstance(
@@ -521,7 +523,7 @@ def gen_chip_configure_and_compute(
                 imgBGR = ibs.get_images(gid)
                 last_gid = gid
             # Warp chip
-            new_size = tuple([int(np.around(val)) for val in new_size])
+            new_size = tuple(int(np.around(val)) for val in new_size)
             chipBGR = cv2.warpAffine(imgBGR, M[0:2], new_size, **warpkw)
             # Do intensity normalizations
             if filter_list:
@@ -537,7 +539,7 @@ def gen_chip_configure_and_compute(
 def gen_chip_worker(gpath, orient, M, new_size, filter_list, warpkw):
     imgBGR = vt.imread(gpath, orient=orient)
     # Warp chip
-    new_size = tuple([int(np.around(val)) for val in new_size])
+    new_size = tuple(int(np.around(val)) for val in new_size)
     chipBGR = cv2.warpAffine(imgBGR, M[0:2], new_size, **warpkw)
     # Do intensity normalizations
     if filter_list:
@@ -704,7 +706,7 @@ def compute_probchip(depc, aid_list, config=None):
         >>> ut.show_if_requested()
     """
     logger.info('[core] COMPUTING FEATWEIGHTS')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     import vtool as vt
 
     ibs = depc.controller
@@ -760,7 +762,7 @@ def compute_probchip(depc, aid_list, config=None):
         )
         % (len(aid_list), len(unique_species))
     )
-    logger.info('unique_species = %r' % (unique_species,))
+    logger.info('unique_species = {!r}'.format(unique_species))
     logger.info(config)
 
     # grouped_probchip_fpath_list = []
@@ -803,7 +805,7 @@ def compute_probchip(depc, aid_list, config=None):
                 )
             grouped_probchips.append(list(gen))
     else:
-        raise NotImplementedError('unknown fw_detector=%r' % (fw_detector,))
+        raise NotImplementedError('unknown fw_detector={!r}'.format(fw_detector))
 
     if ut.VERBOSE:
         logger.info('[preproc_probchip] Done computing probability images')
@@ -844,8 +846,10 @@ def cnn_probchips(ibs, species, inputchip_fpaths, smooth_thresh, smooth_ksize):
 
 
 def rf_probchips(ibs, aids, species, inputchip_fpaths, pad, smooth_thresh, smooth_ksize):
-    import ubelt as ub
     from os.path import join
+
+    import ubelt as ub
+
     from wbia.algo.detect import randomforest
 
     cachedir = ub.ensure_app_cache_dir('wbia', ibs.dbname, 'rfchips')
@@ -1201,7 +1205,7 @@ def compute_feats(depc, cid_list, config=None):
         assert False, 'not implemented'
         featgen = _plugin.generate_siam_l2_128_feats(ibs, cid_list, config=config)
     else:
-        raise AssertionError('unknown feat_type=%r' % (feat_type,))
+        raise AssertionError('unknown feat_type={!r}'.format(feat_type))
 
     for nFeat, kpts, vecs in featgen:
         yield (
@@ -1811,7 +1815,7 @@ def compute_classifications(depc, aid_list, config=None):
         >>> print(results)
     """
     logger.info('[ibs] Process Image Classifications')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
@@ -1835,7 +1839,7 @@ def compute_classifications(depc, aid_list, config=None):
         result_list = densenet.test(chip_filepath_list, **config)  # yield detections
     else:
         raise ValueError(
-            'specified classifier algo is not supported in config = %r' % (config,)
+            'specified classifier algo is not supported in config = {!r}'.format(config)
         )
 
     # yield detections
@@ -1887,7 +1891,7 @@ def compute_canonical(depc, aid_list, config=None):
         >>> print(results)
     """
     logger.info('[ibs] Process Annot Canonical')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
@@ -1984,7 +1988,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> print(results)
     """
     logger.info('[ibs] Process Annotation Labels')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
@@ -2082,7 +2086,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
 
                     quality = 'UNKNOWN'
                     orientation = 0.0
-                    prob_key = '%s:%s' % (species, viewpoint)
+                    prob_key = '{}:{}'.format(species, viewpoint)
                     probs = {}
                     probs[prob_key] = score
                     if score < 1.0:
@@ -2100,7 +2104,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
                 raise NotImplementedError('Muti-tier labeler config not supported')
     else:
         raise ValueError(
-            'specified labeler algo is not supported in config = %r' % (config,)
+            'specified labeler algo is not supported in config = {!r}'.format(config)
         )
 
     # yield detections
@@ -2151,7 +2155,7 @@ def compute_aoi2(depc, aid_list, config=None):
         >>> print(results)
     """
     logger.info('[ibs] Process Annotation AoI2s')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
@@ -2260,7 +2264,7 @@ def compute_orients_annotations(depc, aid_list, config=None):
         >>> print(result_list)
     """
     logger.info('[ibs] Process Annotation Labels')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_annot
@@ -2303,9 +2307,9 @@ def compute_orients_annotations(depc, aid_list, config=None):
     elif config['orienter_algo'] in ['plugin:orientation']:
         logger.info('[ibs] orienting using Orientation Plug-in')
         try:
+            import vtool as vt
             from wbia_orientation import _plugin  # NOQA
             from wbia_orientation.utils.data_manipulation import get_object_aligned_box
-            import vtool as vt
 
             species_list = ibs.get_annot_species(aid_list)
 
@@ -2319,8 +2323,10 @@ def compute_orients_annotations(depc, aid_list, config=None):
             species_key_list = sorted(species_dict.keys())
             for species in species_key_list:
                 species_tag = _plugin.SPECIES_MODEL_TAG_MAPPING.get(species, species)
-                message = 'Orientation plug-in does not support species_tag = %r' % (
-                    species_tag,
+                message = (
+                    'Orientation plug-in does not support species_tag = {!r}'.format(
+                        species_tag,
+                    )
                 )
                 aid_list_ = sorted(species_dict[species])
 
@@ -2487,7 +2493,7 @@ def compute_orients_annotations(depc, aid_list, config=None):
             raise RuntimeError('Orientation plug-in not working!')
     else:
         raise ValueError(
-            'specified orienter algo is not supported in config = %r' % (config,)
+            'specified orienter algo is not supported in config = {!r}'.format(config)
         )
 
     # yield detections
@@ -2586,8 +2592,9 @@ class PartAssignmentFeatureConfig(dtool.Config):
 )
 def assigner_viewpoint_features(depc, part_aid_list, body_aid_list, config=None):
 
-    from shapely import geometry
     import math
+
+    from shapely import geometry
 
     ibs = depc.controller
 
@@ -2810,8 +2817,9 @@ def assigner_viewpoint_features(depc, part_aid_list, body_aid_list, config=None)
 )
 def assigner_viewpoint_unit_features(depc, part_aid_list, body_aid_list, config=None):
 
-    from shapely import geometry
     import math
+
+    from shapely import geometry
 
     ibs = depc.controller
 

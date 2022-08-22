@@ -5,17 +5,17 @@ Interface into SQL for the IBEIS Controller
 TODO; need to use some sort of sticky bit so
 sql files are created with reasonable permissions.
 """
+import collections
 import functools
 import logging
-import collections
 import os
-import parse
 import re
 import uuid
 from collections.abc import Mapping, MutableMapping
 from contextlib import contextmanager
-from os.path import join, exists
+from os.path import exists, join
 
+import parse
 import sqlalchemy
 import utool as ut
 from deprecated import deprecated
@@ -24,16 +24,13 @@ try:
     from sqlalchemy.engine import LegacyRow
 except ImportError:
     LegacyRow = None
+import tqdm
 from sqlalchemy.schema import Table
-from sqlalchemy.sql import bindparam, text, ClauseElement
+from sqlalchemy.sql import ClauseElement, bindparam, text
 
 from wbia.dtool import lite
 from wbia.dtool.dump import dumps
-from wbia.dtool.types import Integer, TYPE_TO_SQLTYPE
-from wbia.dtool.types import initialize_postgresql_types
-
-import tqdm
-
+from wbia.dtool.types import TYPE_TO_SQLTYPE, Integer, initialize_postgresql_types
 
 # TYPE_INITIALIZED_CACHE = {}
 
@@ -145,7 +142,7 @@ def _unpacker(results):
     if not results:  # Check for None or empty list
         results = None
     else:
-        assert len(results) <= 1, 'throwing away results! { %r }' % (results,)
+        assert len(results) <= 1, 'throwing away results! {{ {!r} }}'.format(results)
         results = results[0]
     return results
 
@@ -161,8 +158,8 @@ def sanitize_sql(db, tablename_, columns=None):
     tablename = re.sub('[^a-zA-Z_0-9]', '', tablename_)
     valid_tables = db.get_table_names()
     if tablename not in valid_tables:
-        logger.info('tablename_ = %r' % (tablename_,))
-        logger.info('valid_tables = %r' % (valid_tables,))
+        logger.info('tablename_ = {!r}'.format(tablename_))
+        logger.info('valid_tables = {!r}'.format(valid_tables))
         raise Exception(
             'UNSAFE TABLE: tablename=%r. '
             'Column names and table names should be different' % tablename
@@ -729,7 +726,7 @@ class SQLDatabaseController(object):
             return
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
-        logger.info('[sql] running sql pragma optimizions on %r' % (self.uri,))
+        logger.info('[sql] running sql pragma optimizions on {!r}'.format(self.uri))
 
         with self.connect() as conn:
             # conn.execute('PRAGMA cache_size = 0;')
@@ -1077,7 +1074,7 @@ class SQLDatabaseController(object):
         )
         batch_list = list(range(int(len(params_iter) / params_per_batch) + 1))
         for batch in tqdm.tqdm(
-            batch_list, disable=len(batch_list) <= 1, desc='[db.get(%s)]' % (tblname,)
+            batch_list, disable=len(batch_list) <= 1, desc='[db.get({})]'.format(tblname)
         ):
             val_list = self.executeone(
                 stmt,
@@ -1171,7 +1168,7 @@ class SQLDatabaseController(object):
         where_colname = where_colnames[0]
         where_set = list(set(ut.flatten(params_iter_)))
 
-        where_set_str = ['%r' % (where_value,) for where_value in where_set]
+        where_set_str = ['{!r}'.format(where_value) for where_value in where_set]
 
         operation_fmt = """
         SELECT {colnames}
@@ -1243,7 +1240,7 @@ class SQLDatabaseController(object):
         #      select field1, field2 from table;
         # so the items in val_list only have 2 values
         # but the caller isn't expecting it so it causes problems
-        returned_columns = tuple([c.name for c in stmt.columns])
+        returned_columns = tuple(c.name for c in stmt.columns)
         if colnames == returned_columns:
             return val_list
 
@@ -1267,7 +1264,7 @@ class SQLDatabaseController(object):
     ):
         """hacked in function for nicer templates"""
         andwhere_clauses = [colname + '=?' for colname in where_colnames]
-        where_clause = (' %s ' % (op,)).join(andwhere_clauses)
+        where_clause = (' {} '.format(op)).join(andwhere_clauses)
         fmtdict = {
             'tblname': tblname,
             'where_clauses': where_clause,
@@ -1341,7 +1338,7 @@ class SQLDatabaseController(object):
         logger.debug(
             '[sql]'
             + ut.get_caller_name(list(range(1, 4)))
-            + ' db.get(%r, %r, ...)' % (tblname, colnames)
+            + ' db.get({!r}, {!r}, ...)'.format(tblname, colnames)
         )
         if not isinstance(colnames, (tuple, list)):
             raise TypeError('colnames must be a sequence type of strings')
@@ -1391,7 +1388,9 @@ class SQLDatabaseController(object):
 
             batch_list = list(range(int(len(id_iter) / batch_size) + 1))
             for batch in tqdm.tqdm(
-                batch_list, disable=len(batch_list) <= 1, desc='[db.get(%s)]' % (tblname,)
+                batch_list,
+                disable=len(batch_list) <= 1,
+                desc='[db.get({})]'.format(tblname),
             ):
                 val_list = self.executeone(
                     stmt,
@@ -1488,10 +1487,10 @@ class SQLDatabaseController(object):
         id_list = list(id_iter)  # eager evaluation
 
         logger.debug('[sql] SETTER: ' + ut.get_caller_name())
-        logger.debug('[sql] * tblname=%r' % (tblname,))
-        logger.debug('[sql] * val_list=%r' % (val_list,))
-        logger.debug('[sql] * id_list=%r' % (id_list,))
-        logger.debug('[sql] * id_colname=%r' % (id_colname,))
+        logger.debug('[sql] * tblname={!r}'.format(tblname))
+        logger.debug('[sql] * val_list={!r}'.format(val_list))
+        logger.debug('[sql] * id_list={!r}'.format(id_list))
+        logger.debug('[sql] * id_colname={!r}'.format(id_colname))
 
         if duplicate_behavior == 'error':
             try:
@@ -1706,8 +1705,8 @@ class SQLDatabaseController(object):
                     #      select field1, field2 from table;
                     # so the items in val_list only have 2 values
                     # but the caller isn't expecting it so it causes problems
-                    returned_columns = tuple([c.name for c in operation.columns])
-                    raw_columns = tuple([c.name for c in operation._raw_columns])
+                    returned_columns = tuple(c.name for c in operation.columns)
+                    raw_columns = tuple(c.name for c in operation._raw_columns)
                     if raw_columns != returned_columns:
                         results_ = []
                         for r in results:
@@ -1716,11 +1715,9 @@ class SQLDatabaseController(object):
                             )
                         results = results_
                 values = list(
-                    [
-                        # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
-                        row[0] if not keepwrap and len(row) == 1 else row
-                        for row in results
-                    ]
+                    # BBB (12-Sept-12020) Retaining behavior to unwrap single value rows.
+                    row[0] if not keepwrap and len(row) == 1 else row
+                    for row in results
                 )
                 # FIXME (28-Sept-12020) No rows results in an empty list. This behavior does not
                 #       match the resulting expectations of `fetchone`'s DBAPI spec.
@@ -1836,7 +1833,9 @@ class SQLDatabaseController(object):
         val = vals[0]
         if val is None:
             if default == ut.NoParam:
-                assert val is not None, 'metadata_table key=%r does not exist' % (key,)
+                assert val is not None, 'metadata_table key={!r} does not exist'.format(
+                    key
+                )
             else:
                 val = default
         # if key.endswith('_constraint') or
@@ -2066,10 +2065,10 @@ class SQLDatabaseController(object):
                 # Add column
                 assert (
                     dst is not None and len(dst) > 0
-                ), 'New column name must be valid in colmap=%r' % (colmap,)
+                ), 'New column name must be valid in colmap={!r}'.format(colmap)
                 assert (
                     type_ is not None and len(type_) > 0
-                ), 'New column type must be specified in colmap=%r' % (colmap,)
+                ), 'New column type must be specified in colmap={!r}'.format(colmap)
                 if isinstance(src, int) and (src < 0 or len(colname_list) <= src):
                     src = None
                 if src is None:
@@ -2092,7 +2091,7 @@ class SQLDatabaseController(object):
                 try:
                     assert (
                         src in colname_list
-                    ), 'Unkown source colname=%s in tablename=%s' % (src, tablename)
+                    ), 'Unkown source colname={} in tablename={}'.format(src, tablename)
                 except AssertionError as ex:
                     ut.printex(ex, keys=['colname_list'])
                 index = colname_list.index(src)
@@ -2173,10 +2172,8 @@ class SQLDatabaseController(object):
         # Run functions across all data for specified callums
         data_list = [
             tuple(
-                [
-                    colmap_dict[src_](d) if src_ in colmap_dict.keys() else d
-                    for d, src_ in zip(data, src_list)
-                ]
+                colmap_dict[src_](d) if src_ in colmap_dict.keys() else d
+                for d, src_ in zip(data, src_list)
             )
             for data in data_list_
         ]
@@ -2199,7 +2196,9 @@ class SQLDatabaseController(object):
 
     def rename_table(self, tablename_old, tablename_new, invalidate_cache=True):
         logger.info(
-            '[sql] schema renaming tablename=%r -> %r' % (tablename_old, tablename_new)
+            '[sql] schema renaming tablename={!r} -> {!r}'.format(
+                tablename_old, tablename_new
+            )
         )
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
@@ -2413,7 +2412,7 @@ class SQLDatabaseController(object):
         line_list = []
         tab1 = ' ' * 4
         tab2 = ' ' * 8
-        line_list.append(tab1 + 'db.add_table(%s, [' % (ut.repr2(tablename),))
+        line_list.append(tab1 + 'db.add_table({}, ['.format(ut.repr2(tablename)))
         # column_list = db.get_columns(tablename)
         # colnamerepr_list = [ut.repr2(str(column[1]))
         #                     for column in column_list]
@@ -2424,7 +2423,7 @@ class SQLDatabaseController(object):
         for col_name, col_type in coldef_list:
             name_part = ('%s,' % ut.repr2(col_name)).ljust(max_colsize)
             type_part = ut.repr2(col_type)
-            line_list.append(tab2 + '(%s%s),' % (name_part, type_part))
+            line_list.append(tab2 + '({}{}),'.format(name_part, type_part))
         line_list.append(tab1 + '],')
         superkeys = self.get_table_superkey_colnames(tablename)
         docstr = self.get_table_docstr(tablename)
@@ -2448,7 +2447,7 @@ class SQLDatabaseController(object):
             return quoted_docstr
 
         line_list.append(tab2 + 'docstr=%s,' % quote_docstr(docstr))
-        line_list.append(tab2 + 'superkeys=%s,' % (ut.repr2(superkeys),))
+        line_list.append(tab2 + 'superkeys={},'.format(ut.repr2(superkeys)))
         # Hack out docstr and superkeys for now
         for suffix in METADATA_TABLE_COLUMN_NAMES:
             if suffix in specially_handled_table_metakeys:
@@ -2457,14 +2456,14 @@ class SQLDatabaseController(object):
             val = getattr(self.metadata[tablename], suffix)
             logger.info(key)
             if val is not None:
-                line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
+                line_list.append(tab2 + '{}={},'.format(suffix, ut.repr2(val)))
         dependsmap = self.metadata[tablename].dependsmap
         if dependsmap is not None:
             _dictstr = ut.indent(ut.repr2(dependsmap, nl=1), tab2)
             depends_map_dictstr = ut.align(_dictstr.lstrip(' '), ':')
             # hack for formatting
             depends_map_dictstr = depends_map_dictstr.replace(tab1 + '}', '}')
-            line_list.append(tab2 + 'dependsmap=%s,' % (depends_map_dictstr,))
+            line_list.append(tab2 + 'dependsmap={},'.format(depends_map_dictstr))
         line_list.append(tab1 + ')')
         return line_list
 
@@ -2485,11 +2484,11 @@ class SQLDatabaseController(object):
                 for column in column_list:
                     col_name = str(column[1]).ljust(30)
                     col_type = str(column[2]).ljust(10)
-                    col_null = str(
-                        ('ALLOW NULL' if column[3] == 1 else 'NOT NULL')
-                    ).ljust(12)
+                    col_null = str('ALLOW NULL' if column[3] == 1 else 'NOT NULL').ljust(
+                        12
+                    )
                     col_default = str(column[4]).ljust(10)
-                    col_key = str(('KEY' if column[5] == 1 else ''))
+                    col_key = str('KEY' if column[5] == 1 else '')
                     col = (col_name, col_type, col_null, col_default, col_key)
                     file_.write('\t%s%s%s%s%s\n' % col)
         ut.view_directory(app_resource_dir)
@@ -2567,7 +2566,7 @@ class SQLDatabaseController(object):
         """
         assert tablename in self.get_table_names(
             lazy=True
-        ), 'tablename=%r is not a part of this database' % (tablename,)
+        ), 'tablename={!r} is not a part of this database'.format(tablename)
         superkeys = self.metadata[tablename].superkeys
         if superkeys is None:
             superkeys = []
@@ -2576,7 +2575,7 @@ class SQLDatabaseController(object):
     def get_table_primarykey_colnames(self, tablename):
         columns = self.get_columns(tablename)
         primarykey_colnames = tuple(
-            [name for (column_id, name, type_, notnull, dflt_value, pk) in columns if pk]
+            name for (column_id, name, type_, notnull, dflt_value, pk) in columns if pk
         )
         return primarykey_colnames
 
@@ -3148,7 +3147,7 @@ class SQLDatabaseController(object):
         # old_rowids_to_new_roids
         for tablename in sorted_tablename_list:
             if verbose:
-                logger.info('\n[sqlmerge] Merging tablename=%r' % (tablename,))
+                logger.info('\n[sqlmerge] Merging tablename={!r}'.format(tablename))
             # Collect the data from the source table that will be merged in
             new_transferdata = db_src.get_table_new_transferdata(tablename)
             # FIXME: This needs to pass back sparser output
@@ -3426,11 +3425,11 @@ class SQLDatabaseController(object):
         """Conveinience"""
         self.connection.execute('SELECT sqlite_version()')
         sql_version = self.connection.fetchone()
-        logger.info('[sql] SELECT sqlite_version = %r' % (sql_version,))
+        logger.info('[sql] SELECT sqlite_version = {!r}'.format(sql_version))
         # The version number sqlite3 module. NOT the version of SQLite library.
-        logger.info('[sql] sqlite3.version = %r' % (lite.version,))
+        logger.info('[sql] sqlite3.version = {!r}'.format(lite.version))
         # The version of the SQLite library
-        logger.info('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
+        logger.info('[sql] sqlite3.sqlite_version = {!r}'.format(lite.sqlite_version))
         return sql_version
 
     def __getitem__(self, key):

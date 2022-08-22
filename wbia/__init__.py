@@ -14,6 +14,7 @@ except ImportError:
 
 try:
     import utool as ut
+
     from wbia import dtool
 except ImportError as ex:
     print('[wbia !!!] ERROR: Unable to load all core utility modules.')
@@ -46,53 +47,48 @@ ENABLE_WILDBOOK_SIGNAL = False
 
 
 try:
+    # entry_points._preload()
+    from wbia import algo
     from wbia import constants
     from wbia import constants as const
-    from wbia import params
-    from wbia import entry_points
-    from wbia import other
-    from wbia.init import sysres
-
-    # entry_points._preload()
-
-    from wbia import control
-    from wbia import dbio
-
-    # from wbia import web
-
-    from wbia.init import sysres
+    from wbia import (
+        control,
+        core_annots,
+        core_images,
+        dbio,
+        entry_points,
+        expt,
+        other,
+        params,
+        research,
+        templates,
+    )
+    from wbia.algo.graph.core import AnnotInference
+    from wbia.algo.hots.chip_match import AnnotMatch, ChipMatch
+    from wbia.algo.hots.query_request import QueryRequest
+    from wbia.control.controller_inject import register_preprocs
+    from wbia.control.IBEISControl import IBEISController
     from wbia.entry_points import (
-        main,
-        _preload,
         _init_numpy,
+        _preload,
+        main,
         main_loop,
         opendb,
         opendb_in_background,
         opendb_with_web,
     )
-    from wbia.control.IBEISControl import IBEISController
-    from wbia.algo.hots.query_request import QueryRequest
-    from wbia.algo.hots.chip_match import ChipMatch, AnnotMatch
-    from wbia.algo.graph.core import AnnotInference
+
+    # from wbia import web
+    from wbia.init import main_helpers, sysres
     from wbia.init.sysres import (
-        get_workdir,
-        set_workdir,
-        ensure_pz_mtest,
         ensure_nauts,
+        ensure_pz_mtest,
         ensure_wilddogs,
+        get_workdir,
         list_dbs,
+        set_workdir,
     )
-    from wbia.init import main_helpers
-
-    from wbia import algo
-    from wbia import research
-
-    from wbia import expt
-    from wbia import templates
     from wbia.templates import generate_notebook
-    from wbia.control.controller_inject import register_preprocs
-    from wbia import core_annots
-    from wbia import core_images
 
     try:
         from wbia.scripts import postdoc
@@ -106,11 +102,7 @@ except Exception as ex:
 def import_subs():
     # Weird / Fancy loading.
     # I want to make this simpler
-    from wbia import algo
-    from wbia import viz
-    from wbia import web
-    from wbia import gui
-    from wbia import templates
+    from wbia import algo, gui, templates, viz, web
 
 
 def run_experiment(
@@ -166,6 +158,7 @@ def run_experiment(
 
     def find_expt_func(e):
         import utool as ut
+
         import wbia.dev
 
         for tup in wbia.dev.REGISTERED_DOCTEST_EXPERIMENTS:
@@ -260,7 +253,7 @@ def run_experiment(
 
     def execute_test():
         func = find_expt_func(e)
-        assert func is not None, 'unknown experiment e=%r' % (e,)
+        assert func is not None, 'unknown experiment e={!r}'.format(e)
 
         argspec = ut.get_func_argspec(func)
         if (
@@ -336,6 +329,7 @@ def testdata_expts(*args, **kwargs):
 # )
 
 import logging
+
 from wbia.init import main_helpers
 
 testdata_cm = main_helpers.testdata_cm

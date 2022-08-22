@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
+
+import networkx as nx
 import numpy as np
 import utool as ut
-import networkx as nx
+
 from wbia import constants as const
-from wbia.algo.graph import nx_utils as nxu
-from wbia.algo.graph.state import POSTV, NEGTV
-from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
 from wbia.algo.graph import mixin_loops
+from wbia.algo.graph import nx_utils as nxu
+from wbia.algo.graph.state import DIFF, NEGTV, NULL, POSTV, SAME  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

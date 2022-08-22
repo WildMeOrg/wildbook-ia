@@ -4,7 +4,9 @@ NEEDS CLEANUP
 """
 import logging
 from os.path import join
+
 import utool as ut
+
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from wbia.algo.hots.neighbor_index import NeighborIndex, get_support_data
 
@@ -414,7 +416,7 @@ def request_augmented_wbia_nnindexer(
             )
         # Write to memcache
         if ut.VERBOSE:
-            logger.info('[aug] Wrote to memcache=%r' % (nnindex_cfgstr,))
+            logger.info('[aug] Wrote to memcache={!r}'.format(nnindex_cfgstr))
         NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
         return nnindexer
     else:
@@ -472,7 +474,7 @@ def request_memcached_wbia_nnindexer(
     # try:
     if veryverbose:
         logger.info(
-            '[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %r' % (len(NEIGHBOR_CACHE),)
+            '[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = {!r}'.format(len(NEIGHBOR_CACHE))
         )
         # the lru cache wont be recognized by get_object_size_str, cast to pure python objects
         logger.info(
@@ -489,11 +491,11 @@ def request_memcached_wbia_nnindexer(
         and NEIGHBOR_CACHE.has_key(nnindex_cfgstr)  # NOQA (has_key is for a lru cache)
     ):
         if veryverbose or ut.VERYVERBOSE or ut.VERBOSE:
-            logger.info('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
+            logger.info('... nnindex memcache hit: cfgstr={}'.format(nnindex_cfgstr))
         nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
     else:
         if veryverbose or ut.VERYVERBOSE or ut.VERBOSE:
-            logger.info('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
+            logger.info('... nnindex memcache miss: cfgstr={}'.format(nnindex_cfgstr))
         # Write to inverse uuid
         nnindexer = request_diskcached_wbia_nnindexer(
             qreq_,
@@ -508,11 +510,13 @@ def request_memcached_wbia_nnindexer(
         if NEIGHBOR_CACHE_WRITE:
             # Write to memcache
             if ut.VERBOSE or ut.VERYVERBOSE:
-                logger.info('[disk] Write to memcache=%r' % (nnindex_cfgstr,))
+                logger.info('[disk] Write to memcache={!r}'.format(nnindex_cfgstr))
             NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
         else:
             if ut.VERBOSE or ut.VERYVERBOSE:
-                logger.info('[disk] Did not write to memcache=%r' % (nnindex_cfgstr,))
+                logger.info(
+                    '[disk] Did not write to memcache={!r}'.format(nnindex_cfgstr)
+                )
     return nnindexer
 
 

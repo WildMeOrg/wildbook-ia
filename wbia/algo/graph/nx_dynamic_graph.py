@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-import logging
-import utool as ut
-import networkx as nx
 import itertools as it
-from wbia.algo.graph.nx_utils import edges_inside, e_
+import logging
+
+import networkx as nx
+import utool as ut
+
+from wbia.algo.graph.nx_utils import e_, edges_inside
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

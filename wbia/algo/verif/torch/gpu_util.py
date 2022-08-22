@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
+import warnings
+
 import ubelt as ub
 import utool as ut
-import warnings
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

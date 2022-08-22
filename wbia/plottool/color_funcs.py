@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-from wbia.plottool import custom_constants  # NOQA
-from matplotlib import colors as mcolors
 import colorsys
+
 import numpy as np  # NOQA
 import utool as ut
+from matplotlib import colors as mcolors
+
+from wbia.plottool import custom_constants  # NOQA
 
 # from wbia.plottool import colormaps as cmaps2
 # (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[colorfuncs]', DEBUG=False)
@@ -142,7 +144,7 @@ def convert_hex_to_255(hex_color):
     """
     hex_color = '#6A5AFFAF'
     """
-    assert hex_color.startswith('#'), 'not a hex string %r' % (hex_color,)
+    assert hex_color.startswith('#'), 'not a hex string {!r}'.format(hex_color)
     parts = hex_color[1:].strip()
     color255 = tuple(int(parts[i : i + 2], 16) for i in range(0, len(parts), 2))
     assert len(color255) in [3, 4], 'must be length 3 or 4'
@@ -182,7 +184,7 @@ def ensure_base255(color):
         elif color.startswith('#'):
             color255 = convert_hex_to_255(color)
         else:
-            raise ValueError('unknown color=%r' % (color,))
+            raise ValueError('unknown color={!r}'.format(color))
     elif is_base01(color):
         color255 = to_base255(color)
     else:
@@ -218,8 +220,9 @@ def testshow_colors(rgb_list, gray=ut.get_argflag('--gray')):
         >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    import wbia.plottool as pt
     import vtool as vt
+
+    import wbia.plottool as pt
 
     block = np.zeros((5, 5, 3))
     block_list = [block + color[0:3] for color in rgb_list]
@@ -507,9 +510,7 @@ def distinct_colors(
         # ut.hashstr27(cmap_seed)
         # cmap_seed = 0
         # pass
-        jitter = (rng.randn(N) / (rng.randn(100).max() / 2)).clip(-1, 1) * (
-            (1 / (N ** 2))
-        )
+        jitter = (rng.randn(N) / (rng.randn(100).max() / 2)).clip(-1, 1) * (1 / (N ** 2))
         range_ = np.linspace(0, 1, N, endpoint=False)
         # print('range_ = %r' % (range_,))
         range_ = range_ + jitter
@@ -688,9 +689,9 @@ def show_all_colormaps():
         >>> show_all_colormaps()
         >>> pt.show_if_requested()
     """
-    from matplotlib import pyplot as plt
-    import pylab
     import numpy as np
+    import pylab
+    from matplotlib import pyplot as plt
 
     pylab.rc('text', usetex=False)
     TRANSPOSE = True
@@ -710,7 +711,7 @@ def show_all_colormaps():
         maps.sort()
     else:
         maps = CMAP_DICT[type_]
-        print('CMAP_DICT = %s' % (ut.repr3(CMAP_DICT),))
+        print('CMAP_DICT = {}'.format(ut.repr3(CMAP_DICT)))
 
     cmap_ = ut.get_argval('--cmap', default=None)
     if cmap_ is not None:

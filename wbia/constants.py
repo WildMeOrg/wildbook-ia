@@ -5,12 +5,13 @@ string correctly every time you use it. (Also it makes it much easier if a
 string name changes)
 """
 import logging
-import numpy as np
 import math
-import utool as ut
 from collections import OrderedDict
 from os.path import join
+
+import numpy as np
 import six
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -30,11 +31,9 @@ ENGINE_SLOT = ut.get_argval('--engine-slot', type_=str, default='default')
 CODEX = ut.get_argval('--codex', type_=str, default='codex_houston_1')
 
 
-SENTRY_SKIP_TRANSACTION_PATHS = set(
-    [
-        '/api/test/heartbeat/',
-    ]
-)
+SENTRY_SKIP_TRANSACTION_PATHS = {
+    '/api/test/heartbeat/',
+}
 
 try:
     import sentry_sdk
@@ -248,7 +247,7 @@ UNKNOWN_LBLANNOT_ROWID = 0
 UNKNOWN_NAME_ROWID = 0
 UNKNOWN_SPECIES_ROWID = 0
 # Names normalized to the standard UNKNOWN_NAME
-ACCEPTED_UNKNOWN_NAMES = set(['Unassigned'])
+ACCEPTED_UNKNOWN_NAMES = {'Unassigned'}
 
 INDIVIDUAL_KEY = 'INDIVIDUAL_KEY'
 SPECIES_KEY = 'SPECIES_KEY'

@@ -3,12 +3,13 @@
 Interface to Faster R-CNN object proposals.
 """
 import logging
+import sys
+from os.path import abspath, dirname, exists, expanduser, join  # NOQA
+
+import cv2
+import numpy as np
 import utool as ut
 import vtool as vt
-from os.path import abspath, dirname, expanduser, join, exists  # NOQA
-import numpy as np
-import sys
-import cv2
 
 (print, rrr, profile) = ut.inject2(__name__, '[faster r-cnn]')
 logger = logging.getLogger('wbia')

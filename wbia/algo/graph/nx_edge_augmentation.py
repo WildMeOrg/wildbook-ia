@@ -15,18 +15,19 @@ that the graph is k-edge-connected. Typically, the goal is to find the
 augmentation with minimum weight. In general, it is not gaurenteed that a
 k-edge-augmentation exists.
 """
-import logging
-import random
-import math
-import sys
 import itertools as it
-import networkx as nx
-from networkx.utils import not_implemented_for
+import logging
+import math
+import random
+import sys
 from collections import defaultdict, namedtuple
+
+import networkx as nx
+import utool as ut
+from networkx.utils import not_implemented_for
 
 # Patch
 from wbia.algo.graph import nx_edge_kcomponents as nx_ec  # NOQA
-import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -920,7 +921,7 @@ def collapse(G, grouped_nodes):
         mapping.update((n, i) for n in group)
     # remaining nodes are in their own group
     for i, node in enumerate(remaining, start=i + 1):
-        group = set([node])
+        group = {node}
         members[i] = group
         mapping.update((n, i) for n in group)
     number_of_groups = i + 1

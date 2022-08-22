@@ -10,7 +10,6 @@ which should not be confused with the customizations made here.
 """
 from flask import Blueprint
 
-
 blueprint = Blueprint(
     'customized_swagger_ui',
     __name__,

@@ -6,11 +6,12 @@ module which uses multiple flann indexes as a way of working around adding
 points to a single flann structure which seems to cause crashes.
 """
 import logging
+
 import numpy as np
 import utool as ut
 import vtool as vt
-from wbia.algo.hots import neighbor_index_cache
-from wbia.algo.hots import hstypes
+
+from wbia.algo.hots import hstypes, neighbor_index_cache
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -176,7 +177,7 @@ def request_wbia_mindexer(qreq_, index_method='multi', verbose=True):
             aids_list.append(uncovered_aids)
         num_bins = len(aids_list)
     else:
-        raise AssertionError('unknown index_method=%r' % (index_method,))
+        raise AssertionError('unknown index_method={!r}'.format(index_method))
 
     # Build a neighbor indexer for each
     nn_indexer_list = []
@@ -396,7 +397,7 @@ class MultiNeighborIndex(object):
         if not np.all(uncovered_mask):
             msg_list = [
                 'new aids must be disjoint from current aids',
-                'new_aid_list = %r' % (new_aid_list,),
+                'new_aid_list = {!r}'.format(new_aid_list),
             ]
             msg = '\n'.join(msg_list)
             raise AssertionError(msg)

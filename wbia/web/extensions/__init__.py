@@ -8,9 +8,10 @@ Extensions provide access to common resources of the application.
 
 Please, put new extension instantiations and initializations here.
 """
-import uuid  # NOQA
 import json  # NOQA
+import uuid  # NOQA
 from datetime import datetime  # NOQA
+
 from .logging import Logging
 
 logging = Logging()
@@ -19,11 +20,13 @@ from flask_cors import CORS  # NOQA
 
 cross_origin_resource_sharing = CORS()
 
-from .flask_sqlalchemy import SQLAlchemy  # NOQA
-from sqlalchemy.ext import mutable  # NOQA
-from sqlalchemy.types import TypeDecorator, CHAR  # NOQA
 from sqlalchemy.dialects.postgresql import UUID  # NOQA
-from sqlalchemy_utils import types as column_types, Timestamp  # NOQA
+from sqlalchemy.ext import mutable  # NOQA
+from sqlalchemy.types import CHAR, TypeDecorator  # NOQA
+from sqlalchemy_utils import Timestamp  # NOQA
+from sqlalchemy_utils import types as column_types  # NOQA
+
+from .flask_sqlalchemy import SQLAlchemy  # NOQA
 
 db = SQLAlchemy()
 
@@ -41,9 +44,8 @@ login_manager = LoginManager()
 # login_manager.session_protection = "strong"
 ##########################################################################################
 
-from flask_paranoid import Paranoid  # NOQA
-
 from flask_marshmallow import Marshmallow  # NOQA
+from flask_paranoid import Paranoid  # NOQA
 
 marshmallow = Marshmallow()
 

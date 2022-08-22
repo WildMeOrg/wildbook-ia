@@ -59,9 +59,10 @@ References:
     https://arxiv.org/pdf/1407.2170.pdf
 """
 import logging
+
+import numpy as np
 import utool as ut
 import vtool as vt
-import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -423,9 +424,11 @@ def weight_multi_assigns(
         invalid = np.greater_equal(_idx_to_wdist, ma_thresh)
         if ut.VERBOSE:
             nInvalid = (invalid.size - invalid.sum(), invalid.size)
-            logger.info('[maw] + massign_alpha = %r' % (massign_alpha,))
-            logger.info('[maw] + massign_sigma = %r' % (massign_sigma,))
-            logger.info('[maw] + massign_equal_weights = %r' % (massign_equal_weights,))
+            logger.info('[maw] + massign_alpha = {!r}'.format(massign_alpha))
+            logger.info('[maw] + massign_sigma = {!r}'.format(massign_sigma))
+            logger.info(
+                '[maw] + massign_equal_weights = {!r}'.format(massign_equal_weights)
+            )
             logger.info('[maw] * Marked %d/%d assignments as invalid' % nInvalid)
 
         if massign_equal_weights:

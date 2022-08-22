@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-import wbia.guitool as gt
 import matplotlib as mpl
-from wbia.guitool.__PYQT__.QtCore import Qt
-from wbia.guitool.__PYQT__ import QtCore, QtWidgets, QtGui  # NOQA
-from matplotlib.backend_bases import MouseEvent, KeyEvent, PickEvent
+from matplotlib.backend_bases import KeyEvent, MouseEvent, PickEvent
 
+import wbia.guitool as gt
 from wbia.guitool import __PYQT__
+from wbia.guitool.__PYQT__ import QtCore, QtGui, QtWidgets  # NOQA
+from wbia.guitool.__PYQT__.QtCore import Qt
 
 if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
     import matplotlib.backends.backend_qt4agg as backend_qt
@@ -27,8 +27,8 @@ class MatplotlibWidget(gt.GuitoolWidget):
     pick_event_signal = QtCore.pyqtSignal(PickEvent)
 
     def initialize(self, pan_and_zoom=False):
-        from wbia.plottool.interactions import zoom_factory, pan_factory
         from wbia.plottool import abstract_interaction
+        from wbia.plottool.interactions import pan_factory, zoom_factory
 
         # Create unmanaged figure and a canvas
         self.fig = mpl.figure.Figure()

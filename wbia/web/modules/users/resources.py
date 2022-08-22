@@ -8,12 +8,12 @@ RESTful API User resources
 import logging
 
 from flask_login import current_user
+
 from flask_restx_patched import Resource
 from wbia.web.extensions.api import Namespace
 
 from . import schemas
 from .models import User
-
 
 log = logging.getLogger(__name__)
 api = Namespace('users', description='Users')

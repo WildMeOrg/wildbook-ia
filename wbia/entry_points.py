@@ -4,14 +4,13 @@ This module defines the entry point into the IBEIS system
 wbia.opendb and wbia.main are the main entry points
 """
 import logging
-import sys
 import multiprocessing
+import sys
 from contextlib import contextmanager
 
 import utool as ut
 
 from wbia import params
-
 
 QUIET = '--quiet' in sys.argv
 NOT_QUIET = not QUIET
@@ -24,7 +23,7 @@ logger = logging.getLogger('wbia')
 
 def _on_ctrl_c(signal, frame):
     proc_name = multiprocessing.current_process().name
-    logger.info('[wbia.entry_points] Caught ctrl+c in %s' % (proc_name,))
+    logger.info('[wbia.entry_points] Caught ctrl+c in {}'.format(proc_name))
     sys.exit(0)
 
 
@@ -137,8 +136,8 @@ def _init_parallel():
 
 
 def _init_numpy():
-    import utool as ut
     import numpy as np
+    import utool as ut
 
     if ut.VERBOSE:
         logger.info('_init_numpy')
@@ -253,8 +252,7 @@ def main(
     """
     _preload()
     set_newfile_permissions()
-    from wbia.init import main_commands
-    from wbia.init import sysres
+    from wbia.init import main_commands, sysres
 
     # Display a visible intro message
     msg = """
@@ -272,15 +270,17 @@ def main(
     DIAGNOSTICS = NOT_QUIET
     if DIAGNOSTICS:
         import os
+
         import utool as ut
+
         import wbia
 
         logger.info('[main] MAIN DIAGNOSTICS')
         logger.info('[main]  * username = %r' % (ut.get_user_name()))
-        logger.info('[main]  * wbia.__version__ = %r' % (wbia.__version__,))
+        logger.info('[main]  * wbia.__version__ = {!r}'.format(wbia.__version__))
         logger.info('[main]  * computername = %r' % (ut.get_computer_name()))
-        logger.info('[main]  * cwd = %r' % (os.getcwd(),))
-        logger.info('[main]  * sys.argv = %r' % (sys.argv,))
+        logger.info('[main]  * cwd = {!r}'.format(os.getcwd()))
+        logger.info('[main]  * sys.argv = {!r}'.format(sys.argv))
     # Parse directory to be loaded from command line args
     # and explicit kwargs
     dbdir = sysres.get_args_dbdir(
@@ -307,7 +307,9 @@ def main(
             back = _init_gui(activate=kwargs.get('activate', True))
             back.connect_wbia_control(ibs)
     except Exception as ex:
-        logger.info('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
+        logger.info(
+            '[main()] IBEIS LOAD encountered exception: {} {}'.format(type(ex), ex)
+        )
         raise
     main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
     main_locals = {'ibs': ibs, 'back': back}
@@ -318,13 +320,14 @@ def opendb_in_background(*args, **kwargs):
     """
     Starts a web server in the background
     """
-    import utool as ut
     import time
+
+    import utool as ut
 
     sec = kwargs.pop('wait', 0)
     if sec != 0:
         raise AssertionError('wait is depricated')
-        logger.info('waiting %s seconds for startup' % (sec,))
+        logger.info('waiting {} seconds for startup'.format(sec))
     proc = ut.spawn_background_process(opendb, *args, **kwargs)
     if sec != 0:
         raise AssertionError('wait is depricated')
@@ -421,6 +424,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
         >>> web_ibs.terminate2()
     """
     import utool as ut
+
     from wbia.web import appfuncs
 
     domain = kwargs.pop('domain', ut.get_argval('--domain', type_=str, default=None))
@@ -482,7 +486,9 @@ def opendb_bg_web(*args, managed=False, **kwargs):
             try:
                 content = ut.from_json(content)
             except ValueError:
-                raise Exception('Expected JSON string but got content=%r' % (content,))
+                raise Exception(
+                    'Expected JSON string but got content={!r}'.format(content)
+                )
             else:
                 # logger.info('content = %r' % (content,))
                 if content['status']['code'] != 200:
@@ -496,7 +502,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
         Waits for results from an engine
         """
         for _ in ut.delayed_retry_gen(delays):
-            logger.info('Waiting for jobid = %s' % (jobid,))
+            logger.info('Waiting for jobid = {}'.format(jobid))
             status_response = web_ibs.send_wbia_request(
                 '/api/engine/job/status/', jobid=jobid
             )
@@ -530,7 +536,7 @@ def opendb_bg_web(*args, managed=False, **kwargs):
 
         for count in ut.delayed_retry_gen([1], timeout=15):
             if True or ut.VERBOSE:
-                logger.info('Waiting for server to be up. count=%r' % (count,))
+                logger.info('Waiting for server to be up. count={!r}'.format(count))
             try:
                 web_ibs.send_wbia_request('/api/test/heartbeat/', type_='get')
                 break

@@ -10,23 +10,24 @@ TODO: need to split up into sub modules:
     within this file
 """
 import logging
-from os.path import exists, expanduser, join, abspath
+from os.path import abspath, exists, expanduser, join
+
+import cv2
 import numpy as np
 import utool as ut
-import cv2
-from wbia.control import controller_inject
-from wbia.other.detectfuncs import (
-    general_parse_gt,
-    general_get_imageset_gids,
-    localizer_parse_pred,
-    general_overlap,
-)
-from wbia.other.detectcore import (
-    nms,
-    classifier_visualize_training_localizations,
-    _bootstrap_mine,
-)
 
+from wbia.control import controller_inject
+from wbia.other.detectcore import (
+    _bootstrap_mine,
+    classifier_visualize_training_localizations,
+    nms,
+)
+from wbia.other.detectfuncs import (
+    general_get_imageset_gids,
+    general_overlap,
+    general_parse_gt,
+    localizer_parse_pred,
+)
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectgrave]')
@@ -42,11 +43,12 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
 def bootstrap_pca_train(
     ibs, dims=64, pca_limit=500000, ann_batch=50, output_path=None, **kwargs
 ):
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.decomposition import IncrementalPCA
-    from annoy import AnnoyIndex
-    import numpy as np
     import random
+
+    import numpy as np
+    from annoy import AnnoyIndex
+    from sklearn.decomposition import IncrementalPCA
+    from sklearn.preprocessing import StandardScaler
 
     def _get_data(depc, gid_list, limit=None, shuffle=False):
         gid_list_ = gid_list[:]
@@ -100,7 +102,7 @@ def bootstrap_pca_train(
     pca_model.fit(data_list)
 
     pca_quality = pca_model.explained_variance_ratio_.sum() * 100.0
-    logger.info('PCA Variance Quality: %0.04f %%' % (pca_quality,))
+    logger.info('PCA Variance Quality: {:0.04f} %'.format(pca_quality))
 
     # Fit ANN for PCA's vectors
     index = 0
@@ -112,7 +114,7 @@ def bootstrap_pca_train(
         stop_index = (ann_round + 1) * ann_batch
         assert start_index < len(gid_list)
         stop_index = min(stop_index, len(gid_list))
-        logger.info('Slicing index range: [%r, %r)' % (start_index, stop_index))
+        logger.info('Slicing index range: [{!r}, {!r})'.format(start_index, stop_index))
 
         # Slice gids and get feature data
         gid_list_ = gid_list[start_index:stop_index]
@@ -145,7 +147,7 @@ def bootstrap_pca_train(
 
     scaler_filename = 'forest.pca'
     scaler_filepath = join(output_path, scaler_filename)
-    logger.info('Saving scaler model to: %r' % (scaler_filepath,))
+    logger.info('Saving scaler model to: {!r}'.format(scaler_filepath))
     model_tup = (
         pca_model,
         scaler,
@@ -155,7 +157,7 @@ def bootstrap_pca_train(
 
     forest_filename = 'forest.ann'
     forest_filepath = join(output_path, forest_filename)
-    logger.info('Saving ANN model to: %r' % (forest_filepath,))
+    logger.info('Saving ANN model to: {!r}'.format(forest_filepath))
     ann_model.save(forest_filepath)
 
     # ibs.bootstrap_pca_test(model_path=output_path)
@@ -175,8 +177,9 @@ def bootstrap_pca_test(
     min_confidence=0.3,
     **kwargs,
 ):
-    from annoy import AnnoyIndex
     import random
+
+    from annoy import AnnoyIndex
 
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'Desktop', 'output-ann')))
@@ -193,13 +196,13 @@ def bootstrap_pca_test(
 
     scaler_filename = 'forest.pca'
     scaler_filepath = join(model_path, scaler_filename)
-    logger.info('Loading scaler model from: %r' % (scaler_filepath,))
+    logger.info('Loading scaler model from: {!r}'.format(scaler_filepath))
     model_tup = ut.load_cPkl(scaler_filepath)
     pca_model, scaler, manifest_dict = model_tup
 
     forest_filename = 'forest.ann'
     forest_filepath = join(model_path, forest_filename)
-    logger.info('Loading ANN model from: %r' % (forest_filepath,))
+    logger.info('Loading ANN model from: {!r}'.format(forest_filepath))
     ann_model = AnnoyIndex(dims)
     ann_model.load(forest_filepath)
 
@@ -234,8 +237,8 @@ def bootstrap_pca_test(
         worst_idx_list = index_list[:example_limit]
         best_idx_list = index_list[-1 * example_limit :]
 
-        logger.info('Worst ovelap: %r' % (overlap[:, worst_idx_list],))
-        logger.info('Best ovelap:  %r' % (overlap[:, best_idx_list],))
+        logger.info('Worst ovelap: {!r}'.format(overlap[:, worst_idx_list]))
+        logger.info('Best ovelap:  {!r}'.format(overlap[:, best_idx_list]))
 
         for idx_list in [best_idx_list, worst_idx_list]:
             example_list = ut.take(pred_list, idx_list)
@@ -251,12 +254,10 @@ def bootstrap_pca_test(
 
                 neighbor_index_list = ann_model.get_nns_by_vector(data_list_, neighbors)
                 neighbor_manifest_list = list(
-                    set(
-                        [
-                            manifest_dict[neighbor_index]
-                            for neighbor_index in neighbor_index_list
-                        ]
-                    )
+                    {
+                        manifest_dict[neighbor_index]
+                        for neighbor_index in neighbor_index_list
+                    }
                 )
                 neighbor_gid_list_ = ut.take_column(neighbor_manifest_list, 0)
                 neighbor_gid_list_ = [gid] + neighbor_gid_list_
@@ -382,7 +383,7 @@ def bootstrap(
     kernel='rbf',
     **kwargs,
 ):
-    from sklearn import svm, preprocessing
+    from sklearn import preprocessing, svm
 
     # Establish variables
 
@@ -396,7 +397,7 @@ def bootstrap(
         # output_path_ = 'models-bootstrap-%s-%s-%s-%s' % args
         output_path_ = 'models-bootstrap'
         output_path = abspath(expanduser(join('~', 'code', 'wbia', output_path_)))
-    logger.info('Using output_path = %r' % (output_path,))
+    logger.info('Using output_path = {!r}'.format(output_path))
     if recompute:
         ut.delete(output_path)
     ut.ensuredir(output_path)
@@ -479,7 +480,7 @@ def bootstrap(
     reviewed_gid_dict = {}
     for current_round in range(rounds):
         logger.info('------------------------------------------------------')
-        logger.info('Current Round %r' % (current_round,))
+        logger.info('Current Round {!r}'.format(current_round))
 
         ##################################################################################
         # Step 4: gather the (unreviewed) images to review for this round
@@ -557,7 +558,7 @@ def bootstrap(
                 output_visualize_path = join(svm_model_path, 'visualize')
                 ut.ensuredir(output_visualize_path)
                 output_visualize_path = join(
-                    output_visualize_path, '%s' % (current_ensemble,)
+                    output_visualize_path, '{}'.format(current_ensemble)
                 )
                 ut.ensuredir(output_visualize_path)
                 classifier_visualize_training_localizations(
@@ -678,8 +679,8 @@ def bootstrap2(
     overlap_thresh_cat_3=0.0,
     **kwargs,
 ):
-    from sklearn import svm, preprocessing
     from annoy import AnnoyIndex
+    from sklearn import preprocessing, svm
 
     # Establish variables
     kernel = str(kernel.lower())
@@ -689,7 +690,7 @@ def bootstrap2(
     if output_path is None:
         output_path_ = 'models-bootstrap'
         output_path = abspath(expanduser(join('~', 'code', 'wbia', output_path_)))
-    logger.info('Using output_path = %r' % (output_path,))
+    logger.info('Using output_path = {!r}'.format(output_path))
 
     if recompute:
         ut.delete(output_path)
@@ -706,11 +707,11 @@ def bootstrap2(
     if not is_ann_model_trained:
         ibs.bootstrap_pca_train(dims=dims, pca_limit=pca_limit, output_path=output_path)
 
-    logger.info('Loading scaler model from: %r' % (scaler_filepath,))
+    logger.info('Loading scaler model from: {!r}'.format(scaler_filepath))
     model_tup = ut.load_cPkl(scaler_filepath)
     pca_model, scaler, manifest_dict = model_tup
 
-    logger.info('Loading ANN model from: %r' % (forest_filepath,))
+    logger.info('Loading ANN model from: {!r}'.format(forest_filepath))
     ann_model = AnnoyIndex(dims)
     ann_model.load(forest_filepath)
 
@@ -789,7 +790,7 @@ def bootstrap2(
     reviewed_gid_list = []
     for current_round in range(rounds):
         logger.info('------------------------------------------------------')
-        logger.info('Current Round %r' % (current_round,))
+        logger.info('Current Round {!r}'.format(current_round))
 
         ##################################################################################
         # Step 4: gather the (unreviewed) images to review for this round
@@ -1082,7 +1083,7 @@ def bootstrap2(
                 data_list = None
                 label_list = []
                 for label_tag, label, mined_data_list in temp_list:
-                    lbl = 'gathering training features for %s' % (label_tag,)
+                    lbl = 'gathering training features for {}'.format(label_tag)
                     mined_data_iter = ut.ProgIter(mined_data_list, lbl=lbl, bs=True)
                     for data in mined_data_iter:
                         feature = data.get('feature', None)
@@ -1135,7 +1136,7 @@ def bootstrap2(
             ]
             vals_list = sorted(vals_list, reverse=True)
             vals_list = vals_list[:alpha]
-            logger.info('Reference Histogram: %r' % (vals_list,))
+            logger.info('Reference Histogram: {!r}'.format(vals_list))
             top_referenced_neighbor_gid_list = [_[1] for _ in vals_list]
             round_neighbor_gid_set = set(top_referenced_neighbor_gid_list)
 
@@ -1196,17 +1197,15 @@ def set_reviewed_from_target_species_count(ibs, species_set=None, target=1000):
     import random
 
     if species_set is None:
-        species_set = set(
-            [
-                'giraffe_masai',
-                'giraffe_reticulated',
-                'turtle_green',
-                'turtle_hawksbill',
-                'whale_fluke',
-                'zebra_grevys',
-                'zebra_plains',
-            ]
-        )
+        species_set = {
+            'giraffe_masai',
+            'giraffe_reticulated',
+            'turtle_green',
+            'turtle_hawksbill',
+            'whale_fluke',
+            'zebra_grevys',
+            'zebra_plains',
+        }
 
     gid_list = ibs.get_valid_gids()
     ibs.set_image_reviewed(gid_list, [0] * len(gid_list))
@@ -1336,7 +1335,7 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
 def classifier_train_image_svm(
     ibs, species_list, output_path=None, dryrun=False, C=1.0, kernel='rbf'
 ):
-    from sklearn import svm, preprocessing
+    from sklearn import preprocessing, svm
 
     # Load data
     logger.info('Loading pre-trained features for images')
@@ -1403,7 +1402,7 @@ def classifier_train_image_svm(
         correct = tp + tn
         total = tp + tn + fp + fn
         accuracy = correct / total
-        logger.info('Accuracy: %0.02f' % (accuracy,))
+        logger.info('Accuracy: {:0.02f}'.format(accuracy))
         logger.info('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos))
         logger.info('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg))
         logger.info('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg))
@@ -1525,7 +1524,7 @@ def classifier2_train_image_rf(
         correct = tp + tn
         total = tp + tn + fp + fn
         accuracy = correct / total
-        logger.info('Accuracy: %0.02f' % (accuracy,))
+        logger.info('Accuracy: {:0.02f}'.format(accuracy))
         logger.info('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos))
         logger.info('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg))
         logger.info('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg))
@@ -1602,7 +1601,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.00,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 10',
@@ -1614,7 +1613,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.10,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 20',
@@ -1626,7 +1625,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.20,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 30',
@@ -1638,7 +1637,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.30,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 40',
@@ -1650,7 +1649,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.40,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 50',
@@ -1662,7 +1661,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.50,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 60',
@@ -1674,7 +1673,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.60,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 70',
@@ -1686,7 +1685,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.70,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 80',
@@ -1698,7 +1697,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.80,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 90',
@@ -1710,7 +1709,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 0.90,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     {
         'label': 'Hawksbill 100',
@@ -1722,7 +1721,7 @@ config_list = [
         'sensitivity': 0.01,
         'nms': True,
         'nms_thresh': 1.00,
-        'species_set': set(['turtle_hawksbill']),
+        'species_set': {'turtle_hawksbill'},
     },
     # {'label': 'Hawksbill Heads 00',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.00, 'species_set' : set(['turtle_hawksbill+head'])},
     # {'label': 'Hawksbill Heads 10',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'seaturtle', 'weight_filepath' : 'seaturtle', 'include_parts': True, 'sensitivity': 0.01, 'nms': True, 'nms_thresh': 0.10, 'species_set' : set(['turtle_hawksbill+head'])},

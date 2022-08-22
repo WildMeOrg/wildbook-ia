@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
 from os.path import join
+
+import utool as ut
+
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.control.controller_inject import make_ibs_register_decorator

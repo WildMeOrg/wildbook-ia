@@ -2,16 +2,17 @@
 """
 TODO: the k-components will soon be implemented in networkx 2.0 use those instead
 """
+import itertools as it
 import logging
+from collections import defaultdict
+
+import networkx as nx
 import numpy as np
 import utool as ut
-import networkx as nx
-import itertools as it
 import vtool as vt  # NOQA
 
 # import wbia.algo.graph.nx_edge_kconnectivity as nx_ec
 from wbia.algo.graph import nx_edge_augmentation as nx_aug
-from collections import defaultdict
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -57,7 +58,7 @@ def edges_inside(graph, nodes):
         graph (nx.Graph): an undirected graph
         nodes1 (set): a set of nodes
     """
-    result = set([])
+    result = set()
     upper = nodes.copy()
     graph_adj = graph.adj
     for u in nodes:
@@ -206,7 +207,7 @@ def _edges_between_dense(graph, nodes1, nodes2=None, assume_disjoint=False):
 
 def _edges_inside_lower(graph, both_adj):
     """finds lower triangular edges inside the nodes"""
-    both_lower = set([])
+    both_lower = set()
     for u, neighbs in both_adj.items():
         neighbsBB_lower = neighbs.intersection(both_lower)
         for v in neighbsBB_lower:

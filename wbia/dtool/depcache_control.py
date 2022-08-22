@@ -3,16 +3,14 @@
 implicit version of dependency cache from wbia/templates/template_generator
 """
 import logging
-
-import utool as ut
-import numpy as np
-from wbia.dtool import sql_control
-from wbia.dtool import depcache_table
-from wbia.dtool import base
-from collections import defaultdict
-import time
 import random
+import time
+from collections import defaultdict
 
+import numpy as np
+import utool as ut
+
+from wbia.dtool import base, depcache_table, sql_control
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia.dtool')
@@ -161,8 +159,8 @@ class DependencyCache:
 
         SEE: dtool.REG_PREPROC_DOC
         """
-        logger.debug('[depc] Registering tablename=%r' % (tablename,))
-        logger.debug('[depc]  * preproc_func=%r' % (preproc_func,))
+        logger.debug('[depc] Registering tablename={!r}'.format(tablename))
+        logger.debug('[depc]  * preproc_func={!r}'.format(preproc_func))
         # ----------
         # Sanitize inputs
         if isinstance(tablename, str):
@@ -183,7 +181,7 @@ class DependencyCache:
                 coltypes = [coltypes]
                 default_to_unpack = True
         if coltypes is None:
-            raise ValueError('must specify coltypes of %s' % (tablename,))
+            raise ValueError('must specify coltypes of {}'.format(tablename))
             coltypes = [np.ndarray] * len(colnames)
         if fname is None:
             # FIXME (20-Oct-12020) Base class doesn't define this property
@@ -338,19 +336,21 @@ class DependencyCache:
             ]
         """
         try:
-            assert tablename in self.cachetable_dict, 'tablename=%r does not exist' % (
+            assert (
+                tablename in self.cachetable_dict
+            ), 'tablename={!r} does not exist'.format(
                 tablename,
             )
             root = self.root_tablename
             children_, parents_ = list(zip(*self.get_edges()))
             child_to_parents = ut.group_items(children_, parents_)
             if ut.VERYVERBOSE:
-                logger.info('root = %r' % (root,))
-                logger.info('tablename = %r' % (tablename,))
-                logger.info('child_to_parents = %s' % (ut.repr3(child_to_parents),))
+                logger.info('root = {!r}'.format(root))
+                logger.info('tablename = {!r}'.format(tablename))
+                logger.info('child_to_parents = {}'.format(ut.repr3(child_to_parents)))
             to_root = {tablename: ut.paths_to_root(tablename, root, child_to_parents)}
             if ut.VERYVERBOSE:
-                logger.info('to_root = %r' % (to_root,))
+                logger.info('to_root = {!r}'.format(to_root))
             from_root = ut.reverse_path(to_root, root, child_to_parents)
             dependency_levels_ = ut.get_levels(from_root)
             dependency_levels = ut.longest_levels(dependency_levels_)
@@ -400,9 +400,9 @@ class DependencyCache:
             if config_ is None:
                 # Preferable way to get configs with explicit
                 # configs
-                logger.debug(' **config = %r' % (config,))
+                logger.debug(' **config = {!r}'.format(config))
                 config_ = configclass(**config)
-                logger.debug(' config_ = %r' % (config_,))
+                logger.debug(' config_ = {!r}'.format(config_))
         return config_
 
     def get_config_trail(self, tablename, config):
@@ -533,9 +533,9 @@ class DependencyCache:
             config = {}
 
         logger.debug('Enter get_parent_rowids')
-        logger.debug(' * target_tablename = %r' % (target_tablename,))
-        logger.debug(' * input_tuple=%s' % (ut.trunc_repr(input_tuple),))
-        logger.debug(' * config = %r' % (config,))
+        logger.debug(' * target_tablename = {!r}'.format(target_tablename))
+        logger.debug(' * input_tuple={}'.format(ut.trunc_repr(input_tuple)))
+        logger.debug(' * config = {!r}'.format(config))
         target_table = self[target_tablename]
 
         # TODO: Expand to the appropriate given inputs
@@ -545,7 +545,7 @@ class DependencyCache:
         else:
             # otherwise we are given inputs in totalroot form
             exi_inputs = target_table.rootmost_inputs.total_expand()
-        logger.debug(' * exi_inputs=%s' % (exi_inputs,))
+        logger.debug(' * exi_inputs={}'.format(exi_inputs))
 
         rectified_input = self.rectify_input_tuple(exi_inputs, input_tuple)
 
@@ -566,9 +566,9 @@ class DependencyCache:
             table = self[tablekey]
             input_nodes_ = input_nodes
             logger.debug(
-                'table.parent_id_tablenames = %r' % (table.parent_id_tablenames,)
+                'table.parent_id_tablenames = {!r}'.format(table.parent_id_tablenames)
             )
-            logger.debug('input_nodes_ = %r' % (input_nodes_,))
+            logger.debug('input_nodes_ = {!r}'.format(input_nodes_))
             input_multi_flags = [
                 node.ismulti and node in exi_inputs.rmi_list for node in input_nodes_
             ]
@@ -845,8 +845,8 @@ class DependencyCache:
 
         logger.debug(' * tablename=%s' % (tablename))
         logger.debug(' * root_rowids=%s' % (ut.trunc_repr(root_rowids)))
-        logger.debug(' * colnames = %r' % (colnames,))
-        logger.debug(' * config = %r' % (config,))
+        logger.debug(' * colnames = {!r}'.format(colnames))
+        logger.debug(' * config = {!r}'.format(config))
 
         if hack_paths and not ensure and not read_extern:
             # HACK: should be able to not compute rows to get certain properties
@@ -863,7 +863,7 @@ class DependencyCache:
                 nInput=None,
             )
             config_ = self._ensure_config(tablename, config)
-            logger.debug(' * (ensured) config_ = %r' % (config_,))
+            logger.debug(' * (ensured) config_ = {!r}'.format(config_))
             table = self[tablename]
             extern_dpath = table.extern_dpath
             ut.ensuredir(extern_dpath)
@@ -902,7 +902,7 @@ class DependencyCache:
                     # Vectorized get of properties
                     tbl_rowids = self.get_rowids(tablename, input_tuple, **rowid_kw)
                     logger.debug(
-                        '[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),)
+                        '[depc.get] tbl_rowids = {}'.format(ut.trunc_repr(tbl_rowids))
                     )
                     prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
                 except KeyError:
@@ -911,7 +911,7 @@ class DependencyCache:
                     # Vectorized get of properties
                     tbl_rowids = self.get_rowids(tablename_, input_tuple, **rowid_kw)
                     logger.debug(
-                        '[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),)
+                        '[depc.get] tbl_rowids = {}'.format(ut.trunc_repr(tbl_rowids))
                     )
                     prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
             except Exception:
@@ -919,11 +919,11 @@ class DependencyCache:
                 if trynum == num_retries:
                     raise
                 retry_delay = random.uniform(retry_delay_min, retry_delay_max)
-                print('\t WAITING %0.02f SECONDS THEN RETRYING' % (retry_delay,))
+                print('\t WAITING {:0.02f} SECONDS THEN RETRYING'.format(retry_delay))
                 time.sleep(retry_delay)
             else:
                 break
-        logger.debug('* return prop_list=%s' % (ut.trunc_repr(prop_list),))
+        logger.debug('* return prop_list={}'.format(ut.trunc_repr(prop_list)))
         return prop_list
 
     def get_native(
@@ -965,8 +965,8 @@ class DependencyCache:
             >>> print('chips = %r' % (chips,))
         """
         tbl_rowids = list(tbl_rowids)
-        logger.debug(' * tablename = %r' % (tablename,))
-        logger.debug(' * colnames = %r' % (colnames,))
+        logger.debug(' * tablename = {!r}'.format(tablename))
+        logger.debug(' * colnames = {!r}'.format(colnames))
         logger.debug(' * tbl_rowids=%s' % (ut.trunc_repr(tbl_rowids)))
         table = self[tablename]
         # import utool
@@ -1041,7 +1041,7 @@ class DependencyCache:
 
     def new_request(self, tablename, qaids, daids, cfgdict=None):
         """creates a request for data that can be executed later"""
-        logger.info('[depc] NEW %s request' % (tablename,))
+        logger.info('[depc] NEW {} request'.format(tablename))
         requestclass = self.requestclass_dict[tablename]
         request = requestclass.new(self, qaids, daids, cfgdict, tablename=tablename)
         return request
@@ -1102,7 +1102,7 @@ class DependencyCache:
 
     def print_schemas(self):
         for name, db in self._db_by_name.items():
-            logger.info('name = %r' % (name,))
+            logger.info('name = {!r}'.format(name))
             db.print_schema()
 
     # def print_table_csv(self, tablename):
@@ -1120,7 +1120,7 @@ class DependencyCache:
     def print_config_tables(self):
         for name in self._db_by_name:
             logger.info('---')
-            logger.info('db_name = %r' % (name,))
+            logger.info('db_name = {!r}'.format(name))
             self._db_by_name[name].print_table_csv('config')
 
     def get_edges(self, data=False):
@@ -1428,7 +1428,7 @@ class DependencyCache:
 
     def __nice__(self):
         infostr_ = 'nTables=%d' % len(self.cachetable_dict)
-        return '(%s) %s' % (self.root_tablename, infostr_)
+        return '({}) {}'.format(self.root_tablename, infostr_)
 
     def __getitem__(self, tablekey):
         return self.cachetable_dict[tablekey]
@@ -1492,7 +1492,7 @@ class DependencyCache:
 
     def register_delete_table_exclusion(self, tablename, prop):
         if prop not in self.delete_exclude_tables:
-            self.delete_exclude_tables[prop] = set([])
+            self.delete_exclude_tables[prop] = set()
         self.delete_exclude_tables[prop].add(tablename)
         args = (ut.repr3(self.delete_exclude_tables),)
         logger.info('[depc] Updated delete tables: %s' % args)
@@ -1582,7 +1582,7 @@ class DependencyCache:
             self.delete_root(root_rowids, prop=prop)
 
     def clear_all(self):
-        logger.info('Clearning all cached data in %r' % (self,))
+        logger.info('Clearning all cached data in {!r}'.format(self))
         for table in self.cachetable_dict.values():
             table.clear_table()
 

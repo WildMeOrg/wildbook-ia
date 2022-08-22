@@ -5,6 +5,7 @@ displays results from harness
 TODO: save a testres variable so reloading and regenration becomes easier.
 """
 import logging
+
 import numpy as np
 import utool as ut
 
@@ -240,8 +241,8 @@ def print_results(ibs, testres, **kwargs):
         acfg2['qcfg']['default_aids'] = qaids_expt
         acfg2['dcfg']['gt_avl_aids'] = gt_avl_aids2
 
-        from wbia.init import filter_annots
         from wbia.expt import experiment_helpers
+        from wbia.init import filter_annots
 
         annots1 = filter_annots.expand_acfgs(ibs, acfg1, verbose=True)
         annots2 = filter_annots.expand_acfgs(ibs, acfg2, verbose=True)
@@ -315,7 +316,7 @@ def print_results(ibs, testres, **kwargs):
             for cfgx in sortx:
                 nLessX_ = nLessX_dict[int(X)][cfgx]
                 rankstr = rankscore_str(X, nLessX_, cfgx2_nQuery[cfgx], withlbl=False)
-                logger.info('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
+                logger.info('[score] {} --- {}'.format(rankstr, cfgx2_lbl[cfgx]))
 
     print_colscore(**kwargs)
 

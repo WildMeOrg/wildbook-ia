@@ -5,9 +5,11 @@ sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=True  with_adders=T
 sh Tgen.sh --key feat --Tcfg with_deleters=True --autogen_modname manual_feat_funcs
 """
 import logging
-from wbia.control.accessor_decors import getter_1to1, getter_1toM, deleter
+
 import utool as ut
+
 from wbia.control import controller_inject
+from wbia.control.accessor_decors import deleter, getter_1to1, getter_1toM
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

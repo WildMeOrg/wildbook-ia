@@ -10,7 +10,6 @@ from flask_marshmallow import base_fields
 
 from flask_restx_patched import Parameters
 
-
 log = logging.getLogger(__name__)
 
 

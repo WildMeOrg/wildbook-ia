@@ -2,10 +2,12 @@
 #!/usr/bin/env python  # NOQA
 """Converts a GGR-style raw data to IBEIS database."""
 import logging
-from wbia.detecttools.directory import Directory
-from os.path import join, exists
+from os.path import exists, join
+
 import utool as ut
+
 import wbia
+from wbia.detecttools.directory import Directory
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -336,14 +338,12 @@ def convert_ggr2018_to_wbia(
 
     ################################################################################
 
-    blacklist_filepath_set = set(
-        [
-            join(ggr_path, 'Cameras info.numbers'),
-            join(ggr_path, 'Cameras info.xlsx'),
-            join(ggr_path, 'GGR_photos_MRC_29.1.18.ods'),
-            join(ggr_path, 'Cameras info-2.numbers'),
-        ]
-    )
+    blacklist_filepath_set = {
+        join(ggr_path, 'Cameras info.numbers'),
+        join(ggr_path, 'Cameras info.xlsx'),
+        join(ggr_path, 'GGR_photos_MRC_29.1.18.ods'),
+        join(ggr_path, 'Cameras info-2.numbers'),
+    }
 
     # Check root files
     direct = Directory(ggr_path)
@@ -352,7 +352,7 @@ def convert_ggr2018_to_wbia(
             assert filepath in blacklist_filepath_set
             ut.delete(filepath)
         except AssertionError:
-            logger.info('Unresolved root file found in %r' % (filepath,))
+            logger.info('Unresolved root file found in {!r}'.format(filepath))
             continue
 
     ################################################################################
@@ -370,19 +370,19 @@ def convert_ggr2018_to_wbia(
     direct1_list.sort(key=lambda x: int(x.base()), reverse=False)
     for direct1 in direct1_list:
         if not dry_run:
-            logger.info('Processing directory: %r' % (direct1,))
+            logger.info('Processing directory: {!r}'.format(direct1))
         base1 = direct1.base()
 
         try:
             int(base1)
         except ValueError:
-            logger.info('Error found in %r' % (direct1,))
+            logger.info('Error found in {!r}'.format(direct1))
             continue
 
         try:
             assert len(direct1.files(recursive=False)) == 0
         except AssertionError:
-            logger.info('Files found in %r' % (direct1,))
+            logger.info('Files found in {!r}'.format(direct1))
             continue
 
         seen_letter_list = []
@@ -396,7 +396,9 @@ def convert_ggr2018_to_wbia(
                 assert base2.startswith(base1)
             except AssertionError:
                 logger.info(
-                    'Folder name heredity conflict %r with %r' % (direct2, direct1)
+                    'Folder name heredity conflict {!r} with {!r}'.format(
+                        direct2, direct1
+                    )
                 )
                 continue
 
@@ -411,10 +413,10 @@ def convert_ggr2018_to_wbia(
                 assert letter in ALLOWED_LETTERS
                 seen_letter_list.append(letter)
             except ValueError:
-                logger.info('Error found in %r' % (direct2,))
+                logger.info('Error found in {!r}'.format(direct2))
                 continue
             except AssertionError:
-                logger.info('Folder name format error found in %r' % (direct2,))
+                logger.info('Folder name format error found in {!r}'.format(direct2))
                 continue
 
             direct2_ = Directory(
@@ -423,7 +425,7 @@ def convert_ggr2018_to_wbia(
             try:
                 assert len(direct2_.directories()) == 0
             except AssertionError:
-                logger.info('Folders exist in file only level %r' % (direct2,))
+                logger.info('Folders exist in file only level {!r}'.format(direct2))
                 continue
 
             filepath_list = sorted(direct2_.files())
@@ -449,14 +451,16 @@ def convert_ggr2018_to_wbia(
             assert len(seen_letter_set) == len(seen_letter_list)
         except AssertionError:
             logger.info(
-                'Duplicate letters in %r with letters %r' % (direct1, seen_letter_list)
+                'Duplicate letters in {!r} with letters {!r}'.format(
+                    direct1, seen_letter_list
+                )
             )
             continue
 
         try:
             assert 'A' in seen_letter_set
         except AssertionError:
-            logger.info('WARNING: A camera not found in %r' % (direct1,))
+            logger.info('WARNING: A camera not found in {!r}'.format(direct1))
             continue
 
     return ibs

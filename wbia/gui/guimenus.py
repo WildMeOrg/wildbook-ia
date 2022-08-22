@@ -3,10 +3,12 @@
 This module defines all of the menu items in the main GUI
 as well as their callbacks in guiback
 """
-import utool as ut
 import functools
-from wbia import constants as const
+
+import utool as ut
+
 import wbia.guitool as gt
+from wbia import constants as const
 
 ut.noinject(__name__, '[guimenus]')
 

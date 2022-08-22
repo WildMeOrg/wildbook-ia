@@ -3,11 +3,12 @@
 Runs functions in pipeline to get query reuslts and does some caching.
 """
 import logging
+from os.path import exists
+
 import ubelt as ub
 import utool as ut
-from os.path import exists
-from wbia.algo.hots import chip_match
-from wbia.algo.hots import pipeline
+
+from wbia.algo.hots import chip_match, pipeline
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -236,7 +237,7 @@ def execute_query_and_save_L1(
     """
     if invalidate_supercache:
         dpath = qreq_.get_qresdir()
-        fpath_list = ut.glob('%s/*_cm_supercache_*' % (dpath,))
+        fpath_list = ut.glob('{}/*_cm_supercache_*'.format(dpath))
         for fpath in fpath_list:
             ut.delete(fpath)
 
@@ -333,7 +334,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
     qreq_.lazy_preload(prog_hook=preload_hook, verbose=verbose and ut.NOT_QUIET)
 
     all_qaids = qreq_.qaids
-    logger.info('len(missed_qaids) = %r' % (len(all_qaids),))
+    logger.info('len(missed_qaids) = {!r}'.format(len(all_qaids)))
     qaid2_cm = {}
     # vsone must have a chunksize of 1
     if batch_size is None:

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-import logging
-from os.path import split, splitext, join, exists, realpath
 import datetime
 import distutils
+import logging
+from os.path import exists, join, realpath, split, splitext
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -49,11 +50,11 @@ def _devcheck_backups():
     for fpath in fpaths:
         db_uri = 'sqlite:///{}'.format(realpath(fpath))
         db = dt.SQLDatabaseController(db_uri, 'PZ_Master1')
-        logger.info('fpath = %r' % (fpath,))
+        logger.info('fpath = {!r}'.format(fpath))
         num_edges = len(db.executeone('SELECT rowid from annotmatch'))
-        logger.info('num_edges = %r' % (num_edges,))
+        logger.info('num_edges = {!r}'.format(num_edges))
         num_names = len(db.executeone('SELECT DISTINCT name_rowid from annotations'))
-        logger.info('num_names = %r' % (num_names,))
+        logger.info('num_names = {!r}'.format(num_names))
         # df = db.get_table_as_pandas('annotations', columns=['annot_rowid',
         #                                                     'name_rowid'])
 
@@ -120,20 +121,20 @@ def revert_to_backup(ibs):
 
     # Core database
     fname, ext = splitext(db_path)
-    db_path_ = '%s_revert.sqlite3' % (fname,)
+    db_path_ = '{}_revert.sqlite3'.format(fname)
     ut.move(db_path, db_path_)
     fpath, fname = split(fname)
-    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext)))
+    path_list = sorted(ut.glob(backup_dir, '{}_*{}'.format(fname, ext)))
     assert len(path_list) > 0
     previous_backup = path_list[-1]
     copy_database(previous_backup, db_path)
 
     # Staging database
     fname, ext = splitext(staging_path)
-    staging_path_ = '%s_revert.sqlite3' % (fname,)
+    staging_path_ = '{}_revert.sqlite3'.format(fname)
     ut.move(staging_path, staging_path_)
     fpath, fname = split(fname)
-    path_list = sorted(ut.glob(backup_dir, '%s_*%s' % (fname, ext)))
+    path_list = sorted(ut.glob(backup_dir, '{}_*{}'.format(fname, ext)))
     assert len(path_list) > 0
     previous_backup = path_list[-1]
     copy_database(previous_backup, staging_path)
@@ -381,7 +382,7 @@ def update_schema_version(
             old_constraints = db.get_table_constraints(tablename)
             assert (
                 len(superkey_colnames_list) > 0 or len(old_constraints) > 0
-            ), 'ERROR UPDATING DATABASE, SUPERKEYS of %s DROPPED!' % (tablename,)
+            ), 'ERROR UPDATING DATABASE, SUPERKEYS of {} DROPPED!'.format(tablename)
 
     logger.info('[_SQL] update_schema_version')
     db_fpath = db.uri.replace('sqlite://', '')
@@ -409,7 +410,7 @@ def update_schema_version(
 
     _key = functools.cmp_to_key(compare_string_versions)
     valid_versions = sorted(db_versions.keys(), key=_key)
-    logger.info('valid_versions = %r' % (valid_versions,))
+    logger.info('valid_versions = {!r}'.format(valid_versions))
     try:
         start_index = valid_versions.index(version) + 1
     except IndexError:
@@ -543,7 +544,7 @@ def get_nth_test_schema_version(schema_spec, n=-1):
     from wbia.dtool.sql_control import SQLDatabaseController
 
     dbname = schema_spec.__name__
-    logger.info('[_SQL] getting n=%r-th version of %r' % (n, dbname))
+    logger.info('[_SQL] getting n={!r}-th version of {!r}'.format(n, dbname))
     version_expected = list(schema_spec.VALID_VERSIONS.keys())[n]
     cachedir = ut.ensure_app_resource_dir('wbia_test')
     db_fname = 'test_%s.sqlite3' % dbname

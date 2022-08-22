@@ -4,10 +4,10 @@ import uuid
 import numpy as np
 import pytest
 from sqlalchemy.engine import create_engine
-from sqlalchemy.sql import text, bindparam
+from sqlalchemy.sql import bindparam, text
 from sqlalchemy.types import Float
 
-from wbia.dtool.types import Dict, Integer, List, NDArray, Number, UUID
+from wbia.dtool.types import UUID, Dict, Integer, List, NDArray, Number
 
 
 @pytest.fixture(autouse=True)

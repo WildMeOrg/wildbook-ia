@@ -1,33 +1,44 @@
 # -*- coding: utf-8 -*-
-import numpy as np  # NOQA
-import utool as ut
+import collections
+import copy
 
 # import logging
 import itertools as it
-import copy
-import collections
-from wbia import constants as const
-from wbia.algo.graph import nx_dynamic_graph
-
-# from wbia.algo.graph import _dep_mixins
-from wbia.algo.graph import mixin_viz
-from wbia.algo.graph import mixin_helpers
-from wbia.algo.graph import mixin_dynamic
-from wbia.algo.graph import mixin_priority
-from wbia.algo.graph import mixin_loops
-from wbia.algo.graph import mixin_matching
-from wbia.algo.graph import mixin_groundtruth
-from wbia.algo.graph import mixin_simulation
-from wbia.algo.graph import mixin_wbia
-from wbia.algo.graph import nx_utils as nxu
-import pandas as pd
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
-from wbia.algo.graph.state import UNINFERABLE
-from wbia.algo.graph.state import SAME, DIFF, NULL
-import networkx as nx
 import logging
 import threading
 
+import networkx as nx
+import numpy as np  # NOQA
+import pandas as pd
+import utool as ut
+
+from wbia import constants as const
+
+# from wbia.algo.graph import _dep_mixins
+from wbia.algo.graph import (
+    mixin_dynamic,
+    mixin_groundtruth,
+    mixin_helpers,
+    mixin_loops,
+    mixin_matching,
+    mixin_priority,
+    mixin_simulation,
+    mixin_viz,
+    mixin_wbia,
+    nx_dynamic_graph,
+)
+from wbia.algo.graph import nx_utils as nxu
+from wbia.algo.graph.state import (
+    DIFF,
+    INCMP,
+    NEGTV,
+    NULL,
+    POSTV,
+    SAME,
+    UNINFERABLE,
+    UNKWN,
+    UNREV,
+)
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -62,9 +73,9 @@ class Feedback(object):
     def _check_edge(infr, edge):
         aid1, aid2 = edge
         if aid1 not in infr.aids_set:
-            raise ValueError('aid1=%r is not part of the graph' % (aid1,))
+            raise ValueError('aid1={!r} is not part of the graph'.format(aid1))
         if aid2 not in infr.aids_set:
-            raise ValueError('aid2=%r is not part of the graph' % (aid2,))
+            raise ValueError('aid2={!r} is not part of the graph'.format(aid2))
 
     def add_feedback_from(infr, items, verbose=None, **kwargs):
         if verbose is None:
@@ -139,7 +150,7 @@ class Feedback(object):
             yield _rectify_decision(ed, md)
 
     def add_node_feedback(infr, aid, **attrs):
-        infr.print('Writing annot aid=%r %s' % (aid, ut.repr2(attrs)))
+        infr.print('Writing annot aid={!r} {}'.format(aid, ut.repr2(attrs)))
         ibs = infr.ibs
         ibs.set_annot_quality_texts([aid], [attrs['quality_texts']])
         ibs.set_annot_viewpoint_code([aid], [attrs['viewpoint_code']])
@@ -296,7 +307,7 @@ class Feedback(object):
             infr.metrics_list.append(metrics)
 
             try:
-                from wbia_lca._plugin import get_ggr_stats, LOG_DECISION_FILE
+                from wbia_lca._plugin import LOG_DECISION_FILE, get_ggr_stats
 
                 valid_aids = list(sorted(infr.aids))
                 components = list(infr.positive_components())
@@ -340,8 +351,8 @@ class Feedback(object):
                         len(infr.queue),
                     )
                     line = ','.join(map(str, data))
-                    logger.info('Progress: %s' % (line,))
-                    logfile.write('%s\n' % (line,))
+                    logger.info('Progress: {}'.format(line))
+                    logfile.write('{}\n'.format(line))
             except Exception:
                 pass
 
@@ -351,7 +362,7 @@ class Feedback(object):
         assert all(
             [ut.allsame(infr.node_labels(*cc)) for cc in infr.positive_components()]
         )
-        sorted_ccs = sorted([set(cc) for cc in infr.pos_graph.connected_components()])
+        sorted_ccs = sorted(set(cc) for cc in infr.pos_graph.connected_components())
         msg = (
             '['
             + ', '.join(
@@ -516,14 +527,14 @@ class Feedback(object):
 
     def reset_feedback(infr, mode='annotmatch', apply=True):
         """Resets feedback edges to state of the SQL annotmatch table"""
-        infr.print('reset_feedback mode=%r' % (mode,), 1)
+        infr.print('reset_feedback mode={!r}'.format(mode), 1)
         infr.clear_feedback()
         if mode == 'annotmatch':
             infr.external_feedback = infr.read_wbia_annotmatch_feedback()
         elif mode == 'staging':
             infr.external_feedback = infr.read_wbia_staging_feedback()
         else:
-            raise ValueError('no mode=%r' % (mode,))
+            raise ValueError('no mode={!r}'.format(mode))
         infr.internal_feedback = ut.ddict(list)
         if apply:
             infr.apply_feedback_edges()
@@ -549,7 +560,7 @@ class Feedback(object):
             raise NotImplementedError('unused')
             infr.reset_name_labels()
         else:
-            raise ValueError('Unknown state=%r' % (state,))
+            raise ValueError('Unknown state={!r}'.format(state))
 
     def reset_name_labels(infr):
         """Resets all annotation node name labels to their initial values"""
@@ -685,14 +696,14 @@ class NameRelabel(object):
             if not infr.is_consistent(cc):
                 num_inconsistent += 1
 
-        infr.print('num_inconsistent = %r' % (num_inconsistent,), 2)
+        infr.print('num_inconsistent = {!r}'.format(num_inconsistent), 2)
         if infr.verbose >= 2:
             cc_sizes = list(map(len, cc_subgraphs))
             pcc_size_hist = ut.dict_hist(cc_sizes)
             pcc_size_stats = ut.get_stats(cc_sizes)
             if len(pcc_size_hist) < 8:
-                infr.print('PCC size hist = %s' % (ut.repr2(pcc_size_hist),))
-            infr.print('PCC size stats = %s' % (ut.repr2(pcc_size_stats),))
+                infr.print('PCC size hist = {}'.format(ut.repr2(pcc_size_hist)))
+            infr.print('PCC size stats = {}'.format(ut.repr2(pcc_size_stats)))
 
         if rectify:
             # Rectified relabeling, preserves grouping and labeling if possible
@@ -914,7 +925,7 @@ class MiscHelpers(object):
                 if decision in {POSTV, NEGTV, INCMP, UNREV, UNKWN}:
                     infr.review_graphs[decision].add_edge(u, v)
                 else:
-                    raise ValueError('Unknown decision=%r' % (decision,))
+                    raise ValueError('Unknown decision={!r}'.format(decision))
 
         infr.update_node_attributes()
 
@@ -1289,7 +1300,7 @@ class AnnotInference(
         # Recover graph holds positive edges of inconsistent PCCs
         infr.recover_graph = nx_dynamic_graph.DynConnGraph()
         # Set of PCCs that are positive redundant
-        infr.pos_redun_nids = set([])
+        infr.pos_redun_nids = set()
         # Represents the metagraph of negative edges between PCCs
         infr.neg_redun_metagraph = infr._graph_cls()
         # NEW VERSION: metagraph of PCCs with ANY number of negative edges

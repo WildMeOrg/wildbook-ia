@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-import util_git
-import __REPOS__
 
+import __REPOS__
+import util_git
 
 PULL = '--pull' in sys.argv
 DEVELOP = '--develop' in sys.argv

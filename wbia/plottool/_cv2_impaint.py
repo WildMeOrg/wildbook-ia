@@ -86,8 +86,8 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     else:
         init_color = color_list[init_label]
 
-    print('color_list = %r' % (color_list,))
-    print('init_color=%r' % (init_color,))
+    print('color_list = {!r}'.format(color_list))
+    print('init_color={!r}'.format(init_color))
 
     title = 'masking image'
     if init_mask is not None:
@@ -124,7 +124,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
         if keycode == ord('l'):
             globals_['label_index'] = (globals_['label_index'] + 1) % len(color_list)
             globals_['fgcolor'] = color_list[globals_['label_index']]
-            print('fgcolor = %r' % (globals_['fgcolor'],))
+            print('fgcolor = {!r}'.format(globals_['fgcolor']))
         if keycode == ord('q') or keycode == 27:
             break
 

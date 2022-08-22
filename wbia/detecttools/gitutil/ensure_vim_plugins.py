@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
 import os
+import sys
 from os.path import join
-from util_git import cd
+
 import util_git
+from util_git import cd
 
 PULL = '--pull' in sys.argv
 

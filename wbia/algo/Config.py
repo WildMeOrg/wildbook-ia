@@ -2,16 +2,17 @@
 """
 DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS
 """
-import logging
-import utool as ut
 import copy
+import logging
 
 # from wbia import dtool
-from os.path import join
-from os.path import splitext
-from wbia import constants as const
-from utool._internal.meta_util_six import get_funcname
+from os.path import join, splitext
+
 import six
+import utool as ut
+from utool._internal.meta_util_six import get_funcname
+
+from wbia import constants as const
 
 (print, rrr, profile) = ut.inject2(__name__, '[cfg]')
 logger = logging.getLogger('wbia')
@@ -36,7 +37,7 @@ def parse_config_items(cfg):
     """
     # import wbia
     param_list = []
-    seen = set([])
+    seen = set()
     for item in cfg.items():
         key, val = item
         # if isinstance(val, wbia.algo.Config.ConfigBase):
@@ -50,7 +51,9 @@ def parse_config_items(cfg):
             pass
         else:
             if key in seen:
-                logger.info('[Config] WARNING: key=%r appears more than once' % (key,))
+                logger.info(
+                    '[Config] WARNING: key={!r} appears more than once'.format(key)
+                )
             seen.add(key)
             param_list.append(item)
             # logger.info(key)
@@ -705,7 +708,9 @@ class QueryConfig(ConfigBase):
             ]
         )
         try:
-            assert hasvalid_root, 'invalid pipeline root %r valid roots are %r' % (
+            assert (
+                hasvalid_root
+            ), 'invalid pipeline root {!r} valid roots are {!r}'.format(
                 query_cfg.pipeline_root,
                 query_cfg._valid_pipeline_roots,
             )
@@ -1014,7 +1019,7 @@ def load_named_config(
         cfgname = 'cfg'
     fpath = join(dpath, cfgname) + '.cPkl'
     if verbose:
-        logger.info('[Config] loading named config fpath=%r' % (fpath,))
+        logger.info('[Config] loading named config fpath={!r}'.format(fpath))
     # Always a fresh object
     cfg = GenericConfig(cfgname, fpath=fpath)
     try:
@@ -1053,7 +1058,9 @@ def load_named_config(
         #    # TODO: Finishme update the out of data preferences
         #    pass
         if verbose:
-            logger.info('[Config] successfully loaded config cfgname=%r' % (cfgname,))
+            logger.info(
+                '[Config] successfully loaded config cfgname={!r}'.format(cfgname)
+            )
     except Exception as ex:
         if ut.VERBOSE:
             ut.printex(ex, iswarning=True)
@@ -1062,7 +1069,7 @@ def load_named_config(
         cfg.save()
     # Hack in cfgname
     if verbose:
-        logger.info('[Config] hack in z_cfgname=%r' % (cfgname,))
+        logger.info('[Config] hack in z_cfgname={!r}'.format(cfgname))
     cfg.z_cfgname = cfgname
     return cfg
 
@@ -1133,4 +1140,4 @@ def _default_named_config(cfg, cfgname):
         cfg.query_cfg.nn_cfg.checks = 316
     else:
         if ut.VERBOSE:
-            logger.info('WARNING: UNKNOWN CFGNAME=%r' % (cfgname,))
+            logger.info('WARNING: UNKNOWN CFGNAME={!r}'.format(cfgname))

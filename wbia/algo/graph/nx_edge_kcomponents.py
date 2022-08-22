@@ -17,14 +17,14 @@ A k-edge-connected subgraph (k-edge-subgraph) is a maximal set of nodes in G,
 such that the subgraph of G defined by the nodes has an edge-connectivity at
 least k.
 """
-import logging
-import networkx as nx
-from networkx.utils import arbitrary_element
-from networkx.utils import not_implemented_for
-from networkx.algorithms import bridges
-from functools import partial
 import itertools as it
+import logging
+from functools import partial
+
+import networkx as nx
 import utool as ut
+from networkx.algorithms import bridges
+from networkx.utils import arbitrary_element, not_implemented_for
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

@@ -8,11 +8,12 @@
 # Might # add annotates?  plot_<funcname> should not clear the axes or figure.
 # More useful for graphs draw_<funcname> same as plot for now. More useful for
 # images
-import logging
 import itertools as it
-import utool as ut  # NOQA
+import logging
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import utool as ut  # NOQA
 
 try:
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -23,22 +24,22 @@ except ImportError as ex:
         iswarning=False,
     )
     raise
+import warnings
+from os.path import relpath
+
+import numpy as np
+
 # import colorsys
 import pylab
-import warnings
-import numpy as np
-from os.path import relpath
 
 try:
     import cv2
 except ImportError as ex:
     print('ERROR PLOTTOOL CANNOT IMPORT CV2')
     print(ex)
-from wbia.plottool import mpl_keypoint as mpl_kp
 from wbia.plottool import color_funcs as color_fns
-from wbia.plottool import custom_constants
-from wbia.plottool import custom_figure
-from wbia.plottool import fig_presenter
+from wbia.plottool import custom_constants, custom_figure, fig_presenter
+from wbia.plottool import mpl_keypoint as mpl_kp
 
 DEBUG = False
 (print, rrr, profile) = ut.inject2(__name__)
@@ -126,7 +127,7 @@ def show_was_requested():
     returns True if --show is specified on the commandline or you are in
     IPython (and presumably want some sort of interaction
     """
-    return not ut.get_argflag(('--noshow')) and (
+    return not ut.get_argflag('--noshow') and (
         ut.get_argflag(('--show', '--save')) or ut.inIPython()
     )
     # return ut.show_was_requested()
@@ -401,13 +402,13 @@ def overlay_icon(
         ax.add_artist(ab)
     else:
         img_size = vt.get_size(icon)
-        logger.info('img_size = %r' % (img_size,))
+        logger.info('img_size = {!r}'.format(img_size))
         if max_asize is not None:
             dsize, ratio = vt.resized_dims_and_ratio(img_size, max_asize)
             width, height = dsize
         else:
             width, height = img_size
-        logger.info('width, height= %r, %r' % (width, height))
+        logger.info('width, height= {!r}, {!r}'.format(width, height))
         x1 = xy[0] + width * bbox_alignment[0]
         y1 = xy[1] + height * bbox_alignment[1]
         x2 = xy[0] + width * (1 - bbox_alignment[0])
@@ -416,14 +417,14 @@ def overlay_icon(
         ax = plt.gca()
         prev_aspect = ax.get_aspect()
         # FIXME: adjust aspect ratio of extent to match the axes
-        logger.info('icon.shape = %r' % (icon.shape,))
-        logger.info('prev_aspect = %r' % (prev_aspect,))
+        logger.info('icon.shape = {!r}'.format(icon.shape))
+        logger.info('prev_aspect = {!r}'.format(prev_aspect))
         extent = [x1, x2, y1, y2]
-        logger.info('extent = %r' % (extent,))
+        logger.info('extent = {!r}'.format(extent))
         ax.imshow(icon, extent=extent)
-        logger.info('current_aspect = %r' % (ax.get_aspect(),))
+        logger.info('current_aspect = {!r}'.format(ax.get_aspect()))
         ax.set_aspect(prev_aspect)
-        logger.info('current_aspect = %r' % (ax.get_aspect(),))
+        logger.info('current_aspect = {!r}'.format(ax.get_aspect()))
         # x - width // 2, x + width // 2,
         # y - height // 2, y + height // 2])
 
@@ -436,8 +437,8 @@ def update_figsize():
         fig = gcf()
         figsize = [eval(term) if isinstance(term, str) else term for term in figsize]
         figw, figh = figsize[0], figsize[1]
-        logger.info('get_size_inches = %r' % (fig.get_size_inches(),))
-        logger.info('fig w,h (inches) = %r, %r' % (figw, figh))
+        logger.info('get_size_inches = {!r}'.format(fig.get_size_inches()))
+        logger.info('fig w,h (inches) = {!r}, {!r}'.format(figw, figh))
         fig.set_size_inches(figw, figh)
         # logger.info('get_size_inches = %r' % (fig.get_size_inches(),))
 
@@ -476,13 +477,15 @@ def udpate_adjust_subplots():
                 % (len(adjust_list), adjust_list, keys)
             )
         adjust_kw = dict(zip(keys, vals))
-        logger.info('**adjust_kw = %s' % (ut.repr2(adjust_kw),))
+        logger.info('**adjust_kw = {}'.format(ut.repr2(adjust_kw)))
         adjust_subplots(**adjust_kw)
 
 
 def render_figure_to_image(fig, **savekw):
     import io
+
     import cv2
+
     import wbia.plottool as pt
 
     # Pop save kwargs from kwargs
@@ -600,7 +603,7 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
 
     # Group axes that belong together
     atomic_axes = []
-    seen_ = set([])
+    seen_ = set()
     for ax in fig.axes:
         div = pt.get_plotdat(ax, DF2_DIVIDER_KEY, None)
         if div is not None:
@@ -813,9 +816,11 @@ def show_if_requested(N=1):
             prefix_list=['--', '-'], type_hints={'t': list, 'a': list}
         )
         # import sys
-        from os.path import basename, splitext, join, dirname
-        import wbia.plottool as pt
+        from os.path import basename, dirname, join, splitext
+
         import vtool as vt
+
+        import wbia.plottool as pt
 
         # HACK
         arg_dict = {
@@ -833,7 +838,7 @@ def show_if_requested(N=1):
         fpath = join(dpath, fpath_)
         if not gotdpath:
             dpath = dirname(fpath_)
-        logger.info('dpath = %r' % (dpath,))
+        logger.info('dpath = {!r}'.format(dpath))
 
         fig = pt.gcf()
         fig.dpi = dpi
@@ -847,7 +852,7 @@ def show_if_requested(N=1):
 
             # Group axes that belong together
             atomic_axes = []
-            seen_ = set([])
+            seen_ = set()
             for ax in fig.axes:
                 div = pt.get_plotdat(ax, DF2_DIVIDER_KEY, None)
                 if div is not None:
@@ -928,7 +933,7 @@ def show_if_requested(N=1):
         label_str = ut.get_argval('--label', type_=str, default=default_label)
         width_str = ut.get_argval('--width', type_=str, default='\\textwidth')
         width_str = ut.get_argval('--width', type_=str, default='\\textwidth')
-        logger.info('width_str = %r' % (width_str,))
+        logger.info('width_str = {!r}'.format(width_str))
         height_str = ut.get_argval('--height', type_=str, default=None)
         caplbl_str = label_str
 
@@ -998,8 +1003,9 @@ def show_if_requested(N=1):
         # ) % (label_str, latex_block,)
         try:
             import os
-            import psutil
             import pipes
+
+            import psutil
 
             # import shlex
             # TODO: separate into get_process_cmdline_str
@@ -2509,7 +2515,7 @@ def legend(
         >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    assert loc in LEGEND_LOCATION or loc == 'best', 'invalid loc. try one of %r' % (
+    assert loc in LEGEND_LOCATION or loc == 'best', 'invalid loc. try one of {!r}'.format(
         LEGEND_LOCATION,
     )
     if ax is None:
@@ -2905,12 +2911,9 @@ def interpolated_colormap(color_frac_list, resolution=64, space='lch-ab'):
 
     # import colorspacious
     # import colormath
-    from colormath import color_conversions
-
     # FIXME: need to ensure monkeypatch for networkx 2.0 in colormath
     # color_conversions._conversion_manager = color_conversions.GraphConversionManager()
-
-    from colormath import color_objects
+    from colormath import color_conversions, color_objects
 
     # from colormath import color_conversions
 
@@ -3145,7 +3148,7 @@ def colorbar(
         # cb.ax.get_yticks()
         # cb.set_ticks(ticks)  # tick locations
         # cb.set_ticklabels(ticklabels)  # tick labels
-    ph.set_plotdat(cb.ax, 'viztype', 'colorbar-%s' % (lbl,))
+    ph.set_plotdat(cb.ax, 'viztype', 'colorbar-{}'.format(lbl))
     ph.set_plotdat(cb.ax, 'sm', sm)
     # FIXME: Figure out how to make a maximum number of ticks
     # and to enforce them to be inside the data bounds
@@ -3353,6 +3356,7 @@ def show_kpts(kpts, fnum=None, pnum=None, **kwargs):
         >>> pt.show_if_requested()
     """
     import vtool as vt
+
     import wbia.plottool as pt
 
     pt.figure(doclf=True, fnum=pt.ensure_fnum(fnum), pnum=pnum)
@@ -3767,7 +3771,7 @@ def imshow(
                 % (img.dtype, img.shape)
             )
     except TypeError as te:
-        logger.info('[df2] imshow ERROR %r' % (te,))
+        logger.info('[df2] imshow ERROR {!r}'.format(te))
         raise
     except Exception as ex:
         logger.info('!!!!!!!!!!!!!!WARNING!!!!!!!!!!!')
@@ -3776,9 +3780,9 @@ def imshow(
             logger.info('!!!!!!!!!!!!!!ERRROR!!!!!!!!!!!')
             pass
             # logger.info('img = %r' % (img,))
-        logger.info('[df2] img.dtype = %r' % (img.dtype,))
-        logger.info('[df2] type(img) = %r' % (type(img),))
-        logger.info('[df2] img.shape = %r' % (img.shape,))
+        logger.info('[df2] img.dtype = {!r}'.format(img.dtype))
+        logger.info('[df2] type(img) = {!r}'.format(type(img)))
+        logger.info('[df2] img.shape = {!r}'.format(img.shape))
         logger.info('[df2] imshow ERROR %r' % ex)
         raise
     # plt.set_cmap('gray')
@@ -3965,7 +3969,9 @@ def show_chipmatch2(
     import vtool as vt
 
     if ut.VERBOSE:
-        logger.info('[df2] show_chipmatch2() fnum=%r, pnum=%r, ax=%r' % (fnum, pnum, ax))
+        logger.info(
+            '[df2] show_chipmatch2() fnum={!r}, pnum={!r}, ax={!r}'.format(fnum, pnum, ax)
+        )
     wh1 = vt.get_size(rchip1)
     wh2 = vt.get_size(rchip2)
     if True:  # if H1 is None and H2 is not None or H2 is None and H1 is not None:
@@ -4368,7 +4374,7 @@ def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb', p=0.5):
         bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2BGR)
         return bgr_ori
     else:
-        raise AssertionError('unkonwn encoding=%r' % (encoding,))
+        raise AssertionError('unkonwn encoding={!r}'.format(encoding))
 
 
 def get_orientation_color(radians_list):
@@ -4531,9 +4537,9 @@ def imshow_null(msg=None, ax=None, **kwargs):
     if ax is None:
         ax = gca()
     subkeys = [key for key in ['fontsize'] if key in kwargs]
-    logger.info('kwargs = %r' % (kwargs,))
+    logger.info('kwargs = {!r}'.format(kwargs))
     kwargs_ = ut.dict_subset(kwargs, subkeys)
-    logger.info('kwargs_ = %r' % (kwargs_,))
+    logger.info('kwargs_ = {!r}'.format(kwargs_))
     imshow(np.zeros((10, 10), dtype=np.uint8), ax=ax, **kwargs)
     if msg is None:
         draw_boxedX(ax=ax)
@@ -4708,7 +4714,7 @@ def plot_surface3d(
             **kwargs
         )
     else:
-        raise NotImplementedError('mode=%r' % (mode,))
+        raise NotImplementedError('mode={!r}'.format(mode))
     if contour:
         import matplotlib.cm as cm
 
@@ -4952,9 +4958,11 @@ def test_save():
         python -m wbia.plottool.draw_func2 test_save --show
         python -m wbia.plottool.draw_func2 test_save
     """
-    import wbia.plottool as pt
-    import utool as ut
     from os.path import join
+
+    import utool as ut
+
+    import wbia.plottool as pt
 
     fig = pt.figure(fnum=1)
     ax = pt.plt.gca()

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """Dependencies: flask, tornado."""
 import logging
-from wbia.control import controller_inject
-from flask_swagger import swagger
-import wbia.constants as const
-from flask import current_app
-from flask import jsonify
-from flask import url_for
-import utool as ut
 import traceback
 import uuid
+
+import utool as ut
+from flask import current_app, jsonify, url_for
+from flask_swagger import swagger
+
+import wbia.constants as const
+from wbia.control import controller_inject
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -24,7 +24,7 @@ register_route = controller_inject.get_wbia_flask_route(__name__)
 
 
 def _prefix(route=''):
-    rule = '/%s/%s/' % (PREFIX, route)
+    rule = '/{}/{}/'.format(PREFIX, route)
     while '//' in rule:
         rule = rule.replace('//', '/')
     return rule
@@ -108,15 +108,19 @@ def _ensure_general(ibs, models, tag, rowid_from_uuid_func, unpack=True, *args, 
             else:
                 parameter = 'models:%d' % (index,)
 
-            assert 'uuid' in model, '%s Model provided is invalid, missing UUID key' % (
+            assert (
+                'uuid' in model
+            ), '{} Model provided is invalid, missing UUID key'.format(
                 tag,
             )
 
             uuid_ = uuid.UUID(model['uuid'])
-            assert uuid_ is not None, "%s Model's UUID is invalid" % (tag,)
+            assert uuid_ is not None, "{} Model's UUID is invalid".format(tag)
 
             rowid = rowid_from_uuid_func(uuid_)
-            assert rowid is not None, '%s Model is unrecognized, please upload' % (tag,)
+            assert rowid is not None, '{} Model is unrecognized, please upload'.format(
+                tag
+            )
         except AssertionError as ex:
             raise controller_inject.WebInvalidInput(str(ex), parameter)
         rowid_list.append(rowid)
@@ -495,7 +499,7 @@ def microsoft_annotation_add(
             assert len(viewpoint) > 0, 'Viewpoint cannot be empty'
             assert (
                 viewpoint in const.YAWALIAS
-            ), 'Invalid viewpoint provided.  Must be one of: %s' % (
+            ), 'Invalid viewpoint provided.  Must be one of: {}'.format(
                 list(const.YAWALIAS.keys()),
             )
 

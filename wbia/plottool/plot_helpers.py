@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-# from . import draw_func2 as df2
-from wbia.plottool import fig_presenter
-
 # from wbia.plottool import custom_figure
 # from wbia.plottool import custom_constants
 # from os.path import join
 import utool as ut
+
+# from . import draw_func2 as df2
+from wbia.plottool import fig_presenter
 
 ut.noinject(__name__, '[plot_helpers]')
 # (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[plot_helpers]', DEBUG=False)

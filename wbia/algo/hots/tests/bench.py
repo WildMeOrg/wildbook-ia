@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -17,9 +18,9 @@ def benchmark_knn():
         >>> result = benchmark_knn()
         >>> print(result)
     """
+    import wbia
     from wbia.algo.hots import _pipeline_helpers as plh
     from wbia.algo.hots.pipeline import nearest_neighbors
-    import wbia
 
     verbose = True
     qreq_ = wbia.testdata_qreq_(

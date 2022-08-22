@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-import utool as ut
 import numpy as np
-from . import draw_func2 as df2
+import utool as ut
+
 from wbia.plottool import custom_constants
+
+from . import draw_func2 as df2
 
 # from vtool import keypoint as ktool
 # (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sv]', DEBUG=False)
@@ -160,7 +162,7 @@ def show_sv(
                 refine_method = ''
 
             if len(refine_method) > 0:
-                refine_method_ = '(%s) ' % (refine_method,)
+                refine_method_ = '({}) '.format(refine_method)
             else:
                 refine_method_ = ''
             px = _draw_matches(
@@ -222,8 +224,9 @@ def show_sv_simple(
         >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    import wbia.plottool as pt
     import vtool as vt
+
+    import wbia.plottool as pt
 
     colors = pt.distinct_colors(2, brightness=0.95)
     color1, color2 = colors[0:2]

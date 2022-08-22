@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from os.path import expanduser, normpath, realpath, join
 import os
-from itertools import izip
 import platform
-
+from itertools import izip
+from os.path import expanduser, join, normpath, realpath
 
 USER_ID = None
 IS_USER = False

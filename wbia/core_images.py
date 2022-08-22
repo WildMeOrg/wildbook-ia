@@ -33,14 +33,16 @@ Needed Tables:
 
 """
 import logging
-from wbia import dtool
-import utool as ut
-import numpy as np
-import vtool as vt
-import cv2
-from wbia.control.controller_inject import register_preprocs
 import sys
+
+import cv2
+import numpy as np
+import utool as ut
+import vtool as vt
+
 import wbia.constants as const
+from wbia import dtool
+from wbia.control.controller_inject import register_preprocs
 
 (print, rrr, profile) = ut.inject2(__name__, '[core_images]')
 logger = logging.getLogger('wbia')
@@ -299,7 +301,7 @@ def compute_classifications(depc, gid_list, config=None):
         >>> print(results)
     """
     logger.info('[ibs] Process Image Classifications')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
@@ -330,7 +332,7 @@ def compute_classifications(depc, gid_list, config=None):
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
     else:
         raise ValueError(
-            'specified classifier algo is not supported in config = %r' % (config,)
+            'specified classifier algo is not supported in config = {!r}'.format(config)
         )
 
     # yield detections
@@ -384,7 +386,7 @@ def compute_classifications2(depc, gid_list, config=None):
         >>> print(results)
     """
     logger.info('[ibs] Process Image Classifications2')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
@@ -434,7 +436,9 @@ def compute_classifications2(depc, gid_list, config=None):
             )
     else:
         raise ValueError(
-            'specified classifier_two algo is not supported in config = %r' % (config,)
+            'specified classifier_two algo is not supported in config = {!r}'.format(
+                config
+            )
         )
 
     # yield detections
@@ -508,7 +512,7 @@ def compute_features(depc, gid_list, config=None):
         >>> print(features)
     """
     logger.info('[ibs] Preprocess Features')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
@@ -551,7 +555,7 @@ def compute_features(depc, gid_list, config=None):
         ######################################################################################
         else:
             raise ValueError(
-                'specified feature model is not supported in config = %r' % (config,)
+                'specified feature model is not supported in config = {!r}'.format(config)
             )
 
         # Build model
@@ -586,7 +590,7 @@ def compute_features(depc, gid_list, config=None):
             feature_list = densenet.features(thumbpath_list)
         else:
             raise ValueError(
-                'specified feature model is not supported in config = %r' % (config,)
+                'specified feature model is not supported in config = {!r}'.format(config)
             )
 
         for feature in feature_list:
@@ -595,7 +599,7 @@ def compute_features(depc, gid_list, config=None):
             yield (feature,)
     else:
         raise ValueError(
-            'specified feature framework is not supported in config = %r' % (config,)
+            'specified feature framework is not supported in config = {!r}'.format(config)
         )
 
 
@@ -802,7 +806,7 @@ def compute_localizations_original(depc, gid_list, config=None):
             yield tuple(accum_list)
 
     logger.info('[ibs] Preprocess Localizations')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
@@ -907,7 +911,7 @@ def compute_localizations_original(depc, gid_list, config=None):
         detect_gen = _combined(gid_list, config_dict_list)
     else:
         raise ValueError(
-            'specified detection algo is not supported in config = %r' % (config,)
+            'specified detection algo is not supported in config = {!r}'.format(config)
         )
 
     # yield detections
@@ -978,7 +982,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
         >>> print(detects)
     """
     logger.info('[ibs] Preprocess Localizations')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
 
     VERBOSE = False
 
@@ -1151,7 +1155,7 @@ def get_localization_chips_worker(
         chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
         # cv2.imshow('', chip)
         # cv2.waitKey()
-        msg = 'Chip shape %r does not agree with target size %r' % (
+        msg = 'Chip shape {!r} does not agree with target size {!r}'.format(
             chip.shape,
             target_size,
         )
@@ -1183,7 +1187,9 @@ def get_localization_masks_worker(gid, img, bbox_list, theta_list, target_size):
         mask = cv2.resize(img_, tuple(new_size), **warpkw)
         # cv2.imshow('', mask)
         # cv2.waitKey()
-        msg = 'Chip shape %r does not agree with target size %r' % (mask.shape, new_size)
+        msg = 'Chip shape {!r} does not agree with target size {!r}'.format(
+            mask.shape, new_size
+        )
         assert mask.shape[0] == new_size[0] and mask.shape[1] == new_size[1], msg
         return mask
 
@@ -1258,7 +1264,7 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128), axis_aligne
         # Checks
         invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
         invalid_bboxes = ut.compress(bbox_list, invalid_flags)
-        assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
+        assert len(invalid_bboxes) == 0, 'invalid bboxes={!r}'.format(invalid_bboxes)
 
         # Build transformation from image to chip
         M_list = [
@@ -1282,7 +1288,7 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128), axis_aligne
             chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
             # cv2.imshow('', chip)
             # cv2.waitKey()
-            msg = 'Chip shape %r does not agree with target size %r' % (
+            msg = 'Chip shape {!r} does not agree with target size {!r}'.format(
                 chip.shape,
                 target_size,
             )
@@ -1361,7 +1367,7 @@ def get_localization_masks(ibs, loc_id_list, target_size=(128, 128)):
         # Checks
         invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
         invalid_bboxes = ut.compress(bbox_list, invalid_flags)
-        assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
+        assert len(invalid_bboxes) == 0, 'invalid bboxes={!r}'.format(invalid_bboxes)
 
         # Extract "masks"
         interpolation = cv2.INTER_LANCZOS4
@@ -1385,7 +1391,7 @@ def get_localization_masks(ibs, loc_id_list, target_size=(128, 128)):
             mask = cv2.resize(img_, tuple(new_size), **warpkw)
             # cv2.imshow('', mask)
             # cv2.waitKey()
-            msg = 'Chip shape %r does not agree with target size %r' % (
+            msg = 'Chip shape {!r} does not agree with target size {!r}'.format(
                 mask.shape,
                 target_size,
             )
@@ -1497,7 +1503,7 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
         >>> print(results)
     """
     logger.info('[ibs] Process Localization Chips')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
 
@@ -1622,7 +1628,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>> print(results)
     """
     logger.info('[ibs] Process Localization Classifications')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
 
@@ -1828,11 +1834,11 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
     """
-    from PIL import Image
     from keras.preprocessing import image as preprocess_image
+    from PIL import Image
 
     logger.info('[ibs] Preprocess Features')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     target_size = (224, 224)
@@ -1857,7 +1863,7 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     ######################################################################################
     else:
         raise ValueError(
-            'specified feature algo is not supported in config = %r' % (config,)
+            'specified feature algo is not supported in config = {!r}'.format(config)
         )
 
     # Load chips
@@ -1966,10 +1972,10 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         >>> results = depc.get_property('localizations_labeler', gid_list, None, config=config)
         >>> print(results)
     """
-    from os.path import join, exists
+    from os.path import exists, join
 
     logger.info('[ibs] Process Localization Labels')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
 
@@ -1999,7 +2005,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         config = dict(config)
         config['classifier_weight_filepath'] = config['labeler_weight_filepath']
         nonce = ut.random_nonce()[:16]
-        cache_path = join(ibs.cachedir, 'localization_labels_%s' % (nonce,))
+        cache_path = join(ibs.cachedir, 'localization_labels_{}'.format(nonce))
         assert not exists(cache_path)
         ut.ensuredir(cache_path)
         chip_filepath_list = []
@@ -2092,7 +2098,7 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
         >>> print(results)
     """
     logger.info('[ibs] Process Localization AoI2s')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
 
@@ -2188,7 +2194,7 @@ def compute_detections(depc, gid_list, config=None):
         >>> print(detects)
     """
     logger.info('[ibs] Preprocess Detections')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
@@ -2306,10 +2312,14 @@ def compute_detections(depc, gid_list, config=None):
                 zipped_.append([bbox, theta, species, viewpoint, conf * score])
             else:
                 logger.info(
-                    'Localizer %0.02f %0.02f' % (conf, config['localizer_sensitivity'])
+                    'Localizer {:0.02f} {:0.02f}'.format(
+                        conf, config['localizer_sensitivity']
+                    )
                 )
                 logger.info(
-                    'Labeler   %0.02f %0.02f' % (score, config['labeler_sensitivity'])
+                    'Labeler   {:0.02f} {:0.02f}'.format(
+                        score, config['labeler_sensitivity']
+                    )
                 )
         if len(zipped_) == 0:
             detect_list = list(empty_list)
@@ -2388,7 +2398,7 @@ def compute_cameratrap_exif_worker(
         '--oem',
         str(oem),
         '-c',
-        'tessedit_char_whitelist=%s' % (whitelist,),
+        'tessedit_char_whitelist={}'.format(whitelist),
     ]
     config = ' '.join(config)
 

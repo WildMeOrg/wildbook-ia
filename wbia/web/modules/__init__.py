@@ -21,5 +21,5 @@ def init_app(app, **kwargs):
         'swagger_ui',
     ]
     for module_name in module_names:
-        logging.debug('Init module %r' % (module_name,))
+        logging.debug('Init module {!r}'.format(module_name))
         import_module('.%s' % module_name, package=__name__).init_app(app, **kwargs)

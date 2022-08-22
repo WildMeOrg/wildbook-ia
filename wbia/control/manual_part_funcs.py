@@ -8,10 +8,12 @@ Autogen:
 """
 import logging
 import uuid
+
 import numpy as np
+import utool as ut
+
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
-import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
 from wbia.web import routes_ajax
 
@@ -268,7 +270,7 @@ def add_parts(
     check_uuid_flags = [not isinstance(auuid, uuid.UUID) for auuid in part_uuid_list]
     if any(check_uuid_flags):
         pos = ut.list_where(check_uuid_flags)
-        raise ValueError('positions %r have malformated UUIDS' % (pos,))
+        raise ValueError('positions {!r} have malformated UUIDS'.format(pos))
 
     params_iter = list(
         zip(
@@ -948,8 +950,9 @@ def _update_part_rotate_fix_bbox(bbox):
 
 
 def update_part_rotate_90(ibs, part_rowid_list, direction):
-    from wbia.constants import PI, TAU
     import vtool as vt
+
+    from wbia.constants import PI, TAU
 
     if isinstance(direction, str):
         direction = direction.lower()

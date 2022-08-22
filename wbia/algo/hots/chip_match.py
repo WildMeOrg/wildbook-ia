@@ -2,18 +2,17 @@
 """
 python -m utool.util_inspect check_module_usage --pat="chip_match.py"
 """
-import logging
 import copy
+import logging
+from operator import xor
+from os.path import join
+
 import numpy as np
 import utool as ut
 import vtool as vt
-from os.path import join
-from operator import xor
-from wbia.algo.hots import hstypes
-from wbia.algo.hots import old_chip_match
-from wbia.algo.hots import scoring
-from wbia.algo.hots import name_scoring
+
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots import hstypes, name_scoring, old_chip_match, scoring
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -118,7 +117,7 @@ def safe_check_lens_eq(arr1, arr2, msg=None):
     if arr1 is None or arr2 is None:
         return True
     else:
-        assert len(arr1) == len(arr2), msg + '(%r != %r)' % (len(arr1), len(arr2))
+        assert len(arr1) == len(arr2), msg + '({!r} != {!r})'.format(len(arr1), len(arr2))
 
 
 def safe_check_nested_lens_eq(arr1, arr2):
@@ -137,7 +136,7 @@ def safe_check_nested_lens_eq(arr1, arr2):
         for count, (x, y) in enumerate(zip(arr1, arr2)):
             assert len(x) == len(
                 y
-            ), 'inner lengths at position=%r do not correspond (%r != %r)' % (
+            ), 'inner lengths at position={!r} do not correspond ({!r} != {!r})'.format(
                 count,
                 len(x),
                 len(y),
@@ -164,7 +163,7 @@ def prepare_dict_uuids(class_dict, ibs):
         daid_list = class_dict['daid_list']
         dnid_list = ibs.get_name_rowids_from_text(class_dict['dname_list'])
         # if anything is unknown need to set to be negative daid
-        check_set = set([None, ibs.const.UNKNOWN_NAME_ROWID])
+        check_set = {None, ibs.const.UNKNOWN_NAME_ROWID}
         dnid_list = [
             -daid if dnid in check_set else dnid
             for daid, dnid in zip(daid_list, dnid_list)
@@ -267,7 +266,7 @@ class _ChipMatchVisualization(object):
         groupxs = cm.name_groupxs[nidx]
         daids = vt.take2(cm.daid_list, groupxs)
         dnids = vt.take2(cm.dnid_list, groupxs)
-        assert np.all(dnid == dnids), 'inconsistent naming, dnid=%r, dnids=%r' % (
+        assert np.all(dnid == dnids), 'inconsistent naming, dnid={!r}, dnids={!r}'.format(
             dnid,
             dnids,
         )
@@ -478,17 +477,19 @@ class _ChipMatchVisualization(object):
                 score = vt.trytake(cm.score_list, idx)
                 annot_score = vt.trytake(cm.annot_score_list, idx)
                 score_str = (
-                    'score = %.3f' % (score,) if score is not None else 'score = None'
+                    'score = {:.3f}'.format(score)
+                    if score is not None
+                    else 'score = None'
                 )
                 annot_score_str = (
-                    'annot_score = %.3f' % (annot_score,)
+                    'annot_score = {:.3f}'.format(annot_score)
                     if annot_score is not None
                     else 'annot_score = None'
                 )
                 title = score_str + '\n' + annot_score_str
                 pt.set_title(title)
             else:
-                raise NotImplementedError('Unknown plottype=%r' % (plottype,))
+                raise NotImplementedError('Unknown plottype={!r}'.format(plottype))
         if figtitle is not None:
             pt.set_figtitle(figtitle)
 
@@ -525,7 +526,7 @@ class _ChipMatchVisualization(object):
         }
         if aid2 is None:
             aid2 = cm.get_top_aids(ntop=1)[0]
-        logger.info('[cm] ishow_single_annotmatch aids(%s, %s)' % (cm.qaid, aid2))
+        logger.info('[cm] ishow_single_annotmatch aids({}, {})'.format(cm.qaid, aid2))
         kwshow.update(**kwargs)
         try:
             inter = interact_matches.MatchInteraction(
@@ -607,8 +608,9 @@ class _ChipMatchVisualization(object):
             >>> ut.startfile(img_fpath, quote=True)
             >>> ut.show_if_requested()
         """
-        import wbia.plottool as pt
         import matplotlib as mpl
+
+        import wbia.plottool as pt
 
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict', 'verbose']
@@ -644,8 +646,9 @@ class _ChipMatchVisualization(object):
         """
         users newer rendering based code
         """
-        import wbia.plottool as pt
         import matplotlib as mpl
+
+        import wbia.plottool as pt
 
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
@@ -712,9 +715,11 @@ class _ChipMatchVisualization(object):
             >>> ut.show_if_requested()
         """
         import io
+
         import cv2
-        import wbia.plottool as pt
         import matplotlib as mpl
+
+        import wbia.plottool as pt
 
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
@@ -776,8 +781,8 @@ class _ChipMatchVisualization(object):
             >>> guitool.qtapp_loop(qwin=qres_wgt)
         """
         logger.info('[cm] qt_inspect_gui')
-        from wbia.gui import inspect_gui
         from wbia import guitool
+        from wbia.gui import inspect_gui
 
         guitool.ensure_qapp()
         cm_list = [cm]
@@ -1048,7 +1053,7 @@ class _BaseVisualization(object):
         groupxs = cm.name_groupxs[nidx]
         daids = vt.take2(cm.daid_list, groupxs)
         dnids = vt.take2(cm.dnid_list, groupxs)
-        assert np.all(dnid == dnids), 'inconsistent naming, dnid=%r, dnids=%r' % (
+        assert np.all(dnid == dnids), 'inconsistent naming, dnid={!r}, dnids={!r}'.format(
             dnid,
             dnids,
         )
@@ -1235,7 +1240,7 @@ class _AnnotMatchConvenienceGetter(object):
         y_true = annot_df['truth'].values
         y_score = annot_df['score'].values
         avep = sklearn.metrics.average_precision_score(y_true, y_score)
-        logger.info('avep = %r' % (avep,))
+        logger.info('avep = {!r}'.format(avep))
         return avep
 
     def get_name_ave_precision(cm):
@@ -1245,7 +1250,7 @@ class _AnnotMatchConvenienceGetter(object):
         y_true = name_df['truth'].values
         y_score = name_df['score'].values
         avep = sklearn.metrics.average_precision_score(y_true, y_score)
-        logger.info('avep = %r' % (avep,))
+        logger.info('avep = {!r}'.format(avep))
         return avep
 
     def get_top_scores(cm, ntop=None):
@@ -1485,7 +1490,7 @@ class AnnotMatch(
         cm.name_groupxs = None
 
     def __nice__(cm):
-        return 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
+        return 'qaid={} nD={}'.format(cm.qaid, cm.num_daids)
 
     def initialize(
         cm,
@@ -1846,7 +1851,7 @@ class _ChipMatchDebugger(object):
                 if len(varval_str) > 100:
                     varval_str = '<omitted>'
                 varval_str = ut.truncate_str(varval_str, maxlen=50)
-                varinfo_list += ['    * %s = %s' % (varname, varval_str)]
+                varinfo_list += ['    * {} = {}'.format(varname, varval_str)]
                 symbol = '+'
             if print_summary:
                 depth = ut.depth_profile(varval)
@@ -1856,11 +1861,13 @@ class _ChipMatchDebugger(object):
                         '    %s %s = <not shown!>'
                         % (symbol, varname)
                     ]
-                varinfo_list += ['          len = %r' % (len(varval),)]
+                varinfo_list += ['          len = {!r}'.format(len(varval))]
                 if depth != len(varval):
                     depth_str = ut.truncate_str(str(depth), maxlen=70)
-                    varinfo_list += ['          depth = %s' % (depth_str,)]
-                varinfo_list += ['          types = %s' % (ut.list_type_profile(varval),)]
+                    varinfo_list += ['          depth = {}'.format(depth_str)]
+                varinfo_list += [
+                    '          types = {}'.format(ut.list_type_profile(varval))
+                ]
                 # varinfo = '\n'.join(ut.align_lines(varinfo_list, '='))
             aligned_varinfo_list = ut.align_lines(varinfo_list, '=')
             varinfo = '\n'.join(aligned_varinfo_list)
@@ -2113,7 +2120,7 @@ class _ChipMatchDebugger(object):
                             num_col_lbls = cm.fsv_list[0].shape[1]
                     assert ut.list_all_eq_to(
                         [fsv.shape[1] for fsv in cm.fsv_list], num_col_lbls
-                    ), 'num_col_lbls=%r' % (num_col_lbls,)
+                    ), 'num_col_lbls={!r}'.format(num_col_lbls)
 
             with testlog.context('filtnorm checks'):
                 if cm.filtnorm_aids is None and cm.filtnorm_fxs is None:
@@ -2122,7 +2129,9 @@ class _ChipMatchDebugger(object):
                     with testlog.context('num_col_lbls agree with filtnorm_arrs'):
                         assert (
                             len(cm.filtnorm_aids) == num_col_lbls
-                        ), 'bad len %r != %r' % (len(cm.filtnorm_aids), num_col_lbls)
+                        ), 'bad len {!r} != {!r}'.format(
+                            len(cm.filtnorm_aids), num_col_lbls
+                        )
                         assert len(cm.filtnorm_fxs) == num_col_lbls
                     with testlog.context('len(fsvs) agree with filtnorm_arrs'):
                         assert all(
@@ -2253,8 +2262,8 @@ class ChipMatch(
             super(ChipMatch, cm).__init__(*args, **kwargs)
         except TypeError:
             # Hack for ipython reload
-            logger.info('id(cm.__class__) = %r' % (id(cm.__class__),))
-            logger.info('id(ChipMatch) = %r' % (id(ChipMatch),))
+            logger.info('id(cm.__class__) = {!r}'.format(id(cm.__class__)))
+            logger.info('id(ChipMatch) = {!r}'.format(id(ChipMatch)))
             # import utool
             # utool.embed()
             # assert id(cm.__class__) > id(ChipMatch)
@@ -2715,7 +2724,9 @@ class ChipMatch(
 
     def append_featscore_column(cm, filtkey, filtweight_list, inplace=True):
         assert inplace, 'this is always inplace right now'
-        assert filtkey not in cm.fsv_col_lbls, 'already have filtkey=%r' % (cm.filtkey,)
+        assert filtkey not in cm.fsv_col_lbls, 'already have filtkey={!r}'.format(
+            cm.filtkey
+        )
         cm.fsv_col_lbls.append(filtkey)
         cm.fsv_list = vt.zipcat(cm.fsv_list, filtweight_list, axis=1)
 

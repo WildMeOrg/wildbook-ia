@@ -7,8 +7,9 @@ RESTful API Rules
 import logging
 
 from flask_login import current_user
-from flask_restx_patched._http import HTTPStatus
 from permission import Rule as BaseRule
+
+from flask_restx_patched._http import HTTPStatus
 from wbia.web.extensions.api import abort
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name

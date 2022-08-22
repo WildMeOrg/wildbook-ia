@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import logging
-from os.path import join, expanduser, exists, basename  # NOQA
-from wbia.control import IBEISControl
-from wbia.other import ibsfuncs
-from wbia.detecttools.directory import Directory
+from os.path import basename, exists, expanduser, join  # NOQA
+
 import utool
+
+from wbia.control import IBEISControl
+from wbia.detecttools.directory import Directory
+from wbia.other import ibsfuncs
 
 (print, rrr, profile) = utool.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -48,7 +50,7 @@ if __name__ == '__main__':
     for image in images.files():
         exts.append(image.split('.')[-1])
     exts = list(set(exts))
-    print('EXTENSIONS: %r ' % (exts,))
+    print('EXTENSIONS: {!r} '.format(exts))
 
     print(
         """

@@ -7,17 +7,19 @@ MAIN IDEA:
     samples with potentially many different types of labels and features.
 """
 import logging
-import utool as ut
-import ubelt as ub
+
 import numpy as np
-from wbia import dtool as dt
 import pandas as pd
 import sklearn
-import sklearn.metrics
 import sklearn.ensemble
 import sklearn.impute
-import sklearn.pipeline
+import sklearn.metrics
 import sklearn.neural_network
+import sklearn.pipeline
+import ubelt as ub
+import utool as ut
+
+from wbia import dtool as dt
 from wbia.algo.verif import sklearn_utils
 
 print, rrr, profile = ut.inject2(__name__)
@@ -55,21 +57,21 @@ class ClfProblem(ut.NiceRepr):
         pd.options.display.max_rows = 20
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
-        pd.options.display.float_format = lambda x: '%.4f' % (x,)
+        pd.options.display.float_format = lambda x: '{:.4f}'.format(x)
 
     def set_pandas_options_low(pblm):
         # pd.options.display.max_rows = 10
         pd.options.display.max_rows = 5
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
-        pd.options.display.float_format = lambda x: '%.4f' % (x,)
+        pd.options.display.float_format = lambda x: '{:.4f}'.format(x)
 
     def set_pandas_options_normal(pblm):
         # pd.options.display.max_rows = 10
         pd.options.display.max_rows = 20
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
-        pd.options.display.float_format = lambda x: '%.4f' % (x,)
+        pd.options.display.float_format = lambda x: '{:.4f}'.format(x)
 
     def learn_evaluation_classifiers(pblm, task_keys=None, clf_keys=None, data_keys=None):
         """
@@ -434,9 +436,10 @@ class ClfProblem(ut.NiceRepr):
             >>> data_key=None
             >>> task_key=None
         """
-        from sklearn.model_selection import RandomizedSearchCV  # NOQA
-        from sklearn.model_selection import GridSearchCV  # NOQA
         from sklearn.ensemble import RandomForestClassifier
+        from sklearn.model_selection import GridSearchCV  # NOQA
+        from sklearn.model_selection import RandomizedSearchCV  # NOQA
+
         from wbia.algo.verif import sklearn_utils
 
         if data_key is None:
@@ -512,7 +515,7 @@ class ClfProblem(ut.NiceRepr):
         logger.info('Ranked scores on development set:')
         logger.info(cvresult_df)
         logger.info('Best parameters set found on hyperparam set:')
-        logger.info('best_params_ = %s' % (ut.repr4(search.best_params_),))
+        logger.info('best_params_ = {}'.format(ut.repr4(search.best_params_)))
 
         logger.info('Fastest params')
         cvresult_df.loc[cvresult_df['fit_time'].idxmin()]['params']
@@ -521,10 +524,9 @@ class ClfProblem(ut.NiceRepr):
         """
         interactive script only
         """
+        from sklearn.calibration import CalibratedClassifierCV, calibration_curve
         from sklearn.ensemble import RandomForestClassifier
-        from sklearn.calibration import CalibratedClassifierCV
-        from sklearn.calibration import calibration_curve
-        from sklearn.metrics import log_loss, brier_score_loss
+        from sklearn.metrics import brier_score_loss, log_loss
 
         # Load data
         data_key = pblm.default_data_key
@@ -558,11 +560,11 @@ class ClfProblem(ut.NiceRepr):
         cal_score = log_loss(y[test_idx] == 1, cal_probs)
         cal_brier = brier_score_loss(y[test_idx] == 1, cal_probs)
 
-        logger.info('cal_brier = %r' % (cal_brier,))
-        logger.info('uncal_brier = %r' % (uncal_brier,))
+        logger.info('cal_brier = {!r}'.format(cal_brier))
+        logger.info('uncal_brier = {!r}'.format(uncal_brier))
 
-        logger.info('uncal_score = %r' % (uncal_score,))
-        logger.info('cal_score = %r' % (cal_score,))
+        logger.info('uncal_score = {!r}'.format(uncal_score))
+        logger.info('cal_score = {!r}'.format(cal_score))
 
         import wbia.plottool as pt
 
@@ -581,7 +583,7 @@ class ClfProblem(ut.NiceRepr):
             mean_predicted_value,
             fraction_of_positives,
             's-',
-            label='%s (%1.3f)' % ('uncal-RF', uncal_brier),
+            label='{} ({:1.3f})'.format('uncal-RF', uncal_brier),
         )
 
         fraction_of_positives, mean_predicted_value = calibration_curve(
@@ -591,7 +593,7 @@ class ClfProblem(ut.NiceRepr):
             mean_predicted_value,
             fraction_of_positives,
             's-',
-            label='%s (%1.3f)' % ('cal-RF', cal_brier),
+            label='{} ({:1.3f})'.format('cal-RF', cal_brier),
         )
         pt.legend()
 
@@ -997,7 +999,7 @@ class ClfResult(ut.NiceRepr):
         for choice_k, choice_mv in iter(choice_mv.items()):
             metric, value = choice_mv
             pos_threshes = res.get_pos_threshes(metric, value, warmup=warmup)
-            logger.info('Choosing threshold based on %s' % (choice_k,))
+            logger.info('Choosing threshold based on {}'.format(choice_k))
             res.report_auto_thresholds(pos_threshes)
 
     def report_auto_thresholds(res, threshes, verbose=True):
@@ -1027,7 +1029,11 @@ class ClfResult(ut.NiceRepr):
         auto_probs = res.clf_probs[can_autodecide]
 
         total_cases = int(sample_weight.sum())
-        print_('Will autodecide for %r/%r cases' % (can_autodecide.sum(), (total_cases)))
+        print_(
+            'Will autodecide for {!r}/{!r} cases'.format(
+                can_autodecide.sum(), (total_cases)
+            )
+        )
 
         def frac_str(a, b):
             return '{:}/{:} = {:.2f}%'.format(int(a), int(b), a / b)
@@ -1107,6 +1113,7 @@ class ClfResult(ut.NiceRepr):
 
     def ishow_roc(res):
         import vtool as vt
+
         import wbia.plottool as pt
 
         ut.qtensure()
@@ -1335,7 +1342,7 @@ class MultiTaskSamples(ut.NiceRepr):
         return encoded_1d
 
     def __nice__(samples):
-        return 'nS=%r, nT=%r' % (len(samples), samples.n_tasks)
+        return 'nS={!r}, nT={!r}'.format(len(samples), samples.n_tasks)
 
     def __getitem__(samples, task_key):
         return samples.subtasks[task_key]
@@ -1573,9 +1580,9 @@ class MultiClassLabels(ut.NiceRepr):
 
     def print_info(labels):
         logger.info(
-            'hist(%s) = %s' % (labels.task_name, ut.repr4(labels.make_histogram()))
+            'hist({}) = {}'.format(labels.task_name, ut.repr4(labels.make_histogram()))
         )
-        logger.info('len(%s) = %s' % (labels.task_name, len(labels)))
+        logger.info('len({}) = {}'.format(labels.task_name, len(labels)))
 
 
 class IrisProblem(ClfProblem):

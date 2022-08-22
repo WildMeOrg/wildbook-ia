@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # TODO: Rename api_item_model
 import logging
-from wbia.guitool.__PYQT__ import QtCore  # NOQA
 from types import GeneratorType
+
 import utool
 import utool as ut
+
+from wbia.guitool.__PYQT__ import QtCore  # NOQA
 
 (print, print_, rrr) = utool.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -12,7 +14,7 @@ logger = logging.getLogger('wbia')
 
 TREE_NODE_BASE = QtCore.QObject
 # TREE_NODE_BASE = object
-VERBOSE_TREE_NODE = ut.get_argflag(('--verb-qt-tree'))
+VERBOSE_TREE_NODE = ut.get_argflag('--verb-qt-tree')
 
 
 class TreeNode(TREE_NODE_BASE):
@@ -239,8 +241,8 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
     ids_list = [root_ids]
     if VERBOSE_TREE_NODE:
         print('_populate_tree_iterative')
-        print('root_ids = %r' % (root_ids,))
-        print('num_levels = %r' % (num_levels,))
+        print('root_ids = {!r}'.format(root_ids))
+        print('num_levels = {!r}'.format(num_levels))
     for level in range(num_levels):
         # print('------------ level=%r -----------' % (level,))
         # print(utool.repr2(locals()))
@@ -410,7 +412,7 @@ def build_internal_structure(model):
         _populate_tree_iterative(root_node, num_levels, ider_list)
 
     if VERBOSE_TREE_NODE:
-        print('ider_list = %r' % (ider_list,))
+        print('ider_list = {!r}'.format(ider_list))
         infostr = tree_node_string(root_node, charids=2)
         print(infostr)
         # print(ut.repr3(root_node.__dict__))

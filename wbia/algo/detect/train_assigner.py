@@ -2,60 +2,56 @@
 # import logging
 # from os.path import expanduser, join
 # from wbia import constants as const
-from wbia.control.controller_inject import (
-    register_preprocs,
-    # register_subprops,
-    make_ibs_register_decorator,
-)
-
-from wbia.algo.detect.assigner import (
-    gid_keyed_assigner_results,
-    gid_keyed_ground_truth,
-    illustrate_all_assignments,
-    all_part_pairs,
-)
-
-from wbia.core_annots import get_annot_lrudfb_unit_vector
-
-import utool as ut
-import numpy as np
-from wbia import dtool
-import random
 import math
+import random
+import time
 
 # import os
 from collections import OrderedDict
 
 # from collections import defaultdict
 from datetime import datetime
-import time
 
-# from math import sqrt
-
+import numpy as np
+import utool as ut
+from shapely import affinity, geometry
 from sklearn import preprocessing
-
-# illustration imports
-# from shutil import copy
-# from PIL import Image, ImageDraw
-# import wbia.plottool as pt
-
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.gaussian_process.kernels import RBF
+from sklearn.model_selection import GridSearchCV
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
 
 # import matplotlib.pyplot as plt
 # from matplotlib.colors import ListedColormap
 # from sklearn.model_selection import train_test_split
 # from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.model_selection import GridSearchCV
 
-from shapely import geometry, affinity
+from wbia import dtool
+from wbia.algo.detect.assigner import (
+    all_part_pairs,
+    gid_keyed_assigner_results,
+    gid_keyed_ground_truth,
+    illustrate_all_assignments,
+)
+from wbia.control.controller_inject import (  # register_subprops,
+    make_ibs_register_decorator,
+    register_preprocs,
+)
+from wbia.core_annots import get_annot_lrudfb_unit_vector
+
+# from math import sqrt
+
+
+# illustration imports
+# from shutil import copy
+# from PIL import Image, ImageDraw
+# import wbia.plottool as pt
 
 
 derived_attribute = register_preprocs['annot']
@@ -623,7 +619,7 @@ def _true_assignment_pair_dicts(ibs, gids):
     for gid, aids, names in zip(gids, gid_aids, gid_names):
         this_dict = {'pairs': [], 'unassigned': []}
         for name in names:
-            pair = tuple([aid for aid, _name in zip(aids, names) if _name == name])
+            pair = tuple(aid for aid, _name in zip(aids, names) if _name == name)
             this_dict['pairs'] += [pair]
         gid_to_assigner_results[gid] = this_dict
 
@@ -1025,9 +1021,9 @@ def check_accuracy(
     acc_allowing_errors = [
         1 - (nerrors / n_gids) for nerrors in gids_with_false_neg_allowing_errors
     ]
-    print('accuracy with cutoff of %s: %s' % (cutoff_score, accuracy))
+    print('accuracy with cutoff of {}: {}'.format(cutoff_score, accuracy))
     for i, acc_allowing_error in enumerate(acc_allowing_errors):
-        print('        allowing %s errors, acc = %s' % (i + 1, acc_allowing_error))
+        print('        allowing {} errors, acc = {}'.format(i + 1, acc_allowing_error))
     print(
         '        %s false positives on %s error images'
         % (n_false_positives, gids_with_false_positives)
@@ -1608,8 +1604,9 @@ def mega_standardized_assignment_features(
 )
 def theta_assignment_features(depc, part_aid_list, body_aid_list, config=None):
 
-    from shapely import geometry
     import math
+
+    from shapely import geometry
 
     ibs = depc.controller
 
@@ -1819,8 +1816,9 @@ def old_assigner_old_viewpoint_unit_features(
     depc, part_aid_list, body_aid_list, config=None
 ):
 
-    from shapely import geometry
     import math
+
+    from shapely import geometry
 
     ibs = depc.controller
 
@@ -2016,8 +2014,9 @@ def theta_standardized_assignment_features(
     depc, part_aid_list, body_aid_list, config=None
 ):
 
-    from shapely import geometry
     import math
+
+    from shapely import geometry
 
     ibs = depc.controller
 

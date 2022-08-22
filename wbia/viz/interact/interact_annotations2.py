@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-from wbia.plottool import interact_annotations
-import wbia.plottool as pt  # NOQA
+
 import utool as ut
+
+import wbia.plottool as pt  # NOQA
+from wbia.plottool import interact_annotations
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -119,8 +121,8 @@ class ANNOTATION_Interaction2(object):
         if len(deleted_indices) > 0:
             rows_updated = True
             deleted_aids = [self.aid_list[del_index] for del_index in deleted_indices]
-            logger.info('[interact_annot2] deleted_indexes: %r' % (deleted_indices,))
-            logger.info('[interact_annot2] deleted_aids: %r' % (deleted_aids,))
+            logger.info('[interact_annot2] deleted_indexes: {!r}'.format(deleted_indices))
+            logger.info('[interact_annot2] deleted_aids: {!r}'.format(deleted_aids))
             self.ibs.delete_annots(deleted_aids)
         # Set/Change annotations
         if len(changed_annottups) > 0:
@@ -128,8 +130,8 @@ class ANNOTATION_Interaction2(object):
             bbox_list1 = [bbox for (bbox, t, s) in changed_annottups]
             theta_list1 = [t for (bbox, t, s) in changed_annottups]
             species_list1 = [s for (bbox, t, s) in changed_annottups]
-            logger.info('[interact_annot2] changed_indexes: %r' % (changed_indices,))
-            logger.info('[interact_annot2] changed_aid: %r' % (changed_aid,))
+            logger.info('[interact_annot2] changed_indexes: {!r}'.format(changed_indices))
+            logger.info('[interact_annot2] changed_aid: {!r}'.format(changed_aid))
             self.ibs.set_annot_species(changed_aid, species_list1)
             self.ibs.set_annot_thetas(changed_aid, theta_list1, delete_thumbs=False)
             self.ibs.set_annot_bboxes(changed_aid, bbox_list1, delete_thumbs=True)
@@ -147,8 +149,8 @@ class ANNOTATION_Interaction2(object):
                 theta_list=theta_list2,
                 species_list=species_list2,
             )
-            logger.info('[interact_annot2] new_indexes: %r' % (new_annottups,))
-            logger.info('[interact_annot2] new_aids: %r' % (new_aids,))
+            logger.info('[interact_annot2] new_indexes: {!r}'.format(new_annottups))
+            logger.info('[interact_annot2] new_aids: {!r}'.format(new_aids))
 
         logger.info('[interact_annot2] about to exit callback')
         if rows_updated and self.rows_updated_callback is not None:

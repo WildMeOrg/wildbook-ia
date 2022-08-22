@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import math
+
 from wbia.detecttools.pascaldata import common as com
 from wbia.detecttools.pascaldata.pascal_part import PASCAL_Part
-
 
 BINS = [
     'left',

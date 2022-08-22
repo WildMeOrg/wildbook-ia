@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import numpy as np
 import utool as ut
 
@@ -116,8 +117,9 @@ def toydata1(rng):
     plot represent the training data. The colored background of each plot
     represents the classification surface.
     """
-    from sklearn.datasets import samples_generator
     import functools
+
+    from sklearn.datasets import samples_generator
 
     step = 20
     n_samples = 100
@@ -207,9 +209,9 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
     sm.set_array(np.linspace(0, 1))
 
     color0 = cmap(0)
-    logger.info('color0 = %r' % (color0,))
+    logger.info('color0 = {!r}'.format(color0))
     color1 = cmap(1.0)
-    logger.info('color1 = %r' % (color1,))
+    logger.info('color1 = {!r}'.format(color1))
 
     def draw_line_segments(pts1, pts2, ax=None, **kwargs):
         import matplotlib as mpl

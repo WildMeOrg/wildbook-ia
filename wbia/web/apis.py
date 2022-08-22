@@ -3,16 +3,18 @@
 Dependencies: flask, tornado
 """
 import logging
-from os.path import join, exists
-import zipfile
 import time
+import uuid as uuid_module
+import zipfile
 from io import BytesIO
-from flask import request, current_app, send_file
-from wbia.control import controller_inject
-from wbia.web import appfuncs as appf
+from os.path import exists, join
+
 import utool as ut
 import vtool as vt
-import uuid as uuid_module
+from flask import current_app, request, send_file
+
+from wbia.control import controller_inject
+from wbia.web import appfuncs as appf
 from wbia.web.app import PROMETHEUS
 
 print, rrr, profile = ut.inject2(__name__)
@@ -233,7 +235,7 @@ def image_src_api_json(uuid=None, **kwargs):
 def _image_conv_feature(ibs, gid, model):
     model = model.lower()
     model_list = ['vgg16', 'vgg19', 'resnet50', 'inception_v3']
-    assert model in model_list, 'model must be one of %s' % (model_list,)
+    assert model in model_list, 'model must be one of {}'.format(model_list)
     config = {'algo': model}
 
     gid_list = [gid]
@@ -302,7 +304,7 @@ def image_upload(cleanup=True, **kwargs):
         URL:    /api/upload/image/
     """
     ibs = current_app.ibs
-    logger.info('request.files = %s' % (request.files,))
+    logger.info('request.files = {}'.format(request.files))
 
     filestore = request.files.get('image', None)
     if filestore is None:
@@ -427,13 +429,13 @@ def hello_world(*args, **kwargs):
 
     """
     logger.info('+------------ HELLO WORLD ------------')
-    logger.info('Args: %r' % (args,))
-    logger.info('Kwargs: %r' % (kwargs,))
-    logger.info('request.args: %r' % (request.args,))
-    logger.info('request.form: %r' % (request.form,))
-    logger.info('request.url; %r' % (request.url,))
-    logger.info('request.environ: %s' % (ut.repr3(request.environ),))
-    logger.info('request: %s' % (ut.repr3(request.__dict__),))
+    logger.info('Args: {!r}'.format(args))
+    logger.info('Kwargs: {!r}'.format(kwargs))
+    logger.info('request.args: {!r}'.format(request.args))
+    logger.info('request.form: {!r}'.format(request.form))
+    logger.info('request.url; {!r}'.format(request.url))
+    logger.info('request.environ: {}'.format(ut.repr3(request.environ)))
+    logger.info('request: {}'.format(ut.repr3(request.__dict__)))
     logger.info('L____________ HELLO WORLD ____________')
 
 

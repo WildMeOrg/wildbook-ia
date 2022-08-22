@@ -3,8 +3,9 @@
 helpers for controller manual_annot_funcs
 """
 import logging
-import utool as ut
 import uuid
+
+import utool as ut
 from vtool import geometry
 
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_annot]')
@@ -24,7 +25,7 @@ def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=
                 ), 'Bounding boxes must be tuples of ints!'
             except AssertionError as ex:
                 ut.printex(ex)
-                logger.info('bbox_list = %r' % (bbox_list,))
+                logger.info('bbox_list = {!r}'.format(bbox_list))
                 raise
         annotation_uuid_list = [
             ut.augment_uuid(img_uuid, bbox, theta)

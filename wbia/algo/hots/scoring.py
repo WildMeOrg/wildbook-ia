@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import numpy as np
-import vtool as vt
 import utool as ut
+import vtool as vt
+
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)

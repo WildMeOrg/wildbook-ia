@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from wbia.guitool.__PYQT__ import QtGui, QtCore  # NOQA
-from wbia.guitool.__PYQT__.QtCore import Qt
 import utool
+
+from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from wbia.guitool.__PYQT__.QtCore import Qt
 
 utool.noinject(__name__, '[APIItemView]', DEBUG=False)
 

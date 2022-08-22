@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
+from os.path import splitext
+
 import utool as ut
 import vtool as vt
-from wbia.viz import viz_helpers as vh
-from wbia.algo.detect import randomforest
-from os.path import splitext
-from wbia.plottool import viz_image2
+
 import wbia.plottool as pt
+from wbia.algo.detect import randomforest
+from wbia.plottool import viz_image2
+from wbia.viz import viz_helpers as vh
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

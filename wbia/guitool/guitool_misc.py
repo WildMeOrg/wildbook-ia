@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-from wbia.guitool.__PYQT__ import QtCore, QtGui
-from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
-import utool
-import sys
 import logging
-from wbia.guitool.guitool_decorators import slot_
-from wbia.guitool import guitool_main
+import sys
+
+import utool
 import utool as ut
+
+from wbia.guitool import guitool_main
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtGui
+from wbia.guitool.guitool_decorators import slot_
 
 ut.noinject(__name__)
 
@@ -24,8 +26,8 @@ def make_option_dict(options, shortcuts=True):
         try:
             ut.assert_unique(shortcut_keys, name='shortcut_keys', ignore=[None])
         except AssertionError:
-            print('shortcut_keys = %r' % (shortcut_keys,))
-            print('options = %r' % (ut.repr2(options),))
+            print('shortcut_keys = {!r}'.format(shortcut_keys))
+            print('options = {!r}'.format(ut.repr2(options)))
             raise
         shortcut_dict = {
             sc_key: val

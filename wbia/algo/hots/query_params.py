@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
-from wbia.algo.hots import hstypes
-from wbia.algo import Config
 from collections.abc import Mapping
 
+import utool as ut
+
+from wbia.algo import Config
+from wbia.algo.hots import hstypes
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

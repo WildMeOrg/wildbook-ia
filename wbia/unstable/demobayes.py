@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
+
 import numpy as np
-from wbia.unstable.bayes import make_name_model, temp_model, draw_tree_model
+import utool as ut
+
+from wbia.unstable.bayes import draw_tree_model, make_name_model, temp_model
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -171,7 +173,7 @@ def classify_k(cfg={}):
         if force_evidence is not None:
             for x in range(len(score_evidence2)):
                 score_evidence2[x] = force_evidence
-        logger.info('score_evidence2 = %r' % (score_evidence2,))
+        logger.info('score_evidence2 = {!r}'.format(score_evidence2))
 
         if using_soft:
             # Demo with soft evidence
@@ -212,6 +214,7 @@ def classify_k(cfg={}):
 
 def show_toy_distributions(toy_params):
     import vtool as vt
+
     import wbia.plottool as pt
 
     pt.ensureqt()
@@ -359,11 +362,11 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
 
     tp_score1 = clf1.score(tp_score_list, tp_lbls)
     tn_score1 = clf1.score(tn_score_list, tn_lbls)
-    logger.info('tp score with rank    = %r' % (tp_score3,))
-    logger.info('tn score with rank    = %r' % (tn_score3,))
+    logger.info('tp score with rank    = {!r}'.format(tp_score3))
+    logger.info('tn score with rank    = {!r}'.format(tn_score3))
 
-    logger.info('tp score without rank = %r' % (tp_score1,))
-    logger.info('tn score without rank = %r' % (tn_score1,))
+    logger.info('tp score without rank = {!r}'.format(tp_score1))
+    logger.info('tn score without rank = {!r}'.format(tn_score1))
     toy_data = {}
 
     return toy_data
@@ -409,7 +412,7 @@ def get_toy_annots(
 
     if num_names is None:
         num_names = num_annots
-    logger.info('Generating toy data with num_annots=%r' % (num_annots,))
+    logger.info('Generating toy data with num_annots={!r}'.format(num_annots))
     if initial_aids is None:
         assert initial_nids is None
         first_step = True
@@ -522,10 +525,10 @@ def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
             score = np.clip(score_, 0, np.inf)
         return score
 
-    pairwise_nids = list([tup[::-1] for tup in ut.iprod(nids, nids1)])
+    pairwise_nids = list(tup[::-1] for tup in ut.iprod(nids, nids1))
     pairwise_matches = np.array([nid1 == nid2 for nid1, nid2 in pairwise_nids])
 
-    pairwise_aidxs = list([tup[::-1] for tup in ut.iprod(aids, aids1)])
+    pairwise_aidxs = list(tup[::-1] for tup in ut.iprod(aids, aids1))
 
     pairwise_features = np.array(
         [pairwise_feature(aidx1, aidx2) for aidx1, aidx2 in pairwise_aidxs]
@@ -756,7 +759,7 @@ def make_bayes_notebook():
 
     cell_list = ut.flatten([format_cell(cell) for cell in cell_list_def])
     nbstr = generate_notebook.make_notebook(cell_list)
-    logger.info('nbstr = %s' % (nbstr,))
+    logger.info('nbstr = {}'.format(nbstr))
     fpath = 'demobayes.ipynb'
     ut.writeto(fpath, nbstr)
     ut.startfile(fpath)

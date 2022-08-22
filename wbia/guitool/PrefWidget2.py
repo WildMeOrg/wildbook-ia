@@ -8,13 +8,20 @@ CommandLine:
 """
 import sys
 import traceback
-from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
-from wbia.guitool.__PYQT__ import QtWidgets
-from wbia.guitool.__PYQT__ import QVariantHack
-from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
-from wbia.guitool.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject
-from wbia.guitool.__PYQT__ import _fromUtf8, _encoding, _translate  # NOQA
+
 import utool as ut
+
+from wbia.guitool.__PYQT__ import (  # NOQA
+    GUITOOL_PYQT_VERSION,
+    QtCore,
+    QtGui,
+    QtWidgets,
+    QVariantHack,
+    _encoding,
+    _fromUtf8,
+    _translate,
+)
+from wbia.guitool.__PYQT__.QtCore import QAbstractItemModel, QModelIndex, QObject, Qt
 
 ut.noinject(__name__, '[PrefWidget2]', DEBUG=False)
 
@@ -41,7 +48,7 @@ def report_thread_error(fn):
 
 
 def qindexstr(index):
-    return 'QIndex(%r, %r)' % (index.row(), index.column())
+    return 'QIndex({!r}, {!r})'.format(index.row(), index.column())
 
 
 # DELEGATE_BASE = QtWidgets.QAbstractItemDelegate
@@ -172,7 +179,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
             elif self.type_ is float:
                 value = self.type_(text)
             else:
-                raise ValueError('unknown self.type_=%r' % (self.type_,))
+                raise ValueError('unknown self.type_={!r}'.format(self.type_))
         # print(' * return value = %r' % (value,))
         return value
 
@@ -187,7 +194,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
             elif self.type_ is float:
                 text = str(float(value))
             else:
-                raise ValueError('unknown self.type_=%r' % (self.type_,))
+                raise ValueError('unknown self.type_={!r}'.format(self.type_))
                 # return super(NoneSpinBox, self).textFromValue(value)
         # print(' * return text = %r' % (text,))
         return text
@@ -287,14 +294,14 @@ class ConfigValueDelegate(DELEGATE_BASE):
         leafNode = index.internalPointer()
         if VERBOSE_CONFIG:
             print('\n\n')
-            print('[DELEGATE] newEditor for %s at %s' % (leafNode, qindexstr(index)))
+            print('[DELEGATE] newEditor for {} at {}'.format(leafNode, qindexstr(index)))
         if leafNode is not None and leafNode.is_combo:
             from wbia import guitool
 
             options = leafNode.valid_values
             curent_value = index.model().data(index)
             if VERBOSE_CONFIG:
-                print('[DELEGATE] * current_value = %r' % (curent_value,))
+                print('[DELEGATE] * current_value = {!r}'.format(curent_value))
             editor = guitool.newComboBox(parent, options, default=curent_value)
             editor.currentIndexChanged['int'].connect(self.currentIndexChanged)
             editor.setAutoFillBackground(True)
@@ -340,12 +347,14 @@ class ConfigValueDelegate(DELEGATE_BASE):
     def setEditorData(self, editor, index):
         leafNode = index.internalPointer()
         if VERBOSE_CONFIG:
-            print('[DELEGATE] setEditorData for %s at %s' % (leafNode, qindexstr(index)))
+            print(
+                '[DELEGATE] setEditorData for {} at {}'.format(leafNode, qindexstr(index))
+            )
         if leafNode is not None and leafNode.is_combo:
             editor.blockSignals(True)
             current_data = index.model().data(index)
             if VERBOSE_CONFIG:
-                print('[DELEGATE] * current_data = %r' % (current_data,))
+                print('[DELEGATE] * current_data = {!r}'.format(current_data))
             editor.setCurrentValue(current_data)
             editor.blockSignals(False)
         else:
@@ -354,11 +363,13 @@ class ConfigValueDelegate(DELEGATE_BASE):
     def setModelData(self, editor, model, index):
         leafNode = index.internalPointer()
         if VERBOSE_CONFIG:
-            print('[DELEGATE] setModelData for %s at %s' % (leafNode, qindexstr(index)))
+            print(
+                '[DELEGATE] setModelData for {} at {}'.format(leafNode, qindexstr(index))
+            )
         if leafNode is not None and leafNode.is_combo:
             current_value = editor.currentValue()
             if VERBOSE_CONFIG:
-                print('[DELEGATE] * current_value = %r' % (current_value,))
+                print('[DELEGATE] * current_value = {!r}'.format(current_value))
             model.setData(index, current_value)
         elif leafNode is not None and leafNode.is_spin:
             current_value = editor.value()
@@ -375,14 +386,14 @@ class ConfigValueDelegate(DELEGATE_BASE):
     def currentIndexChanged(self, combo_idx):
         # For combo boxes
         if VERBOSE_CONFIG:
-            print('[DELEGATE] Commit Data with combo_idx=%r' % (combo_idx,))
+            print('[DELEGATE] Commit Data with combo_idx={!r}'.format(combo_idx))
         if GUITOOL_PYQT_VERSION == 4:
             self.commitData.emit(self.sender())
         else:
             sender = self.sender()
-            print('sender = %r' % (sender,))
+            print('sender = {!r}'.format(sender))
             self.commitData
-            print('self.commitData = %r' % (self.commitData,))
+            print('self.commitData = {!r}'.format(self.commitData))
             self.commitData.emit(sender)
             # super(ConfigValueDelegate, self).commitData.emit()
 
@@ -402,7 +413,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
 
     def eventFilter(self, editor, event):
         if VERBOSE_CONFIG:
-            print('[DELEGATE] eventFilter editor=%r, event=%r' % (editor, event))
+            print('[DELEGATE] eventFilter editor={!r}, event={!r}'.format(editor, event))
         # if event.type() == QtCore.QEvent.KeyPress:
         #    if event.matches(QtGui.QKeySequence.Delete):
         #        #self.valueChanged.emit(None)
@@ -410,7 +421,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
         #        return True
         handled = super(ConfigValueDelegate, self).eventFilter(editor, event)
         if VERBOSE_CONFIG:
-            print('handled = %r' % (handled,))
+            print('handled = {!r}'.format(handled))
         return handled
 
     # def editorChanged(self, index):
@@ -507,7 +518,7 @@ class QConfigModel(QAbstractItemModel):
         leafPref = self.index2Pref(qtindex)
         old_data = leafPref.qt_get_data(qtindex.column())
         if VERBOSE_CONFIG:
-            print('[setData] old_data = %r' % (old_data,))
+            print('[setData] old_data = {!r}'.format(old_data))
             print('[setData] value = %r' % value)
             print('[setData] type(data) = %r' % type(data))
             print('[setData] type(value) = %r' % type(value))
@@ -697,22 +708,22 @@ class ConfigNodeWrapper(ut.NiceRepr):
         if True:
             strlist += [
                 indent + '┌── ',
-                indent + '┃ %s(name=%r):' % (typestr, self.name),
+                indent + '┃ {}(name={!r}):'.format(typestr, self.name),
             ]
         if self.is_leaf():
             strlist += [
-                indent + '┃     value = %r' % (self.value,),
-                indent + '┃     original = %r' % (self.original,),
-                indent + '┃     default = %r' % (self.param_info.default,),
+                indent + '┃     value = {!r}'.format(self.value),
+                indent + '┃     original = {!r}'.format(self.original),
+                indent + '┃     default = {!r}'.format(self.param_info.default),
             ]
         if verbose:
             strlist += [
-                indent + '┃     type_ = %r' % (self.type_,),
-                indent + '┃     is_combo = %r' % (self.is_combo,),
-                indent + '┃     is_leaf = %r' % (self.is_leaf(),),
-                indent + '┃     qt_num_rows = %r' % (self.qt_num_rows(),),
-                indent + '┃     qt_is_editable = %r' % (self.qt_is_editable(),),
-                indent + '┃     param_info = %r' % (self.param_info,),
+                indent + '┃     type_ = {!r}'.format(self.type_),
+                indent + '┃     is_combo = {!r}'.format(self.is_combo),
+                indent + '┃     is_leaf = {!r}'.format(self.is_leaf()),
+                indent + '┃     qt_num_rows = {!r}'.format(self.qt_num_rows()),
+                indent + '┃     qt_is_editable = {!r}'.format(self.qt_is_editable()),
+                indent + '┃     param_info = {!r}'.format(self.param_info),
             ]
         if True:
             strlist += [
@@ -729,7 +740,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
 
     def __nice__(self):
         if self.is_leaf():
-            return ' leaf(%s=%r)' % (self.name, self.value)
+            return ' leaf({}={!r})'.format(self.name, self.value)
         else:
             return ' node(%s)' % (self.name)
 

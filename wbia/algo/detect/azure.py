@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """Interface to Azure object proposals."""
 import logging
+from os.path import abspath, dirname, exists, expanduser, join  # NOQA
+
+import numpy as np
 import requests
 import utool as ut
-import numpy as np
+
 import wbia.constants as const
-from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__, '[azure]')
 logger = logging.getLogger('wbia')

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -8,6 +9,7 @@ logger = logging.getLogger('wbia')
 
 def test_scoremech():
     import utool as ut
+
     import wbia
     from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 

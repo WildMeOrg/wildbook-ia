@@ -3,13 +3,14 @@
 A example for creating a Table that is sortable by its header
 """
 import logging
+import socket
+
+import flask
 import flask_table
+import tornado.httpserver
 
 # from flask_table import Table, Col, LinkCol
 import tornado.wsgi
-import tornado.httpserver
-import socket
-import flask
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -144,22 +145,20 @@ def run_clf_server():
         app.server_domain = '127.0.0.1'
     port = 5555
     app.server_port = port
-    app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
+    app.server_url = 'http://{}:{}'.format(app.server_domain, app.server_port)
     browser = True
     if browser:
         import webbrowser
 
         webbrowser.open(app.server_url)
-    logger.info('Tornado server starting at %s' % (app.server_url,))
+    logger.info('Tornado server starting at {}'.format(app.server_url))
     http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
     try:
         http_server.listen(app.server_port)
     except socket.error:
         fallback_port = ut.find_open_port(app.server_port)
         raise RuntimeError(
-            (
-                'The specified port %d is not available, but %d is'
-                % (app.server_port, fallback_port)
-            )
+            'The specified port %d is not available, but %d is'
+            % (app.server_port, fallback_port)
         )
     tornado.ioloop.IOLoop.instance().start()

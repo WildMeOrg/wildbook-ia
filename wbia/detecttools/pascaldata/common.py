@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import cv2
 import os
 import random
+
+import cv2
 
 # import xml.etree.ElementTree as xml
 

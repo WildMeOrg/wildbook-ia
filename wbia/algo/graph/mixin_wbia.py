@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import networkx as nx
+import numpy as np
 import pandas as pd
 import utool as ut
-import numpy as np
 import vtool as vt  # NOQA
+
 from wbia.algo.graph import nx_utils as nxu
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -492,7 +494,7 @@ class IBEISIO(object):
             label_to_name = ut.delete_dict_keys(label_to_name, unknown_labels)
             needs_assign = ut.setdiff(needs_assign, unknown_labels)
         infr.print('had %d unknown labels' % (len(unknown_labels)), 3)
-        infr.print('ignore_unknown = %r' % (ignore_unknown,), 3)
+        infr.print('ignore_unknown = {!r}'.format(ignore_unknown), 3)
         infr.print('need to make %d new names' % (len(needs_assign)), 3)
         # Overwrite names of labels with temporary names
         needed_names = infr.ibs.make_next_name(len(needs_assign))
@@ -561,20 +563,19 @@ class IBEISIO(object):
 
         infr.print('read %d staged reviews' % (len(review_ids)), 2)
 
-        from wbia.control.manual_review_funcs import (
-            # REVIEW_UUID,
+        from wbia.control.manual_review_funcs import (  # REVIEW_UUID,
             REVIEW_AID1,
             REVIEW_AID2,
             REVIEW_COUNT,
             REVIEW_EVIDENCE_DECISION,
             REVIEW_META_DECISION,
-            REVIEW_USER_IDENTITY,
-            REVIEW_USER_CONFIDENCE,
             REVIEW_TAGS,
-            REVIEW_TIME_CLIENT_START,
             REVIEW_TIME_CLIENT_END,
-            REVIEW_TIME_SERVER_START,
+            REVIEW_TIME_CLIENT_START,
             REVIEW_TIME_SERVER_END,
+            REVIEW_TIME_SERVER_START,
+            REVIEW_USER_CONFIDENCE,
+            REVIEW_USER_IDENTITY,
         )
 
         add_review_alias = ut.odict(
@@ -748,7 +749,7 @@ class IBEISIO(object):
         elif key == 'external':
             feedback = infr.external_feedback
         else:
-            raise KeyError('key=%r' % (key,))
+            raise KeyError('key={!r}'.format(key))
         df = infr._pandas_feedback_format(feedback)
         return df
 
@@ -872,10 +873,12 @@ class IBEISIO(object):
             107  109        NaN                   NaN  ...              same    True
             ...
         """
-        import wbia
-        import pandas as pd
-        from functools import reduce
         import operator as op
+        from functools import reduce
+
+        import pandas as pd
+
+        import wbia
 
         # Ensure input is in the expected format
         new_index = new_feedback.index
@@ -950,7 +953,7 @@ class IBEISIO(object):
         pd.options.display.max_rows = 20
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
-        pd.options.display.float_format = lambda x: '%.4f' % (x,)
+        pd.options.display.float_format = lambda x: '{:.4f}'.format(x)
 
         df_a = ibs.db['annotmatch'].as_pandas(matches._rowids)
         df_s = ibs.staging['reviews'].as_pandas(review_ids)

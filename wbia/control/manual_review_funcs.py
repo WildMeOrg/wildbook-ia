@@ -6,16 +6,17 @@ sh Tgen.sh --key review --invert --Tcfg with_getters=True with_setters=False --m
 # TODO: Fix this name it is too special case
 """
 import logging
+import uuid
 from functools import reduce
 
 # import numpy as np
 # import vtool as vt
 import numpy as np
 import ubelt as ub  # NOQA
+import utool as ut
+
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject  # NOQA
-import utool as ut
-import uuid
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
@@ -445,7 +446,7 @@ def get_review_rowids_between(ibs, aids1, aids2=None, method=1):
             rowids = ut.filter_Nones(rowids)
             rowids = ut.flatten(rowids)
     else:
-        raise ValueError('no method=%r' % (method,))
+        raise ValueError('no method={!r}'.format(method))
     return rowids
 
 
@@ -602,7 +603,7 @@ def get_review_rowids_from_only(ibs, aid_list, eager=True, nInput=None):
 def get_review_rowids_from_single(ibs, aid_list, eager=True, nInput=None):
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid, aid) for aid in aid_list]
-    where_clause = '%s=? OR %s=?' % (REVIEW_AID1, REVIEW_AID2)
+    where_clause = '{}=? OR {}=?'.format(REVIEW_AID1, REVIEW_AID2)
     review_rowids = ibs.staging.get_where(
         const.REVIEW_TABLE,
         colnames,

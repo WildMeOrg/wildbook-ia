@@ -3,14 +3,16 @@
 Dependencies: flask, tornado
 """
 import logging
-from flask import request, redirect, url_for, current_app
+import uuid
+
+import numpy as np
+import utool as ut
+from flask import current_app, redirect, request, url_for
+
+from wbia import constants as const
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
-from wbia import constants as const
 from wbia.web.routes import THROW_TEST_AOI_REVIEWING
-import utool as ut
-import numpy as np
-import uuid
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -29,7 +31,7 @@ def submit_login(name, organization, refer=None, *args, **kwargs):
     if name == '_new_':
         first = kwargs['new_name_first']
         last = kwargs['new_name_last']
-        name = '%s.%s' % (first, last)
+        name = '{}.{}'.format(first, last)
         name = name.replace(' ', '')
 
     if organization == '_new_':
@@ -39,7 +41,7 @@ def submit_login(name, organization, refer=None, *args, **kwargs):
     name = name.lower()
     organization = organization.lower()
 
-    username = '%s@%s' % (name, organization)
+    username = '{}@{}'.format(name, organization)
     controller_inject.authenticate(
         username=username, name=name, organization=organization
     )
@@ -582,7 +584,7 @@ def submit_detection(**kwargs):
                         part_rowid_list.append(part_rowid_)
 
                     # Set part metadata
-                    logger.info('part_rowid_list = %r' % (part_rowid_list,))
+                    logger.info('part_rowid_list = {!r}'.format(part_rowid_list))
                     ibs.set_part_thetas(part_rowid_list, theta_list)
                     ibs.set_part_viewpoints(part_rowid_list, viewpoint_list)
                     ibs.set_part_qualities(part_rowid_list, quality_list)
@@ -1152,7 +1154,7 @@ def submit_species(**kwargs):
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
     previous_species_rowids = request.form.get('ia-species-rowids', None)
-    logger.info('Using previous_species_rowids = %r' % (previous_species_rowids,))
+    logger.info('Using previous_species_rowids = {!r}'.format(previous_species_rowids))
 
     src_ag = request.args.get('src_ag', '')
     src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
@@ -1173,7 +1175,7 @@ def submit_species(**kwargs):
         species_text = const.UNKNOWN
         ibs.set_annot_species([aid], [species_text])
         ibs.set_annot_reviewed([aid], [1])
-        logger.info('[web] (SKIP) user_id: %s' % (user_id,))
+        logger.info('[web] (SKIP) user_id: {}'.format(user_id))
         return redirect(
             url_for(
                 # 'review_species_holding',
@@ -1195,9 +1197,9 @@ def submit_species(**kwargs):
             else:
                 redirection = '%s?aid=%d' % (redirection, aid)
         if '?' in redirection:
-            redirection = '%s&refresh=true' % (redirection,)
+            redirection = '{}&refresh=true'.format(redirection)
         else:
-            redirection = '%s?refresh=true' % (redirection,)
+            redirection = '{}?refresh=true'.format(redirection)
         return redirect(redirection)
     elif method.lower() == 'rotate left':
         ibs.update_annot_rotate_left_90([aid])
@@ -1269,7 +1271,7 @@ def submit_part_types(**kwargs):
 
     # IF DECISION NOT IN previous_part_types, REFRESH = TRUE
     previous_part_types = request.form.get('ia-part-types', None)
-    logger.info('Using previous_part_types = %r' % (previous_part_types,))
+    logger.info('Using previous_part_types = {!r}'.format(previous_part_types))
 
     part_rowid = int(request.form['ia-part-type-part-rowid'])
     user = controller_inject.get_user()
@@ -1288,9 +1290,9 @@ def submit_part_types(**kwargs):
             else:
                 redirection = '%s?part_rowid=%d' % (redirection, part_rowid)
         if '?' in redirection:
-            redirection = '%s&refresh=true' % (redirection,)
+            redirection = '{}&refresh=true'.format(redirection)
         else:
-            redirection = '%s?refresh=true' % (redirection,)
+            redirection = '{}?refresh=true'.format(redirection)
         return redirect(redirection)
     elif method.lower() == 'rotate left':
         ibs.update_part_rotate_left_90([part_rowid])
@@ -1503,23 +1505,27 @@ def submit_identification(**kwargs):
 
     # Replace a previous decision
     if replace_review_rowid > 0:
-        logger.info('REPLACING OLD EVIDENCE_DECISION ID = %r' % (replace_review_rowid,))
+        logger.info(
+            'REPLACING OLD EVIDENCE_DECISION ID = {!r}'.format(replace_review_rowid)
+        )
         ibs.delete_review([replace_review_rowid])
 
     # Add a new review row for the new decision (possibly replacing the old one)
     logger.info(
-        'ADDING EVIDENCE_DECISION: %r %r %r %r' % (aid1, aid2, decision, tag_list)
+        'ADDING EVIDENCE_DECISION: {!r} {!r} {!r} {!r}'.format(
+            aid1, aid2, decision, tag_list
+        )
     )
     tags_list = None if tag_list is None else [tag_list]
     review_rowid = ibs.add_review([aid1], [aid2], [decision], tags_list=tags_list)
     review_rowid = review_rowid[0]
-    previous = '%s;%s;%s' % (aid1, aid2, review_rowid)
+    previous = '{};{};{}'.format(aid1, aid2, review_rowid)
 
     # Notify any attached web QUERY_OBJECT
     try:
         state = const.EVIDENCE_DECISION.INT_TO_CODE[decision]
         feedback = (aid1, aid2, state, tags_list)
-        logger.info('Adding %r to QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback,))
+        logger.info('Adding {!r} to QUERY_OBJECT_FEEDBACK_BUFFER'.format(feedback))
         current_app.QUERY_OBJECT_FEEDBACK_BUFFER.append(feedback)
     except ValueError:
         pass
@@ -1551,9 +1557,9 @@ def submit_identification_v2(graph_uuid, **kwargs):
     hogwild_species = (
         None if hogwild_species == 'None' or hogwild_species == '' else hogwild_species
     )
-    logger.info('Using hogwild: %r' % (hogwild,))
+    logger.info('Using hogwild: {!r}'.format(hogwild))
 
-    previous = '%s;%s;-1' % (aid1, aid2)
+    previous = '{};{};-1'.format(aid1, aid2)
 
     # Return HTML
     refer = request.args.get('refer', '')
@@ -1714,9 +1720,9 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
     hogwild_species = (
         None if hogwild_species == 'None' or hogwild_species == '' else hogwild_species
     )
-    logger.info('Using hogwild: %r' % (hogwild,))
+    logger.info('Using hogwild: {!r}'.format(hogwild))
 
-    previous = '%s;%s;-1' % (aid1, aid2)
+    previous = '{};{};-1'.format(aid1, aid2)
 
     # Return HTML
     refer = request.args.get('refer', '')
@@ -1762,9 +1768,9 @@ def group_review_submit(**kwargs):
         if 'prefill' not in redirection:
             # Prevent multiple clears
             if '?' in redirection:
-                redirection = '%s&prefill=true' % (redirection,)
+                redirection = '{}&prefill=true'.format(redirection)
             else:
-                redirection = '%s?prefill=true' % (redirection,)
+                redirection = '{}?prefill=true'.format(redirection)
         return redirect(redirection)
     aid_list = request.form.get('aid_list', '')
     if len(aid_list) > 0:

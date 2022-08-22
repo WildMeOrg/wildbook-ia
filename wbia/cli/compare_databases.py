@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging
 import sys
+
 import click
 
 from wbia.dtool.copy_sqlite_to_postgres import (
-    SqliteDatabaseInfo,
-    PostgresDatabaseInfo,
-    compare_databases,
-    DEFAULT_CHECK_PC,
-    DEFAULT_CHECK_MIN,
     DEFAULT_CHECK_MAX,
+    DEFAULT_CHECK_MIN,
+    DEFAULT_CHECK_PC,
+    PostgresDatabaseInfo,
+    SqliteDatabaseInfo,
+    compare_databases,
 )
-
 
 logger = logging.getLogger('wbia')
 

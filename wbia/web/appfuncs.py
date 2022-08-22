@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-import logging
-import flask
-import random
-from wbia import constants as const
-from flask import request, current_app, url_for
-from os.path import join, dirname, abspath  # NOQA
-from wbia.control import controller_inject
-from datetime import datetime
-from datetime import date
 import base64
+import logging
+import random
+from datetime import date, datetime
+from os.path import abspath, dirname, join  # NOQA
+
+import flask
 import jinja2
-import utool as ut
+import numpy as np
 import pynmea2
 import simplejson as json
-import numpy as np
+import utool as ut
+from flask import current_app, request, url_for
+
+from wbia import constants as const
+from wbia.control import controller_inject
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -182,7 +183,7 @@ def template(template_directory=None, template_filename=None, **kwargs):
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
     if 'refer' in flask.request.args.keys():
         refer = flask.request.args['refer']
-        logger.info('[web] REFER: %r' % (refer,))
+        logger.info('[web] REFER: {!r}'.format(refer))
         global_args['REFER_DST_ENCODED'] = refer
         global_args['REFER_DST_STR'] = decode_refer_url(refer)
     if template_directory is None:
@@ -249,7 +250,7 @@ def get_review_image_args(is_reviewed_func):
 
     try:
         num_reviewed = reviewed_list.count(True)
-        progress = '%0.2f' % (100.0 * num_reviewed / len(gid_list),)
+        progress = '{:0.2f}'.format(100.0 * num_reviewed / len(gid_list))
     except ZeroDivisionError:
         progress = '0.00'
     gid = request.args.get('gid', '')
@@ -264,7 +265,7 @@ def get_review_image_args(is_reviewed_func):
 
     previous = request.args.get('previous', None)
 
-    logger.info('gid = %r' % (gid,))
+    logger.info('gid = {!r}'.format(gid))
     return gid_list, reviewed_list, imgsetid, progress, gid, previous
 
 
@@ -304,7 +305,7 @@ def get_review_annot_args(is_reviewed_func, speed_hack=False):
         reviewed_list = [src_aid in dst_aid_list for src_aid in src_aid_list]
 
     try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list),)
+        progress = '{:0.2f}'.format(100.0 * reviewed_list.count(True) / len(aid_list))
     except ZeroDivisionError:
         progress = '0.00'
     aid = request.args.get('aid', '')
@@ -322,7 +323,7 @@ def get_review_annot_args(is_reviewed_func, speed_hack=False):
 
     previous = request.args.get('previous', None)
 
-    logger.info('aid = %r' % (aid,))
+    logger.info('aid = {!r}'.format(aid))
     # logger.info(ut.repr2(ibs.get_annot_info(aid)))
     # if aid is not None:
     #     logger.info(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))
@@ -545,7 +546,7 @@ def convert_tuple_to_viewpoint(viewpoint_tuple):
         return None
     else:
         viewpoint_text = '__'.join(map(str, viewpoint_list))
-        viewpoint_text = '_%s_' % (viewpoint_text,)
+        viewpoint_text = '_{}_'.format(viewpoint_text)
         viewpoint_text = viewpoint_text.replace('_-1_', '')
         viewpoint_text = viewpoint_text.replace('_0_', 'up')
         viewpoint_text = viewpoint_text.replace('_1_', 'down')
@@ -555,7 +556,7 @@ def convert_tuple_to_viewpoint(viewpoint_tuple):
         viewpoint_text = viewpoint_text.replace('_5_', 'right')
         assert (
             viewpoint_text in const.VIEW.CODE_TO_INT
-        ), 'Value %r not in acceptable %s' % (
+        ), 'Value {!r} not in acceptable {}'.format(
             viewpoint_text,
             ut.repr3(const.VIEW.CODE_TO_INT),
         )
@@ -598,7 +599,9 @@ def _resize(image, t_width=None, t_height=None):
     else:
         import cv2
 
-        logger.info('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height))
+        logger.info(
+            'RESIZING WITH t_width = {!r} and t_height = {!r}'.format(t_width, t_height)
+        )
         height, width = image.shape[:2]
         if t_width is None and t_height is None:
             return image

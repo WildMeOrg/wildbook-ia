@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
+
 import numpy as np
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -53,6 +54,7 @@ def crftest():
     toy_params = {True: {'mu': 1.0, 'sigma': 2.2}, False: {'mu': 7.0, 'sigma': 0.9}}
     if False:
         import vtool as vt
+
         import wbia.plottool as pt
 
         pt.ensureqt()

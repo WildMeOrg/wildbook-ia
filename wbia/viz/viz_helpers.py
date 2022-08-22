@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import numpy as np
 import utool as ut
 import vtool.keypoint as ktool
+
 import wbia.plottool.draw_func2 as df2
-from wbia.plottool import plot_helpers as ph
-from wbia.other import ibsfuncs
 from wbia.control.accessor_decors import getter, getter_vector_output
+from wbia.other import ibsfuncs
+from wbia.plottool import plot_helpers as ph
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -45,7 +47,7 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, config2_=None, ensure=True):
         chipsz_list = ibs.get_annot_chip_sizes(aid_list, ensure=ensure)
     except AssertionError as ex:
         ut.printex(ex, '[!ibs.get_annot_kpts_in_imgspace]')
-        logger.info('[!ibs.get_annot_kpts_in_imgspace] aid_list = %r' % (aid_list,))
+        logger.info('[!ibs.get_annot_kpts_in_imgspace] aid_list = {!r}'.format(aid_list))
         raise
     kpts_list = ibs.get_annot_kpts(aid_list, ensure=ensure, config2_=config2_)
     imgkpts_list = [
@@ -290,7 +292,7 @@ def get_annot_texts(ibs, aid_list, **kwargs):
 def get_image_titles(ibs, gid_list):
     gname_list = ibs.get_image_gnames(gid_list)
     title_list = [
-        'gname=%r, gid=%r ' % (str(gname), gid)
+        'gname={!r}, gid={!r} '.format(str(gname), gid)
         for gid, gname in zip(gid_list, gname_list)
     ]
     return title_list
@@ -377,7 +379,7 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
     if kwargs.get('show_name_rank', True):
         if name_rank is not None:
             # Make display one based
-            text_list.append('name_rank=#%s' % (str(name_rank + 1),))
+            text_list.append('name_rank=#{}'.format(str(name_rank + 1)))
     # with ut.embed_on_exception_context:
     if kwargs.get('show_timedelta', True):
         assert qaid is not None, 'qaid cannot be None'

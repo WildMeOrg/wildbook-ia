@@ -3,14 +3,17 @@
 Mixin functionality for experiments, tests, and simulations.
 This includes recordings measures used to generate plots in JC's thesis.
 """
+import itertools as it
+
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
-import ubelt as ub
+
 import pandas as pd
-import itertools as it
+import ubelt as ub
+import utool as ut
+
 from wbia.algo.graph import nx_utils as nxu
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN, NULL
+from wbia.algo.graph.state import INCMP, NEGTV, NULL, POSTV, UNKWN, UNREV
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -96,7 +99,7 @@ class SimulationHelpers(object):
         infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
         infr.real_n_pcc_mst_edges = sum(len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
         infr.print(
-            'real_n_pcc_mst_edges = %r' % (infr.real_n_pcc_mst_edges,), color='red'
+            'real_n_pcc_mst_edges = {!r}'.format(infr.real_n_pcc_mst_edges), color='red'
         )
 
     def measure_error_edges(infr):
@@ -157,8 +160,8 @@ class SimulationHelpers(object):
                         if not ut.allsame(ut.take(infr.node_truth, cc)):
                             num_undetectable_fp += 1
 
-            logger.info('num_undetectable_fn = %r' % (num_undetectable_fn,))
-            logger.info('num_undetectable_fp = %r' % (num_undetectable_fp,))
+            logger.info('num_undetectable_fn = {!r}'.format(num_undetectable_fn))
+            logger.info('num_undetectable_fp = {!r}'.format(num_undetectable_fp))
 
         if 0:
             n_error_edges2 = 0
@@ -308,13 +311,13 @@ class SimulationHelpers(object):
             num = infr.recover_graph.number_of_components()
             old_data = infr.get_nonvisual_edge_data(edge)
             # logger.info('old_data = %s' % (ut.repr4(old_data, stritems=True),))
-            logger.info('n_prev_reviews = %r' % (old_data['num_reviews'],))
-            logger.info('prev_decision = %r' % (prev_decision,))
-            logger.info('decision = %r' % (decision,))
-            logger.info('was_gt_pos = %r' % (was_gt_pos,))
-            logger.info('was_within_pred = %r' % (was_within_pred,))
-            logger.info('was_within_gt = %r' % (was_within_gt,))
-            logger.info('num inconsistent = %r' % (num,))
+            logger.info('n_prev_reviews = {!r}'.format(old_data['num_reviews']))
+            logger.info('prev_decision = {!r}'.format(prev_decision))
+            logger.info('decision = {!r}'.format(decision))
+            logger.info('was_gt_pos = {!r}'.format(was_gt_pos))
+            logger.info('was_within_pred = {!r}'.format(was_within_pred))
+            logger.info('was_within_gt = {!r}'.format(was_within_gt))
+            logger.info('num inconsistent = {!r}'.format(num))
             # is_recovering = infr.is_recovering()
 
         if decision == POSTV:
@@ -416,7 +419,7 @@ class SimulationHelpers(object):
         elif user_id.startswith('user') or user_id == 'oracle':
             infr.test_state['n_manual'] += 1
         else:
-            raise AssertionError('unknown user_id=%r' % (user_id,))
+            raise AssertionError('unknown user_id={!r}'.format(user_id))
 
         test_print(test_action, color=action_color)
         assert test_action is not None, 'what happened?'

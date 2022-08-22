@@ -8,10 +8,7 @@ import sqlalchemy.exc
 from sqlalchemy import MetaData, Table
 from sqlalchemy.sql import select, text
 
-from wbia.dtool.sql_control import (
-    METADATA_TABLE_COLUMNS,
-    SQLDatabaseController,
-)
+from wbia.dtool.sql_control import METADATA_TABLE_COLUMNS, SQLDatabaseController
 
 
 @pytest.fixture
@@ -416,7 +413,7 @@ class TestMetadataProperty:
     def test_getitem_for_table_metadata(self):
         # Check getting a value through the mapping interface
         assert self.ctrlr.metadata['foo']['docstr'] == self.data['foo_docstr']
-        assert list([k for k in self.ctrlr.metadata['foo']]) == list(
+        assert list(k for k in self.ctrlr.metadata['foo']) == list(
             METADATA_TABLE_COLUMNS.keys()
         )
         assert len([k for k in self.ctrlr.metadata['foo']]) == len(METADATA_TABLE_COLUMNS)
@@ -901,7 +898,7 @@ class TestDeletionAPI(BaseAPITestCase):
             results = conn.execute(f'SELECT id, CAST((y % 2) AS BOOL) FROM {table_name}')
             rows = results.fetchall()
         del_ids = [row[0] for row in rows if row[1]]
-        remaining_ids = sorted([row[0] for row in rows if not row[1]])
+        remaining_ids = sorted(row[0] for row in rows if not row[1])
 
         # Call the testing target
         self.ctrlr.delete(table_name, del_ids, 'id')
@@ -909,7 +906,7 @@ class TestDeletionAPI(BaseAPITestCase):
         # Verify the deletion
         with self.ctrlr.connect() as conn:
             results = conn.execute(f'SELECT id FROM {table_name}')
-            assert sorted([r[0] for r in results]) == remaining_ids
+            assert sorted(r[0] for r in results) == remaining_ids
 
     def test_delete_rowid(self):
         # Make a table for records
@@ -928,7 +925,7 @@ class TestDeletionAPI(BaseAPITestCase):
             )
             rows = results.fetchall()
         del_ids = [row[0] for row in rows if row[1]]
-        remaining_ids = sorted([row[0] for row in rows if not row[1]])
+        remaining_ids = sorted(row[0] for row in rows if not row[1])
 
         # Call the testing target
         self.ctrlr.delete_rowids(table_name, del_ids)
@@ -936,4 +933,4 @@ class TestDeletionAPI(BaseAPITestCase):
         # Verify the deletion
         with self.ctrlr.connect() as conn:
             results = conn.execute(f'SELECT rowid FROM {table_name}')
-            assert sorted([r[0] for r in results]) == remaining_ids
+            assert sorted(r[0] for r in results) == remaining_ids

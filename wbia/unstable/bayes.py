@@ -8,8 +8,10 @@
 6) human in loop
 """
 import logging
-import utool as ut
+
 import numpy as np
+import utool as ut
+
 from wbia.unstable import pgm_ext
 
 print, rrr, profile = ut.inject2(__name__)
@@ -83,7 +85,7 @@ def temp_model(
             logger.info('+--------')
         semtypes = [model.var2_cpd[f.variables[0]].ttype for f in factor_list]
         for type_, factors in ut.group_items(factor_list, semtypes).items():
-            logger.info('Result Factors (%r)' % (type_,))
+            logger.info('Result Factors ({!r})'.format(type_))
             factors = ut.sortedby(factors, [f.variables[0] for f in factors])
             for fs_ in ut.ichunks(factors, 4):
                 ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]), 'yellow')
@@ -91,7 +93,7 @@ def temp_model(
         top_assignments = query_results.get('top_assignments', [])
         tmp = []
         for lbl, val in top_assignments:
-            tmp.append('%s : %.4f' % (ut.repr2(lbl), val))
+            tmp.append('{} : {:.4f}'.format(ut.repr2(lbl), val))
         logger.info(ut.align('\n'.join(tmp), ' :'))
         logger.info('L_____\n')
 
@@ -179,7 +181,7 @@ def make_name_model(
     # Score Factor
     score_states = list(range(num_scores))
     if score_basis is not None:
-        score_states = ['%.2f' % (s,) for s in score_basis]
+        score_states = ['{:.2f}'.format(s) for s in score_basis]
     if p_score_given_same is None:
         tmp = np.arange(num_scores + 1)[1:]
         tmp = np.cumsum(tmp)
@@ -224,7 +226,7 @@ def make_name_model(
 
     # L___ End CPD Definitions ___
 
-    logger.info('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+    logger.info('score_cpds = {!r}'.format(ut.list_getattr(score_cpds, 'variable')))
 
     # Make Model
     model = pgm_ext.define_model(cpd_list)
@@ -282,7 +284,7 @@ def update_model_evidence(model, name_evidence, score_evidence, other_evidence):
                 if len(ev_) == cpd.variable_card - 1:
                     fill = 0
 
-                assert fill > -1e7, 'fill=%r' % (fill,)
+                assert fill > -1e7, 'fill={!r}'.format(fill)
                 row_labels = list(ut.iprod(*cpd.statenames))
 
                 for i, lbl in enumerate(row_labels):
@@ -402,7 +404,9 @@ def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs, reduce
         data_ids = np.array(vt.compute_unique_data_ids_(list(map(tuple, tmp_state_idxs))))
         unique_ids, groupxs = vt.group_indices(data_ids)
         logger.info(
-            'Collapsed %r states into %r states' % (len(data_ids), len(unique_ids))
+            'Collapsed {!r} states into {!r} states'.format(
+                len(data_ids), len(unique_ids)
+            )
         )
         # Sum the values in the cpd to marginalize the duplicate probs
         new_values = np.array(
@@ -535,8 +539,8 @@ def compute_reduced_joint(model, query_vars, evidence, method, operation='maximi
     if method == 'approx':
         # TODO: incorporate operation?
         query_states = model.get_number_of_states(query_vars)
-        logger.info('model.number_of_states = %r' % (model.get_number_of_states(),))
-        logger.info('query_states = %r' % (query_states,))
+        logger.info('model.number_of_states = {!r}'.format(model.get_number_of_states()))
+        logger.info('query_states = {!r}'.format(query_states))
         # Try to approximatly sample the map inference
         infr = pgmpy.inference.Sampling.BayesianModelSampling(model)
 
@@ -574,15 +578,15 @@ def compute_reduced_joint(model, query_vars, evidence, method, operation='maximi
         hueristic_size = 2 ** (len(query_vars) + 2)
         size = min(100000, max(hueristic_size, 128))
         logger.info('\n-----')
-        logger.info('u = %r' % (u,))
-        logger.info('thresh = %r' % (thresh,))
-        logger.info('k = %r' % (k,))
-        logger.info('gamma = %r' % (gamma,))
-        logger.info('M_chernoff_hueristic = %r' % (M_chernoff_hueristic,))
-        logger.info('hueristic_size = %r' % (hueristic_size,))
-        logger.info('M_hoffding = %r' % (M_hoffding,))
-        logger.info('M_chernoff = %r' % (M_chernoff,))
-        logger.info('size = %r' % (size,))
+        logger.info('u = {!r}'.format(u))
+        logger.info('thresh = {!r}'.format(thresh))
+        logger.info('k = {!r}'.format(k))
+        logger.info('gamma = {!r}'.format(gamma))
+        logger.info('M_chernoff_hueristic = {!r}'.format(M_chernoff_hueristic))
+        logger.info('hueristic_size = {!r}'.format(hueristic_size))
+        logger.info('M_hoffding = {!r}'.format(M_hoffding))
+        logger.info('M_chernoff = {!r}'.format(M_chernoff))
+        logger.info('size = {!r}'.format(size))
         # np.log(2 / .1) / (2 * (.2 ** 2))
         sampled = infr.likelihood_weighted_sample(evidence=evidence_, size=size)
         reduced_joint = pgm_ext.ApproximateFactor.from_sampled(
@@ -621,7 +625,7 @@ def compute_reduced_joint(model, query_vars, evidence, method, operation='maximi
         )
         del full_joint
     else:
-        raise NotImplementedError('method=%r' % (method,))
+        raise NotImplementedError('method={!r}'.format(method))
     return reduced_joint
 
 
@@ -732,13 +736,14 @@ def cluster_query(
         'map_assign': map_assign,
         'method': method,
     }
-    logger.info('query_results = %s' % (ut.repr3(query_results, nl=2),))
+    logger.info('query_results = {}'.format(ut.repr3(query_results, nl=2)))
     return query_results
 
 
 def draw_tree_model(model, **kwargs):
-    import wbia.plottool as pt
     import networkx as netx
+
+    import wbia.plottool as pt
 
     if not ut.get_argval('--hackjunc'):
         fnum = pt.ensure_fnum(None)
@@ -793,8 +798,8 @@ def draw_tree_model(model, **kwargs):
 
 
 def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
-    import pygraphviz
     import networkx as netx
+    import pygraphviz
 
     # Add "invisible" edges to induce an ordering
     # Hack for layout (ordering of top level nodes)
@@ -877,8 +882,9 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         draw_tree_model(model, **kwargs)
         return
 
-    import wbia.plottool as pt
     import networkx as netx
+
+    import wbia.plottool as pt
 
     fnum = pt.ensure_fnum(None)
     netx_graph = model
@@ -1065,7 +1071,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         fig.set_size_inches(23, 7)
     fig = pt.gcf()
 
-    title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots)
+    title = 'num_names={!r}, num_annots={!r}'.format(model.num_names, num_annots)
     map_assign = kwargs.get('map_assign', None)
 
     top_assignments = kwargs.get('top_assignments', None)
@@ -1077,7 +1083,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
                 return '' if len(text) == 0 else text + ' '
 
             title += '\n%sMAP: ' % (word_insert(kwargs.get('method', '')))
-            title += map_assign + ' @' + '%.2f%%' % (100 * map_prob,)
+            title += map_assign + ' @' + '{:.2f}%'.format(100 * map_prob)
     if kwargs.get('show_title', True):
         pt.set_figtitle(title, size=14)
 

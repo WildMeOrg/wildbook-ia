@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+import itertools as it
 import logging
+
 import numpy as np
 import utool as ut
 import vtool as vt
-import itertools as it
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -205,9 +206,9 @@ def requery_knn(
         # Find which query features have found enough neighbors
         done_flags = cand.done_flags(num_neighbs)
         if DEBUG_REQUERY:
-            logger.info('count = %r' % (count,))
+            logger.info('count = {!r}'.format(count))
             assert np.all(np.diff(cand.dists, axis=1) >= 0)
-            logger.info('done_flags = %r' % (done_flags,))
+            logger.info('done_flags = {!r}'.format(done_flags))
         # Move any done queries into results and compress the query
         if np.any(done_flags):
             # Get the valid part of the results

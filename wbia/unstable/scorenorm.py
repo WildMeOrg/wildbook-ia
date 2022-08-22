@@ -30,13 +30,15 @@ TODO:
 """
 import logging
 import re
-from wbia import dtool
+from functools import partial
+from os.path import join
+
 import numpy as np
 import utool as ut
 import vtool as vt
-from functools import partial
-from os.path import join
+
 from wbia import constants as const
+from wbia import dtool
 from wbia.init import sysres
 
 print, rrr, profile = ut.inject2(__name__)
@@ -143,8 +145,9 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
     import wbia.plottool as pt
 
     def load_feat_scores(qreq_, qaids):
-        import wbia  # NOQA
         from os.path import dirname, join  # NOQA
+
+        import wbia  # NOQA
 
         # HACKY CACHE
         cfgstr = qreq_.get_cfgstr(with_input=True)
@@ -212,7 +215,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         # encoder = vt.ScoreNormalizer(adjust=4, monotonize=False)
         encoder = vt.ScoreNormalizer(adjust=2, monotonize=True)
         encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
-        figtitle = 'Feature Scores: %s, %s' % (scorecfg, lbl)
+        figtitle = 'Feature Scores: {}, {}'.format(scorecfg, lbl)
         fnum = None
 
         vizkw = {}
@@ -373,8 +376,8 @@ def compare_featscores():
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import wbia.plottool as pt
     import wbia
+    import wbia.plottool as pt
 
     nfs_cfg_list = NormFeatScoreConfig.from_argv_cfgs()
     learnkw = {}
@@ -399,7 +402,7 @@ def compare_featscores():
                 encoder = vt.ScoreNormalizer()
                 encoder.load(cfgstr=cfgstr)
             except IOError:
-                logger.info('datakw = %r' % (datakw,))
+                logger.info('datakw = {!r}'.format(datakw))
                 encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
                 encoder.save(cfgstr=cfgstr)
             encoder_list.append(encoder)
@@ -628,7 +631,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
     scorecfg_safe = re.sub('[' + re.escape('+*<>[]') + ']', '_', scorecfg_safe)
 
     hashid = ut.hashstr27(ut.to_json(encoder._regen_info))
-    naidinfo = 'q%s_d%s' % (len(qreq_.qaids), len(qreq_.daids))
+    naidinfo = 'q{}_d{}'.format(len(qreq_.qaids), len(qreq_.daids))
     cfgstr = 'featscore_{}_{}_{}_{}'.format(
         scorecfg_safe, qreq_.ibs.get_dbname(), naidinfo, hashid
     )
@@ -790,7 +793,7 @@ def get_training_featscores(
         tp_scores = fsv_tp_[fsv_tp.T[threshx] > thresh].prod(axis=1)
         tn_scores = fsv_tn_[fsv_tn.T[threshx] > thresh].prod(axis=1)
         threshpart = '[' + fsv_col_lbls[threshx] + ' > ' + str(thresh) + ']'
-        scorecfg = '(%s)%s' % ('*'.join(fsv_col_lbls_), threshpart)
+        scorecfg = '({}){}'.format('*'.join(fsv_col_lbls_), threshpart)
     else:
         tp_scores = fsv_tp_.prod(axis=1)
         tn_scores = fsv_tn_.prod(axis=1)

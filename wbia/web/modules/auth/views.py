@@ -10,13 +10,12 @@ More details are available here:
 * http://lepture.com/en/2013/create-oauth-server
 """
 
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urljoin, urlparse
 
 import flask
-from flask import request, url_for, flash
+from flask import flash, request, url_for
 
-from wbia.web.extensions import oauth2, login_manager
-
+from wbia.web.extensions import login_manager, oauth2
 from wbia.web.modules.users.models import User
 
 

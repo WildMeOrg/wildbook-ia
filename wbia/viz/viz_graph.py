@@ -9,16 +9,18 @@ WindowsDepends:
     wget http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
     graphviz-2.38.msi
 """
+import itertools
 import logging
+
+import numpy as np  # NOQA
 import utool as ut
 import vtool as vt
-from wbia import dtool
-import numpy as np  # NOQA
-import itertools
-from wbia.plottool.abstract_interaction import AbstractInteraction
+
 import wbia.plottool as pt
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP
+from wbia import dtool
 from wbia.algo.graph.nx_utils import connected_component_subgraphs
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV
+from wbia.plottool.abstract_interaction import AbstractInteraction
 
 # import sys
 # from os.path import join
@@ -105,10 +107,10 @@ def ensure_names_are_connected(graph, aids_list):
     aug_graph.add_edges_from(new_edges)
     # Ensure the largest possible set of original edges is in the MST
     nx.set_edge_attributes(
-        aug_graph, name='weight', values=dict([(edge, 1.0) for edge in new_edges])
+        aug_graph, name='weight', values={edge: 1.0 for edge in new_edges}
     )
     nx.set_edge_attributes(
-        aug_graph, name='weight', values=dict([(edge, 0.1) for edge in orig_edges])
+        aug_graph, name='weight', values={edge: 0.1 for edge in orig_edges}
     )
     for cc_sub_graph in connected_component_subgraphs(aug_graph):
         mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
@@ -370,7 +372,7 @@ def viz_netx_chipgraph(
 
     if layout is None:
         layout = 'agraph'
-    logger.info('layout = %r' % (layout,))
+    logger.info('layout = {!r}'.format(layout))
 
     if use_image:
         ensure_node_images(ibs, graph)
@@ -564,7 +566,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def mark_nomatch(self, event):
-        logger.info('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
+        logger.info('BREAK LINK self.selected_aids = {!r}'.format(self.selected_aids))
         import itertools
 
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
@@ -572,7 +574,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def mark_match(self, event):
-        logger.info('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
+        logger.info('MAKE LINK self.selected_aids = {!r}'.format(self.selected_aids))
         import itertools
 
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
@@ -580,7 +582,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def mark_notcomp(self, event):
-        logger.info('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
+        logger.info('MAKE LINK self.selected_aids = {!r}'.format(self.selected_aids))
         import itertools
 
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
@@ -588,7 +590,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.show_page()
 
     def unselect_all(self, event):
-        logger.info('self.selected_aids = %r' % (self.selected_aids,))
+        logger.info('self.selected_aids = {!r}'.format(self.selected_aids))
         for aid in self.selected_aids[:]:
             self.toggle_selected_aid(aid)
 
@@ -607,7 +609,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         from wbia.viz import viz_chip
 
         fnum = pt.ensure_fnum(10)
-        logger.info('fnum = %r' % (fnum,))
+        logger.info('fnum = {!r}'.format(fnum))
         pt.figure(fnum=fnum)
         pt.update()
         viz_chip.show_many_chips(self.infr.ibs, self.selected_aids)
@@ -907,8 +909,10 @@ def tryout_web_graphs(self, infr):
 
 def tryout_with_qt():
     import sys
+    from os.path import dirname, join
+
     from PyQt4 import QtCore, QtWebKit, QtWidgets
-    from os.path import join, dirname
+
     import wbia.viz
 
     class Browser(QtWebKit.QWebView):

@@ -16,7 +16,6 @@ import pytz
 from flask import session
 from flask_login import current_user
 
-
 log = logging.getLogger(__name__)
 
 
@@ -24,8 +23,8 @@ def create_session_oauth2_token(
     cleanup_tokens=False, check_renewal=False, user=None, update_session=True
 ):
     from wbia.web.extensions import db
-    from wbia.web.modules.auth.models import OAuth2Client, OAuth2Token
     from wbia.web.extensions.api import api_v2
+    from wbia.web.modules.auth.models import OAuth2Client, OAuth2Token
 
     if user is None:
         user = current_user
@@ -56,7 +55,7 @@ def create_session_oauth2_token(
         )
         with db.session.begin():
             db.session.add(session_oauth2_client)
-    log.info('Using session Oauth2 client = %r' % (session_oauth2_client,))
+    log.info('Using session Oauth2 client = {!r}'.format(session_oauth2_client))
 
     # Clean-up all tokens for the confidential client
     session_oauth2_bearer_tokens = OAuth2Token.query.filter_by(

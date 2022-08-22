@@ -6,6 +6,7 @@ Wrapper around LNBNN hotspotter algorithm
 """
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)

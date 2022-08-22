@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
+from os.path import join
+
+import numpy as np
+import pandas as pd
+import ubelt as ub
 import utool as ut
 import vtool as vt
-import numpy as np
-import ubelt as ub
-import pandas as pd
+
 from wbia import dtool as dt
-from os.path import join
 from wbia.algo.graph import nx_utils as nxu
 from wbia.core_annots import ChipConfig
 
@@ -445,7 +447,7 @@ class PairwiseFeatureExtractor(object):
                 _cfg_lbl(extr.match_config),
                 _cfg_lbl(extr.pairfeat_cfg),
                 'global(' + _cfg_lbl(extr.global_keys) + ')',
-                'pairwise_match_version=%r' % (match_configclass().version,),
+                'pairwise_match_version={!r}'.format(match_configclass().version),
             ]
         )
         return cfgstr

@@ -10,9 +10,11 @@ TODO: need to split up into sub modules:
     within this file
 """
 import logging
-from wbia.control import controller_inject
-from os.path import join, exists
+from os.path import exists, join
+
 import utool as ut
+
+from wbia.control import controller_inject
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detecttrain]')
@@ -29,8 +31,8 @@ def classifier_cameratrap_train(
     ibs, positive_imageset_id, negative_imageset_id, **kwargs
 ):
     from wbia_cnn.ingest_wbia import get_cnn_classifier_cameratrap_binary_training_images
-    from wbia_cnn.process import numpy_processed_directory2
     from wbia_cnn.models.classifier import train_classifier
+    from wbia_cnn.process import numpy_processed_directory2
 
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_cnn_classifier_cameratrap_binary_training_images(
@@ -47,10 +49,10 @@ def classifier_cameratrap_train(
 def classifier_cameratrap_densenet_train(
     ibs, positive_imageset_id, negative_imageset_id, ensembles=3, **kwargs
 ):
+    from wbia.algo.detect import densenet
     from wbia.other.detectexport import (
         get_cnn_classifier_cameratrap_binary_training_images_pytorch,
     )
-    from wbia.algo.detect import densenet
 
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-cameratrap')
     extracted_path = get_cnn_classifier_cameratrap_binary_training_images_pytorch(
@@ -123,10 +125,10 @@ def classifier_multiclass_densenet_train(
     >>> # archive_path = ibs.classifier_multiclass_densenet_train(gid_list, label_list)
     >>> ibs.classifier2_precision_recall_algo_display(test_gid_list=gid_list, test_label_list=label_list)
     """
+    from wbia.algo.detect import densenet
     from wbia.other.detectexport import (
         get_cnn_classifier_multiclass_training_images_pytorch,
     )
-    from wbia.algo.detect import densenet
 
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-multiclass')
     extracted_path = get_cnn_classifier_multiclass_training_images_pytorch(
@@ -167,8 +169,8 @@ def classifier_multiclass_densenet_train(
 @register_ibs_method
 def classifier_binary_train(ibs, species_list, **kwargs):
     from wbia_cnn.ingest_wbia import get_cnn_classifier_binary_training_images
-    from wbia_cnn.process import numpy_processed_directory2
     from wbia_cnn.models.classifier import train_classifier
+    from wbia_cnn.process import numpy_processed_directory2
     from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')
@@ -192,8 +194,8 @@ def classifier2_train(
     ibs, species_list=None, species_mapping={}, train_gid_set=None, **kwargs
 ):
     from wbia_cnn.ingest_wbia import get_cnn_classifier2_training_images
-    from wbia_cnn.process import numpy_processed_directory3
     from wbia_cnn.models.classifier2 import train_classifier2
+    from wbia_cnn.process import numpy_processed_directory3
     from wbia_cnn.utils import save_model
 
     if species_list is not None:
@@ -227,10 +229,10 @@ def classifier_train(ibs, **kwargs):
 
 @register_ibs_method
 def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, **kwargs):
+    from wbia.algo.detect import densenet
     from wbia.other.detectexport import (
         get_cnn_classifier_canonical_training_images_pytorch,
     )
-    from wbia.algo.detect import densenet
 
     args = (species,)
     data_path = join(ibs.get_cachedir(), 'extracted-classifier-canonical-%s' % args)
@@ -279,10 +281,10 @@ def canonical_classifier_train(ibs, species, ensembles=3, extracted_path=None, *
 
 @register_ibs_method
 def canonical_localizer_train(ibs, species, ensembles=3, **kwargs):
+    from wbia.algo.detect import canonical
     from wbia.other.detectexport import (
         get_cnn_localizer_canonical_training_images_pytorch,
     )
-    from wbia.algo.detect import canonical
 
     args = (species,)
     data_path = join(ibs.get_cachedir(), 'extracted-localizer-canonical-%s' % args)
@@ -401,11 +403,12 @@ def localizer_lightnet_train(
     cache_species_str=None,
     **kwargs,
 ):
-    from wbia.algo.detect import lightnet
-    import subprocess
     import datetime
     import math
+    import subprocess
     import sys
+
+    from wbia.algo.detect import lightnet
 
     assert species_list is not None
     species_list = sorted(species_list)
@@ -419,7 +422,9 @@ def localizer_lightnet_train(
 
     cache_path = join(ibs.cachedir, 'training', 'lightnet')
     ut.ensuredir(cache_path)
-    training_instance_folder = 'lightnet-training-%s-%s' % (cache_species_str, hashstr)
+    training_instance_folder = 'lightnet-training-{}-{}'.format(
+        cache_species_str, hashstr
+    )
     training_instance_path = join(cache_path, training_instance_folder)
     ut.copy(lightnet_training_kit_url, training_instance_path)
 
@@ -438,7 +443,7 @@ def localizer_lightnet_train(
 
     ibs.export_to_xml(species_list=species_list, output_path=data_path, **kwargs)
 
-    species_str_list = ['%r' % (species,) for species in species_list]
+    species_str_list = ['{!r}'.format(species) for species in species_list]
     species_str = ', '.join(species_str_list)
     replace_dict = {
         '_^_YEAR_^_': str(datetime.datetime.now().year),
@@ -464,11 +469,11 @@ def localizer_lightnet_train(
     cuda_str = (
         ''
         if cuda_device in [-1, None] or len(cuda_device) == 0
-        else 'CUDA_VISIBLE_DEVICES=%s ' % (cuda_device,)
+        else 'CUDA_VISIBLE_DEVICES={} '.format(cuda_device)
     )
 
     # Call labels
-    call_str = '%s %s' % (python_exe, labels_py_path)
+    call_str = '{} {}'.format(python_exe, labels_py_path)
     logger.info(call_str)
     subprocess.call(call_str, shell=True)
 
@@ -559,7 +564,7 @@ def localizer_lightnet_train(
         else:
             assert not math.isnan(loss)
             result = (loss, miss_rate, model_path)
-        logger.info('\t%r' % (result,))
+        logger.info('\t{!r}'.format(result))
         result_list.append(result)
     result_list = sorted(result_list)
 
@@ -594,13 +599,13 @@ def localizer_lightnet_train(
         counter = 0
         while True:
             final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter)
-            final_config_filename = '%s.py' % (final_config_prefix,)
+            final_config_filename = '{}.py'.format(final_config_prefix)
             final_config_filepath = join(final_path, final_config_filename)
             if not exists(final_config_filepath):
                 break
             counter += 1
 
-        final_model_filename = '%s.weights' % (final_config_prefix,)
+        final_model_filename = '{}.weights'.format(final_config_prefix)
         final_model_filepath = join(final_path, final_model_filename)
 
         assert not exists(final_model_filepath)
@@ -680,7 +685,7 @@ def validate_model(
             result = (miss_rate, loss, model_path)
         else:
             result = (loss, miss_rate, model_path)
-        logger.info('\t%r' % (result,))
+        logger.info('\t{!r}'.format(result))
         result_list.append(result)
     result_list = sorted(result_list)
 
@@ -715,13 +720,13 @@ def validate_model(
         counter = 0
         while True:
             final_config_prefix = 'detect.lightnet.%s.v%d' % (deploy_tag, counter)
-            final_config_filename = '%s.py' % (final_config_prefix,)
+            final_config_filename = '{}.py'.format(final_config_prefix)
             final_config_filepath = join(final_path, final_config_filename)
             if not exists(final_config_filepath):
                 break
             counter += 1
 
-        final_model_filename = '%s.weights' % (final_config_prefix,)
+        final_model_filename = '{}.weights'.format(final_config_prefix)
         final_model_filepath = join(final_path, final_model_filename)
 
         assert not exists(final_model_filepath)
@@ -748,8 +753,8 @@ def labeler_train_wbia_cnn(
     ibs, species_list=None, species_mapping=None, viewpoint_mapping=None, **kwargs
 ):
     from wbia_cnn.ingest_wbia import get_cnn_labeler_training_images
-    from wbia_cnn.process import numpy_processed_directory2
     from wbia_cnn.models.labeler import train_labeler
+    from wbia_cnn.process import numpy_processed_directory2
     from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')
@@ -784,8 +789,8 @@ def labeler_train(
     cache_species_str=None,
     **kwargs,
 ):
-    from wbia.other.detectexport import get_cnn_labeler_training_images_pytorch
     from wbia.algo.detect import densenet
+    from wbia.other.detectexport import get_cnn_labeler_training_images_pytorch
 
     if cache_species_str is None:
         cache_species_str = '-'.join(species_list)
@@ -881,8 +886,8 @@ def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kw
     >>> output_path, X_file, y_file = values
     """
     from wbia_cnn.ingest_wbia import get_background_training_patches2
-    from wbia_cnn.process import numpy_processed_directory2
     from wbia_cnn.models.background import train_background
+    from wbia_cnn.process import numpy_processed_directory2
     from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')
@@ -908,8 +913,8 @@ def background_train(ibs, species, train_gid_set=None, global_limit=500000, **kw
 @register_ibs_method
 def aoi_train(ibs, species_list=None):
     from wbia_cnn.ingest_wbia import get_aoi_training_data
-    from wbia_cnn.process import numpy_processed_directory4
     from wbia_cnn.models.aoi import train_aoi
+    from wbia_cnn.process import numpy_processed_directory4
     from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')
@@ -929,8 +934,8 @@ def aoi_train(ibs, species_list=None):
 @register_ibs_method
 def aoi2_train(ibs, species_list=None, train_gid_list=None, purge=True, cache=False):
     from wbia_cnn.ingest_wbia import get_aoi2_training_data
-    from wbia_cnn.process import numpy_processed_directory5
     from wbia_cnn.models.aoi2 import train_aoi2
+    from wbia_cnn.process import numpy_processed_directory5
     from wbia_cnn.utils import save_model
 
     data_path = join(ibs.get_cachedir(), 'extracted')

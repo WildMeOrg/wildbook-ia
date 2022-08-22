@@ -6,19 +6,21 @@ sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modf
 
 """
 
-# TODO: Fix this name it is too special case
-import logging
-import uuid
 import functools
 
-from wbia import constants as const
-from wbia.other import ibsfuncs
-import numpy as np
-import vtool as vt
-from wbia.control import accessor_decors, controller_inject  # NOQA
-import utool as ut
-from wbia.control.controller_inject import make_ibs_register_decorator
+# TODO: Fix this name it is too special case
+import logging
 import os
+import uuid
+
+import numpy as np
+import utool as ut
+import vtool as vt
+
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject  # NOQA
+from wbia.control.controller_inject import make_ibs_register_decorator
+from wbia.other import ibsfuncs
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -1260,7 +1262,7 @@ def set_name_texts(
         json_log_path = ibs.get_logdir_local()
         json_log_filename = 'names.updates.json'
         json_log_filepath = os.path.join(json_log_path, json_log_filename)
-        logger.info('Logging name changes to: %r' % (json_log_filepath,))
+        logger.info('Logging name changes to: {!r}'.format(json_log_filepath))
         # Log has never been made, create one
         if not os.path.exists(json_log_filepath):
             json_dict = {

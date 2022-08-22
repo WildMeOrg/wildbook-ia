@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # TODO: find unused functions and kill them
-import logging
 import copy
+import itertools as it
+import logging
 import operator
+from functools import partial, reduce
+
+import numpy as np
 import utool as ut
 import vtool as vt
-import numpy as np
-import itertools as it
-from functools import partial, reduce
-from wbia.expt import cfghelpers
-from wbia.expt import experiment_helpers
+
+from wbia.expt import cfghelpers, experiment_helpers
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -106,7 +107,7 @@ def build_cmsinfo(cm_list, qreq_):
     nameres_info_list = []
     for qnid, cm_group in zip(unique_qnids, cm_group_list):
         nid2_name_score_group = [
-            dict([(nid, cm.name_score_list[nidx]) for nid, nidx in cm.nid2_nidx.items()])
+            {nid: cm.name_score_list[nidx] for nid, nidx in cm.nid2_nidx.items()}
             for cm in cm_group
         ]
         aligned_name_scores = np.array(
@@ -178,6 +179,7 @@ def combine_testres_list(ibs, testres_list):
     >>> ibs, testres = harness.testdata_expts('PZ_MTEST', ['varysize'])
     """
     import copy
+
     from wbia.expt import annotation_configs
 
     acfg_list = [tr.acfg for tr in testres_list]
@@ -267,15 +269,15 @@ class TestResult(ut.NiceRepr):
     """
 
     def __init__(testres, cfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_):
-        assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths1: %r != %r' % (
+        assert len(cfg_list) == len(cfgx2_lbl), 'bad lengths1: {!r} != {!r}'.format(
             len(cfg_list),
             len(cfgx2_lbl),
         )
-        assert len(cfgx2_qreq_) == len(cfgx2_lbl), 'bad lengths2: %r != %r' % (
+        assert len(cfgx2_qreq_) == len(cfgx2_lbl), 'bad lengths2: {!r} != {!r}'.format(
             len(cfgx2_qreq_),
             len(cfgx2_lbl),
         )
-        assert len(cfgx2_cmsinfo) == len(cfgx2_lbl), 'bad lengths3: %r != %r' % (
+        assert len(cfgx2_cmsinfo) == len(cfgx2_lbl), 'bad lengths3: {!r} != {!r}'.format(
             len(cfgx2_cmsinfo),
             len(cfgx2_lbl),
         )
@@ -313,13 +315,13 @@ class TestResult(ut.NiceRepr):
         infostr_ = 'nCfg=%s' % testres.nConfig
         if testres.nConfig == 1:
             qreq_ = testres.cfgx2_qreq_[0]
-            infostr_ += ' nQ=%s, nD=%s %s' % (
+            infostr_ += ' nQ={}, nD={} {}'.format(
                 len(qreq_.qaids),
                 len(qreq_.daids),
                 qreq_.get_pipe_hashid(),
             )
         # nD=%s %s' % (, len(testres.daids), testres.get_pipe_hashid())
-        nice = '%s %s' % (dbname, infostr_)
+        nice = '{} {}'.format(dbname, infostr_)
         return nice
 
     @property
@@ -441,7 +443,7 @@ class TestResult(ut.NiceRepr):
 
     def get_worst_possible_rank(testres):
         # worst_possible_rank = max(9001, len(testres.daids) + 1)
-        worst_possible_rank = max([len(qreq_.daids) for qreq_ in testres.cfgx2_qreq_]) + 1
+        worst_possible_rank = max(len(qreq_.daids) for qreq_ in testres.cfgx2_qreq_) + 1
         # worst_possible_rank = len(testres.daids) + 1
         return worst_possible_rank
 
@@ -662,13 +664,11 @@ class TestResult(ut.NiceRepr):
         key = 'dcfg_sample_size'
         """
         if key == 'len(daids)':
-            basis = sorted(list(set([len(daids) for daids in testres.cfgx2_daids])))
+            basis = sorted(list({len(daids) for daids in testres.cfgx2_daids}))
         elif any([key in cfgdict for cfgdict in testres.varied_cfg_list]):
-            basis = sorted(
-                list(set([cfgdict[key] for cfgdict in testres.varied_cfg_list]))
-            )
+            basis = sorted(list({cfgdict[key] for cfgdict in testres.varied_cfg_list}))
         elif any([key in cfgdict for cfgdict in testres.varied_acfg_list]):
-            basis = sorted(list(set([acfg[key] for acfg in testres.varied_acfg_list])))
+            basis = sorted(list({acfg[key] for acfg in testres.varied_acfg_list}))
         else:
             # assert False, 'param is not varied'
             if key in testres.common_cfgdict:
@@ -676,7 +676,7 @@ class TestResult(ut.NiceRepr):
             elif key in testres.nonvaried_acfg:
                 basis = [testres.nonvaried_acfg[key]]
             else:
-                assert False, 'param=%r doesnt exist' % (key,)
+                assert False, 'param={!r} doesnt exist'.format(key)
         return basis
 
     def get_param_val_from_cfgx(testres, cfgx, key):
@@ -693,7 +693,7 @@ class TestResult(ut.NiceRepr):
         elif any([key in cfgdict for cfgdict in testres.cfgx2_acfg]):
             return testres.cfgx2_acfg[cfgx][key]
         else:
-            assert False, 'param=%r doesnt exist' % (key,)
+            assert False, 'param={!r} doesnt exist'.format(key)
 
     def get_cfgx_with_param(testres, key, val):
         """
@@ -723,7 +723,7 @@ class TestResult(ut.NiceRepr):
             elif key in testres.nonvaried_acfg:
                 cfgx_list = list(range(testres.nConfig))
             else:
-                assert False, 'param=%r doesnt exist' % (key,)
+                assert False, 'param={!r} doesnt exist'.format(key)
             # assert False, 'param is not varied'
         return cfgx_list
 
@@ -1093,7 +1093,7 @@ class TestResult(ut.NiceRepr):
         )
         label_list = testres.get_short_cfglbls()
         label_list = [
-            ('%6.2f%%' % (percent,))
+            ('{:6.2f}%'.format(percent))
             # ut.scalar_str(percent, precision=2)
             + ' - ' + label
             for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)
@@ -1201,30 +1201,30 @@ class TestResult(ut.NiceRepr):
             if ut.get_argflag('--hack_size_nl'):
                 title_aug += '\n'
             if testres.has_constant_qaids():
-                title_aug += ' #qaids=%r' % (len(testres.qaids),)
+                title_aug += ' #qaids={!r}'.format(len(testres.qaids))
             elif testres.has_constant_length_qaids():
-                title_aug += ' #qaids=%r*' % (len(testres.cfgx2_qaids[0]),)
+                title_aug += ' #qaids={!r}*'.format(len(testres.cfgx2_qaids[0]))
             if testres.has_constant_daids():
                 daids = testres.cfgx2_daids[0]
-                title_aug += ' #daids=%r' % (len(testres.cfgx2_daids[0]),)
+                title_aug += ' #daids={!r}'.format(len(testres.cfgx2_daids[0]))
                 if testres.has_constant_qaids():
                     all_daid_per_name_stats = ut.get_stats(
                         ibs.get_num_annots_per_name(daids)[0], use_nan=True
                     )
                     if all_daid_per_name_stats['std'] == 0:
-                        title_aug += ' dper_name=%s' % (
+                        title_aug += ' dper_name={}'.format(
                             ut.scalar_str(
                                 all_daid_per_name_stats['mean'], max_precision=2
                             ),
                         )
                     else:
-                        title_aug += ' dper_name=%s±%s' % (
+                        title_aug += ' dper_name={}±{}'.format(
                             ut.scalar_str(all_daid_per_name_stats['mean'], precision=2),
                             ut.scalar_str(all_daid_per_name_stats['std'], precision=2),
                         )
             elif testres.has_constant_length_daids():
                 daids = testres.cfgx2_daids[0]
-                title_aug += ' #daids=%r*' % (len(testres.cfgx2_daids[0]),)
+                title_aug += ' #daids={!r}*'.format(len(testres.cfgx2_daids[0]))
 
         if friendly:
             # Hackiness for friendliness
@@ -1337,11 +1337,13 @@ class TestResult(ut.NiceRepr):
             common_acfg['common'] = ut.dict_filter_nones(common_acfg['common'])
             logger.info('testres.common_acfg = ' + ut.repr2(common_acfg))
             logger.info(
-                'param_basis(len(daids)) = %r' % (testres.get_param_basis('len(daids)'),)
+                'param_basis(len(daids)) = {!r}'.format(
+                    testres.get_param_basis('len(daids)')
+                )
             )
             for count, daids in enumerate(unique_daids):
                 logger.info('+---')
-                logger.info('acfgx = %r/%r' % (count, len(unique_daids)))
+                logger.info('acfgx = {!r}/{!r}'.format(count, len(unique_daids)))
                 if testres.has_constant_qaids():
                     ibs.print_annotconfig_stats(testres.qaids, daids)
                 else:
@@ -1714,8 +1716,8 @@ class TestResult(ut.NiceRepr):
                     '[testres] Sampling from is_valid.size=%r with filt=%r'
                     % (is_valid.size, ut.get_cfg_lbl(filt_cfg_))
                 )
-                logger.info('  * is_valid.shape = %r' % (is_valid.shape,))
-                logger.info('  * num_valid = %r' % (num_valid,))
+                logger.info('  * is_valid.shape = {!r}'.format(is_valid.shape))
+                logger.info('  * num_valid = {!r}'.format(num_valid))
                 self.prev_num_valid = num_valid
 
             def print_post(self, is_valid, flags, msg):
@@ -1726,11 +1728,11 @@ class TestResult(ut.NiceRepr):
                 logger.info(msg)
                 if num_invalidated == 0:
                     if flags is not None:
-                        logger.info('  * num_passed = %r' % (num_passed,))
-                    logger.info('  * num_invalided = %r' % (num_invalidated,))
+                        logger.info('  * num_passed = {!r}'.format(num_passed))
+                    logger.info('  * num_invalided = {!r}'.format(num_invalidated))
                 else:
-                    logger.info('  * prev_num_valid = %r' % (self.prev_num_valid,))
-                    logger.info('  * num_valid = %r' % (num_valid,))
+                    logger.info('  * prev_num_valid = {!r}'.format(self.prev_num_valid))
+                    logger.info('  * num_valid = {!r}'.format(num_valid))
                     # logger.info('  * is_valid.shape = %r' % (is_valid.shape,))
                 self.prev_num_valid = num_valid
 
@@ -1763,7 +1765,9 @@ class TestResult(ut.NiceRepr):
         # Assert that only valid configurations were given
         if len(filt_cfg_) > 0:
             logger.info('ERROR')
-            logger.info('filtcfg valid rules are = %s' % (ut.repr2(valid_rules, nl=1),))
+            logger.info(
+                'filtcfg valid rules are = {}'.format(ut.repr2(valid_rules, nl=1))
+            )
             for key in filt_cfg_.keys():
                 logger.info(
                     'did you mean %r instead of %r?'
@@ -1788,7 +1792,9 @@ class TestResult(ut.NiceRepr):
             # conjunctive normal form of satisfiability
             is_valid = np.logical_and(is_valid, flags)
             if verbose:
-                verbinfo.print_post(is_valid, flags, 'SampleRule: %s = %r' % (key, val))
+                verbinfo.print_post(
+                    is_valid, flags, 'SampleRule: {} = {!r}'.format(key, val)
+                )
 
         # HACK:
         # If one config for a row passes the filter then all configs should pass
@@ -1827,12 +1833,12 @@ class TestResult(ut.NiceRepr):
                     propname = orderby[prefix_match.end() :]
                     if verbose:
                         logger.info(
-                            'Ordering by truth=%s propname=%s' % (truth, propname)
+                            'Ordering by truth={} propname={}'.format(truth, propname)
                         )
                     order_values = truth2_prop[truth][propname]
                     break
             if order_values is None:
-                raise NotImplementedError('Unknown orerby=%r' % (orderby,))
+                raise NotImplementedError('Unknown orerby={!r}'.format(orderby))
         else:
             order_values = np.arange(is_valid.size).reshape(is_valid.shape)
 
@@ -1875,7 +1881,7 @@ class TestResult(ut.NiceRepr):
             if verbose:
                 prev_num_valid = is_valid.sum()
                 logger.info('Enforcing that all configs must pass filters')
-                logger.info('  * prev_num_valid = %r' % (prev_num_valid,))
+                logger.info('  * prev_num_valid = {!r}'.format(prev_num_valid))
             qx2_valid_cfgs = ut.group_items(cfgx_list, qx_list)
             hasall_cfg = [len(qx2_valid_cfgs[qx]) == testres.nConfig for qx in qx_list]
             _qx_list = qx_list.compress(hasall_cfg)
@@ -1918,7 +1924,7 @@ class TestResult(ut.NiceRepr):
             logger.info('Final case stats:')
             qx_hist = ut.dict_hist(qx_list)
             logger.info(
-                'config per query stats: %r' % (ut.get_stats_str(qx_hist.values()),)
+                'config per query stats: {!r}'.format(ut.get_stats_str(qx_hist.values()))
             )
             logger.info(
                 'query per config stats: %r'
@@ -2113,8 +2119,9 @@ class TestResult(ut.NiceRepr):
             >>> print(result)
             >>> ut.show_if_requested()
         """
-        import wbia.plottool as pt
         import vtool as vt
+
+        import wbia.plottool as pt
 
         # dont look at filtered cases
         ibs = testres.ibs
@@ -2240,7 +2247,7 @@ class TestResult(ut.NiceRepr):
             spread_list = ut.get_list_column(args_list, 1)
             kwargs_list = ut.get_list_column(args_list, 2)
             sizes_list = ut.get_list_column(args_list, 3)
-            logger.info('sizes_list = %s' % (ut.repr2(sizes_list, nl=1),))
+            logger.info('sizes_list = {}'.format(ut.repr2(sizes_list, nl=1)))
 
             # Pack kwargs list for multi_plot
             plotkw = ut.dict_stack2(kwargs_list, '_list')
@@ -2427,19 +2434,19 @@ class TestResult(ut.NiceRepr):
         improves_mat = n_success_list[:, None] - isect_mat
 
         disjoint_mat = union_mat - isect_mat
-        logger.info('n_success_list = %r' % (n_success_list,))
-        logger.info('union_mat =\n%s' % (union_mat,))
-        logger.info('isect_mat =\n%s' % (isect_mat,))
+        logger.info('n_success_list = {!r}'.format(n_success_list))
+        logger.info('union_mat =\n{}'.format(union_mat))
+        logger.info('isect_mat =\n{}'.format(isect_mat))
         logger.info('cfgx1 and cfgx2 have <x> not in common')
-        logger.info('disjoint_mat =\n%s' % (disjoint_mat,))
+        logger.info('disjoint_mat =\n{}'.format(disjoint_mat))
         logger.info('cfgx1 helps cfgx2 by <x>')
-        logger.info('improves_mat =\n%s' % (improves_mat,))
-        logger.info('improves_mat.sum(axis=1) = \n%s' % (improves_mat.sum(axis=1),))
+        logger.info('improves_mat =\n{}'.format(improves_mat))
+        logger.info('improves_mat.sum(axis=1) = \n{}'.format(improves_mat.sum(axis=1)))
         bestx_by_improves = improves_mat.sum(axis=1).argmax()
-        logger.info('bestx_by_improves = %r' % (bestx_by_improves,))
+        logger.info('bestx_by_improves = {!r}'.format(bestx_by_improves))
 
         # Numbered version
-        logger.info('best_cfgx = %r' % (best_cfgx,))
+        logger.info('best_cfgx = {!r}'.format(best_cfgx))
         for cfgx in range(testres.nConfig):
             if cfgx == best_cfgx:
                 continue
@@ -2649,7 +2656,7 @@ class TestResult(ut.NiceRepr):
                 'name_to_ave_ = %s' % (ut.align(ut.repr3(name_to_ave_, precision=3), ':'))
             )
             mean_ave_precision = np.mean(name_to_ave)
-            logger.info('mean_ave_precision = %r' % (mean_ave_precision,))
+            logger.info('mean_ave_precision = {!r}'.format(mean_ave_precision))
             map_list.append(mean_ave_precision)
         return map_list
 

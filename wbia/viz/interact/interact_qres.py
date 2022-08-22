@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
+
 import wbia.plottool as pt
-from wbia.plottool import plot_helpers as ph
-from wbia.plottool import abstract_interaction
 from wbia import viz
+from wbia.plottool import abstract_interaction
+from wbia.plottool import plot_helpers as ph
 from wbia.viz.interact.interact_sver import ishow_sver
 
 (print, rrr, profile) = ut.inject2(__name__, '[interact_qres]')
@@ -64,7 +66,7 @@ class InteractQres(BASE_CLASS):
         self.verbose = True
         super(InteractQres, self).__init__(**kwargs)
         self.fnum
-        logger.info('self.fnum = %r' % (self.fnum,))
+        logger.info('self.fnum = {!r}'.format(self.fnum))
 
     def plot(self, *args, **kwargs):
         if self.analysis:
@@ -144,7 +146,7 @@ class InteractQres(BASE_CLASS):
                 from wbia.gui import inspect_gui
 
                 logger.info('right click')
-                logger.info('qreq_ = %r' % (self.qreq_,))
+                logger.info('qreq_ = {!r}'.format(self.qreq_))
                 options = inspect_gui.get_aidpair_context_menu_options(
                     self.ibs,
                     self.cm.qaid,

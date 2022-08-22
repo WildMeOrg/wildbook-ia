@@ -4,22 +4,23 @@ CommandLine:
     wbia make_qt_graph_interface --show
     wbia make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
 """
+import itertools as it
 import logging
+
+import networkx as nx
+import numpy as np
 import utool as ut
 import vtool as vt
-import numpy as np
-from wbia import dtool
-import networkx as nx
-import itertools as it
+
+import wbia.constants as const
 import wbia.guitool as gt
 import wbia.plottool as pt
-import wbia.constants as const
-from wbia.plottool import abstract_interaction
+from wbia import dtool
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
+from wbia.guitool import PrefWidget2, mpl_widget
 from wbia.guitool.__PYQT__ import QtCore
 from wbia.guitool.__PYQT__.QtCore import Qt
-from wbia.guitool import mpl_widget
-from wbia.guitool import PrefWidget2
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+from wbia.plottool import abstract_interaction
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -196,9 +197,9 @@ class AnnotPairDialog(gt.GuitoolWidget):
 
         self.last_external = True
 
-        logger.info('edge = %r' % (edge,))
-        logger.info('self.total = %r' % (self.total,))
-        logger.info('self.standalone = %r' % (self.standalone,))
+        logger.info('edge = {!r}'.format(edge))
+        logger.info('self.total = {!r}'.format(self.total))
+        logger.info('self.standalone = {!r}'.format(self.standalone))
         if edge is not None:
             self.set_edge(edge, info_text)
         elif self.total > 0 and not self.standalone:
@@ -238,7 +239,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
         self.was_confirmed = True
         feedback = self.feedback_dict()
         if self.standalone:
-            logger.info('feedback = %s' % (ut.repr4(feedback),))
+            logger.info('feedback = {}'.format(ut.repr4(feedback)))
             if self.infr is not None:
                 self.infr.accept(feedback)
             else:
@@ -276,7 +277,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.step_by(1)
 
     def set_edge(self, edge, info_text=None, external=True):
-        logger.info('set edge = %r' % (edge,))
+        logger.info('set edge = {!r}'.format(edge))
         self.last_external = external
         self.history.add(edge)
         assert edge in self.history
@@ -321,15 +322,15 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.request_review([edge, None, {'standalone': True}], external=False)
         else:
             edge = self.history[index]
-            logger.info('request edge = %r' % (edge,))
+            logger.info('request edge = {!r}'.format(edge))
             user_request = self.infr.emit_manual_review(edge)
             self.request_review(user_request, external=False)
 
     def request_review(self, user_request, external=True):
         edge, priority, edge_data = user_request[0]
         logger.info('Got request for edge={}'.format(edge))
-        info_text = 'edge=%r' % (edge,)
-        info_text += '\npriority=%r' % (priority,)
+        info_text = 'edge={!r}'.format(edge)
+        info_text += '\npriority={!r}'.format(priority)
         info_text += '\n' + ut.repr4(edge_data, si=True)
         self.set_edge(edge, info_text, external=external)
         self.show()
@@ -648,7 +649,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
             # 'confidence': 'unspecified'
             'confidence': const.CONFIDENCE.CODE.NOT_SURE,
         }
-        logger.info('edge_data = %s' % (ut.repr4(edge_data),))
+        logger.info('edge_data = {}'.format(ut.repr4(edge_data)))
         if edge_data is not None:
             # Read edge state from edge_data
             edge_state['tags'] = edge_data.get('tags', [])
@@ -661,12 +662,12 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         return edge_state
 
     def set_edge(self, edge, edge_data=None):
-        logger.info('Set Edge State: edge=%r' % (edge,))
+        logger.info('Set Edge State: edge={!r}'.format(edge))
         edge_state = self.read_edge_state(edge, edge_data)
 
         if edge is not None and len(edge) != 2:
             raise ValueError('Edge must be 2 ints')
-        logger.info('edge_state = %s' % (ut.repr4(edge_state),))
+        logger.info('edge_state = {}'.format(ut.repr4(edge_state)))
         # set qt state
         self.edge = edge_state['edge']
         self.edge_label.setText(repr(edge_state['edge']))
@@ -925,7 +926,9 @@ class DevGraphWidget(gt.GuitoolWidget):
             else:
                 graph_widget.selected_aids.append(aid)
                 graph_widget.highlight_aid(aid, True)
-        logger.info('graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
+        logger.info(
+            'graph_widget.selected_aids = {!r}'.format(graph_widget.selected_aids)
+        )
         if graph_widget.mpl_wgt is not None:
             graph_widget.mpl_wgt.fig.canvas.draw()
 
@@ -973,8 +976,8 @@ class DevGraphWidget(gt.GuitoolWidget):
                 logger.info('edge: ' + ut.repr2(plotdat['edge']))
             else:
                 logger.info('unknown artist ' + ut.repr2(plotdat))
-                logger.info('artist = %r' % (artist,))
-                logger.info('event = %r' % (event,))
+                logger.info('artist = {!r}'.format(artist))
+                logger.info('event = {!r}'.format(event))
 
     def on_click_inside(graph_widget, event, ax):
         pos = graph_widget.plotinfo['node']['pos']
@@ -1050,7 +1053,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         logger.info('[viz_graph] initialize')
 
         self.init_mode = init_mode
-        logger.info('self.init_mode = %r' % (self.init_mode,))
+        logger.info('self.init_mode = {!r}'.format(self.init_mode))
 
         if review_cfg is None:
             mode = 'filtered' if self.init_mode == 'split' else 'unfiltered'
@@ -1165,7 +1168,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         widget.change_headers(headers)
         widget.resize_headers(api)
         widget.view.verticalHeader().setVisible(True)
-        tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
+        tab.setTabText('{} ({!r})'.format(title, widget.model.num_rows_total))
         widget.view.verticalHeader().setDefaultSectionSize(221)
 
     def populate_node_model(self):
@@ -1182,7 +1185,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             widget.view.verticalHeader().setMovable(True)
         except AttributeError:
             widget.view.verticalHeader().setSectionsMovable(True)
-        tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
+        tab.setTabText('{} ({!r})'.format(title, widget.model.num_rows_total))
 
     def populate_name_node_model(self):
         api = make_name_node_api(self.infr, review_cfg=self.review_cfg)
@@ -1192,7 +1195,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         title = key.title().replace('_', ' ')
         headers = api.make_headers(tblnice=title, tblname=key)
         widget.change_headers(headers)
-        tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
+        tab.setTabText('{} ({!r})'.format(title, widget.model.num_rows_total))
 
     def populate_name_edge_model(self):
         api = make_name_edge_api(self.infr, review_cfg=self.review_cfg)
@@ -1202,7 +1205,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         title = key.title().replace('_', ' ')
         headers = api.make_headers(tblnice=title, tblname=key)
         widget.change_headers(headers)
-        tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
+        tab.setTabText('{} ({!r})'.format(title, widget.model.num_rows_total))
 
     def initialize_menus(self):
         self.menubar = gt.newMenubar(self)
@@ -1240,7 +1243,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         )
 
     def preset_config(self, mode='filtered'):
-        logger.info('[graph] preset_config mode=%r' % (mode,))
+        logger.info('[graph] preset_config mode={!r}'.format(mode))
         if mode == 'filtered':
             self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
         elif mode == 'unfiltered':
@@ -1268,7 +1271,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         elif self.init_mode == 'review':
             self.reset_review()
         else:
-            raise ValueError('Unknown init_mode=%r' % (self.init_mode,))
+            raise ValueError('Unknown init_mode={!r}'.format(self.init_mode))
         self.repopulate()
 
         if ut.get_argflag('--graphtab'):
@@ -1295,7 +1298,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.signal_state_update.emit(structure_changed, disable_global_update)
 
     def update_state(self, structure_changed=False, disable_global_update=False):
-        logger.info('[viz_graph] update_state mode=%s' % (self.init_mode,))
+        logger.info('[viz_graph] update_state mode={}'.format(self.init_mode))
         # if self.init_mode in ['split', 'rereview']:
         if not disable_global_update:
             if self.init_mode == 'split':
@@ -1473,9 +1476,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         )
         dlg.resize(700, 500)
         dlg.exec_()
-        logger.info('config = %r' % (config,))
+        logger.info('config = {!r}'.format(config))
         updated_config = dlg.widget.config  # NOQA
-        logger.info('updated_config = %r' % (updated_config,))
+        logger.info('updated_config = {!r}'.format(updated_config))
         self.review_cfg = updated_config.asdict()
         self.repopulate()
 
@@ -1716,7 +1719,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 handled = True
                 break
         if not handled:
-            logger.info('Key  not handled %r' % (event_key,))
+            logger.info('Key  not handled {!r}'.format(event_key))
             return
         return handled
 
@@ -1740,8 +1743,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ('annotmatch', 'staging'),
         ]
         for old, new in pairs:
-            logger.info('old = %r' % (old,))
-            logger.info('new = %r' % (new,))
+            logger.info('old = {!r}'.format(old))
+            logger.info('new = {!r}'.format(new))
             logger.info(self.infr.match_state_delta(old, new))
 
     def use_wbia_names(self):
@@ -1895,7 +1898,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         logger.info('external_feedback = ' + ut.repr2(self.infr.external_feedback, nl=1))
         logger.info('internal_feedback = ' + ut.repr2(self.infr.internal_feedback, nl=1))
         infr = self.infr
-        logger.info('infr = %r' % (infr,))
+        logger.info('infr = {!r}'.format(infr))
         if infr is not None and infr.graph is not None:
             logger.info(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
@@ -2002,8 +2005,8 @@ class EdgeAPIHelper(object):
 
         col_display_role_func_dict = {
             'timedelta': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
-            'speed': lambda speed: '%.2f km/h' % (speed,),
-            'kmdist': lambda speed: '%.2f km' % (speed,),
+            'speed': lambda speed: '{:.2f} km/h'.format(speed),
+            'kmdist': lambda speed: '{:.2f} km'.format(speed),
         }
 
         col_bgrole_dict = {
@@ -2086,8 +2089,8 @@ class EdgeAPIHelper(object):
 
     def edge_assert(self, edge):
         aid1, aid2 = edge
-        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        assert not ut.isiterable(aid1), 'aid1={!r}, aid2={!r}'.format(aid1, aid2)
+        assert not ut.isiterable(aid2), 'aid1={!r}, aid2={!r}'.format(aid1, aid2)
 
     def _get_inference_info(self, edge):
         aid1, aid2 = edge
@@ -2127,9 +2130,9 @@ class EdgeAPIHelper(object):
             text_parts.append(state)
 
         if nid1 == nid2:
-            text_parts.append(' nid=%r' % (nid1,))
+            text_parts.append(' nid={!r}'.format(nid1))
         else:
-            text_parts.append(' nids=%r,%r' % (nid1, nid2))
+            text_parts.append(' nids={!r},{!r}'.format(nid1, nid2))
 
         if state == 'inconsistent_external':
             text_parts.append('(external)')
@@ -2524,7 +2527,7 @@ def make_qt_graph_review(qreq_, cm_list):
     infr = wbia.AnnotInference.from_qreq_(qreq_, cm_list)
 
     gt.ensure_qtapp()
-    logger.info('infr = %r' % (infr,))
+    logger.info('infr = {!r}'.format(infr))
     win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='review')
     abstract_interaction.register_interaction(win)
     win.show()
@@ -2580,9 +2583,9 @@ def make_qt_graph_interface(
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
     logger.info('[qt_graph] make_qt_graph_interface init()')
-    logger.info('[qt_graph] nids = %s' % (ut.trunc_repr(nids),))
-    logger.info('[qt_graph] aids = %s' % (ut.trunc_repr(aids),))
-    logger.info('[qt_graph] gids = %s' % (ut.trunc_repr(gids),))
+    logger.info('[qt_graph] nids = {}'.format(ut.trunc_repr(nids)))
+    logger.info('[qt_graph] aids = {}'.format(ut.trunc_repr(aids)))
+    logger.info('[qt_graph] gids = {}'.format(ut.trunc_repr(gids)))
     if gids is not None:
         nids = ut.unique(ut.flatten(ibs.get_image_nids(gids)))
     if nids is not None and aids is None:
@@ -2599,7 +2602,7 @@ def make_qt_graph_interface(
         rng = np.random.RandomState(42)
         aids = rng.choice(aids, 30, replace=False)
 
-    logger.info('make_qt_graph_interface aids = %r' % (aids,))
+    logger.info('make_qt_graph_interface aids = {!r}'.format(aids))
     nids = ibs.get_annot_name_rowids(aids)
     import wbia
 
@@ -2608,7 +2611,7 @@ def make_qt_graph_interface(
     infr.initialize_graph()
 
     gt.ensure_qtapp()
-    logger.info('infr = %r' % (infr,))
+    logger.info('infr = {!r}'.format(infr))
     win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=init_mode)
     abstract_interaction.register_interaction(win)
     win.show()

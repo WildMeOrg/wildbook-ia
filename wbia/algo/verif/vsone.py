@@ -10,26 +10,26 @@ CommandLine:
     python -m wbia.algo.verif.vsone deploy --db GZ_Master1
 
 """
-import logging
-import utool as ut
-import ubelt as ub
-import itertools as it
-import numpy as np
-import vtool as vt
-from wbia import dtool as dt
-import hashlib
 import copy
+import hashlib
+import itertools as it
+import logging
+from os.path import basename
+
+import numpy as np
 import pandas as pd
 import sklearn
+import sklearn.ensemble
 import sklearn.metrics
 import sklearn.model_selection
 import sklearn.multiclass
-import sklearn.ensemble
-from wbia.algo.verif import clf_helpers
-from wbia.algo.verif import deploy
-from wbia.algo.verif import pairfeat, verifier
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
-from os.path import basename
+import ubelt as ub
+import utool as ut
+import vtool as vt
+
+from wbia import dtool as dt
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNREV
+from wbia.algo.verif import clf_helpers, deploy, pairfeat, verifier
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -260,7 +260,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         logger.info('hyper_params: ' + ut.repr4(pblm.hyper_params.asdict(), nl=4))
         if updated:
-            logger.info('Externally updated params = %r' % (updated,))
+            logger.info('Externally updated params = {!r}'.format(updated))
 
     @classmethod
     def from_aids(OneVsOneProblem, ibs, aids, verbose=None, **params):
@@ -534,10 +534,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         We can do the same for negatives.
         """
-        from networkx.algorithms.connectivity import k_edge_subgraphs
-
         # from wbia.algo.graph import nx_utils as nxu
         import itertools as it
+
+        from networkx.algorithms.connectivity import k_edge_subgraphs
 
         infr = pblm.infr
 
@@ -855,7 +855,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # Remove any tasks that cant be done
         unsupported = set(task_keys) - set(pblm.samples.supported_tasks())
         for task_key in unsupported:
-            logger.info('No data to train task_key = %r' % (task_key,))
+            logger.info('No data to train task_key = {!r}'.format(task_key))
             task_keys.remove(task_key)
 
     def setup_evaluation(pblm, with_simple=False):
@@ -924,49 +924,42 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         clf_keys = pblm.eval_clf_keys
         data_keys = pblm.eval_data_keys
-        logger.info('data_keys = %r' % (data_keys,))
-        ut.cprint('--- TASK = %s' % (ut.repr2(task_key),), 'brightcyan')
+        logger.info('data_keys = {!r}'.format(data_keys))
+        ut.cprint('--- TASK = {}'.format(ut.repr2(task_key)), 'brightcyan')
         labels = pblm.samples.subtasks[task_key]
         if getattr(pblm, 'simple_aucs', None) is not None:
             pblm.report_simple_scores(task_key)
         for clf_key in clf_keys:
             # Combine results over datasets
-            logger.info('clf_key = %s' % (ut.repr2(clf_key),))
+            logger.info('clf_key = {}'.format(ut.repr2(clf_key)))
             data_combo_res = pblm.task_combo_res[task_key][clf_key]
             df_auc_ovr = pd.DataFrame(
-                dict(
-                    [
-                        (datakey, list(data_combo_res[datakey].roc_scores_ovr()))
-                        for datakey in data_keys
-                    ]
-                ),
+                {
+                    datakey: list(data_combo_res[datakey].roc_scores_ovr())
+                    for datakey in data_keys
+                },
                 index=labels.one_vs_rest_task_names(),
             )
-            ut.cprint('[%s] ROC-AUC(OVR) Scores' % (clf_key,), 'yellow')
+            ut.cprint('[{}] ROC-AUC(OVR) Scores'.format(clf_key), 'yellow')
             logger.info(to_string_monkey(df_auc_ovr, highlight_cols='all'))
 
             if clf_key.endswith('-OVR') and labels.n_classes > 2:
                 # Report un-normalized ovr measures if they available
-                ut.cprint('[%s] ROC-AUC(OVR_hat) Scores' % (clf_key,), 'yellow')
+                ut.cprint('[{}] ROC-AUC(OVR_hat) Scores'.format(clf_key), 'yellow')
                 df_auc_ovr_hat = pd.DataFrame(
-                    dict(
-                        [
-                            (datakey, list(data_combo_res[datakey].roc_scores_ovr_hat()))
-                            for datakey in data_keys
-                        ]
-                    ),
+                    {
+                        datakey: list(data_combo_res[datakey].roc_scores_ovr_hat())
+                        for datakey in data_keys
+                    },
                     index=labels.one_vs_rest_task_names(),
                 )
                 logger.info(to_string_monkey(df_auc_ovr_hat, highlight_cols='all'))
 
-            roc_scores = dict(
-                [
-                    (datakey, [data_combo_res[datakey].roc_score()])
-                    for datakey in data_keys
-                ]
-            )
+            roc_scores = {
+                datakey: [data_combo_res[datakey].roc_score()] for datakey in data_keys
+            }
             df_auc = pd.DataFrame(roc_scores)
-            ut.cprint('[%s] ROC-AUC(MacroAve) Scores' % (clf_key,), 'yellow')
+            ut.cprint('[{}] ROC-AUC(MacroAve) Scores'.format(clf_key), 'yellow')
             logger.info(to_string_monkey(df_auc, highlight_cols='all'))
 
             # best_data_key = 'learn(sum,glob,3)'
@@ -975,8 +968,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # selected_data_keys[task_key].append(best_data_key)
 
             combo_res = data_combo_res[best_data_key]
-            ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key), 'green')
-            with ut.Indenter('[%s] ' % (best_data_key,)):
+            ut.cprint('[{}] BEST DataKey = {!r}'.format(clf_key, best_data_key), 'green')
+            with ut.Indenter('[{}] '.format(best_data_key)):
                 combo_res.extended_clf_report()
             res = combo_res
             if 1:
@@ -1346,7 +1339,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         keep_cols = keep_cols[: len(keep_cols) - len(extra)].tolist() + extra.tolist()
         # Now print them
         ut.cprint(
-            '\n[None] ROC-AUC of simple scoring measures for %s' % (task_key,), 'yellow'
+            '\n[None] ROC-AUC of simple scoring measures for {}'.format(task_key),
+            'yellow',
         )
         logger.info(to_string_monkey(df_simple_auc[keep_cols], highlight_cols='all'))
 
@@ -1390,7 +1384,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # ut.qtensure()
         # import wbia.plottool as pt  # NOQA
         if clf_key != 'RF':
-            logger.info('Can only report importance for RF not %r' % (clf_key,))
+            logger.info('Can only report importance for RF not {!r}'.format(clf_key))
             return
 
         importances = pblm.feature_info(task_key, clf_key, data_key)
@@ -1398,7 +1392,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # Take average feature importance
         ut.cprint(
-            'MARGINAL IMPORTANCE INFO for %s on task %s' % (data_key, task_key), 'yellow'
+            'MARGINAL IMPORTANCE INFO for {} on task {}'.format(data_key, task_key),
+            'yellow',
         )
         logger.info(' Caption:')
         logger.info(' * The NaN row ensures that `weight` always sums to 1')
@@ -1947,6 +1942,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
 
     def print_featinfo(samples):
         for data_key in samples.X_dict.keys():
-            logger.info('\nINFO(samples.X_dict[%s])' % (data_key,))
+            logger.info('\nINFO(samples.X_dict[{}])'.format(data_key))
             featinfo = vt.AnnotPairFeatInfo(samples.X_dict[data_key])
             logger.info(ut.indent(featinfo.get_infostr()))

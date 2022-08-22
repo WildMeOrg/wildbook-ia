@@ -15,10 +15,12 @@ CommandLine:
     python -m wbia.control.DB_SCHEMA --test-autogen_db_schema
 """
 import logging
+
+import utool as ut
+
 from wbia import constants as const
 from wbia.control import _sql_helpers
 from wbia.dtool.dump import dumps
-import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -503,8 +505,8 @@ def post_1_2_1(db, ibs=None):
         name_rowids1 = db.get(ANNOTATION_TABLE, (NAME_ROWID,), aid_list)
         species_rowids1 = db.get(ANNOTATION_TABLE, (SPECIES_ROWID,), aid_list)
         # Look at the unique non-unknown ones
-        unique_name_rowids1 = sorted(list(set(name_rowids1) - set([UNKNOWN_ROWID])))
-        unique_species_rowids1 = sorted(list(set(species_rowids1) - set([UNKNOWN_ROWID])))
+        unique_name_rowids1 = sorted(list(set(name_rowids1) - {UNKNOWN_ROWID}))
+        unique_species_rowids1 = sorted(list(set(species_rowids1) - {UNKNOWN_ROWID}))
         # Get params out of label annotation tables
         name_params_list = db.get(LBLANNOT_TABLE, lblannot_colnames, unique_name_rowids1)
         species_params_list = db.get(
@@ -576,7 +578,7 @@ def post_1_2_1(db, ibs=None):
             semantic_infotup = get_annot_semantic_uuid_info_v121(
                 aid_list, _visual_infotup
             )
-            assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
+            assert len(semantic_infotup) == 6, 'len={!r}'.format(len(semantic_infotup))
             annot_semantic_uuid_list = [
                 ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)
             ]
@@ -589,7 +591,7 @@ def post_1_2_1(db, ibs=None):
 
         def update_annot_visual_uuids_v121(aid_list):
             visual_infotup = get_annot_visual_uuid_info_v121(aid_list)
-            assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
+            assert len(visual_infotup) == 3, 'len={!r}'.format(len(visual_infotup))
             annot_visual_uuid_list = [
                 ut.augment_uuid(*tup) for tup in zip(*visual_infotup)
             ]
@@ -659,7 +661,7 @@ def pre_1_3_1(db, ibs=None):
                 return semantic_infotup
 
             visual_infotup = pre_1_3_1_get_annot_visual_uuid_info(ibs, aid_list)
-            assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
+            assert len(visual_infotup) == 3, 'len={!r}'.format(len(visual_infotup))
             annot_visual_uuid_list = [
                 ut.augment_uuid(*tup) for tup in zip(*visual_infotup)
             ]
@@ -675,7 +677,7 @@ def pre_1_3_1(db, ibs=None):
             semantic_infotup = pre_1_3_1_get_annot_semantic_uuid_info(
                 ibs, aid_list, _visual_infotup
             )
-            assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
+            assert len(semantic_infotup) == 6, 'len={!r}'.format(len(semantic_infotup))
             annot_semantic_uuid_list = [
                 ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)
             ]
@@ -698,7 +700,7 @@ def pre_1_3_1(db, ibs=None):
                 aids = ut.take(aid_list, dupxs)
                 dupaids_list.append(aids[1:])
             toremove_aids = ut.flatten(dupaids_list)
-            logger.info('About to delete toremove_aids=%r' % (toremove_aids,))
+            logger.info('About to delete toremove_aids={!r}'.format(toremove_aids))
             ibs.db.delete_rowids(const.ANNOTATION_TABLE, toremove_aids)
 
             aid_list = ibs.get_valid_aids(is_staged=None)
@@ -1527,7 +1529,7 @@ def pre_1_4_9(db, ibs=None):
                 ibs._set_species_texts([rowid], [remapping_dict[text]])
 
                 # Delete obsolete cPkl file on disk
-                cPlk_path = join(ibs.get_dbdir(), '%s.cPkl' % (text,))
+                cPlk_path = join(ibs.get_dbdir(), '{}.cPkl'.format(text))
                 ut.delete(cPlk_path)
 
                 # Recompute all effected annotation's semantic UUIDs
@@ -1646,14 +1648,16 @@ def update_1_5_2(db, ibs=None):
 
 def post_1_5_2(db, ibs=None, verbose=False):
     if ibs is not None:
+        from os.path import exists
+
         from PIL import Image  # NOQA
+
         from wbia.algo.preproc.preproc_image import parse_exif
         from wbia.scripts import fix_annotation_orientation_issue as faoi
-        from os.path import exists
 
         def _parse_orient(gpath):
             if verbose:
-                logger.info('[db_update (1.5.2)]     Parsing: %r' % (gpath,))
+                logger.info('[db_update (1.5.2)]     Parsing: {!r}'.format(gpath))
             with Image.open(gpath, 'r') as pil_img:
                 time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
             return orient
@@ -2147,8 +2151,7 @@ def autogen_db_schema():
         >>> from wbia.control.DB_SCHEMA import *  # NOQA
         >>> autogen_db_schema()
     """
-    from wbia.control import DB_SCHEMA
-    from wbia.control import _sql_helpers
+    from wbia.control import DB_SCHEMA, _sql_helpers
 
     n = ut.get_argval('-n', int, default=-1)
     schema_spec = DB_SCHEMA

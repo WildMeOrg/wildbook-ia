@@ -16,43 +16,43 @@ BUGS:
 CommandLine:
     wbia --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --name-tab
 """
+import functools
 import logging
 from os.path import isdir
-import functools
+
 import utool as ut
-from wbia.guitool.__PYQT__ import QtCore
-from wbia.guitool.__PYQT__ import QtWidgets
-from wbia.guitool.__PYQT__.QtCore import Qt
-from wbia.guitool import slot_, ChangeLayoutContext
 
 # from wbia.guitool import BlockContext
 # from wbia.guitool import checks_qt_error
 import wbia.guitool as gt
 import wbia.plottool as pt
-from wbia.plottool import color_funcs
+from wbia import constants as const
 from wbia.gui import guiheaders as gh
 from wbia.gui import guimenus
-from wbia.viz.interact import interact_annotations2
 from wbia.gui.guiheaders import (
-    IMAGE_TABLE,
-    IMAGE_GRID,
     ANNOTATION_TABLE,
+    IMAGE_GRID,
+    IMAGE_TABLE,
+    IMAGESET_TABLE,
     NAME_TABLE,
     NAMES_TREE,
-    IMAGESET_TABLE,
 )
 from wbia.gui.models_and_views import (
+    IBEISItemModel,
     IBEISStripeModel,
     IBEISTableView,
-    IBEISItemModel,
+    IBEISTableWidget,
     IBEISTreeView,
+    IBEISTreeWidget,
     ImagesetTableModel,
     ImagesetTableView,
-    IBEISTableWidget,
-    IBEISTreeWidget,
     ImagesetTableWidget,
 )
-from wbia import constants as const
+from wbia.guitool import ChangeLayoutContext, slot_
+from wbia.guitool.__PYQT__ import QtCore, QtWidgets
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.plottool import color_funcs
+from wbia.viz.interact import interact_annotations2
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -87,11 +87,11 @@ class APITabWidget(QtWidgets.QTabWidget):
     def _on_tabletab_change(tabwgt, index):
         """Switch to the current imageset tab"""
         if VERBOSE_GUI:
-            logger.info('[apitab] _onchange(index=%r)' % (index,))
+            logger.info('[apitab] _onchange(index={!r})'.format(index))
         tblname = tabwgt.ibswgt.tblname_list[index]
         tabwgt.current_tblname = tblname
         if VERBOSE_GUI:
-            logger.info('[apitab] _onchange(tblname=%r)' % (tblname,))
+            logger.info('[apitab] _onchange(tblname={!r})'.format(tblname))
         tabwgt.ibswgt.back._clear_selection()
         view = tabwgt.ibswgt.views[tblname]
         selected = view.selectionModel().selection()
@@ -129,18 +129,18 @@ class ImageSetTabWidget(QtWidgets.QTabWidget):
     def _on_imagesettab_change(imageset_tabwgt, index):
         """Switch to the current imageset tab"""
         if VERBOSE_GUI:
-            logger.info('[imageset_tab_widget] _onchange(index=%r)' % (index,))
+            logger.info('[imageset_tab_widget] _onchange(index={!r})'.format(index))
         if 0 <= index and index < len(imageset_tabwgt.imgsetid_list):
             imgsetid = imageset_tabwgt.imgsetid_list[index]
             if VERBOSE_GUI:
-                logger.info('[IMAGESETTAB.ONCHANGE] imgsetid = %r' % (imgsetid,))
+                logger.info('[IMAGESETTAB.ONCHANGE] imgsetid = {!r}'.format(imgsetid))
             imageset_tabwgt.ibswgt._change_imageset(imgsetid)
         else:
             imageset_tabwgt.ibswgt._change_imageset(-1)
 
     @slot_(int)
     def _close_tab(imageset_tabwgt, index):
-        logger.info('[imageset_tab_widget] _close_tab(index=%r)' % (index,))
+        logger.info('[imageset_tab_widget] _close_tab(index={!r})'.format(index))
         if imageset_tabwgt.imgsetid_list[index] is not None:
             imageset_tabwgt.imgsetid_list.pop(index)
             imageset_tabwgt.removeTab(index)
@@ -186,7 +186,7 @@ class ImageSetTabWidget(QtWidgets.QTabWidget):
             index = imageset_tabwgt.imgsetid_list.index(imgsetid)
 
         if VERBOSE_GUI:
-            logger.info('[_add_imageset_tab] setCurrentIndex(index=%r)' % (index,))
+            logger.info('[_add_imageset_tab] setCurrentIndex(index={!r})'.format(index))
         imageset_tabwgt.setCurrentIndex(index)
         # Dont call this, it is triggered twice
         # imageset_tabwgt._on_imagesettab_change(index)
@@ -699,7 +699,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         tblnames = ibswgt.super_tblname_list if tblnames is None else tblnames
         if VERBOSE_GUI:
-            logger.info('[newgui] changing_models_gen(tblnames=%r)' % (tblnames,))
+            logger.info('[newgui] changing_models_gen(tblnames={!r})'.format(tblnames))
         model_list = [ibswgt.models[tblname] for tblname in tblnames]
         # model_list = [ibswgt.models[tblname] for tblname in tblnames if
         # ibswgt.views[tblname].isVisible()]
@@ -709,7 +709,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def update_tables(ibswgt, tblnames=None, clear_view_selection=True):
         """forces changing models"""
-        logger.info('[newgui] update_tables(%r)' % (tblnames,))
+        logger.info('[newgui] update_tables({!r})'.format(tblnames))
         hack_selections = []
         # logger.info('[new_gui.UPDATE_TABLES]')
         for tblname in ibswgt.changing_models_gen(tblnames=tblnames):
@@ -726,7 +726,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def connect_wbia_control(ibswgt, ibs):
         """Connects a new ibscontroler to the models"""
         if VERBOSE_GUI:
-            logger.info('[newgui] connect_wbia_control(ibs=%r)' % (ibs,))
+            logger.info('[newgui] connect_wbia_control(ibs={!r})'.format(ibs))
         ibswgt.imageset_tabwgt._close_all_tabs()
         if ibs is None:
             if VERBOSE_GUI:
@@ -762,11 +762,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 else:
                     dbdir = ibs.get_dbdir()
                     dbname = ibs.get_dbname()
-                    title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
+                    title = 'IBEIS - {!r} - Database Directory = {}'.format(dbname, dbdir)
                     wb_target = ibs.const.WILDBOOK_TARGET
                     # params.args.wildbook_target
                     if wb_target is not None:
-                        title = '%s - Wildbook Target = %s' % (title, wb_target)
+                        title = '{} - Wildbook Target = {}'.format(title, wb_target)
                 return title
 
             title = get_title(ibswgt.ibs)
@@ -843,17 +843,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             reselect_new_name = ibs.get_species_nice(species_rowid)
             if VERBOSE_GUI:
                 logger.info(
-                    '[front] Reselecting old selection: %r' % (reselect_new_name,)
+                    '[front] Reselecting old selection: {!r}'.format(reselect_new_name)
                 )
         nice_name_list = [str(_[0]) for _ in detection_combo_box_options]
         if reselect_new_name in nice_name_list:
             reselect_index = nice_name_list.index(reselect_new_name)
             if VERBOSE_GUI:
                 logger.info(
-                    '[front] Reselecting renamed selection: %r' % (reselect_new_name,)
+                    '[front] Reselecting renamed selection: {!r}'.format(
+                        reselect_new_name
+                    )
                 )
         if VERBOSE_GUI:
-            logger.info('[front] Reselecting index: %r' % (reselect_index,))
+            logger.info('[front] Reselecting index: {!r}'.format(reselect_index))
         # ibswgt.species_combo.setOptions(detection_combo_box_options)
         # ibswgt.species_combo.updateOptions(reselect=reselect, reselect_index=reselect_index)
 
@@ -900,9 +902,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         index = ibswgt.tablename_to_status_widget_index[key]
 
         if len(ids) <= 1:
-            text2 = 'Selected %s:' % (ibswgt.key_to_objnice[key],)
+            text2 = 'Selected {}:'.format(ibswgt.key_to_objnice[key])
         else:
-            text2 = 'Selected %s %s:' % (
+            text2 = 'Selected {} {}:'.format(
                 len(ids),
                 ut.pluralize(ibswgt.key_to_objnice[key], len(ids)),
             )
@@ -921,14 +923,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
         """
         if VERBOSE_GUI:
-            logger.info('[newgui] set_table_tab: %r ' % (tblname,))
+            logger.info('[newgui] set_table_tab: {!r} '.format(tblname))
         with ut.Timer('set table tab', verbose=VERBOSE_GUI):
             index = ibswgt.get_table_tab_index(tblname)
             ibswgt._tables_tab_widget.setCurrentIndex(index)
 
     def select_imageset_tab(ibswgt, imgsetid):
         if VERBOSE_GUI:
-            logger.info('[newgui] select_imageset_tab imgsetid=%r' % (imgsetid,))
+            logger.info('[newgui] select_imageset_tab imgsetid={!r}'.format(imgsetid))
         if isinstance(imgsetid, str):
             # Hack
             imagesettext = imgsetid
@@ -971,7 +973,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         TODO: needs reimplement using more standard interaction methods
         """
-        logger.info('[newgui] Creating new annotation interaction: gid=%r' % (gid,))
+        logger.info('[newgui] Creating new annotation interaction: gid={!r}'.format(gid))
         ibs = ibswgt.ibs
         # Select gid
         ibswgt.back.select_gid(gid, imgsetid, show=False)
@@ -1068,11 +1070,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 cur_gid = ibswgt.ibs.get_annot_gids(cur_aid)
             else:
                 raise NotImplementedError(
-                    'Unknown model.name=%r, cur_level=%r' % (model.name, cur_level)
+                    'Unknown model.name={!r}, cur_level={!r}'.format(
+                        model.name, cur_level
+                    )
                 )
         else:
-            logger.info('gh.IMAGE_TABLE = %r' % (gh.IMAGE_TABLE,))
-            raise NotImplementedError('Unknown model.name =%r' % (model.name,))
+            logger.info('gh.IMAGE_TABLE = {!r}'.format(gh.IMAGE_TABLE))
+            raise NotImplementedError('Unknown model.name ={!r}'.format(model.name))
         next_qtindex = model._get_adjacent_qtindex(qtindex, 1)
         prev_qtindex = model._get_adjacent_qtindex(qtindex, -1)
         numclicks = [0]  # semephore
@@ -1089,7 +1093,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 nextcb, prevcb, new_gid1 = ibswgt._interactannot2_callbacks(
                     model, qtindex_
                 )
-                logger.info('[newgui] %s_callback: new_gid1=%r' % (type_, new_gid1))
+                logger.info('[newgui] {}_callback: new_gid1={!r}'.format(type_, new_gid1))
                 ibswgt.annot_interact.update_image_and_callbacks(
                     new_gid1, nextcb, prevcb, do_save=True
                 )
@@ -1159,8 +1163,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         if not ut.QUIET:
             logger.info('[newgui] select_table_indicies_from_text')
-            logger.info('[newgui]  * gh.tblname = %r' % (tblname,))
-            logger.info('[newgui]  * text = %r' % (text,))
+            logger.info('[newgui]  * gh.tblname = {!r}'.format(tblname))
+            logger.info('[newgui]  * text = {!r}'.format(text))
         to_backend_tablename = {
             gh.ANNOTATION_TABLE: const.ANNOTATION_TABLE,
             gh.NAMES_TREE: const.NAME_TABLE,
@@ -1168,7 +1172,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         }
         backend_tablename = to_backend_tablename[tblname]
         if not ut.QUIET:
-            logger.info('[newgui]  * backend_tablename = %r' % (backend_tablename,))
+            logger.info('[newgui]  * backend_tablename = {!r}'.format(backend_tablename))
         if text == '':
             text = '[]'
         try:
@@ -1198,7 +1202,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ut.printex(ex, iswarning=True, keys=['text'])
         else:
             if not ut.QUIET:
-                logger.info('[newgui]  * id_list = %r' % (id_list,))
+                logger.info('[newgui]  * id_list = {!r}'.format(id_list))
             # logger.info(id_list)
             id_list = ibswgt.back._set_selection3(backend_tablename, id_list, mode='set')
 
@@ -1240,7 +1244,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt._tables_tab_widget.setTabText(index, text)
 
     def goto_table_id(ibswgt, tablename, _id):
-        logger.info('[newgui] goto_table_id(tablenamd=%r, _id=%r)' % (tablename, _id))
+        logger.info(
+            '[newgui] goto_table_id(tablenamd={!r}, _id={!r})'.format(tablename, _id)
+        )
         ibswgt.set_table_tab(tablename)
         view = ibswgt.views[tablename]
         view.select_row_from_id(_id, scroll=True)
@@ -1378,8 +1384,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Delete annotation', lambda: ibswgt.back.delete_annot(aid_list)),
                     ('----', lambda: None),
                 ]
-                from wbia.viz.interact import interact_chip
                 from wbia import viz
+                from wbia.viz.interact import interact_chip
 
                 context_options += interact_chip.build_annot_context_options(
                     ibswgt.back.ibs,
@@ -1437,7 +1443,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     from wbia.dbio import export_subset
 
                     if not back.are_you_sure(
-                        'Confirm export of nid_list=%r' % (nid_list,)
+                        'Confirm export of nid_list={!r}'.format(nid_list)
                     ):
                         return
                     export_subset.export_names(ibs, nid_list)
@@ -1524,7 +1530,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 annot_options = [
                     (
-                        'Options aid=%r' % (aid,),
+                        'Options aid={!r}'.format(aid),
                         build_annot_context_options(
                             ibswgt, ibs, [aid], imgsetid, goto_image=False
                         ),
@@ -1533,7 +1539,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
                 if len(aid_list) == 1:
                     annot_option_item = (
-                        'Annot Options (aid=%r)' % (aid_list[0],),
+                        'Annot Options (aid={!r})'.format(aid_list[0]),
                         annot_options[0][1],
                     )
                 else:
@@ -1817,7 +1823,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> ibswgt.imagesDropped(url_list)
             >>> testdata_main_loop(globals(), locals())
         """
-        logger.info('[drop_event] url_list=%r' % (url_list,))
+        logger.info('[drop_event] url_list={!r}'.format(url_list))
         has_zipext = ut.partial(ut.fpath_has_ext, exts=['.zip'])
         gpath_list = list(filter(ut.fpath_has_imgext, url_list))
         dir_list = list(filter(isdir, url_list))
@@ -1839,7 +1845,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     gpath_list.extend(flat_unix_gpaths)
                 else:
                     return
-            logger.info('[drop_event] gpath_list=%r' % (gpath_list,))
+            logger.info('[drop_event] gpath_list={!r}'.format(gpath_list))
             if len(gpath_list) > 0:
                 ibswgt.back.import_images_from_file(gpath_list=gpath_list)
         else:
@@ -1871,9 +1877,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             dlg.resize(700, 500)
             self = dlg.widget
             dlg.exec_()
-            logger.info('config = %r' % (config,))
+            logger.info('config = {!r}'.format(config))
             updated_config = self.config  # NOQA
-            logger.info('updated_config = %r' % (updated_config,))
+            logger.info('updated_config = {!r}'.format(updated_config))
             gid_list = ingestable.execute(ibs=ibs)
             ibswgt.back._process_new_images(
                 refresh=True, gid_list=gid_list, clock_offset=False

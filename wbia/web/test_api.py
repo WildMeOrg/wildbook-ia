@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """This is a proof of concept for connecting to an authenticated Qubica Server"""
+import hmac
 import logging
 from hashlib import sha1
-import utool as ut
-import hmac
-import requests
 
+import requests
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -20,7 +20,7 @@ APPLICATION_SECRET_KEY = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 
 
 def _raise(exception, message):
-    raise exception('[%s] ERROR: %s' % (__file__, message))
+    raise exception('[{}] ERROR: {}'.format(__file__, message))
 
 
 def get_signature(key, message):
@@ -30,17 +30,17 @@ def get_signature(key, message):
 def get_authorization_header(uri, user_email=None, user_enc_pass=None):
     # Get signature
     secret_key_signature = get_signature(APPLICATION_SECRET_KEY, uri)
-    application_authentication = '%s:%s' % (APPLICATION_NAME, secret_key_signature)
+    application_authentication = '{}:{}'.format(APPLICATION_NAME, secret_key_signature)
     if user_email is None or user_enc_pass is None:
-        return '%s' % (application_authentication,)
-    return '%s:%s:%s' % (application_authentication, user_email, user_enc_pass)
+        return '{}'.format(application_authentication)
+    return '{}:{}:{}'.format(application_authentication, user_email, user_enc_pass)
 
 
 def _api_result(uri, method, user_email=None, user_enc_pass=None, **kwargs):
     """Make a general (method) API request to the server"""
     # Make GET request to server
     method = method.upper()
-    url = '%s://%s:%s%s' % (
+    url = '{}://{}:{}{}'.format(
         APPLICATION_PROTOCOL,
         APPLICATION_DOMAIN,
         APPLICATION_PORT,
@@ -61,9 +61,9 @@ def _api_result(uri, method, user_email=None, user_enc_pass=None, **kwargs):
         elif method == 'POST':
             req = requests.post(url, headers=headers, payload=kwargs, verify=False)
         else:
-            _raise(KeyError, '_api_result got unsupported method=%r' % (method,))
+            _raise(KeyError, '_api_result got unsupported method={!r}'.format(method))
     except requests.exceptions.ConnectionError as ex:
-        _raise(IOError, '_api_result could not connect to server %s' % (ex,))
+        _raise(IOError, '_api_result could not connect to server {}'.format(ex))
     return req.status_code, req.text, req.json
 
 
@@ -94,8 +94,9 @@ def run_test_api():
         >>> result = response
         (200, u'{"status": {"cache": -1, "message": "", "code": 200, "success": true}, "response": "testdb1"}', <bound method Response.json of <Response [200]>>)
     """
-    import wbia
     import time
+
+    import wbia
 
     global APPLICATION_PORT
 
@@ -108,7 +109,7 @@ def run_test_api():
         web_port = web_instance.get_web_port_via_scan()
         if web_port is None:
             raise ValueError('IA web server is not running on any expected port')
-        APPLICATION_PORT = '%s' % (web_port,)
+        APPLICATION_PORT = '{}'.format(web_port)
     assert APPLICATION_PORT is not None
 
     # let the webapi startup in the background

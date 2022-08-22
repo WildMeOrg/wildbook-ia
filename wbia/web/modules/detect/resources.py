@@ -7,13 +7,12 @@ RESTful API Detect resources
 
 import logging
 
+from flask import current_app
+
 from flask_restx_patched import Resource
 from wbia.web.extensions.api import Namespace
 
-from flask import current_app
-
 from . import parameters
-
 
 log = logging.getLogger(__name__)
 api = Namespace('detect', description='Detect')

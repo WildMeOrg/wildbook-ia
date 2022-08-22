@@ -2,16 +2,18 @@
 """
 Dependencies: flask, tornado
 """
-import tornado.wsgi
-import tornado.httpserver
 import logging
 import socket
+
+import tornado.httpserver
+import tornado.wsgi
+import utool as ut
+from tornado.log import access_log
+
 from wbia.control import controller_inject
 from wbia.web import apis_engine
-from wbia.web import job_engine
 from wbia.web import appfuncs as appf
-from tornado.log import access_log
-import utool as ut
+from wbia.web import job_engine
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -23,6 +25,7 @@ try:
     except Exception:
         from werkzeug.middleware.dispatcher import DispatcherMiddleware
     import prometheus_client
+
     from wbia.web import prometheus  # NOQA
 
     PROMETHEUS = True
@@ -95,8 +98,8 @@ def start_tornado(
         socket.setdefaulttimeout(None)
         app.server_port = port_
         # URL for the web instance
-        app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
-        logger.info('[web] Tornado server starting at %s' % (app.server_url,))
+        app.server_url = 'http://{}:{}'.format(app.server_domain, app.server_port)
+        logger.info('[web] Tornado server starting at {}'.format(app.server_url))
         # Launch the web browser to view the web interface and API
 
         # Initialize all version 2 extensions
@@ -111,13 +114,13 @@ def start_tornado(
 
         logger.info('Using route rules:')
         for rule in app.url_map.iter_rules():
-            logger.info('\t%r' % (rule,))
+            logger.info('\t{!r}'.format(rule))
 
         if browser:
             url = app.server_url + url_suffix
             import webbrowser
 
-            logger.info('[web] opening browser with url = %r' % (url,))
+            logger.info('[web] opening browser with url = {!r}'.format(url))
             webbrowser.open(url)
 
         if PROMETHEUS:
@@ -167,10 +170,8 @@ def start_tornado(
                 )
             else:
                 raise RuntimeError(
-                    (
-                        ('The specified web port %d is not available, ' 'but %d is')
-                        % (app.server_port, fallback_port)
-                    )
+                    ('The specified web port %d is not available, ' 'but %d is')
+                    % (app.server_port, fallback_port)
                 )
 
         # Add more verbose logging

@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 """Dependencies: flask, tornado."""
 import logging
-from wbia.control import accessor_decors, controller_inject
-from wbia import constants as const
-import utool as ut
-import simplejson as json
-from os.path import join, dirname, abspath, exists
-from flask import url_for, request, current_app
-from wbia.constants import KEY_DEFAULTS, SPECIES_KEY
-from wbia.web import appfuncs as appf
+from os.path import abspath, dirname, exists, join
+
 import numpy as np
+import simplejson as json
+import utool as ut
+from flask import current_app, request, url_for
+
+from wbia import constants as const
+from wbia.constants import KEY_DEFAULTS, SPECIES_KEY
+from wbia.control import accessor_decors, controller_inject
+from wbia.web import appfuncs as appf
 
 logger = logging.getLogger('wbia')
 
@@ -134,8 +136,8 @@ def review_detection_test(
     )
     template_html = """
         <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
-        %s
-    """ % (
+        {}
+    """.format(
         template_html,
     )
     return template_html
@@ -329,17 +331,17 @@ def review_detection_html(
     part_types_list = map(ibs.get_part_types, part_rowids_list)
 
     zipped = list(zip(part_species_text_list, part_types_list))
-    species_part_dict = {const.UNKNOWN: set([])}
+    species_part_dict = {const.UNKNOWN: set()}
     for part_species_text, part_type_list in zipped:
         if part_species_text not in species_part_dict:
-            species_part_dict[part_species_text] = set([const.UNKNOWN])
+            species_part_dict[part_species_text] = {const.UNKNOWN}
         for part_type in part_type_list:
             species_part_dict[part_species_text].add(part_type)
             species_part_dict[const.UNKNOWN].add(part_type)
     # Add any images that did not get added because they aren't assigned any annotations
     for species_text in species_text_list:
         if species_text not in species_part_dict:
-            species_part_dict[species_text] = set([const.UNKNOWN])
+            species_part_dict[species_text] = {const.UNKNOWN}
     for key in species_part_dict:
         species_part_dict[key] = sorted(list(species_part_dict[key]))
     species_part_dict_json = json.dumps(species_part_dict)
@@ -690,8 +692,8 @@ def models_cnn_yolo(ibs, **kwargs):
     """
     from pydarknet._pydarknet import (
         CONFIG_URL_DICT,
-        _parse_classes_from_cfg,
         _parse_class_list,
+        _parse_classes_from_cfg,
     )
 
     model_dict = ibs.models_cnn(
@@ -1145,13 +1147,13 @@ def commit_detection_results_filtered(
 
 @register_ibs_method
 def log_detections(ibs, aid_list, fallback=True):
-    import time
     import os
+    import time
 
     json_log_path = ibs.get_logdir_local()
     json_log_filename = 'detections.json'
     json_log_filepath = os.path.join(json_log_path, json_log_filename)
-    logger.info('Logging detections added to: %r' % (json_log_filepath,))
+    logger.info('Logging detections added to: {!r}'.format(json_log_filepath))
 
     try:
         # Log has never been made, create one

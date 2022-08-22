@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import numpy as np
-import vtool as vt
 import utool as ut
+import vtool as vt
+
 from wbia.control import controller_inject
 
 print, rrr, profile = ut.inject2(__name__)
@@ -86,8 +88,8 @@ for key, val in PROP_MAPPING.items():
     if val is not None and val not in ANNOTMATCH_PROPS_OTHER:
         ANNOTMATCH_PROPS_OTHER.append(val)
 
-ANNOTMATCH_PROPS_OTHER_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_OTHER])
-ANNOTMATCH_PROPS_OLD_SET = set([_.lower() for _ in OLD_ANNOTMATCH_PROPS])
+ANNOTMATCH_PROPS_OTHER_SET = {_.lower() for _ in ANNOTMATCH_PROPS_OTHER}
+ANNOTMATCH_PROPS_OLD_SET = {_.lower() for _ in OLD_ANNOTMATCH_PROPS}
 # ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDARD])
 
 
@@ -509,8 +511,8 @@ def filterflags_general_tags(
         >>> result = ('result = %s' % (ut.repr2(filtered),))
         result = [['vn', 'no'], ['n', 'o'], ['n', 'N'], ['n'], ['n', 'nP']]
     """
-    import re
     import operator
+    import re
 
     def fix_tags(tags):
         return {str(t.lower()) for t in tags}
@@ -699,7 +701,7 @@ def get_annotmatch_prop(ibs, prop, annotmatch_rowids):
         flag1 = prop_.lower() not in ANNOTMATCH_PROPS_OTHER_SET
         flag2 = prop_.lower() not in ANNOTMATCH_PROPS_OLD_SET
         if flag1 and flag2:
-            raise NotImplementedError('Unknown prop_=%r' % (prop_,))
+            raise NotImplementedError('Unknown prop_={!r}'.format(prop_))
     return get_annotmatch_other_prop(ibs, prop, annotmatch_rowids)
 
 
@@ -721,7 +723,7 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
         return set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags)
     else:
         raise NotImplementedError(
-            'Unknown prop=%r not in %r' % (prop, ANNOTMATCH_PROPS_OTHER_SET)
+            'Unknown prop={!r} not in {!r}'.format(prop, ANNOTMATCH_PROPS_OTHER_SET)
         )
 
 

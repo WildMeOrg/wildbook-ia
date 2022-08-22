@@ -2,13 +2,17 @@
 ### __init__.py ###
 # flake8: noqa
 import logging
-from wbia.expt import experiment_configs
-from wbia.expt import experiment_drawing
-from wbia.expt import test_result
-from wbia.expt import harness
-from wbia.expt import experiment_helpers
-from wbia.expt import experiment_printres
+
 import utool as ut
+
+from wbia.expt import (
+    experiment_configs,
+    experiment_drawing,
+    experiment_helpers,
+    experiment_printres,
+    harness,
+    test_result,
+)
 
 print, rrr, profile = ut.inject2(__name__, '[wbia.expt]')
 logger = logging.getLogger('wbia')
@@ -26,7 +30,7 @@ def reassign_submodule_attributes(verbose=True):
     import wbia.expt
 
     # Implicit reassignment.
-    seen_ = set([])
+    seen_ = set()
     for tup in IMPORT_TUPLES:
         if len(tup) > 2 and tup[2]:
             continue  # dont import package names

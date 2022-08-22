@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import itertools as it
-import numpy as np
+
 import matplotlib as mpl
+import numpy as np
 import utool as ut
+
 from wbia.plottool import color_funcs as color_fns
 
 ut.noinject(__name__, '[pt.mpl_sift]')
@@ -214,7 +216,7 @@ def get_sift_collection(
     if ENABLE_PATH_EFFECTS:
         from matplotlib import patheffects
 
-        print('stroke = %r' % (stroke,))
+        print('stroke = {!r}'.format(stroke))
         if stroke > 0:
             path_effects.append(
                 patheffects.withStroke(linewidth=arm1_lw + stroke, foreground='k')

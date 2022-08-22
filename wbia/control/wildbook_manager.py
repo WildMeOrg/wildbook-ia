@@ -14,12 +14,13 @@ Utils:
 
 """
 import logging
-import utool as ut
-import subprocess
-import re
-import time
 import os
-from os.path import dirname, join, basename, splitext
+import re
+import subprocess
+import time
+from os.path import basename, dirname, join, splitext
+
+import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -93,7 +94,7 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         dpath_list, fname_list, priority_paths, required_subpaths, verbose=verbose
     )
     tomcat_dpath = return_path
-    logger.info('tomcat_dpath = %r ' % (tomcat_dpath,))
+    logger.info('tomcat_dpath = {!r} '.format(tomcat_dpath))
     return tomcat_dpath
 
 
@@ -125,7 +126,7 @@ def download_tomcat():
         for fname in scriptnames:
             fpath = join(tomcat_dpath, 'bin', fname)
             if not ut.is_file_executable(fpath):
-                logger.info('Adding executable bits to script %r' % (fpath,))
+                logger.info('Adding executable bits to script {!r}'.format(fpath))
                 ut.chmod_add_executable(fpath)
     return tomcat_dpath
 
@@ -320,7 +321,7 @@ def ensure_local_war(verbose=ut.NOT_QUIET):
         _java_version = output.split('\n')[0]
         _java_version = _java_version.replace('java version ', '')
         java_version = _java_version.replace('"', '')
-        logger.info('java_version = %r' % (java_version,))
+        logger.info('java_version = {!r}'.format(java_version))
         if not java_version.startswith('1.7'):
             logger.info('Warning wildbook is only supported for java 1.7')
     except OSError:
@@ -501,7 +502,7 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         match = re.search(pattern, permission_text, flags=re.MULTILINE | re.DOTALL)
         if match is None:
             continue
-        newline = '<!--%s -->' % (line,)
+        newline = '<!--{} -->'.format(line)
         repl = ut.bref_field('prefix') + newline + ut.bref_field('suffix')
         new_permission_text = re.sub(
             pattern, repl, permission_text, flags=re.MULTILINE | re.DOTALL
@@ -518,7 +519,7 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         unpacked_war_dpath, 'WEB-INF/classes/bundles/jdoconfig.properties'
     )
     logger.info('Fixing backend database config')
-    logger.info('jdoconfig_fpath = %r' % (jdoconfig_fpath,))
+    logger.info('jdoconfig_fpath = {!r}'.format(jdoconfig_fpath))
     ut.assertpath(jdoconfig_fpath)
     jdoconfig_text = ut.readfrom(jdoconfig_fpath)
     # ut.vd(dirname(jdoconfig_fpath))
@@ -617,7 +618,7 @@ def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
     web_port = ibs.get_web_port_via_scan()
     if web_port is None:
         raise ValueError('IA web server is not running on any expected port')
-    ia_hostport = 'http://127.0.0.1:%s' % (web_port,)
+    ia_hostport = 'http://127.0.0.1:{}'.format(web_port)
     ia_rest_prefix = ut.named_field('prefix', 'IBEISIARestUrl.*')
     host_port = ut.named_field('host_port', 'http://.*?:[0-9]+')
     content = re.sub(
@@ -628,7 +629,7 @@ def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
     if orig_content != content:
         need_sudo = not ut.is_file_writable(wildbook_config_fpath_dst)
         if need_sudo:
-            quoted_content = '"%s"' % (content,)
+            quoted_content = '"{}"'.format(content)
             logger.info('Attempting to gain sudo access to update wildbook config')
             command = [
                 'sudo',

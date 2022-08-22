@@ -94,10 +94,10 @@ FIXME:
     Theano
     Lasange
 """
-from os.path import dirname, realpath
+import os
 import platform
 import sys
-import os
+from os.path import dirname, realpath
 
 # -----------------
 # SYSTEM ENTRY POINT, NO UTOOL, BARE PYTHON
@@ -236,11 +236,12 @@ def get_plat_specifier():
     """
     Standard platform specifier used by distutils
     """
-    import setuptools  # NOQA
     import distutils
 
+    import setuptools  # NOQA
+
     plat_name = distutils.util.get_platform()
-    plat_specifier = '.%s-%s' % (plat_name, sys.version[0:3])
+    plat_specifier = '.{}-{}'.format(plat_name, sys.version[0:3])
     if hasattr(sys, 'gettotalrefcount'):
         plat_specifier += '-pydebug'
     return plat_specifier
@@ -294,9 +295,9 @@ def syscmd(cmdstr):
 
 
 def in_virtual_env():
-    print('sys.real_prefix=%r' % (getattr(sys, 'real_prefix', None),))
-    print('sys.base_prefix=%r' % (getattr(sys, 'base_prefix', None),))
-    print('sys.prefix=%r' % (getattr(sys, 'prefix', None),))
+    print('sys.real_prefix={!r}'.format(getattr(sys, 'real_prefix', None)))
+    print('sys.base_prefix={!r}'.format(getattr(sys, 'base_prefix', None)))
+    print('sys.prefix={!r}'.format(getattr(sys, 'prefix', None)))
     in_venv = False
     if hasattr(sys, 'real_prefix'):
         # For virtualenv module
@@ -1016,7 +1017,7 @@ def move_wildme(wbia_rman, fmt):
 
         wildme_url = repo._new_remote_url(host='github.com', user=wildme_user, fmt=fmt)
         remotes = repo.remotes
-        message = 'Checking %s for move to wildme' % (repo,)
+        message = 'Checking {} for move to wildme'.format(repo)
         print(message)
 
         incorrect_version = repo._ensure_remote_exists(wildme_remote, wildme_url)
@@ -1034,14 +1035,16 @@ def move_wildme(wbia_rman, fmt):
                     if origin_user not in remotes:
                         # first add a remote that is the original origin
                         origin_url = origin['url']
-                        print('  * Create remote %r: %r' % (origin_user, origin_url))
+                        print(
+                            '  * Create remote {!r}: {!r}'.format(origin_user, origin_url)
+                        )
                         gitrepo.create_remote(origin_user, origin_url)
                     # change origin to use wildme url
                     gitorigin = gitrepo.remote('origin')
-                    print('  * Change origin url to %r' % (wildme_url,))
+                    print('  * Change origin url to {!r}'.format(wildme_url))
                     gitorigin.set_url(wildme_url)
             except Exception:
-                print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo,))
+                print('\tWARNING: COULD NOT MIGRATE REPO = {!r}'.format(repo))
 
         repo.change_url_format(fmt)
 
@@ -1065,7 +1068,7 @@ def execute_commands(tpl_rman, wbia_rman):
 
     CODE_DIR, pythoncmd, WIN32, PY2, PY3 = get_sysinfo()
 
-    print('wbia_rman = %r' % (wbia_rman,))
+    print('wbia_rman = {!r}'.format(wbia_rman))
 
     wildme_ssh_flags = GET_ARGFLAG('--move-wildme') or GET_ARGFLAG('--move-wildme-ssh')
     wildme_https_flags = GET_ARGFLAG('--move-wildme-https') or GET_ARGFLAG(
@@ -1190,14 +1193,14 @@ def execute_commands(tpl_rman, wbia_rman):
             repo.custom_build()
 
         for repo, recommended_fix in problems:
-            print('Trying to fix repo = %r' % (repo,))
-            print(' * recommended_fix = %r' % (recommended_fix,))
+            print('Trying to fix repo = {!r}'.format(repo))
+            print(' * recommended_fix = {!r}'.format(recommended_fix))
             if recommended_fix == 'rebuild':
                 repo.custom_build()
                 print('Can currently only fix one module at a time. Please re-run')
                 sys.exit(1)
             else:
-                print('Not sure how to fix %r' % (repo,))
+                print('Not sure how to fix {!r}'.format(repo))
 
     if GET_ARGFLAG('--pull'):
         wbia_rman.issue('git pull')
@@ -1264,7 +1267,7 @@ def execute_commands(tpl_rman, wbia_rman):
         try:
             wbia_rman.issue('git checkout "{branch_name}"'.format(**locals()))
         except Exception:
-            print('ERROR: Could not checkout branch: %r' % (branch_name,))
+            print('ERROR: Could not checkout branch: {!r}'.format(branch_name))
 
     # Creates new branches
     newbranch_name = GET_ARGVAL('--newbranch', type_=str, default=None)
@@ -1328,7 +1331,7 @@ def execute_commands(tpl_rman, wbia_rman):
                 repo_dpath, recursive=False, only_packages=True
             )
             modname_list = ut.lmap(ut.get_modname_from_modpath, mod_dpaths)
-            print('Checking modules = %r' % (modname_list,))
+            print('Checking modules = {!r}'.format(modname_list))
 
             for modname in modname_list:
                 try:
@@ -1338,7 +1341,7 @@ def execute_commands(tpl_rman, wbia_rman):
                     failures += [modname]
                     print(modname + ' failure')
 
-        print('failures = %s' % (ut.repr3(failures),))
+        print('failures = {}'.format(ut.repr3(failures)))
 
     if False:
         # General global git command
@@ -1348,7 +1351,9 @@ def execute_commands(tpl_rman, wbia_rman):
                 'yes'
                 if GET_ARGFLAG('-y')
                 else input(
-                    'Are you sure you want to run: %r on all directories? ' % (gg_cmd,)
+                    'Are you sure you want to run: {!r} on all directories? '.format(
+                        gg_cmd
+                    )
                 )
             )
             if ans == 'yes':
@@ -1434,8 +1439,8 @@ def main():
         print('python super_setup.py --flann')
 
     try:
-        import theano  # NOQA
         import lasagne  # NOQA
+        import theano  # NOQA
     except ImportError:
         print('Need to install Theano/Lasagne/Pylearn2')
         print('python super_setup.py --dcnn')

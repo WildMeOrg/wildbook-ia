@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
+
 import numpy as np
-import vtool as vt
 import torch
+import utool as ut
+import vtool as vt
 
 # from torch.autograd import Variable  # NOQA
 print, rrr, profile = ut.inject2(__name__)

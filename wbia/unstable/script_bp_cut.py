@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
-import numpy as np
-import pandas as pd
-import vtool as vt  # NOQA
+
 import networkx as nx
+import numpy as np
 import opengm
-import wbia.plottool as pt  # NOQA
+import pandas as pd
 import utool as ut
+import vtool as vt  # NOQA
+
+import wbia.plottool as pt  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -359,8 +361,8 @@ def build_factor_graph(
                 """
                 python -m wbia.plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
                 """
-                logger.info('valueNotEqual = %r' % (valueNotEqual,))
-                logger.info('p_same = %r' % (p_same,))
+                logger.info('valueNotEqual = {!r}'.format(valueNotEqual))
+                logger.info('p_same = {!r}'.format(p_same))
                 raise ValueError('valueNotEqual')
         else:
             valueEqual = p_same
@@ -415,7 +417,7 @@ def cut_step(
         infr.infer()
         labels = rectify_labels(G, infr.arg())
         logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        logger.info('value = %r' % (infr.value(),))
+        logger.info('value = {!r}'.format(infr.value()))
 
         mc_params = opengm.InfParam(
             maximalNumberOfConstraintsPerRound=1000000,
@@ -438,7 +440,7 @@ def cut_step(
 
         ut.cprint('Multicut Labels: (energy minimization)', 'blue')
         logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        logger.info('value = %r' % (infr.value(),))
+        logger.info('value = {!r}'.format(infr.value()))
 
         if pass_values is not None:
             gotany = False
@@ -448,7 +450,7 @@ def cut_step(
                     break
             if not gotany:
                 ut.cprint('INCORRECT DID NOT GET PASS VALUES', 'red')
-                logger.info('pass_values = %r' % (pass_values,))
+                logger.info('pass_values = {!r}'.format(pass_values))
 
         if fail_values is not None:
             for fail in fail_values:
@@ -482,7 +484,7 @@ def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
         infr.infer()
         labels = rectify_labels(G, infr.arg())
         logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        logger.info('value = %r' % (infr.value(),))
+        logger.info('value = {!r}'.format(infr.value()))
 
         lpb_parmas = opengm.InfParam(
             damping=0.00,
@@ -524,7 +526,7 @@ def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
         # logger.info(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
         logger.info('Labels:')
         logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        logger.info('value = %r' % (infr.value(),))
+        logger.info('value = {!r}'.format(infr.value()))
 
         ut.cprint('Belief Propogation (marginalization)', 'blue')
         infr = LBP_algorithm(gm, parameter=lpb_parmas, accumulator='integrator')
@@ -552,7 +554,7 @@ def bp_step(G, nodes, edges, n_annots, n_names, lookup_annot_idx):
         # logger.info(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
         logger.info('Labels:')
         logger.info(pd.DataFrame(labels, columns=['nid'], index=pd.Series(nodes)).T)
-        logger.info('value = %r' % (infr.value(),))
+        logger.info('value = {!r}'.format(infr.value()))
 
     # import wbia.plottool as pt
     # viz_factor_graph(gm)
@@ -623,7 +625,7 @@ def main():
 
     for name, func in tests_.items():
         logger.info('\n==============')
-        ut.cprint('name = %r' % (name,), 'yellow')
+        ut.cprint('name = {!r}'.format(name), 'yellow')
         uvw_list, pass_values, fail_values = func()
         G = build_graph(uvw_list)
 
@@ -642,7 +644,7 @@ def main():
             [get_edge_id_probs(G, aid1, aid2, n_names) for aid1, aid2 in edges]
         )
 
-        logger.info('nodes = %r' % (nodes,))
+        logger.info('nodes = {!r}'.format(nodes))
         # logger.info('edges = %r' % (edges,))
         logger.info('Noisy Observations')
         logger.info(

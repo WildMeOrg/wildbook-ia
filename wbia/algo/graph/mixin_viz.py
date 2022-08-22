@@ -1,12 +1,22 @@
 # -*- coding: utf-8 -*-
 import logging
-import numpy as np
 import warnings
+
+import networkx as nx
+import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
-import networkx as nx
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
-from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
+
+from wbia.algo.graph.state import (  # NOQA
+    DIFF,
+    INCMP,
+    NEGTV,
+    NULL,
+    POSTV,
+    SAME,
+    UNKWN,
+    UNREV,
+)
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -379,7 +389,7 @@ class GraphVisualization(object):
                     }
                 else:
                     annotnode_to_label = {
-                        aid: 'aid=%r\nnid=%r' % (aid, node_to_nid[aid])
+                        aid: 'aid={!r}\nnid={!r}'.format(aid, node_to_nid[aid])
                         for aid in graph.nodes()
                     }
                 nx.set_node_attributes(graph, name='label', values=annotnode_to_label)
@@ -787,8 +797,8 @@ class GraphVisualization(object):
         match.show(ax, **showkw)
 
     def draw_aids(infr, aids, fnum=None):
-        from wbia.viz import viz_chip
         import wbia.plottool as pt
+        from wbia.viz import viz_chip
 
         fnum = pt.ensure_fnum(None)
         fig = pt.figure(fnum=fnum)
@@ -797,9 +807,9 @@ class GraphVisualization(object):
 
     def start_qt_interface(infr, loop=True):
         import wbia.guitool as gt
-        from wbia.viz.viz_graph2 import AnnotGraphWidget
-        from wbia.plottool import abstract_interaction
         import wbia.plottool as pt
+        from wbia.plottool import abstract_interaction
+        from wbia.viz.viz_graph2 import AnnotGraphWidget
 
         pt.qtensure()
         gt.ensure_qtapp()
@@ -815,7 +825,7 @@ class GraphVisualization(object):
     def debug_edge_repr(infr):
         logger.info('DEBUG EDGE REPR')
         for u, v, d in infr.graph.edges(data=True):
-            logger.info('edge = %r, %r' % (u, v))
+            logger.info('edge = {!r}, {!r}'.format(u, v))
             logger.info(infr.repr_edge_data(d, visual=False))
 
     def repr_edge_data(infr, all_edge_data, visual=True):
@@ -903,7 +913,7 @@ class GraphVisualization(object):
 def on_pick(event, infr=None):
     import wbia.plottool as pt
 
-    logger.info('ON PICK: %r' % (event,))
+    logger.info('ON PICK: {!r}'.format(event))
     artist = event.artist
     plotdat = pt.get_plotdat_dict(artist)
     if plotdat:
@@ -917,13 +927,13 @@ def on_pick(event, infr=None):
             logger.info('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
             logger.info('node_data: ' + ut.repr2(node_data, nl=1))
             ut.cprint('node: ' + ut.repr2(plotdat['node']), 'blue')
-            logger.info('(pcc) node_label = %r' % (node_label,))
-            logger.info('artist = %r' % (artist,))
+            logger.info('(pcc) node_label = {!r}'.format(node_label))
+            logger.info('artist = {!r}'.format(artist))
         elif 'edge' in plotdat:
             all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
             logger.info(infr.repr_edge_data(all_edge_data))
             ut.cprint('edge: ' + ut.repr2(plotdat['edge']), 'blue')
-            logger.info('artist = %r' % (artist,))
+            logger.info('artist = {!r}'.format(artist))
         else:
             logger.info('???: ' + ut.repr2(plotdat))
     logger.info(ut.get_timestamp())

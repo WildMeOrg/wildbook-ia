@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
-import vtool as vt
+from os.path import basename, exists  # NOQA
+
 import numpy as np
 import utool as ut
+import vtool as vt
 from vtool._pyflann_backend import pyflann as pyflann
-from os.path import basename, exists  # NOQA
+
 from wbia.algo.hots import neighbor_index_cache
 
 # import mem_top
@@ -116,7 +118,7 @@ def augment_nnindexer_experiment():
         logger.info(ut.repr2(time_list_addition))
         logger.info(ut.repr2(list(map(id, nnindexer_list))))
         logger.info(ut.repr2(tmp_cfgstr_list))
-        logger.info(ut.repr2(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
+        logger.info(ut.repr2(list(nnindxer.cfgstr for nnindxer in nnindexer_list)))
 
         IS_SMALL = False
 
@@ -173,7 +175,7 @@ def augment_nnindexer_experiment():
         logger.info(ut.repr2(time_list_reindex))
         if IS_SMALL:
             logger.info(ut.repr2(list(map(id, nnindexer_list))))
-            logger.info(ut.repr2(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
+            logger.info(ut.repr2(list(nnindxer.cfgstr for nnindxer in nnindexer_list)))
     except KeyboardInterrupt:
         logger.info('\n[train] Caught CRTL+C')
         resolution = ''
@@ -244,9 +246,10 @@ def flann_add_time_experiment():
         >>> ut.show_if_requested()
 
     """
-    import wbia
-    import utool as ut
     import numpy as np
+    import utool as ut
+
+    import wbia
     import wbia.plottool as pt
 
     def make_flann_index(vecs, flann_params):
@@ -370,9 +373,10 @@ def subindexer_time_experiment():
 
     TODO: time experiment
     """
-    import wbia
     import utool as ut
     from vtool._pyflann_backend import pyflann as pyflann
+
+    import wbia
     import wbia.plottool as pt
 
     ibs = wbia.opendb(db='PZ_Master0')
@@ -497,8 +501,12 @@ def trytest_multiple_add_removes():
 
     @ut.tracefunc_xml
     def print_nnindexer(nnindexer):
-        logger.info('nnindexer.get_indexed_aids() = %r' % (nnindexer.get_indexed_aids(),))
-        logger.info('nnindexer.num_indexed_vecs() = %r' % (nnindexer.num_indexed_vecs(),))
+        logger.info(
+            'nnindexer.get_indexed_aids() = {!r}'.format(nnindexer.get_indexed_aids())
+        )
+        logger.info(
+            'nnindexer.num_indexed_vecs() = {!r}'.format(nnindexer.num_indexed_vecs())
+        )
         logger.info(
             'nnindexer.get_removed_idxs().shape = %r'
             % (nnindexer.get_removed_idxs().shape,)
@@ -512,7 +520,7 @@ def trytest_multiple_add_removes():
     qfx2_vec = ibs.get_annot_vecs(qaid, config2_=config2_)
     (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
     aids1 = set(nnindexer.get_nn_aids(qfx2_idx1).ravel())
-    logger.info('aids1 = %r' % (aids1,))
+    logger.info('aids1 = {!r}'.format(aids1))
 
     logger.info('')
     logger.info('TESTING ADD')
@@ -522,7 +530,7 @@ def trytest_multiple_add_removes():
     (qfx2_idx0, qfx2_dist0) = nnindexer.knn(qfx2_vec, K)
     assert np.any(qfx2_idx0 != qfx2_idx1), 'some should change'
     aids0 = set(nnindexer.get_nn_aids(qfx2_idx0).ravel())
-    logger.info('aids0 = %r' % (aids0,))
+    logger.info('aids0 = {!r}'.format(aids0))
 
     # execute test function
     logger.info('')
@@ -533,7 +541,7 @@ def trytest_multiple_add_removes():
     # test after modification
     (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
     aids2 = set(nnindexer.get_nn_aids(qfx2_idx2).ravel())
-    logger.info('aids2 = %r' % (aids2,))
+    logger.info('aids2 = {!r}'.format(aids2))
     assert len(aids2.intersection(remove_daid_list)) == 0
 
     __removed_ids = nnindexer.flann._FLANN__removed_ids
@@ -561,10 +569,10 @@ def trytest_multiple_add_removes():
     qfx2_aid3 = nnindexer.get_nn_aids(qfx2_idx3)
     found_removed_idxs = np.intersect1d(qfx2_idx3, nnindexer.get_removed_idxs())
     if len(found_removed_idxs) != 0:
-        logger.info('found_removed_idxs.max() = %r' % (found_removed_idxs.max(),))
-        logger.info('found_removed_idxs.min() = %r' % (found_removed_idxs.min(),))
+        logger.info('found_removed_idxs.max() = {!r}'.format(found_removed_idxs.max()))
+        logger.info('found_removed_idxs.min() = {!r}'.format(found_removed_idxs.min()))
         raise AssertionError(
-            'found_removed_idxs.shape = %r' % (found_removed_idxs.shape,)
+            'found_removed_idxs.shape = {!r}'.format(found_removed_idxs.shape)
         )
     aids3 = set(qfx2_aid3.ravel())
     assert aids3.intersection(remove_daid_list) == set(new_daid_list).intersection(
@@ -597,7 +605,7 @@ def trytest_multiple_add_removes():
     (qfx2_idx5_, qfx2_dist5_) = nnindexer.knn(qfx2_vec, K)
     issame = qfx2_idx5_ == qfx2_idx3_
     percentsame = issame.sum() / issame.size
-    logger.info('percentsame = %r' % (percentsame,))
+    logger.info('percentsame = {!r}'.format(percentsame))
     assert (
         percentsame > 0.85
     ), 'a large majority of the feature idxs should remain the same'
@@ -612,7 +620,7 @@ def trytest_multiple_add_removes():
         (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
         issame = qfx2_idxX_ == qfx2_idx3_
         percentsame = issame.sum() / issame.size
-        logger.info('percentsame = %r' % (percentsame,))
+        logger.info('percentsame = {!r}'.format(percentsame))
         assert (
             percentsame > 0.85
         ), 'a large majority of the feature idxs should remain the same'
@@ -639,7 +647,7 @@ def trytest_multiple_add_removes():
         (qfx2_idxX_, qfx2_distX_) = nnindexer.knn(qfx2_vec, K)
         issame = qfx2_idxX_ == qfx2_idx7_
         percentsame = issame.sum() / issame.size
-        logger.info('percentsame = %r' % (percentsame,))
+        logger.info('percentsame = {!r}'.format(percentsame))
         print_nnindexer(nnindexer)
         assert (
             percentsame > 0.85
@@ -706,8 +714,8 @@ def pyflann_test_remove_add():
         >>> from wbia.algo.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_test_remove_add()
     """
-    from vtool._pyflann_backend import pyflann as pyflann
     import numpy as np
+    from vtool._pyflann_backend import pyflann as pyflann
 
     rng = np.random.RandomState(0)
 
@@ -752,8 +760,8 @@ def pyflann_test_remove_add2():
         >>> from wbia.algo.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_test_remove_add2()
     """
-    from vtool._pyflann_backend import pyflann as pyflann
     import numpy as np
+    from vtool._pyflann_backend import pyflann as pyflann
 
     rng = np.random.RandomState(0)
     vecs = (rng.rand(400, 128) * 255).astype(np.uint8)
@@ -828,8 +836,8 @@ def pyflann_remove_and_save():
         >>> from wbia.algo.hots._neighbor_experiment import *  # NOQA
         >>> pyflann_remove_and_save()
     """
-    from vtool._pyflann_backend import pyflann as pyflann
     import numpy as np
+    from vtool._pyflann_backend import pyflann as pyflann
 
     rng = np.random.RandomState(0)
     vecs = (rng.rand(400, 128) * 255).astype(np.uint8)

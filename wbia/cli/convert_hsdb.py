@@ -4,7 +4,7 @@ import sys
 
 import click
 
-from wbia.dbio.ingest_hsdb import is_hsdb, is_succesful_convert, convert_hsdb_to_wbia
+from wbia.dbio.ingest_hsdb import convert_hsdb_to_wbia, is_hsdb, is_succesful_convert
 
 
 @click.command()

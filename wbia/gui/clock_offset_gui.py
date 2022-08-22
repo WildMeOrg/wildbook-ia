@@ -3,14 +3,16 @@
 Small GUI for asking the user to enter the clock time shown, and moving along a gid list if the first image isn't a clock
 """
 import logging
+from datetime import date, datetime
 from functools import partial
 from time import mktime
-from datetime import date, datetime
+
 import utool as ut
+
 import wbia.guitool as gt
+import wbia.plottool as pt
 from wbia.guitool.__PYQT__ import QtWidgets
 from wbia.guitool.__PYQT__.QtCore import Qt
-import wbia.plottool as pt
 
 (print, rrr, profile) = ut.inject2(__name__, '[co_gui]')
 logger = logging.getLogger('wbia')
@@ -19,7 +21,7 @@ logger = logging.getLogger('wbia')
 class ClockOffsetWidget(QtWidgets.QWidget):
     def __init__(co_wgt, ibs, gid_list, parent=None, hack=False):
         logger.info('[co_gui] Initializing')
-        logger.info('[co_gui] gid_list = %r' % (gid_list,))
+        logger.info('[co_gui] gid_list = {!r}'.format(gid_list))
 
         QtWidgets.QWidget.__init__(co_wgt, parent=parent)
 

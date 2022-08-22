@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
+
+import numpy as np
 import utool as ut
+
 import wbia.plottool as pt
 from wbia.plottool import plot_helpers as ph
 from wbia.plottool import viz_image2
-import numpy as np
 from wbia.viz import viz_helpers as vh
 
 (print, rrr, profile) = ut.inject2(__name__, '[viz_img]')
@@ -91,7 +93,9 @@ def drive_test_script(ibs):
         'Running with image_uuid_list = %s' % (ut.repr2(zip(gid_list, guuid_list)))
     )
     for gid, aid in ut.ProgressIter(zip(gid_list, aid_list), lbl='progress '):
-        logger.info('\ngid, aid, nid = %r, %r, %r' % (gid, aid, ibs.get_annot_nids(aid)))
+        logger.info(
+            '\ngid, aid, nid = {!r}, {!r}, {!r}'.format(gid, aid, ibs.get_annot_nids(aid))
+        )
         show_image(ibs, gid, annote=False, rich_title=True)
         pt.show_if_requested()
 

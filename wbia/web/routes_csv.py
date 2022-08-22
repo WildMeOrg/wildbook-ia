@@ -3,10 +3,12 @@
 Dependencies: flask, tornado
 """
 import logging
+
+import utool as ut
 from flask import current_app
+
 from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
-import utool as ut
 from wbia.web import routes
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -26,7 +28,7 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
         imageset_list = ibs.get_valid_imgsetids(is_special=False)
 
     valid_nid_set = ibs.get_annot_nids(valid_aid_set)
-    valid_nid_set = set([nid for nid in valid_nid_set if nid > 0])
+    valid_nid_set = {nid for nid in valid_nid_set if nid > 0}
 
     imageset_text_list = ibs.get_imageset_text(imageset_list)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
@@ -41,7 +43,7 @@ def get_associations_dict(ibs, desired_species=None, **kwargs):
             dict_[name1] = {}
         if name2 not in dict_[name1]:
             dict_[name1][name2] = []
-        dict_[name1][name2].append('%s' % (label,))
+        dict_[name1][name2].append('{}'.format(label))
 
     assoc_dict = {}
     for imageset_text, time_, nid_list in zip(imageset_text_list, time_list, nids_list):
@@ -84,13 +86,13 @@ def download_associations_list(**kwargs):
 
     key_str_list = []
     for key in sorted(kwargs.keys()):
-        key_str = '%s=%s' % (key, kwargs[key])
+        key_str = '{}={}'.format(key, kwargs[key])
         key_str_list.append(key_str)
     key_str = '.'.join(key_str_list)
     if len(key_str) > 0:
         key_str += '.'
 
-    filename = 'associations.list.%scsv' % (key_str,)
+    filename = 'associations.list.{}csv'.format(key_str)
     assoc_dict = get_associations_dict(ibs, **kwargs)
 
     combined_list = []
@@ -116,7 +118,7 @@ def download_associations_list(**kwargs):
         # name_header_str = ','.join([ 'TIME%d' % (i + 1, ) for i in range(max_length) ])
         name_header_str = ','.join(['ENCOUNTER%d' % (i + 1,) for i in range(max_length)])
     combined_str = '\n'.join(combined_list)
-    combined_str = 'NAME1,NAME2,ASSOCIATIONS,%s\n' % (name_header_str,) + combined_str
+    combined_str = 'NAME1,NAME2,ASSOCIATIONS,{}\n'.format(name_header_str) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
@@ -126,13 +128,13 @@ def download_associations_matrix(**kwargs):
 
     key_str_list = []
     for key in sorted(kwargs.keys()):
-        key_str = '%s=%s' % (key, kwargs[key])
+        key_str = '{}={}'.format(key, kwargs[key])
         key_str_list.append(key_str)
     key_str = '.'.join(key_str_list)
     if len(key_str) > 0:
         key_str += '.'
 
-    filename = 'associations.matrix.%scsv' % (key_str,)
+    filename = 'associations.matrix.{}csv'.format(key_str)
 
     assoc_dict = get_associations_dict(ibs, **kwargs)
     assoc_list = sorted(assoc_dict.keys())
@@ -145,7 +147,7 @@ def download_associations_matrix(**kwargs):
             value = assoc_dict[name1].get(name2, [])
             value_len = len(value)
             value_str = '' if value_len == 0 else value_len
-            temp_list.append('%s' % (value_str,))
+            temp_list.append('{}'.format(value_str))
         temp_str = ','.join(temp_list)
         combined_list.append(temp_str)
 
@@ -155,7 +157,7 @@ def download_associations_matrix(**kwargs):
     #     name_header_str = ','.join([ 'NAME%d' % (i + 1, ) for i in range(max_length) ])
     name_header_str = ','.join(assoc_list)
     combined_str = '\n'.join(combined_list)
-    combined_str = 'MATRIX,%s\n' % (name_header_str,) + combined_str
+    combined_str = 'MATRIX,{}\n'.format(name_header_str) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
@@ -408,7 +410,7 @@ def get_annotation_special_kaia_dung_samples(**kwargs):
     combined_list = [','.join(map(str, list(zipped_))) for zipped_ in zipped_list]
     combined_str = '\n'.join(combined_list)
     combined_str = (
-        'NAME,NID,AID,DUNGSAMPLE,AGE,SEX,CONDITION,%s\n' % (name_header_str,)
+        'NAME,NID,AID,DUNGSAMPLE,AGE,SEX,CONDITION,{}\n'.format(name_header_str)
         + combined_str
     )
     return appf.send_csv_file(combined_str, filename)
@@ -664,7 +666,7 @@ def get_annotation_special_megan(**kwargs):
             date2_list.append(date2)
             note_list.append(note)
         except AssertionError:
-            logger.info('ERROR PROCESSING: %r' % (base,))
+            logger.info('ERROR PROCESSING: {!r}'.format(base))
 
     zipped = zip(gid_list, uri_list, tag_list, date1_list, date2_list, note_list)
     combined_list = [','.join(map(str, value_list)) for value_list in zipped]
@@ -690,7 +692,7 @@ def get_nid_with_gids_csv(**kwargs):
         gid_header_str = 'GID'
     else:
         gid_header_str = ','.join(['GID%d' % (i + 1,) for i in range(max_length)])
-    combined_str = 'NID,NAME,%s\n' % (gid_header_str,) + combined_str
+    combined_str = 'NID,NAME,{}\n'.format(gid_header_str) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
@@ -711,7 +713,7 @@ def get_gid_with_aids_csv(**kwargs):
         aid_header_str = 'AID'
     else:
         aid_header_str = ','.join(['AID%d' % (i + 1,) for i in range(max_length)])
-    combined_str = 'GID,%s\n' % (aid_header_str,) + combined_str
+    combined_str = 'GID,{}\n'.format(aid_header_str) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 

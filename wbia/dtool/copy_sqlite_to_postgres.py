@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 import traceback
 import typing
-from concurrent.futures import as_completed, ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import partial, wraps
 from pathlib import Path
 
@@ -18,7 +18,6 @@ import numpy as np
 import sqlalchemy
 
 from wbia.dtool.sql_control import create_engine
-
 
 logger = logging.getLogger('wbia.dtool')
 
@@ -232,11 +231,9 @@ class PostgresDatabaseInfo:
             'SELECT DISTINCT table_schema FROM information_schema.tables'
         )
         return sorted(
-            [
-                s[0]
-                for s in schemas
-                if s[0] not in ('public', 'pg_catalog', 'information_schema')
-            ]
+            s[0]
+            for s in schemas
+            if s[0] not in ('public', 'pg_catalog', 'information_schema')
         )
 
     def get_table_names(self, normalized=False):

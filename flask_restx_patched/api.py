@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+import logging
+
+import requests
 from flask import jsonify
+from flask import make_response as original_flask_make_response
 from flask_restx import Api as OriginalApi
 from flask_restx._http import HTTPStatus
-from flask import make_response as original_flask_make_response
 from werkzeug import cached_property
 
 from .namespace import Namespace
 from .swagger import Swagger
-
-import requests
-import logging
 
 log = logging.getLogger(__name__)
 

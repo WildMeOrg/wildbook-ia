@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from meta_util_git import set_userid, unixpath, repo_list
+from meta_util_git import repo_list, set_userid, unixpath
 
 set_userid(
     userid='Erotemic',

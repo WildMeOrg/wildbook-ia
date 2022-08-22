@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
-import logging
-from os.path import expanduser, join
-from wbia import constants as const
-import utool as ut
-import numpy as np
-import cv2
-import random
-import tqdm
-import time
-import os
 import copy
+import logging
+import os
+import random
+import time
+from os.path import expanduser, join
+
+import cv2
+import numpy as np
 import PIL
+import tqdm
+import utool as ut
+
+from wbia import constants as const
 
 (print, rrr, profile) = ut.inject2(__name__, '[orientation]')
 logger = logging.getLogger('wbia')
@@ -168,11 +170,11 @@ class ImageFilePathList(torch.utils.data.Dataset):
         fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
         fmt_str += '    Number of samples: {}\n'.format(self.__len__())
         tmp = '    Transforms (if any): '
-        fmt_str += '{0}{1}\n'.format(
+        fmt_str += '{}{}\n'.format(
             tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp))
         )
         tmp = '    Target Transforms (if any): '
-        fmt_str += '{0}{1}'.format(
+        fmt_str += '{}{}'.format(
             tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp))
         )
         return fmt_str
@@ -377,7 +379,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
     canvas = np.vstack(canvas_list)
 
     canvas_filepath = expanduser(
-        join('~', 'Desktop', 'orientation-augmentation-%s.png' % (tag,))
+        join('~', 'Desktop', 'orientation-augmentation-{}.png'.format(tag))
     )
     plt.imsave(canvas_filepath, canvas)
 
@@ -636,9 +638,10 @@ def test_ensemble(
                 result_list = []
                 for prediction, confidence in zip(prediction_list, confidence_list):
                     # DO NOT REMOVE THIS ASSERT
-                    assert prediction in set(
-                        ['negative', 'positive']
-                    ), 'Cannot use this method, need to implement classifier_two in depc'
+                    assert prediction in {
+                        'negative',
+                        'positive',
+                    }, 'Cannot use this method, need to implement classifier_two in depc'
                     if prediction == 'positive':
                         pscore = confidence
                         nscore = 1.0 - pscore
@@ -701,7 +704,9 @@ def test(
         archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=True)
     else:
         logger.info(
-            'classifier_weight_filepath %r not recognized' % (classifier_weight_filepath,)
+            'classifier_weight_filepath {!r} not recognized'.format(
+                classifier_weight_filepath
+            )
         )
         raise RuntimeError
 
@@ -763,7 +768,7 @@ def test_dict(gpath_list, classifier_weight_filepath=None, return_dict=None, **k
         elif len(best_key) == 2:
             best_species, best_viewpoint = best_key
         else:
-            raise ValueError('Invalid key %r' % (best_key,))
+            raise ValueError('Invalid key {!r}'.format(best_key))
 
         yield (
             best_score,

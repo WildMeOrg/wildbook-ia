@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-import logging
-from wbia.guitool.__PYQT__.QtCore import Qt
-import utool as ut
 import collections
+import logging
+
+import utool as ut
+
+from wbia.guitool.__PYQT__.QtCore import Qt
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -120,6 +122,6 @@ def parse_window_type_and_flags(self):
             has.append(key)
         else:
             missing.append(key)
-    logger.info('has = %s' % (ut.repr4(has),))
-    logger.info('missing = %s' % (ut.repr4(missing),))
+    logger.info('has = {}'.format(ut.repr4(has)))
+    logger.info('missing = {}'.format(ut.repr4(missing)))
     pass

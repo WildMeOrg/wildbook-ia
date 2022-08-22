@@ -3,6 +3,7 @@
 TODO: move to wbia/scripts
 """
 import logging
+
 import numpy as np
 import utool as ut
 
@@ -36,7 +37,7 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
     graph = graph.to_directed()
     # delete graph
     dup_edges = []
-    seen_ = set([])
+    seen_ = set()
     for u, v in graph.edges():
         if u < v:
             u, v = v, u
@@ -45,8 +46,9 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
         else:
             dup_edges.append((u, v))
     graph.remove_edges_from(dup_edges)
-    import wbia.plottool as pt
     import networkx as nx
+
+    import wbia.plottool as pt
 
     if len(name_nodes) == 3 and len(annot_nodes) == 4:
         graph.nodes[annot_nodes[0]]['pos'] = (20.0, 200.0)
@@ -58,19 +60,19 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
         graph.nodes[name_nodes[2]]['pos'] = (230.0, 300.0)
         nx.set_node_attributes(graph, name='pin', values='true')
 
-        logger.info('annot_nodes = %r' % (annot_nodes,))
-        logger.info('name_nodes = %r' % (name_nodes,))
+        logger.info('annot_nodes = {!r}'.format(annot_nodes))
+        logger.info('name_nodes = {!r}'.format(name_nodes))
 
         for u in annot_nodes:
             for v in name_nodes:
                 if graph.has_edge(u, v):
-                    logger.info('1) u, v = %r' % ((u, v),))
+                    logger.info('1) u, v = {!r}'.format((u, v)))
                     graph.edge[u][v]['taillabel'] = graph.edge[u][v]['label']
                     graph.edge[u][v]['color'] = pt.ORANGE
                     graph.edge[u][v]['labelcolor'] = pt.BLUE
                     del graph.edge[u][v]['label']
                 elif graph.has_edge(v, u):
-                    logger.info('2) u, v = %r' % ((u, v),))
+                    logger.info('2) u, v = {!r}'.format((u, v)))
                     graph.edge[v][u]['headlabel'] = graph.edge[v][u]['label']
                     graph.edge[v][u]['color'] = pt.ORANGE
                     graph.edge[v][u]['labelcolor'] = pt.BLUE
@@ -229,8 +231,8 @@ def try_rf_classifier():
     # http://www.randalolson.com/2016/05/08/tpot-a-python-tool-for-automating-data-science/
     # https://www.reddit.com/r/MachineLearning/comments/4ij8dw/tpot_a_python_tool_for_automating_machine_learning/
     # http://keras.io/ --- unifies tensorflow / theano
-    from sklearn.ensemble import RandomForestClassifier
     from sklearn.calibration import CalibratedClassifierCV
+    from sklearn.ensemble import RandomForestClassifier
     from sklearn.metrics import log_loss
 
     # http://scikit-learn.org/stable/auto_examples/calibration/plot_calibration_multiclass.html
@@ -248,7 +250,7 @@ def try_rf_classifier():
     clf.fit(X_train_valid, y_train_valid)
     clf_probs = clf.predict_proba(X_test)
     score = log_loss(y_test, clf_probs)
-    logger.info('score = %r' % (score,))
+    logger.info('score = {!r}'.format(score))
 
     # Train random forest classifier, calibrate on validation data and evaluate
     # on test data
@@ -259,7 +261,7 @@ def try_rf_classifier():
     sig_clf.fit(X_valid, y_valid)
     sig_clf_probs = sig_clf.predict_proba(X_test)
     sig_score = log_loss(y_test, sig_clf_probs)
-    logger.info('sig_score = %r' % (sig_score,))
+    logger.info('sig_score = {!r}'.format(sig_score))
 
 
 def make_test_pairwise_fetaures(case1, case2, label, rng):
@@ -530,7 +532,7 @@ def try_em():
         )
 
         logger.info('Initialize')
-        logger.info('num_labels = %r' % (num_labels,))
+        logger.info('num_labels = {!r}'.format(num_labels))
         # logger.info(ut.hz_str(' gamma = ', ut.repr2(gam[:, num_labels:], max_line_width=140, precision=2)))
         logger.info(
             ut.hz_str(' gamma = ', ut.repr2(gam, max_line_width=140, precision=2))
@@ -612,7 +614,7 @@ def try_em2(prob_names, prob_annots=None):
     verbose = 1
     if verbose:
         logger.info('Initialize')
-        logger.info('num_names = %r' % (num_names,))
+        logger.info('num_names = {!r}'.format(num_names))
         logger.info(
             ut.hz_str(
                 'prior = ',

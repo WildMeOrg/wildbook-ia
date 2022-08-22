@@ -8,16 +8,18 @@ Autogen:
 """
 import logging
 import uuid
+
 import numpy as np
+import requests
+import utool as ut
+
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
-import utool as ut
-from wbia.other import ibsfuncs
 from wbia.control.controller_inject import make_ibs_register_decorator
+from wbia.other import ibsfuncs
 
 # from collections import namedtuple
 from wbia.web import routes_ajax
-import requests
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -457,7 +459,7 @@ def add_annots(
     check_uuid_flags = [not isinstance(auuid, uuid.UUID) for auuid in annot_uuid_list]
     if any(check_uuid_flags):
         pos = ut.list_where(check_uuid_flags)
-        raise ValueError('positions %r have malformated UUIDS' % (pos,))
+        raise ValueError('positions {!r} have malformated UUIDS'.format(pos))
 
     colnames = tuple(props.keys())
     params_iter = zip(*props.values())
@@ -601,7 +603,7 @@ def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
     Ensures that annots have the proper semantic uuids
     """
     semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list, _visual_infotup)
-    assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
+    assert len(semantic_infotup) == 6, 'len={!r}'.format(len(semantic_infotup))
     annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
     ibs.db.set(
         const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list
@@ -640,8 +642,8 @@ def update_annot_visual_uuids(ibs, aid_list):
         8687dcb6-1f1f-fdd3-8b72-8f36f9f41905
     """
     visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
-    logger.info('visual_infotup = %r' % (visual_infotup,))
-    assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
+    logger.info('visual_infotup = {!r}'.format(visual_infotup))
+    assert len(visual_infotup) == 3, 'len={!r}'.format(len(visual_infotup))
     annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
     ibs.db.set(
         const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list
@@ -3955,7 +3957,7 @@ def get_annot_age_months_est_texts(ibs, aid_list, eager=True, nInput=None):
     annot_age_months_est_min_text_list = ibs.get_annot_age_months_est_min_texts(aid_list)
     annot_age_months_est_max_text_list = ibs.get_annot_age_months_est_max_texts(aid_list)
     annot_age_months_est_text_list = [
-        '%s to %s' % (age_min_text, age_max_text)
+        '{} to {}'.format(age_min_text, age_max_text)
         for age_min_text, age_max_text in zip(
             annot_age_months_est_min_text_list, annot_age_months_est_max_text_list
         )
@@ -4061,7 +4063,7 @@ def get_annot_image_set_texts(ibs, aid_list):
     """
     gid_list = ibs.get_annot_gids(aid_list)
     imagesettext_list = ibs.get_image_imagesettext(gid_list)
-    filter_imageset_set = set(['*Exemplars', '*All Images', '*Ungrouped Images'])
+    filter_imageset_set = {'*Exemplars', '*All Images', '*Ungrouped Images'}
     filtered_imagesettext_list = [
         [imageset for imageset in imagesettext if imageset not in filter_imageset_set]
         for imagesettext in imagesettext_list

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
 import logging
+from os.path import abspath, dirname, exists, expanduser, join, splitext  # NOQA
+
+import cv2
+import numpy as np
 import utool as ut
 import vtool as vt
-import numpy as np
-from os.path import abspath, dirname, expanduser, join, exists, splitext  # NOQA
 from tqdm import tqdm
-import cv2
 
 (print, rrr, profile) = ut.inject2(__name__, '[lightnet]')
 logger = logging.getLogger('wbia')
@@ -14,9 +15,9 @@ logger = logging.getLogger('wbia')
 
 if not ut.get_argflag('--no-lightnet'):
     try:
+        import lightnet as ln
         import torch
         from torchvision import transforms as tf
-        import lightnet as ln
     except ImportError:
         logger.info(
             'WARNING Failed to import lightnet. '
@@ -177,8 +178,8 @@ def _create_network(
     params.network.postprocess[1].nms_thresh = nms_thresh
 
     if multi:
-        import torch.nn as nn
         import lightnet.data as lnd
+        import torch.nn as nn
 
         # Add serialization to Brambox Detections for DataParallel
         postprocess_list = list(params.network.postprocess)

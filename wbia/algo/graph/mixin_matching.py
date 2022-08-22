@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-import logging
-import numpy as np
-import utool as ut
-import pandas as pd
 import itertools as it
-import networkx as nx
-import vtool as vt
+import logging
+from concurrent import futures
 from os.path import join  # NOQA
+
+import networkx as nx
+import numpy as np
+import pandas as pd
+import tqdm
+import utool as ut
+import vtool as vt
+
 from wbia.algo.graph import nx_utils as nxu
 from wbia.algo.graph.nx_utils import e_
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
-from concurrent import futures
-import tqdm
-
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNREV  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -56,8 +57,9 @@ def _cm_breaking_worker(cm_list, review_cfg={}, scoring='annot'):
 
 
 def _make_rankings_worker(args):
-    import wbia  # NOQA
     import tqdm  # NOQA
+
+    import wbia  # NOQA
 
     (
         dbdir,
@@ -73,7 +75,7 @@ def _make_rankings_worker(args):
 
     ibs = wbia.opendb(dbdir=dbdir)
 
-    edges = set([])
+    edges = set()
     for qaids in tqdm.tqdm(qaids_chunk):
 
         qreq_ = ibs.new_query_request(
@@ -172,7 +174,7 @@ class AnnotInfrMatching(object):
                 'score_method': 'csum',
             }
         cfgdict.update(infr.ranker_params)
-        infr.print('Using LNBNN config = %r' % (cfgdict,))
+        infr.print('Using LNBNN config = {!r}'.format(cfgdict))
         # hack for using current nids
         if name_method == 'node':
             aids = sorted(set(ut.aslist(qaids) + ut.aslist(daids)))
@@ -196,7 +198,7 @@ class AnnotInfrMatching(object):
             edges = []
 
             for qaid in tqdm.tqdm(qaids):
-                daids_ = list(set(daids) - set([qaid]))
+                daids_ = list(set(daids) - {qaid})
                 pie_annot_distances = ibs.pie_v2_predict_light_distance(
                     qaid,
                     daids_,
@@ -345,7 +347,7 @@ class AnnotInfrMatching(object):
             idx = aid2_idx[aid1]
             cm = infr.cm_list[idx]
             if aid2 not in cm.daid2_idx:
-                raise KeyError('No ChipMatch for edge (%r, %r)' % (aid1, aid2))
+                raise KeyError('No ChipMatch for edge ({!r}, {!r})'.format(aid1, aid2))
         return cm, aid1, aid2
 
     @profile
@@ -620,17 +622,17 @@ class InfrLearning(object):
 
         ibs = infr.ibs
         species = ibs.get_primary_database_species(infr.aids)
-        infr.print('Loading task_thresh for species: %r' % (species,))
+        infr.print('Loading task_thresh for species: {!r}'.format(species))
         assert species in infr.task_thresh_dict
         infr.task_thresh = infr.task_thresh_dict[species]
-        infr.print('infr.task_thresh: %r' % (infr.task_thresh,))
-        infr.print('Loading verifiers for species: %r' % (species,))
+        infr.print('infr.task_thresh: {!r}'.format(infr.task_thresh))
+        infr.print('Loading verifiers for species: {!r}'.format(species))
         try:
             infr.verifiers = deploy.Deployer().load_published(ibs, species)
-            message = 'Loaded verifiers %r' % (infr.verifiers,)
+            message = 'Loaded verifiers {!r}'.format(infr.verifiers)
             infr.print(message)
         except TypeError as ex:
-            message = 'Error: Failed to load verifiers for %r' % (species,)
+            message = 'Error: Failed to load verifiers for {!r}'.format(species)
             ut.printex(
                 ex,
                 message,
@@ -731,7 +733,7 @@ class _RedundancyAugmentation(object):
         }
 
         # Find how many negative edges we already have
-        num = sum([state == NEGTV for state in reviewed_edges.values()])
+        num = sum(state == NEGTV for state in reviewed_edges.values())
         if num < k:
             # Find k random negative edges
             check_edges = existing_edges - set(reviewed_edges)
@@ -933,7 +935,7 @@ class CandidateSearch(_RedundancyAugmentation):
         if cfgdict_ is not None:
             cfgdict.update(cfgdict_)
 
-        print('[find_lnbnn_candidate_edges] Using cfgdict = %s' % (ut.repr3(cfgdict),))
+        print('[find_lnbnn_candidate_edges] Using cfgdict = {}'.format(ut.repr3(cfgdict)))
 
         ranks_top = infr.params['ranking.ntop']
         response = infr.exec_matching(
@@ -1057,14 +1059,14 @@ class CandidateSearch(_RedundancyAugmentation):
             >>> edges = list(infr.edges())
             >>> infr.ensure_priority_scores(edges)
         """
-        infr.print('Checking for verifiers: %r' % (infr.verifiers,))
+        infr.print('Checking for verifiers: {!r}'.format(infr.verifiers))
 
         if infr.verifiers and infr.ibs is not None:
             infr.print(
                 'Prioritizing {} edges with one-vs-one probs'.format(len(priority_edges)),
                 1,
             )
-            infr.print('Using thresholds: %r' % (infr.task_thresh,))
+            infr.print('Using thresholds: {!r}'.format(infr.task_thresh))
             infr.print(
                 'Using infr.params[autoreview.enabled]          : %r'
                 % (infr.params['autoreview.enabled'],)

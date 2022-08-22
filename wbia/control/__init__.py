@@ -3,18 +3,22 @@
 # flake8: noqa
 
 import logging
+
 import utool as ut
 
 ut.noinject(__name__, '[wbia.control.__init__]', DEBUG=False)
 
 
-from wbia.control import DB_SCHEMA
-from wbia.control import IBEISControl
-from wbia.control import _sql_helpers
-from wbia.control import accessor_decors
-from wbia.control import controller_inject
-from wbia.control import docker_control
 import utool
+
+from wbia.control import (
+    DB_SCHEMA,
+    IBEISControl,
+    _sql_helpers,
+    accessor_decors,
+    controller_inject,
+    docker_control,
+)
 
 print, rrr, profile = utool.inject2(__name__)
 logger = logging.getLogger('wbia')

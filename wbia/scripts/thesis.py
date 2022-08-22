@@ -1,23 +1,32 @@
 # -*- coding: utf-8 -*-
 import logging
-from wbia.algo.verif import vsone
-from wbia.scripts._thesis_helpers import DBInputs
-from wbia.scripts._thesis_helpers import Tabular, upper_one, ave_str
-from wbia.scripts._thesis_helpers import TMP_RC, W, H, DPI
-import wbia.constants as const
-from wbia.algo.graph import nx_utils as nxu
-import ubelt as ub
-import pandas as pd
-import numpy as np
-from os.path import basename, join, splitext, exists  # NOQA
-import utool as ut
-import wbia.plottool as pt
-import vtool as vt
 import pathlib
-import matplotlib as mpl
 import random
 import sys
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
+from os.path import basename, exists, join, splitext  # NOQA
+
+import matplotlib as mpl
+import numpy as np
+import pandas as pd
+import ubelt as ub
+import utool as ut
+import vtool as vt
+
+import wbia.constants as const
+import wbia.plottool as pt
+from wbia.algo.graph import nx_utils as nxu
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNREV  # NOQA
+from wbia.algo.verif import vsone
+from wbia.scripts._thesis_helpers import (
+    DPI,
+    TMP_RC,
+    DBInputs,
+    H,
+    Tabular,
+    W,
+    ave_str,
+    upper_one,
+)
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -937,8 +946,8 @@ class Chap5(DBInputs):
             larges = []
             for split in splits:
                 split = ut.sortedby(split, ut.lmap(len, split))
-                smalls.append((split[0]))
-                larges.append((split[1]))
+                smalls.append(split[0])
+                larges.append(split[1])
                 b = list(get_bad_edges(split, POSTV))
                 baddies.append(b)
 
@@ -970,8 +979,8 @@ class Chap5(DBInputs):
             for merge in merges:
                 merge = ut.sortedby(merge, ut.lmap(len, merge))
 
-                smalls.append((merge[0]))
-                larges.append((merge[1]))
+                smalls.append(merge[0])
+                larges.append(merge[1])
 
                 b = list(get_bad_edges(merge, NEGTV))
                 b2 = list(get_bad_edges(merge, NEGTV, ret_ccs=True))
@@ -1833,7 +1842,7 @@ class Chap4(DBInputs):
 
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
 
-        logger.info('task_key = %r' % (task_key,))
+        logger.info('task_key = {!r}'.format(task_key))
         if task_key == 'photobomb_state':
             method = 'max-mcc'
             method = res.get_thresholds('mcc', 'maximize')
@@ -2670,7 +2679,7 @@ class Chap4(DBInputs):
             ax.plot(
                 data['fpr'],
                 data['tpr'],
-                label='%s AUC=%.2f' % (data['label'], data['auc']),
+                label='{} AUC={:.2f}'.format(data['label'], data['auc']),
             )
         ax.set_xlabel('false positive rate')
         ax.set_ylabel('true positive rate')
@@ -2917,7 +2926,7 @@ class Chap3Measures(object):
         cdfs = []
         labels = []
 
-        for fg, group in df.groupby(('fg_on')):
+        for fg, group in df.groupby('fg_on'):
             labels.append('fg=T' if fg else 'fg=F')
             hists = vt.pad_vstack(group['hists'], fill_value=0)
             hist = hists.sum(axis=0)
@@ -3110,7 +3119,7 @@ class Chap3Measures(object):
             name_ranks2 = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list2]
 
             idxs = np.where(np.array(name_ranks1) != np.array(name_ranks2))[0]
-            logger.info('idxs = %r' % (idxs,))
+            logger.info('idxs = {!r}'.format(idxs))
             logger.info('ranks1 = {}'.format(ut.take(name_ranks1, idxs)))
             logger.info('ranks2 = {}'.format(ut.take(name_ranks2, idxs)))
             if len(idxs) > 0:
@@ -3414,7 +3423,7 @@ class Chap3Draw(object):
         df = df[df['K'] != 10]
 
         fig = pt.figure(fnum=1)
-        groups = list(df.groupby(('dsize')))
+        groups = list(df.groupby('dsize'))
         pnum_ = pt.make_pnum_nextgen(nCols=1, nSubplots=len(groups))
         for val, df_group in groups:
             # logger.info('---')
@@ -3546,8 +3555,8 @@ class Chap3Draw(object):
             )
             grid.fit(unixtimes[:, None])
             bw = grid.best_params_['bandwidth']
-            logger.info('bw = %r' % (bw,))
-            logger.info('bw(days) = %r' % (bw / day,))
+            logger.info('bw = {!r}'.format(bw))
+            logger.info('bw(days) = {!r}'.format(bw / day))
 
         kde = KernelDensity(kernel='gaussian', bandwidth=bw)
         kde.fit(unixtimes[:, None])
@@ -4277,9 +4286,9 @@ class Sampler(object):
         verbose = 0
         if verbose:
             logger.info(pd.DataFrame.from_records(info_list))
-            logger.info('#qaids = %r' % (len(qaids),))
-            logger.info('num_need = %r' % (n_need,))
-            logger.info('max_dsize = %r' % (max_dsize,))
+            logger.info('#qaids = {!r}'.format(len(qaids)))
+            logger.info('num_need = {!r}'.format(n_need))
+            logger.info('max_dsize = {!r}'.format(max_dsize))
             if False:
                 for daids in daids_list:
                     ibs.print_annotconfig_stats(qaids, daids)
@@ -4347,7 +4356,7 @@ def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=0.4):
     xdata = np.arange(1, num_ranks + 1)
     cdfs_trunc = cdfs[:, 0:num_ranks]
     label_list = [
-        '%6.2f%% - %s' % (cdf[0] * 100, lbl) for cdf, lbl in zip(cdfs_trunc, labels)
+        '{:6.2f}% - {}'.format(cdf[0] * 100, lbl) for cdf, lbl in zip(cdfs_trunc, labels)
     ]
 
     # ymin = .4

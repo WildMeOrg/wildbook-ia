@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import utool as ut
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP
 import numpy as np
+import utool as ut
 
+from wbia.algo.graph.state import INCMP, NEGTV, POSTV
 
 # @profile
 # def edge_hashids(samples):
@@ -52,6 +52,7 @@ def demo_single_pairwise_feature_vector():
         >>> print(match)
     """
     import vtool as vt
+
     import wbia
 
     ibs = wbia.opendb('testdb1')
@@ -110,7 +111,7 @@ def demo_single_pairwise_feature_vector():
         offset = 0
         class_to_edge = {}
         for class_name in labels.class_names:
-            print('Find example of %r' % (class_name,))
+            print('Find example of {!r}'.format(class_name))
             # Find an example of each class (that is not a photobomb)
             pbflags = pb_labels.indicator_df['notpb']
             flags = labels.indicator_df[class_name]
@@ -139,8 +140,8 @@ def demo_single_pairwise_feature_vector():
             edge = series.name
             class_to_edge[class_name] = edge
 
-        import wbia.plottool as pt
         import wbia.guitool as gt
+        import wbia.plottool as pt
 
         gt.ensure_qapp()
         pt.qtensure()
@@ -160,7 +161,7 @@ def demo_single_pairwise_feature_vector():
             edge = class_to_edge[class_name]
             aid1, aid2 = edge
             # alias = classname_alias[class_name]
-            print('class_name = %r' % (class_name,))
+            print('class_name = {!r}'.format(class_name))
             annot1 = ibs.annots([aid1])[0]._make_lazy_dict()
             annot2 = ibs.annots([aid2])[0]._make_lazy_dict()
             vt.matching.ensure_metadata_normxy(annot1)
@@ -190,8 +191,9 @@ def demo_single_pairwise_feature_vector():
         config = {'ratio_thresh': 1.0, 'sv_on': False}
         matches = infr._exec_pairwise_match(edges, config)
 
-        import wbia.plottool as pt
         import sklearn.metrics
+
+        import wbia.plottool as pt
 
         pt.qtensure()
         thresholds = np.linspace(0, 1.0, 100)
@@ -211,7 +213,7 @@ def demo_single_pairwise_feature_vector():
 
         if True:
             pt.plt.plot(thresholds, aucs, 'r-', label='')
-            pt.plt.plot(opt_thresh, opt_auc, 'ro', label='L opt=%r' % (opt_thresh,))
+            pt.plt.plot(opt_thresh, opt_auc, 'ro', label='L opt={!r}'.format(opt_thresh))
             pt.set_ylabel('auc')
             pt.set_xlabel('ratio threshold')
             pt.legend()

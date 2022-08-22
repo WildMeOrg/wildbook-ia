@@ -4,10 +4,12 @@ CommandLine:
     rm -rf /media/raid/work/PZ_MTEST/_ibsdb/_wbia_cache/match_thumbs/
     python -m wbia.gui.inspect_gui --test-test_review_widget --show --verbose-thumb
 """
-from wbia.guitool.__PYQT__ import QtGui, QtCore
-from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
 from os.path import exists
+
 import utool as ut
+
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtGui
 
 ut.noinject(__name__, '[APIThumbDelegate]')
 
@@ -35,7 +37,7 @@ def read_thumb_size(thumb_path):
         if ut.checkpath(thumb_path, verbose=True):
             ut.printex(
                 ex,
-                'image=%r seems corrupted. Needs deletion' % (thumb_path,),
+                'image={!r} seems corrupted. Needs deletion'.format(thumb_path),
                 iswarning=True,
             )
             ut.delete(thumb_path)
@@ -91,7 +93,7 @@ def read_thumb_as_qimg(thumb_path):
 
     """
     if VERBOSE_THUMB:
-        print('[ThumbDelegate] Reading thumb as qimg. thumb_path=%r' % (thumb_path,))
+        print('[ThumbDelegate] Reading thumb as qimg. thumb_path={!r}'.format(thumb_path))
     # Read thumbnail image and convert to 32bit aligned for Qt
     # if False:
     #    data  = np.dstack((npimg, np.full(npimg.shape[0:2], 255, dtype=np.uint8)))
@@ -257,7 +259,7 @@ class APIThumbDelegate(DELEGATE_BASE):
         if isinstance(data, dict):
             # HACK FOR DIFFERENT TYPE OF THUMB DATA
             return data
-        assert isinstance(data, tuple), 'data=%r is %r. should be a thumbtup' % (
+        assert isinstance(data, tuple), 'data={!r} is {!r}. should be a thumbtup'.format(
             data,
             type(data),
         )
@@ -365,7 +367,9 @@ class APIThumbDelegate(DELEGATE_BASE):
                 if not exists(img_path):
                     if VERBOSE_THUMB:
                         print(
-                            '[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' % (img_path,)
+                            '[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: {!r}'.format(
+                                img_path
+                            )
                         )
                     return None
                 dgt.spawn_thumb_creation_thread(
@@ -698,8 +702,9 @@ def simple_thumbnail_widget():
     guitool_test_thumbdir = ut.ensure_app_resource_dir('guitool', 'thumbs')
     ut.delete(guitool_test_thumbdir)
     ut.ensuredir(guitool_test_thumbdir)
-    import vtool as vt
     from os.path import join
+
+    import vtool as vt
 
     # imgname_list = sorted(ut.TESTIMG_URL_DICT.keys())
     imgname_list = ['carl.jpg', 'lena.png', 'patsy.jpg']

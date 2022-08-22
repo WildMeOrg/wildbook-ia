@@ -4,9 +4,11 @@
 Exports subset of an IBEIS database to a new IBEIS database
 """
 import logging
+
 import utool as ut
-from wbia.other import ibsfuncs
+
 from wbia import constants as const
+from wbia.other import ibsfuncs
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -37,7 +39,9 @@ def check_merge(ibs_src, ibs_dst):
         set(avuuids1).issubset(set(avuuids2))
         for avuuids1, avuuids2 in zip(avuuids_list1, avuuids_list2)
     ]
-    assert all(issubset_list), 'ibs_src must be a subset of ibs_dst: issubset_list=%r' % (
+    assert all(
+        issubset_list
+    ), 'ibs_src must be a subset of ibs_dst: issubset_list={!r}'.format(
         issubset_list,
     )
     # aids_depth1 = ut.depth_profile(aids_list1)
@@ -94,7 +98,7 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     # TODO: ensure images are localized
     # otherwise this wont work
     logger.info(
-        'BEGIN MERGE OF %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname())
+        'BEGIN MERGE OF {!r} into {!r}'.format(ibs_src.get_dbname(), ibs_dst.get_dbname())
     )
     # ibs_src.run_integrity_checks()
     # ibs_dst.run_integrity_checks()
@@ -137,28 +141,26 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     )
 
     # Add ImageSets
-    blacklist_set = set(
-        [
-            'Reviewed Images',
-            'Exemplars',
-            '*Exemplars',
-            'All Images',
-            '*All Images',
-            '*Undetected Images',
-            '*Ungrouped Images',
-        ]
-    )
+    blacklist_set = {
+        'Reviewed Images',
+        'Exemplars',
+        '*Exemplars',
+        'All Images',
+        '*All Images',
+        '*Undetected Images',
+        '*Ungrouped Images',
+    }
 
     imageset_dict = {}
     src_guuids = ibs_src.get_image_uuids(src_gid_list)
     src_texts_list = ibs_src.get_image_imagesettext(src_gid_list)
 
     for src_guuid, src_text_list in zip(src_guuids, src_texts_list):
-        current_set = imageset_dict.get(src_guuid, set([]))
+        current_set = imageset_dict.get(src_guuid, set())
         src_text_set = set(src_text_list) - blacklist_set
-        src_text_set_ = set([])
+        src_text_set_ = set()
         for src_text in src_text_set:
-            src_text_ = '%s / %s' % (
+            src_text_ = '{} / {}'.format(
                 ibs_src.dbname,
                 src_text,
             )
@@ -183,14 +185,14 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     dst_gid_list = ibs_dst.get_image_gids_from_uuid(src_image_uuids)
     assert None not in dst_gid_list
     timestamp = ut.timestamp(format_='printable').split()[1]
-    imageset_text = 'Import from %s on %s' % (
+    imageset_text = 'Import from {} on {}'.format(
         ibs_src.dbname,
         timestamp,
     )
     ibs_dst.set_image_imagesettext(dst_gid_list, [imageset_text] * len(dst_gid_list))
 
     logger.info(
-        'FINISHED MERGE %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname())
+        'FINISHED MERGE {!r} into {!r}'.format(ibs_src.get_dbname(), ibs_dst.get_dbname())
     )
 
 
@@ -238,7 +240,7 @@ def export_names(ibs, nid_list, new_dbpath=None):
         >>> # verify results
         >>> print(result)
     """
-    logger.info('Exporting name nid_list=%r' % (nid_list,))
+    logger.info('Exporting name nid_list={!r}'.format(nid_list))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'nid', nid_list)
 
@@ -281,7 +283,7 @@ def __export_reviewed_subset(ibs, min_count=500, ensure_annots=False):
     if gid_list is None:
         return None
     new_dbpath = '/' + join('Datasets', 'BACKGROUND', ibs.dbname)
-    logger.info('Exporting to %r with %r images' % (new_dbpath, len(gid_list)))
+    logger.info('Exporting to {!r} with {!r} images'.format(new_dbpath, len(gid_list)))
     return export_images(ibs, gid_list, new_dbpath=new_dbpath)
 
 
@@ -300,7 +302,7 @@ def export_images(ibs, gid_list, new_dbpath=None):
     Returns:
         str: new_dbpath
     """
-    logger.info('Exporting image gid_list=%r' % (gid_list,))
+    logger.info('Exporting image gid_list={!r}'.format(gid_list))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'gid', gid_list)
 
@@ -363,7 +365,7 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         >>> result = ('new_dbpath = %s' % (str(new_dbpath),))
         >>> print(result)
     """
-    logger.info('Exporting annotations aid_list=%r' % (aid_list,))
+    logger.info('Exporting annotations aid_list={!r}'.format(aid_list))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'aid', aid_list)
     gid_list = ut.unique(ibs.get_annot_gids(aid_list))
@@ -411,7 +413,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     ibs_dst = wbia.opendb(dbdir=new_dbpath, allow_newdir=True)
     # Main merge driver
     merge_databases(ibs, ibs_dst, rowid_subsets=rowid_subsets)
-    logger.info('Exported to %r' % (new_dbpath,))
+    logger.info('Exported to {!r}'.format(new_dbpath))
     return new_dbpath
 
 
@@ -426,8 +428,8 @@ def slow_merge_test():
         >>> result = slow_merge_test()
         >>> print(result)
     """
-    from wbia.dbio import export_subset
     import wbia
+    from wbia.dbio import export_subset
 
     ibs1 = wbia.opendb('testdb2')
     ibs1.fix_invalid_annotmatches()
@@ -514,12 +516,14 @@ def fix_bidirectional_annotmatch(ibs):
                 fixme_flag = True
         if fixme_flag:
             logger.info('--')
-            logger.info('t1, t2 = %r, %r' % (t1, t2))
-            logger.info('newtag = %r' % (newtag,))
+            logger.info('t1, t2 = {!r}, {!r}'.format(t1, t2))
+            logger.info('newtag = {!r}'.format(newtag))
             logger.info(
-                'truth_real, truth1, truth2 = %r, %r, %r' % (truth_real, truth1, truth2)
+                'truth_real, truth1, truth2 = {!r}, {!r}, {!r}'.format(
+                    truth_real, truth1, truth2
+                )
             )
-            logger.info('aid1, aid2 = %r, %r' % (aid1, aid2))
+            logger.info('aid1, aid2 = {!r}, {!r}'.format(aid1, aid2))
             fixme_edges.append(tuple(sorted((aid1, aid2))))
         else:
             extra_[(aid1, aid2)] = (truth_real, newtag)
@@ -553,7 +557,7 @@ def fix_bidirectional_annotmatch(ibs):
 
     # Delete the old
     ibs.delete_annotmatch(
-        (d1['annotmatch_rowid'].values.tolist() + d2['annotmatch_rowid'].values.tolist())
+        d1['annotmatch_rowid'].values.tolist() + d2['annotmatch_rowid'].values.tolist()
     )
 
     # Add the new
@@ -663,12 +667,12 @@ def fix_annotmatch_pzmaster1():
                 if truth_real != truth2:
                     fixme_flag = True
             if fixme_flag:
-                logger.info('newtag = %r' % (newtag,))
-                logger.info('truth_real = %r' % (truth_real,))
-                logger.info('truth1 = %r' % (truth1,))
-                logger.info('truth2 = %r' % (truth2,))
-                logger.info('aid1 = %r' % (aid1,))
-                logger.info('aid2 = %r' % (aid2,))
+                logger.info('newtag = {!r}'.format(newtag))
+                logger.info('truth_real = {!r}'.format(truth_real))
+                logger.info('truth1 = {!r}'.format(truth1))
+                logger.info('truth2 = {!r}'.format(truth2))
+                logger.info('aid1 = {!r}'.format(aid1))
+                logger.info('aid2 = {!r}'.format(aid2))
                 fixme_edges.append((aid1, aid2))
             else:
                 extra_[(aid1, aid2)] = (truth_real, newtag)
@@ -682,10 +686,8 @@ def fix_annotmatch_pzmaster1():
 
         # Delete the old
         ibs.delete_annotmatch(
-            (
-                d1['annotmatch_rowid'].values.tolist()
-                + d2['annotmatch_rowid'].values.tolist()
-            )
+            d1['annotmatch_rowid'].values.tolist()
+            + d2['annotmatch_rowid'].values.tolist()
         )
 
         # Add the new
@@ -859,14 +861,14 @@ def remerge_subset():
         if diff_idxs:
             diff_prop1 = ut.take(prop1, diff_idxs)
             diff_prop2 = ut.take(prop2, diff_idxs)
-            logger.info('key = %r' % (key,))
-            logger.info('diff_prop1 = %r' % (diff_prop1,))
-            logger.info('diff_prop2 = %r' % (diff_prop2,))
+            logger.info('key = {!r}'.format(key))
+            logger.info('diff_prop1 = {!r}'.format(diff_prop1))
+            logger.info('diff_prop2 = {!r}'.format(diff_prop2))
             to_change[key] = diff_idxs
     if to_change:
         changed_idxs = ut.unique(ut.flatten(to_change.values()))
         logger.info('Found %d annots that need updated properties' % len(changed_idxs))
-        logger.info('changing unary attributes: %r' % (to_change,))
+        logger.info('changing unary attributes: {!r}'.format(to_change))
         if False and ut.are_you_sure('apply change'):
             for key, idxs in to_change.items():
                 subaids1 = aids1.take(idxs)
@@ -1123,12 +1125,12 @@ def check_database_overlap(ibs1, ibs2):
     SHOW_ISECT_GIDS = False
     if SHOW_ISECT_GIDS:
         if len(gx_list1) > 0:
-            logger.info('gids_isect1 = %r' % (gids_isect1,))
-            logger.info('gids_isect2 = %r' % (gids_isect2,))
+            logger.info('gids_isect1 = {!r}'.format(gids_isect1))
+            logger.info('gids_isect2 = {!r}'.format(gids_isect2))
             if False:
                 # Debug code
-                import wbia.viz
                 import wbia.plottool as pt
+                import wbia.viz
 
                 gid_pairs = list(zip(gids_isect1, gids_isect2))
                 pairs_iter = ut.ichunks(gid_pairs, chunksize=8)
@@ -1166,8 +1168,8 @@ def check_database_overlap(ibs1, ibs2):
 
         SHOW_CHANGED_GIDS = False
         if SHOW_CHANGED_GIDS:
-            logger.info('gids_isect1 = %r' % (changed_gids2,))
-            logger.info('gids_isect2 = %r' % (changed_gids1,))
+            logger.info('gids_isect1 = {!r}'.format(changed_gids2))
+            logger.info('gids_isect2 = {!r}'.format(changed_gids1))
             # if False:
             #     # Debug code
             #     import wbia.viz
@@ -1249,8 +1251,8 @@ def check_database_overlap(ibs1, ibs2):
             #    pass
             if False:
                 # Debug code
-                import wbia.viz
                 import wbia.plottool as pt
+                import wbia.viz
 
                 # aid_pairs = list(zip(_aids1, _aids2))
                 aid_pairs = list(zip(significant_aids1, significant_aids2))
@@ -1281,8 +1283,8 @@ def check_database_overlap(ibs1, ibs2):
     #
     images_without_annots1 = sum(nAnnots_per_image1 == 0)
     images_without_annots2 = sum(nAnnots_per_image2 == 0)
-    logger.info('images_without_annots1 = %r' % (images_without_annots1,))
-    logger.info('images_without_annots2 = %r' % (images_without_annots2,))
+    logger.info('images_without_annots1 = {!r}'.format(images_without_annots1))
+    logger.info('images_without_annots2 = {!r}'.format(images_without_annots2))
 
     nAnnots_per_image1
 

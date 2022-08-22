@@ -11,17 +11,18 @@ CommandLine:
     python -m wbia.viz.interact.interact_matches --test-show_coverage --show
 """
 import logging
-import utool as ut
+
 import numpy as np
+import utool as ut
+
 import wbia.plottool as pt
-from wbia.plottool import interact_helpers as ih
 from wbia import viz
-from wbia.algo.hots import scoring
-from wbia.algo.hots import hstypes
+from wbia.algo.hots import hstypes, scoring
+from wbia.plottool import interact_helpers as ih
+from wbia.plottool import interact_matches
+from wbia.viz import viz_chip
 from wbia.viz import viz_helpers as vh
 from wbia.viz import viz_hough
-from wbia.viz import viz_chip
-from wbia.plottool import interact_matches
 from wbia.viz.interact.interact_chip import ishow_chip
 
 (print, rrr, profile) = ut.inject2(__name__, '[interact_matches]')
@@ -394,8 +395,8 @@ class MatchInteraction(interact_matches.MatchInteraction2):
                 vh.get_ibsdat(ax, 'aid', None)
             ]
             hs_fx = vh.get_ibsdat(ax, 'fx', None)
-            logger.info('hs_fx = %r' % (hs_fx,))
-            logger.info('hs_aid = %r' % (hs_aid,))
+            logger.info('hs_fx = {!r}'.format(hs_fx))
+            logger.info('hs_aid = {!r}'.format(hs_aid))
             if hs_aid is not None and viztype == 'unwarped':
                 ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=pt.next_fnum())
             elif hs_aid is not None and viztype == 'warped':

@@ -4,11 +4,13 @@ TODO:
     * cross validation
     * encounter vs database (time filtering)
 """
-import logging
-import functools
 import copy
-import utool as ut
+import functools
+import logging
+
 import numpy as np
+import utool as ut
+
 from wbia.control import controller_inject
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -440,8 +442,9 @@ def expand_acfgs_consistently(
         >>> main_helpers.unmonkeypatch_encounters(ibs)
         >>> ut.assert_eq(len(expanded_aids_combo_list), 5)
     """
-    from wbia.expt import annotation_configs
     import copy
+
+    from wbia.expt import annotation_configs
 
     if verbose is None:
         verbose = VERB_TESTDATA
@@ -1109,7 +1112,7 @@ def expand_acfgs(
     if verbose is None:
         verbose = VERB_TESTDATA
 
-    assert isinstance(aidcfg, dict), 'type(aidcfg)=%r' % (type(aidcfg),)
+    assert isinstance(aidcfg, dict), 'type(aidcfg)={!r}'.format(type(aidcfg))
     aidcfg = copy.deepcopy(aidcfg)
 
     # Check if this filter has been cached
@@ -1131,7 +1134,7 @@ def expand_acfgs(
 
     if verbose:
         ut.colorprint('+=== EXPAND_ACFGS ===', 'yellow')
-        logger.info(' * acfg = %s' % (ut.repr2(comp_acfg, align=True),))
+        logger.info(' * acfg = {}'.format(ut.repr2(comp_acfg, align=True)))
         ut.colorprint('+---------------------', 'yellow')
 
     # Breakup into common, query, and database configs
@@ -1236,7 +1239,7 @@ def expand_acfgs(
 
     except Exception as ex:
         logger.info('PRINTING ERROR INFO')
-        logger.info(' * acfg = %s' % (ut.repr2(comp_acfg, align=True),))
+        logger.info(' * acfg = {}'.format(ut.repr2(comp_acfg, align=True)))
         ut.printex(ex, 'Error executing filter chains')
         raise
 
@@ -1512,7 +1515,7 @@ def filter_annots_independent(
                     for x in other_yawtxt:
                         if vstr == x.lower():
                             return yawtxt
-                raise ValueError('unknown viewpoint vstr=%r' % (vstr,))
+                raise ValueError('unknown viewpoint vstr={!r}'.format(vstr))
 
             if view is None:
                 valid_yaw_txts = None
@@ -1770,7 +1773,7 @@ def sample_annots_wrt_ref(
         offset = 0
 
     if exclude_reference:
-        assert ref_aids is not None, 'ref_aids=%r' % (ref_aids,)
+        assert ref_aids is not None, 'ref_aids={!r}'.format(ref_aids)
         # VerbosityContext.report_annot_stats(ibs, avail_aids, prefix, '')
         # VerbosityContext.report_annot_stats(ibs, ref_aids, prefix, '')
         with VerbosityContext('exclude_reference', num_ref_aids=len(ref_aids)):
@@ -1811,10 +1814,10 @@ def sample_annots_wrt_ref(
         # A float sample size is a interpolations between full data and small
         # data
         sample_size = int(
-            round((len(avail_aids) * sample_size + (1 - sample_size) * len(ref_aids)))
+            round(len(avail_aids) * sample_size + (1 - sample_size) * len(ref_aids))
         )
         if verbose:
-            logger.info('Expanding sample size to: %r' % (sample_size,))
+            logger.info('Expanding sample size to: {!r}'.format(sample_size))
 
     # This function first partitions aids into a one set that corresonds with
     # the reference set and another that does not correspond with the reference
@@ -1854,7 +1857,7 @@ def sample_annots_wrt_ref(
                 ut.random_indexes(len(aids), rng=rng) for aids in gt_avl_grouped_aids
             ]
         else:
-            raise ValueError('Unknown sample_rule_ref = %r' % (sample_rule_ref,))
+            raise ValueError('Unknown sample_rule_ref = {!r}'.format(sample_rule_ref))
         gt_sample_idxs_list = ut.get_list_column_slice(
             gt_preference_idx_list, offset, offset + sample_per_ref_name
         )
@@ -1877,7 +1880,7 @@ def sample_annots_wrt_ref(
                 ut.random_indexes(len(aids), rng=rng) for aids in gf_avl_grouped_aids
             ]
         else:
-            raise ValueError('Unknown sample_rule=%r' % (sample_rule,))
+            raise ValueError('Unknown sample_rule={!r}'.format(sample_rule))
         gf_sample_idxs_list = ut.get_list_column_slice(
             gf_preference_idx_list, offset, offset + sample_per_name
         )
@@ -1932,11 +1935,11 @@ def sample_annots_wrt_ref(
 
 @profile
 def multi_sampled_seaturtle_queries():
-    import wbia
-    from wbia.expt import annotation_configs
-    from wbia.expt import experiment_helpers
-    from wbia.init.filter_annots import expand_acfgs
     import copy
+
+    import wbia
+    from wbia.expt import annotation_configs, experiment_helpers
+    from wbia.init.filter_annots import expand_acfgs
 
     aidcfg = copy.deepcopy(annotation_configs.default)
     db = 'seaturtles'  # 'testdb1'
@@ -2047,6 +2050,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         >>> ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
     """
     import vtool as vt
+
     from wbia.expt import annotation_configs
 
     def get_cfg(key):
@@ -2129,7 +2133,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
                     )
                     avail_aids = ut.compress(avail_aids, flags)
         else:
-            raise ValueError('Unknown sample_rule=%r' % (sample_rule,))
+            raise ValueError('Unknown sample_rule={!r}'.format(sample_rule))
         # L ___
         if sample_rule != 'qual_and_view':
             sample_idxs_list = list(
@@ -2243,11 +2247,11 @@ def verb_context(filtertype, aidcfg, verbose):
                     subdict = ut.dict_subset(aidcfg, keys, None)
                     infostr += '' + ut.repr2(subdict, **dictkw)
                 logger.info(
-                    '[%s] * Filter by %s' % (self.prefix.upper(), infostr.strip())
+                    '[{}] * Filter by {}'.format(self.prefix.upper(), infostr.strip())
                 )
                 if verbose > 1 and len(filterextra) > 0:
                     infostr2 = ut.repr2(filterextra, nl=False, explicit=False)
-                    logger.info('[%s]      %s' % (self.prefix.upper(), infostr2))
+                    logger.info('[{}]      {}'.format(self.prefix.upper(), infostr2))
 
         def __enter__(self):
             aids = ut.get_var_from_stack('avail_aids', verbose=False)
@@ -2267,7 +2271,7 @@ def verb_context(filtertype, aidcfg, verbose):
         @staticmethod
         def report_annot_stats(ibs, aids, prefix, name_suffix, statskw={}):
             if verbose > 1:
-                with ut.Indenter('[%s]  ' % (prefix.upper(),)):
+                with ut.Indenter('[{}]  '.format(prefix.upper())):
                     # TODO: helpx on statskw
                     # statskw = dict(per_name_vpedge=None, per_name=None)
                     dict_name = prefix + 'aid_stats' + name_suffix
@@ -2287,7 +2291,9 @@ def verb_context(filtertype, aidcfg, verbose):
             """
             if verbose:
                 prefix = ut.get_var_from_stack('prefix', verbose=False)
-                logger.info('[%s] * [%s] %sAIDS' % (prefix.upper(), filtertype, prefix))
+                logger.info(
+                    '[{}] * [{}] {}AIDS'.format(prefix.upper(), filtertype, prefix)
+                )
                 if verbose > 1 and withpre:
                     ibs = ut.get_var_from_stack('ibs', verbose=False)
                     aids = ut.get_var_from_stack('avail_aids', verbose=False)
@@ -2303,7 +2309,7 @@ def verb_context(filtertype, aidcfg, verbose):
                 if withpost:
                     if verbose > 1:
                         VerbosityContext.report_annot_stats(ibs, aids, prefix, '_post')
-                logger.info('[%s] * HAHID: %s' % (prefix.upper(), hashid))
+                logger.info('[{}] * HAHID: {}'.format(prefix.upper(), hashid))
                 logger.info(
                     '[%s] * [%s]: len(avail_%saids) = %r\n'
                     % (prefix.upper(), filtertype, prefix, len(aids))

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut  # NOQA
+
 import numpy as np
+import utool as ut  # NOQA
 import vtool as vt
 
 # from wbia import constants as const

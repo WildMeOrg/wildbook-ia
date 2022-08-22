@@ -28,11 +28,11 @@ try:
     from wbia import dtool as dt
 except ImportError:
     pass
-import numpy as np
-import utool as ut
-
 # from wbia.plottool import colorfuncs
 from functools import reduce
+
+import numpy as np
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -124,8 +124,9 @@ def show_nx(
         >>> import wbia.plottool as pt
         >>> pt.show_if_requested()
     """
-    import wbia.plottool as pt
     import networkx as nx
+
+    import wbia.plottool as pt
 
     if ax is None:
         fnum = pt.ensure_fnum(fnum)
@@ -223,6 +224,7 @@ def netx_draw_images_at_positions(
         http://matplotlib.org/api/offsetbox_api.html
     """
     import vtool as vt
+
     import wbia.plottool as pt
 
     # Ensure all images have been read
@@ -267,7 +269,7 @@ def parse_html_graphviz_attrs():
     pd.options.display.max_rows = 20
     pd.options.display.max_columns = 40
     pd.options.display.width = 160
-    pd.options.display.float_format = lambda x: '%.4f' % (x,)
+    pd.options.display.float_format = lambda x: '{:.4f}'.format(x)
 
     full_df = pd.DataFrame(data, columns=columns)
     # Find valid progs that can be used
@@ -675,14 +677,14 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
             reduce(
                 set.union,
                 [set(edge[-1].keys()) for edge in graph.edges(data=True)],
-                set([]),
+                set(),
             )
         )
         node_keys = list(
             reduce(
                 set.union,
                 [set(node[-1].keys()) for node in graph.nodes(data=True)],
-                set([]),
+                set(),
             )
         )
         graph_keys = list(graph.graph.keys())
@@ -706,7 +708,7 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
         # PREFERED LAYOUT WITH MOST CONTROL
         _, layout_info = nx_agraph_layout(graph, verbose=verbose, **layoutkw)
     else:
-        raise ValueError('Undefined layout = %r' % (layout,))
+        raise ValueError('Undefined layout = {!r}'.format(layout))
     return layout_info
 
 
@@ -748,7 +750,7 @@ def patch_pygraphviz():
 
         Use keyword args to add additional arguments to graphviz programs.
         """
-        from pygraphviz.agraph import shlex, subprocess, PipeReader, warnings
+        from pygraphviz.agraph import PipeReader, shlex, subprocess, warnings
 
         runprog = r'"%s"' % self._get_prog(prog)
         cmd = ' '.join([runprog, args])
@@ -1046,7 +1048,7 @@ def nx_agraph_layout(
         layoutkw['notranslate'] = 'true'  # for neato postprocessing
 
     if True:
-        argparts = ['-G%s=%s' % (key, str(val)) for key, val in layoutkw.items()]
+        argparts = ['-G{}={}'.format(key, str(val)) for key, val in layoutkw.items()]
         splines = layoutkw['splines']
     else:
         # layoutkw is allowed to overwrite graph.graph['graph']
@@ -1068,7 +1070,7 @@ def nx_agraph_layout(
     if verbose is None:
         verbose = ut.VERBOSE
     if verbose or is_large:
-        logger.info('[nx_agraph_layout] args = %r' % (args,))
+        logger.info('[nx_agraph_layout] args = {!r}'.format(args))
     # Convert to agraph format
 
     agraph = make_agraph(graph_)
@@ -1174,7 +1176,9 @@ def nx_agraph_layout(
             implicit_kw = layoutkw.copy()
             implicit_kw['overlap'] = 'true'
             # del implicit_kw['overlap']  # can cause node positions to change
-            argparts = ['-G%s=%s' % (key, str(val)) for key, val in implicit_kw.items()]
+            argparts = [
+                '-G{}={}'.format(key, str(val)) for key, val in implicit_kw.items()
+            ]
             args = ' '.join(argparts)
 
             if is_large:
@@ -1296,7 +1300,7 @@ def parse_aedge_layout_attrs(aedge, translation=None):
         end_pt = np.array([float(f) for f in end_ptstrs[0]])
     if len(start_ptstrs) == 1:
         start_pt = np.array([float(f) for f in start_ptstrs[0]])
-    ctrl_pts = np.array([tuple([float(f) for f in ea]) for ea in ctrl_ptstrs])
+    ctrl_pts = np.array([tuple(float(f) for f in ea) for ea in ctrl_ptstrs])
     adata = aedge.attr
     ctrl_pts = ctrl_pts
     edge_attrs['pos'] = apos
@@ -1314,7 +1318,7 @@ def parse_aedge_layout_attrs(aedge, translation=None):
 
 def format_anode_pos(xy, pin=True):
     xx, yy = xy
-    return '%f,%f%s' % (xx, yy, '!' * pin)
+    return '{:f},{:f}{}'.format(xx, yy, '!' * pin)
 
 
 def _get_node_size(graph, node, node_size):
@@ -1360,8 +1364,9 @@ def draw_network2(
     # python -m wbia.annotmatch_funcs review_tagged_joins --dpath ~/latex/crall-candidacy-2015/ --save figures4/mergecase.png --figsize=15,15 --clipwhite --diskshow
     # python -m dtool --tf DependencyCache.make_graph --show
     """
-    import wbia.plottool as pt
     import matplotlib as mpl
+
+    import wbia.plottool as pt
 
     figsize = ut.get_argval('--figsize', type_=list, default=None)
 
@@ -1489,7 +1494,7 @@ def draw_network2(
             patch = pt.cartoon_stacked_rects(xy_bl, width, height, num=depth, **stackkw)
             patch.xy = xy
         else:
-            raise NotImplementedError('Unknown node_shape=%r' % (node_shape,))
+            raise NotImplementedError('Unknown node_shape={!r}'.format(node_shape))
 
         show_center = 0
         if show_center:
@@ -1617,7 +1622,7 @@ def draw_network2(
             elif splines == 'spline':
                 CODE = mpl.path.Path.CURVE4
             else:
-                raise AssertionError('splines = %r' % (splines,))
+                raise AssertionError('splines = {!r}'.format(splines))
 
             astart_code = MOVETO
             astart_code = MOVETO
@@ -1859,7 +1864,7 @@ def draw_network2(
     if verbose:
         logger.info('Adding %r node patches ' % (len(patch_dict['node_patch_dict'])))
         logger.info('Adding %r edge patches ' % (len(patch_dict['edge_patch_dict'])))
-        logger.info('n_invis_edge = %r' % (n_invis_edge,))
+        logger.info('n_invis_edge = {!r}'.format(n_invis_edge))
 
     for frame in patch_dict['patch_frame_dict'].values():
         ax.add_patch(frame)

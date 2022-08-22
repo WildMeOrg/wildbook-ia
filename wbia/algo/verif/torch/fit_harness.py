@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
-import torch
 from collections import defaultdict
 from os.path import join
-from torch.autograd import Variable
-from wbia.algo.verif.torch import netmath
+
 import tensorboard_logger
+import torch
 import utool as ut
+from torch.autograd import Variable
+
+from wbia.algo.verif.torch import netmath
 
 # from wbia.algo.verif.torch import gpu_util
 
@@ -146,7 +148,7 @@ class FitHarness(object):
 
                 n_train = len(harn.train_loader)
                 harn.log(
-                    'Epoch {0}: {1} / {2} | lr:{3} - tloss:{4:.5f} acc:{5:.2f} | sdis:{6:.3f} ddis:{7:.3f}'.format(
+                    'Epoch {}: {} / {} | lr:{} - tloss:{:.5f} acc:{:.2f} | sdis:{:.3f} ddis:{:.3f}'.format(
                         harn.epoch,
                         batch_idx,
                         n_train,
@@ -186,7 +188,7 @@ class FitHarness(object):
                     ave_metrics[k] /= harn.config['displayInterval']
 
                 harn.log(
-                    'Epoch {0}: {1} / {2} | vloss:{3:.5f} acc:{4:.2f} | sdis:{5:.3f} ddis:{6:.3f}'.format(
+                    'Epoch {}: {} / {} | vloss:{:.5f} acc:{:.2f} | sdis:{:.3f} ddis:{:.3f}'.format(
                         harn.epoch,
                         vali_idx,
                         len(harn.vali_loader),
@@ -203,7 +205,7 @@ class FitHarness(object):
         for k in final_metrics.keys():
             final_metrics[k] /= len(harn.vali_loader)
         harn.log(
-            'Epoch {0}: final vloss:{1:.5f} acc:{2:.2f} | sdis:{3:.3f} ddis:{4:.3f}'.format(
+            'Epoch {}: final vloss:{:.5f} acc:{:.2f} | sdis:{:.3f} ddis:{:.3f}'.format(
                 harn.epoch,
                 final_metrics['loss'],
                 final_metrics['accuracy'],

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool
-from os.path import join, realpath
 from itertools import cycle
+from os.path import join, realpath
+
+import utool
 
 from wbia.tests.helpers import get_testdata_dir
-
 
 print, rrr, profile = utool.inject2(__name__)
 logger = logging.getLogger('wbia')

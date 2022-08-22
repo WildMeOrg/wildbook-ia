@@ -50,26 +50,29 @@ Notes:
     And then running the forground process
     python -m wbia.web.job_engine job_engine_tester --fg
 """
+import multiprocessing
+import random
+import re
+import shelve
+import time
+import uuid  # NOQA
+from datetime import datetime, timedelta
+from functools import partial
+from os.path import abspath, basename, exists, join, splitext
+
+import flask
+import numpy as np
+import pytz
+
 # if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
 # import logging
 import utool as ut
-import time
 import zmq
-import uuid  # NOQA
-import numpy as np
-import shelve
-import random
-from datetime import datetime, timedelta
-import pytz
-import flask
-from os.path import join, exists, abspath, splitext, basename
-from functools import partial
+
 from wbia.control import controller_inject
 from wbia.utils import call_houston
-import multiprocessing
-import re
 
 print, rrr, profile = ut.inject2(__name__)  # NOQA
 # logger = logging.getLogger('wbia')
@@ -110,10 +113,10 @@ def update_proctitle(procname, dbname=None):
 
         print('CHANGING PROCESS TITLE')
         old_title = setproctitle.getproctitle()
-        print('old_title = %r' % (old_title,))
+        print('old_title = {!r}'.format(old_title))
         hostname = ut.get_computer_name()
-        new_title = 'WBIA_%s_%s_%s' % (dbname, hostname, procname)
-        print('new_title = %r' % (new_title,))
+        new_title = 'WBIA_{}_{}_{}'.format(dbname, hostname, procname)
+        print('new_title = {!r}'.format(new_title))
         setproctitle.setproctitle(new_title)
     except ImportError:
         print('pip install setproctitle')
@@ -138,7 +141,7 @@ def fetch_job(ibs, jobid):
     from os.path import exists
 
     shelve_path = ibs.get_shelves_path()
-    job_record_filename = '%s.pkl' % (jobid,)
+    job_record_filename = '{}.pkl'.format(jobid)
     job_record_filepath = join(shelve_path, job_record_filename)
     assert exists(job_record_filepath)
 
@@ -218,7 +221,7 @@ def initialize_job_manager(ibs):
     # Wait until the collector becomes live
     while 0 and True:
         result = ibs.get_job_status(-1)
-        print('result = %r' % (result,))
+        print('result = {!r}'.format(result))
         if result['status'] == 'ok':
             break
 
@@ -281,7 +284,7 @@ def get_job_id_list(ibs):
 )
 def get_process_alive_status(ibs):
     status_dict = ibs.job_manager.reciever.get_process_alive_status()
-    print('status_dict = %r' % (status_dict,))
+    print('status_dict = {!r}'.format(status_dict))
     return status_dict
 
 
@@ -550,7 +553,7 @@ class JobBackend(object):
             # 'collect_pushpull_url',
         ]
         for lane in self.engine_lanes:
-            key_list.append('engine_%s_push_url' % (lane,))
+            key_list.append('engine_{}_push_url'.format(lane))
 
         # Get ports
         if use_static_ports:
@@ -645,14 +648,14 @@ class JobBackend(object):
         if self.spawn_engine:
             for lane in self.engine_procs:
                 for id_, engine in enumerate(self.engine_procs[lane]):
-                    engine_str = 'engine.%s.%s' % (lane, id_)
+                    engine_str = 'engine.{}.{}'.format(lane, id_)
                     status_dict[engine_str] = engine.is_alive()
 
         return status_dict
 
 
 def get_shelve_lock_filepath(shelve_filepath):
-    shelve_lock_filepath = '%s.lock' % (shelve_filepath,)
+    shelve_lock_filepath = '{}.lock'.format(shelve_filepath)
     return shelve_lock_filepath
 
 
@@ -680,7 +683,7 @@ def wait_for_shelve_lock_file(shelve_filepath, timeout=600):
             return False
         time.sleep(1)
         if int(elapsed) % 5 == 0:
-            print('Waiting for %0.02f seconds for lock so far' % (elapsed,))
+            print('Waiting for {:0.02f} seconds for lock so far'.format(elapsed))
     return True
 
 
@@ -721,8 +724,8 @@ def set_shelve_value(shelve_filepath, key, value):
 
 def get_shelve_filepaths(ibs, jobid):
     shelve_path = ibs.get_shelves_path()
-    shelve_input_filepath = abspath(join(shelve_path, '%s.input.shelve' % (jobid,)))
-    shelve_output_filepath = abspath(join(shelve_path, '%s.output.shelve' % (jobid,)))
+    shelve_input_filepath = abspath(join(shelve_path, '{}.input.shelve'.format(jobid)))
+    shelve_output_filepath = abspath(join(shelve_path, '{}.output.shelve'.format(jobid)))
     return shelve_input_filepath, shelve_output_filepath
 
 
@@ -804,7 +807,7 @@ def initialize_process_record(
                 print_ = partial(ut.colorprint, color=color)
                 print_('ARCHIVING JOB (AGE: %d SECONDS)' % (job_age,))
                 job_scr_filepath_list = list(
-                    ut.iglob(join(shelve_path, '%s*' % (jobid,)))
+                    ut.iglob(join(shelve_path, '{}*'.format(jobid)))
                 )
                 for job_scr_filepath in job_scr_filepath_list:
                     job_dst_filepath = job_scr_filepath.replace(
@@ -882,17 +885,19 @@ class JobInterface(object):
             print('Initializing JobInterface')
         jobiface.engine_recieve_socket = ctx.socket(zmq.DEALER)  # CHECK2 - REQ
         jobiface.engine_recieve_socket.setsockopt_string(
-            zmq.IDENTITY, 'client%s.engine.DEALER' % (jobiface.id_,)
+            zmq.IDENTITY, 'client{}.engine.DEALER'.format(jobiface.id_)
         )
         jobiface.engine_recieve_socket.connect(jobiface.port_dict['engine_pull_url'])
         if jobiface.verbose:
             print(
-                'connect engine_pull_url = %r' % (jobiface.port_dict['engine_pull_url'],)
+                'connect engine_pull_url = {!r}'.format(
+                    jobiface.port_dict['engine_pull_url']
+                )
             )
 
         jobiface.collect_recieve_socket = ctx.socket(zmq.DEALER)  # CHECK2 - REQ
         jobiface.collect_recieve_socket.setsockopt_string(
-            zmq.IDENTITY, 'client%s.collect.DEALER' % (jobiface.id_,)
+            zmq.IDENTITY, 'client{}.collect.DEALER'.format(jobiface.id_)
         )
         jobiface.collect_recieve_socket.connect(jobiface.port_dict['collect_pull_url'])
         if jobiface.verbose:
@@ -909,7 +914,7 @@ class JobInterface(object):
         if ibs is not None:
             shelve_path = ibs.get_shelves_path()
             shelve_path = shelve_path.rstrip('/')
-            shelve_archive_path = '%s_ARCHIVE' % (shelve_path,)
+            shelve_archive_path = '{}_ARCHIVE'.format(shelve_path)
             ut.ensuredir(shelve_archive_path)
 
             record_filepath_list = _get_engine_job_paths(ibs)
@@ -991,7 +996,7 @@ class JobInterface(object):
                         'status': status,
                         'action': 'register',
                     }
-                    print('Sending register: %r' % (reply_notify,))
+                    print('Sending register: {!r}'.format(reply_notify))
                     jobiface.collect_recieve_socket.send_json(reply_notify)
                     reply = jobiface.collect_recieve_socket.recv_json()
                     jobid_ = reply['jobid']
@@ -1017,7 +1022,7 @@ class JobInterface(object):
             update_notify = {
                 '__set_jobcounter__': global_jobcounter,
             }
-            print('Updating completed job counter: %r' % (update_notify,))
+            print('Updating completed job counter: {!r}'.format(update_notify))
             jobiface.engine_recieve_socket.send_json(update_notify)
             reply = jobiface.engine_recieve_socket.recv_json()
             jobcounter_ = reply['jobcounter']
@@ -1110,12 +1115,12 @@ class JobInterface(object):
             'lane': lane,
         }
         if True or jobiface.verbose >= 2:
-            print('Queue job: %s' % (ut.repr2(engine_request, truncate=True),))
+            print('Queue job: {}'.format(ut.repr2(engine_request, truncate=True)))
 
         # Send request to job
         jobiface.engine_recieve_socket.send_json(engine_request)
         reply_notify = jobiface.engine_recieve_socket.recv_json()
-        print('reply_notify = %r' % (reply_notify,))
+        print('reply_notify = {!r}'.format(reply_notify))
         jobid_ = reply_notify['jobid']
 
         if jobid is not None:
@@ -1127,7 +1132,7 @@ class JobInterface(object):
             shelve_path = ibs.get_shelves_path()
             ut.ensuredir(shelve_path)
 
-            record_filename = '%s.pkl' % (jobid,)
+            record_filename = '{}.pkl'.format(jobid)
             record_filepath = join(shelve_path, record_filename)
             record = {
                 'request': engine_request,
@@ -1161,7 +1166,7 @@ class JobInterface(object):
     def get_job_status(jobiface, jobid):
         if jobiface.verbose >= 1:
             print('----')
-            print('Request status of jobid=%r' % (jobid,))
+            print('Request status of jobid={!r}'.format(jobid))
         pair_msg = dict(action='job_status', jobid=jobid)
         # CALLS: collector_request_status
         jobiface.collect_recieve_socket.send_json(pair_msg)
@@ -1181,7 +1186,7 @@ class JobInterface(object):
     def get_job_metadata(jobiface, jobid):
         if jobiface.verbose >= 1:
             print('----')
-            print('Request metadata of jobid=%r' % (jobid,))
+            print('Request metadata of jobid={!r}'.format(jobid))
         pair_msg = dict(action='job_input', jobid=jobid)
         # CALLS: collector_request_metadata
         jobiface.collect_recieve_socket.send_json(pair_msg)
@@ -1191,7 +1196,7 @@ class JobInterface(object):
     def get_job_result(jobiface, jobid):
         if jobiface.verbose >= 1:
             print('----')
-            print('Request result of jobid=%r' % (jobid,))
+            print('Request result of jobid={!r}'.format(jobid))
         pair_msg = dict(action='job_result', jobid=jobid)
         # CALLER: collector_request_result
         jobiface.collect_recieve_socket.send_json(pair_msg)
@@ -1230,7 +1235,7 @@ class JobInterface(object):
             elif reply['jobstatus'] == 'unknown':
                 pass
             else:
-                raise Exception('Unknown jobstatus=%r' % (reply['jobstatus'],))
+                raise Exception('Unknown jobstatus={!r}'.format(reply['jobstatus']))
             reply = None  # Release memory
             time.sleep(freq)
             if timeout is not None and t.toc() > timeout:
@@ -1245,24 +1250,24 @@ def collect_queue_loop(port_dict):
 
     update_proctitle(queue_name)
 
-    interface_pull = port_dict['%s_pull_url' % (name,)]
-    interface_push = port_dict['%s_push_url' % (name,)]
+    interface_pull = port_dict['{}_pull_url'.format(name)]
+    interface_push = port_dict['{}_push_url'.format(name)]
 
     if VERBOSE_JOBS:
-        print('Init make_queue_loop: name=%r' % (name,))
+        print('Init make_queue_loop: name={!r}'.format(name))
     # bind the client dealer to the queue router
     recieve_socket = ctx.socket(zmq.ROUTER)  # CHECKED - ROUTER
     recieve_socket.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'ROUTER')
     recieve_socket.bind(interface_pull)
     if VERBOSE_JOBS:
-        print('bind %s_url1 = %r' % (name, interface_pull))
+        print('bind {}_url1 = {!r}'.format(name, interface_pull))
 
     # bind the server router to the queue dealer
     send_socket = ctx.socket(zmq.DEALER)  # CHECKED - DEALER
     send_socket.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'DEALER')
     send_socket.bind(interface_push)
     if VERBOSE_JOBS:
-        print('bind %s_url2 = %r' % (name, interface_push))
+        print('bind {}_url2 = {!r}'.format(name, interface_push))
 
     try:
         zmq.device(zmq.QUEUE, recieve_socket, send_socket)  # CHECKED - QUEUE
@@ -1275,7 +1280,7 @@ def collect_queue_loop(port_dict):
     send_socket.close()
 
     if VERBOSE_JOBS:
-        print('Exiting %s' % (loop_name,))
+        print('Exiting {}'.format(loop_name))
 
 
 def engine_queue_loop(port_dict, engine_lanes):
@@ -1293,11 +1298,11 @@ def engine_queue_loop(port_dict, engine_lanes):
 
     interface_engine_pull = port_dict['engine_pull_url']
     interface_engine_push_dict = {
-        lane: port_dict['engine_%s_push_url' % (lane,)] for lane in engine_lanes
+        lane: port_dict['engine_{}_push_url'.format(lane)] for lane in engine_lanes
     }
     interface_collect_pull = port_dict['collect_pull_url']
 
-    print('Init specialized make_queue_loop: name=%r' % (name,))
+    print('Init specialized make_queue_loop: name={!r}'.format(name))
 
     # bind the client dealer to the queue router
     engine_receive_socket = ctx.socket(zmq.ROUTER)  # CHECK2 - REP
@@ -1306,7 +1311,7 @@ def engine_queue_loop(port_dict, engine_lanes):
     )
     engine_receive_socket.bind(interface_engine_pull)
     if VERBOSE_JOBS:
-        print('bind %s_url2 = %r' % (name, interface_engine_pull))
+        print('bind {}_url2 = {!r}'.format(name, interface_engine_pull))
 
     # bind the server router to the queue dealer
     engine_send_socket_dict = {}
@@ -1317,7 +1322,11 @@ def engine_queue_loop(port_dict, engine_lanes):
         )
         engine_send_socket.bind(interface_engine_push_dict[lane])
         if VERBOSE_JOBS:
-            print('bind %s %s_url2 = %r' % (name, lane, interface_engine_push_dict[lane]))
+            print(
+                'bind {} {}_url2 = {!r}'.format(
+                    name, lane, interface_engine_push_dict[lane]
+                )
+            )
         engine_send_socket_dict[lane] = engine_send_socket
 
     collect_recieve_socket = ctx.socket(zmq.DEALER)  # CHECKED - DEALER
@@ -1360,7 +1369,7 @@ def engine_queue_loop(port_dict, engine_lanes):
                     continue
 
                 # jobid = 'jobid-%04d' % (jobcounter,)
-                jobid = '%s' % (uuid.uuid4(),)
+                jobid = '{}'.format(uuid.uuid4())
                 jobcounter = global_jobcounter + 1
                 received = _timestamp()
 
@@ -1387,14 +1396,14 @@ def engine_queue_loop(port_dict, engine_lanes):
                 engine_request['lane'] = lane
 
                 if restart_jobid is not None:
-                    '[RESTARTING] Replacing jobid=%s with previous restart_jobid=%s' % (
+                    '[RESTARTING] Replacing jobid={} with previous restart_jobid={}'.format(
                         jobid,
                         restart_jobid,
                     )
                     jobid = restart_jobid
 
                 if restart_jobcounter is not None:
-                    '[RESTARTING] Replacing jobcounter=%s with previous restart_jobcounter=%s' % (
+                    '[RESTARTING] Replacing jobcounter={} with previous restart_jobcounter={}'.format(
                         jobcounter,
                         restart_jobcounter,
                     )
@@ -1424,8 +1433,8 @@ def engine_queue_loop(port_dict, engine_lanes):
                 # Status: Received (Notify Client)
                 if VERBOSE_JOBS:
                     print('... notifying client that job was accepted')
-                    print('%r' % (idents,))
-                    print('%r' % (reply_notify,))
+                    print('{!r}'.format(idents))
+                    print('{!r}'.format(reply_notify))
                 # RETURNS: job_client_return
                 send_multipart_json(engine_receive_socket, idents, reply_notify)
 
@@ -1510,7 +1519,7 @@ def engine_queue_loop(port_dict, engine_lanes):
                 # CALLS: collector_notify
                 collect_recieve_socket.send_json(queued_notify)
     except KeyboardInterrupt:
-        print('Caught ctrl+c in %s queue. Gracefully exiting' % (loop_name,))
+        print('Caught ctrl+c in {} queue. Gracefully exiting'.format(loop_name))
 
     poller.unregister(engine_receive_socket)
     for lane in engine_send_socket_dict:
@@ -1529,7 +1538,7 @@ def engine_queue_loop(port_dict, engine_lanes):
     collect_recieve_socket.close()
 
     if VERBOSE_JOBS:
-        print('Exiting %s queue' % (loop_name,))
+        print('Exiting {} queue'.format(loop_name))
 
 
 def engine_loop(id_, port_dict, dbdir, containerized, lane):
@@ -1560,35 +1569,35 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
 
     # base_print = print  # NOQA
     print = partial(ut.colorprint, color='brightgreen')
-    interface_engine_push = port_dict['engine_%s_push_url' % (lane,)]
+    interface_engine_push = port_dict['engine_{}_push_url'.format(lane)]
     interface_collect_pull = port_dict['collect_pull_url']
 
     if VERBOSE_JOBS:
-        print('Initializing %s engine %s' % (lane, id_))
-        print('connect engine_%s_push_url = %r' % (lane, interface_engine_push))
+        print('Initializing {} engine {}'.format(lane, id_))
+        print('connect engine_{}_push_url = {!r}'.format(lane, interface_engine_push))
 
     assert dbdir is not None
 
     engine_send_sock = ctx.socket(zmq.ROUTER)  # CHECKED - ROUTER
     engine_send_sock.setsockopt_string(
         zmq.IDENTITY,
-        'engine.%s.%s' % (lane, id_),
+        'engine.{}.{}'.format(lane, id_),
     )
     engine_send_sock.connect(interface_engine_push)
 
     collect_recieve_socket = ctx.socket(zmq.DEALER)
     collect_recieve_socket.setsockopt_string(
         zmq.IDENTITY,
-        'engine.%s.%s.collect.DEALER' % (lane, id_),
+        'engine.{}.{}.collect.DEALER'.format(lane, id_),
     )
     collect_recieve_socket.connect(interface_collect_pull)
 
     if VERBOSE_JOBS:
-        print('connect collect_pull_url = %r' % (interface_collect_pull,))
+        print('connect collect_pull_url = {!r}'.format(interface_collect_pull))
         print('engine is initialized')
 
     ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, daily_backup=False)
-    update_proctitle('engine_loop.%s.%s' % (lane, id_), dbname=ibs.dbname)
+    update_proctitle('engine_loop.{}.{}'.format(lane, id_), dbname=ibs.dbname)
 
     try:
         while True:
@@ -1605,12 +1614,12 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
                 lane_ = engine_request['lane']
 
                 if VERBOSE_JOBS:
-                    print('\tjobid = %r' % (jobid,))
-                    print('\taction = %r' % (action,))
-                    print('\targs = %r' % (args,))
-                    print('\tkwargs = %r' % (kwargs,))
-                    print('\tlane = %r' % (lane,))
-                    print('\tlane_ = %r' % (lane_,))
+                    print('\tjobid = {!r}'.format(jobid))
+                    print('\taction = {!r}'.format(action))
+                    print('\targs = {!r}'.format(args))
+                    print('\tkwargs = {!r}'.format(kwargs))
+                    print('\tlane = {!r}'.format(lane))
+                    print('\tlane_ = {!r}'.format(lane_))
 
                 # Notify start working
                 reply_notify = {
@@ -1645,7 +1654,9 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
                 }
                 # if VERBOSE_JOBS:
                 print(
-                    '...done working. pushing result to collector for jobid %s' % (jobid,)
+                    '...done working. pushing result to collector for jobid {}'.format(
+                        jobid
+                    )
                 )
 
                 # CALLS: collector_store
@@ -1719,13 +1730,13 @@ def on_engine_request(
 
     # Start working
     if VERBOSE_JOBS:
-        print('starting job=%r' % (jobid,))
+        print('starting job={!r}'.format(jobid))
     # Map actions to IBEISController calls here
     if action == 'helloworld':
 
         def helloworld(time_=0, *args, **kwargs):
             time.sleep(time_)
-            retval = ('HELLO time_=%r ' % (time_,)) + ut.repr2((args, kwargs))
+            retval = ('HELLO time_={!r} '.format(time_)) + ut.repr2((args, kwargs))
             return retval
 
         action_func = helloworld
@@ -1733,7 +1744,9 @@ def on_engine_request(
         # check for ibs func
         action_func = getattr(ibs, action)
         if VERBOSE_JOBS:
-            print('resolving action=%r to wbia function=%r' % (action, action_func))
+            print(
+                'resolving action={!r} to wbia function={!r}'.format(action, action_func)
+            )
 
     key = '__jobid__'
     kwargs[key] = jobid
@@ -1753,7 +1766,11 @@ def on_engine_request(
                             % (jobid, attempt, attempts)
                         )
                         retry_delay = random.uniform(retry_delay_min, retry_delay_max)
-                        print('\t WAITING %0.02f SECONDS THEN RETRYING' % (retry_delay,))
+                        print(
+                            '\t WAITING {:0.02f} SECONDS THEN RETRYING'.format(
+                                retry_delay
+                            )
+                        )
                         time.sleep(retry_delay)
                     else:
                         raise
@@ -1787,7 +1804,7 @@ def collector_loop(port_dict, dbdir, containerized):
     collect_rout_sock.setsockopt_string(zmq.IDENTITY, 'collect.ROUTER')
     collect_rout_sock.connect(port_dict['collect_push_url'])
     if VERBOSE_JOBS:
-        print('connect collect_push_url  = %r' % (port_dict['collect_push_url'],))
+        print('connect collect_push_url  = {!r}'.format(port_dict['collect_push_url']))
 
     ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, daily_backup=False)
     update_proctitle('collector_loop', dbname=ibs.dbname)
@@ -1925,7 +1942,7 @@ def on_collect_request(
                 'input': None,
                 'output': None,
             }
-        runtime_lock_filepath = join(shelve_path, '%s.lock' % (jobid,))
+        runtime_lock_filepath = join(shelve_path, '{}.lock'.format(jobid))
     else:
         runtime_lock_filepath = None
 
@@ -1956,7 +1973,11 @@ def on_collect_request(
         # corrupted
 
         current_status = collector_data[jobid].get('status', None)
-        print('Updating jobid = %r status %r -> %r' % (jobid, current_status, status))
+        print(
+            'Updating jobid = {!r} status {!r} -> {!r}'.format(
+                jobid, current_status, status
+            )
+        )
         collector_data[jobid]['status'] = status
 
         print('Notify %s' % ut.repr3(collector_data[jobid]))
@@ -1970,7 +1991,7 @@ def on_collect_request(
                 ut.delete(runtime_lock_filepath)
 
             # Mark the engine request as finished
-            record_filename = '%s.pkl' % (jobid,)
+            record_filename = '{}.pkl'.format(jobid)
             record_filepath = join(shelve_path, record_filename)
             record = ut.load_cPkl(record_filepath, verbose=False)
             record['completed'] = True
@@ -2103,7 +2124,7 @@ def on_collect_request(
                 callback_method = 'POST'
 
             callback_method = callback_method.upper()
-            message = 'callback_method %r unsupported' % (callback_method,)
+            message = 'callback_method {!r} unsupported'.format(callback_method)
             assert callback_method in ['POST', 'GET', 'PUT'], message
 
             try:
@@ -2283,7 +2304,7 @@ def on_collect_request(
         engine_result = None  # Release memory
     else:
         # Other
-        print('...error unknown action=%r' % (action,))
+        print('...error unknown action={!r}'.format(action))
         reply['status'] = 'error'
 
     return reply
@@ -2304,7 +2325,7 @@ def rcv_multipart_json(sock, num=2, print=print):
     multi_msg = sock.recv_multipart()
     if VERBOSE_JOBS:
         print('----')
-        print('RCV Json: %s' % (ut.repr2(multi_msg, truncate=True),))
+        print('RCV Json: {}'.format(ut.repr2(multi_msg, truncate=True)))
     idents = multi_msg[:num]
     request_json = multi_msg[num]
     request = ut.from_json(request_json)

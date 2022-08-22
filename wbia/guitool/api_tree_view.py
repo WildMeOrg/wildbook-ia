@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
-from wbia.guitool.__PYQT__ import QtCore
-from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION
-from wbia.guitool.__PYQT__ import QtWidgets
-from wbia.guitool.guitool_decorators import signal_, slot_
+
 import utool as ut
+
 from wbia.guitool import api_item_view
+from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION, QtCore, QtWidgets
+from wbia.guitool.guitool_decorators import signal_, slot_
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

@@ -5,9 +5,11 @@ annotation clusters if any form of name scoring is used.
 """
 import logging
 from os.path import exists, join
-from wbia.algo.hots import chip_match
-import utool as ut
+
 import numpy as np
+import utool as ut
+
+from wbia.algo.hots import chip_match
 
 (print, rrr, profile) = ut.inject2(__name__, '[mc5]')
 logger = logging.getLogger('wbia')
@@ -173,7 +175,7 @@ def execute_bulk(qreq_):
         bc_cfgstr = qreq_.get_cfgstr(with_input=True)
         try:
             cm_list = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
-            logger.info('... bulk cache hit %r/%r' % (len(qreq_), len(qreq_)))
+            logger.info('... bulk cache hit {!r}/{!r}'.format(len(qreq_), len(qreq_)))
         except (IOError, AttributeError):
             # Fallback to smallcache
             cm_list = execute_singles(qreq_)

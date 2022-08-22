@@ -2,6 +2,7 @@
 from unittest import mock
 
 from oauthlib.oauth2 import TokenExpiredError
+
 from wbia.utils import call_houston
 
 

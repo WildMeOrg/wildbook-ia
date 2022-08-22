@@ -2,8 +2,8 @@
 import logging
 import sys  # noqa
 
-import utool as ut
 import pytest
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

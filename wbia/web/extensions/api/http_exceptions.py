@@ -4,9 +4,8 @@ HTTP exceptions collection
 --------------------------
 """
 
-from flask_restx_patched.errors import abort as restplus_abort
 from flask_restx_patched._http import HTTPStatus
-
+from flask_restx_patched.errors import abort as restplus_abort
 
 API_DEFAULT_HTTP_CODE_MESSAGES = {
     HTTPStatus.UNAUTHORIZED.value: (

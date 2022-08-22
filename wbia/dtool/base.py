@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import logging
-import re
-import functools
-import operator as op
-import utool as ut
-import numpy as np
 import copy
+import functools
+import logging
+import operator as op
+import re
+
+import numpy as np
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
 logger = logging.getLogger('wbia.dtool')
@@ -297,7 +298,7 @@ class Config(ut.NiceRepr, ut.DictLike):
         into a flat list. (there must not be name conflicts)
         """
         param_list = []
-        seen = set([])
+        seen = set()
         for item in cfg.items():
             key, val = item
             if hasattr(val, 'parse_namespace_config_items'):
@@ -310,7 +311,9 @@ class Config(ut.NiceRepr, ut.DictLike):
                 for key, val in val.parse_items():
                     if key in seen:
                         logger.info(
-                            '[Config] WARNING: key=%r appears more than once' % (key,)
+                            '[Config] WARNING: key={!r} appears more than once'.format(
+                                key
+                            )
                         )
                     seen.add(key)
                     # Incorporate namespace
@@ -320,7 +323,7 @@ class Config(ut.NiceRepr, ut.DictLike):
             else:
                 if key in seen:
                     logger.info(
-                        '[Config] WARNING: key=%r appears more than once' % (key,)
+                        '[Config] WARNING: key={!r} appears more than once'.format(key)
                     )
                 seen.add(key)
                 # Incorporate namespace
@@ -395,7 +398,7 @@ class Config(ut.NiceRepr, ut.DictLike):
 
     def assert_self_types(cfg, verbose=True):
         if verbose:
-            logger.info('Assert self types of cfg=%r' % (cfg,))
+            logger.info('Assert self types of cfg={!r}'.format(cfg))
         pi_dict = cfg.get_param_info_dict()
         for key in cfg.keys():
             pi = pi_dict[key]
@@ -608,7 +611,9 @@ def make_configclass(dict_, tablename):
                 pi.varname = key
             else:
                 pi = val
-                assert pi.varname == key, 'Given varname=%r does not match key=%r' % (
+                assert (
+                    pi.varname == key
+                ), 'Given varname={!r} does not match key={!r}'.format(
                     pi.varname,
                     key,
                 )
@@ -819,7 +824,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         true_order = ut.flatten(dependency_levels)[1:-1]
         # logger.info('[req] Ensuring %s request dependencies: %r' % (request, true_order,))
         ut.colorprint(
-            '[req] Ensuring request %s dependencies: %r' % (request, true_order),
+            '[req] Ensuring request {} dependencies: {!r}'.format(request, true_order),
             'yellow',
         )
         for tablename in true_order:
@@ -845,7 +850,7 @@ class BaseRequest(IBEISRequestHacks, ut.NiceRepr):
         pass
 
     def execute(request, parent_rowids=None, use_cache=None, postprocess=True):
-        ut.colorprint('[req] Executing request %s' % (request,), 'yellow')
+        ut.colorprint('[req] Executing request {}'.format(request), 'yellow')
         table = request.depc[request.tablename]
         if use_cache is None:
             use_cache = not ut.get_argflag('--nocache')
@@ -942,7 +947,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
 
     def execute(request, parent_rowids=None, use_cache=None, postprocess=True, **kwargs):
         """HACKY REIMPLEMENTATION"""
-        ut.colorprint('[req] Executing request %s' % (request,), 'yellow')
+        ut.colorprint('[req] Executing request {}'.format(request), 'yellow')
         table = request.depc[request.tablename]
         if use_cache is None:
             use_cache = not ut.get_argflag('--nocache')
@@ -998,7 +1003,7 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
             len(request.parent_rowids),
             request.get_pipe_hashid(),
         )
-        return '(%s) %s' % (dbname, infostr_)
+        return '({}) {}'.format(dbname, infostr_)
 
 
 @ut.reloadable_class
@@ -1067,12 +1072,12 @@ class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
             if request.depc is None or request.depc.controller is None
             else request.depc.controller.get_dbname()
         )
-        infostr_ = 'nQ=%s, nD=%s %s' % (
+        infostr_ = 'nQ={}, nD={} {}'.format(
             len(request.qaids),
             len(request.daids),
             request.get_pipe_hashid(),
         )
-        return '(%s) %s' % (dbname, infostr_)
+        return '({}) {}'.format(dbname, infostr_)
 
 
 class ClassVsClassSimilarityRequest(BaseRequest):
@@ -1141,4 +1146,4 @@ class MatchResult(AlgoResult, ut.NiceRepr):
         return cm.qaid
 
     def __nice__(cm):
-        return ' qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
+        return ' qaid={} nD={}'.format(cm.qaid, cm.num_daids)

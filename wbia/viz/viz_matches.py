@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
+
 import wbia.plottool as pt
 import wbia.plottool.plot_helpers as ph
 from wbia.viz import viz_helpers as vh
@@ -210,9 +212,9 @@ def show_name_matches(
 
     heatmask = kwargs.pop('heatmask', False)
     if heatmask:
-        from vtool.coverage_kpts import make_kpts_heatmask
         import numpy as np
         import vtool as vt
+        from vtool.coverage_kpts import make_kpts_heatmask
 
         wh1 = vt.get_size(rchip1)
         fx1 = np.unique(np.hstack([fm.T[0] for fm in name_fm_list]))
@@ -370,7 +372,7 @@ def annotate_matches3(
         lbls_list = [[] for _ in range(len(aid_list))]
         if kwargs.get('show_name', False):
             for count, (lbls, name) in enumerate(zip(lbls_list, name_list)):
-                lbls.append(ut.repr2((name)))
+                lbls.append(ut.repr2(name))
         if kwargs.get('show_nid', True):
             for count, (lbls, nid) in enumerate(zip(lbls_list, nid_list)):
                 # only label the first two images with nids
@@ -485,8 +487,8 @@ def annotate_matches2(
                 lbl1_list.append('q' + vh.get_aidstrs(aid1))
                 lbl2_list.append(vh.get_aidstrs(aid2))
             if kwargs.get('show_name', True):
-                lbl1_list.append(repr((name1)))
-                lbl2_list.append(repr((name2)))
+                lbl1_list.append(repr(name1))
+                lbl2_list.append(repr(name2))
             if kwargs.get('show_nid', True):
                 lbl1_list.append(vh.get_nidstrs(nid1))
                 lbl2_list.append(vh.get_nidstrs(nid2))
@@ -711,10 +713,11 @@ def show_multichip_match(
     target_wh = None
 
     """
-    import vtool.image as gtool
-    import wbia.plottool as pt
     import numpy as np
     import vtool as vt
+    import vtool.image as gtool
+
+    import wbia.plottool as pt
 
     kwargs = kwargs.copy()
 

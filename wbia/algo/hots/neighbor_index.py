@@ -7,16 +7,17 @@ multi_index.py as well
 https://github.com/spotify/annoy
 """
 import logging
+from os.path import basename
+
+# import itertools as it
+import lockfile
 import numpy as np
 import utool as ut
 import vtool as vt
 from vtool._pyflann_backend import pyflann as pyflann
 
-# import itertools as it
-import lockfile
-from os.path import basename
-from wbia.algo.hots import hstypes
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots import hstypes
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -481,7 +482,7 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             logger.info('ADD POINTS (FIXME: SOMETIMES SEGFAULT OCCURS)')
             logger.info('new_idx2_vec.dtype = %r' % new_idx2_vec.dtype)
-            logger.info('new_idx2_vec.shape = %r' % (new_idx2_vec.shape,))
+            logger.info('new_idx2_vec.shape = {!r}'.format(new_idx2_vec.shape))
         nnindexer.flann.add_points(new_idx2_vec)
         if ut.DEBUG2:
             logger.info('DONE ADD POINTS')
@@ -763,7 +764,9 @@ class NeighborIndex(object):
             except pyflann.FLANNException as ex:
                 ut.printex(
                     ex,
-                    'probably misread the cached flann_fpath=%r' % (indexer.flann_fpath,),
+                    'probably misread the cached flann_fpath={!r}'.format(
+                        indexer.flann_fpath
+                    ),
                 )
                 # ut.embed()
                 # Uncomment and use if the flan index needs to be deleted
@@ -852,7 +855,9 @@ class NeighborIndex(object):
             except pyflann.FLANNException as ex:
                 ut.printex(
                     ex,
-                    'probably misread the cached flann_fpath=%r' % (indexer.flann_fpath,),
+                    'probably misread the cached flann_fpath={!r}'.format(
+                        indexer.flann_fpath
+                    ),
                 )
                 raise
             if indexer.max_distance_sqrd is not None:
@@ -884,10 +889,10 @@ class NeighborIndex(object):
         # FIXME: they might not agree if data has been added / removed
         init_data, extra_data = nnindexer.flann.get_indexed_data()
         with ut.Indenter('[NNINDEX_DEBUG]'):
-            logger.info('extra_data = %r' % (extra_data,))
-            logger.info('init_data = %r' % (init_data,))
+            logger.info('extra_data = {!r}'.format(extra_data))
+            logger.info('init_data = {!r}'.format(init_data))
             logger.info(
-                'nnindexer.max_distance_sqrd = %r' % (nnindexer.max_distance_sqrd,)
+                'nnindexer.max_distance_sqrd = {!r}'.format(nnindexer.max_distance_sqrd)
             )
             data_agrees = nnindexer.idx2_vec is nnindexer.flann.get_indexed_data()[0]
             if data_agrees:
@@ -971,9 +976,9 @@ class NeighborIndex(object):
                 ex,
                 'Error occurred in aid lookup. Dumping debug info. Are the neighbors idxs correct?',
             )
-            logger.info('qfx2_nnidx.shape = %r' % (qfx2_nnidx.shape,))
-            logger.info('qfx2_nnidx.max() = %r' % (qfx2_nnidx.max(),))
-            logger.info('qfx2_nnidx.min() = %r' % (qfx2_nnidx.min(),))
+            logger.info('qfx2_nnidx.shape = {!r}'.format(qfx2_nnidx.shape))
+            logger.info('qfx2_nnidx.max() = {!r}'.format(qfx2_nnidx.max()))
+            logger.info('qfx2_nnidx.min() = {!r}'.format(qfx2_nnidx.min()))
             nnindexer.debug_nnindexer()
             raise
         return qfx2_aid
@@ -1035,7 +1040,9 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
         # nnindexer.ax2_avuuid = None  # (A x 1) Mapping to original annot uuids
 
     def __nice__(self):
-        return ' nA=%r nV=%r' % (ut.safelen(self.ax2_aid), ut.safelen(self.idx2_vec))
+        return ' nA={!r} nV={!r}'.format(
+            ut.safelen(self.ax2_aid), ut.safelen(self.idx2_vec)
+        )
 
     @staticmethod
     def get_support(depc, aid_list, config):

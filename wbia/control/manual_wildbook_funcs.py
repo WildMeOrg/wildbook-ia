@@ -41,13 +41,14 @@ CommandLine;
     python -m wbia wildbook_signal_annot_name_changes:2
 """
 import logging
-import utool as ut
+
 import requests
+import utool as ut
+
+from wbia.constants import WILDBOOK_TARGET
 from wbia.control import controller_inject
 from wbia.control import wildbook_manager as wb_man  # NOQA
 from wbia.control.controller_inject import make_ibs_register_decorator
-
-from wbia.constants import WILDBOOK_TARGET
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -89,10 +90,10 @@ def get_wildbook_base_url(ibs, wb_target=None):
     wb_port = str(wb_port)
     wb_target = str(wb_target)
 
-    wildbook_base_url = 'http://%s:%s/%s/' % (wb_hostname, wb_port, wb_target)
+    wildbook_base_url = 'http://{}:{}/{}/'.format(wb_hostname, wb_port, wb_target)
     wildbook_base_url = wildbook_base_url.strip('/')
 
-    logger.info('USING WB BASEURL: %r' % (wildbook_base_url,))
+    logger.info('USING WB BASEURL: {!r}'.format(wildbook_base_url))
     return wildbook_base_url
 
 
@@ -261,7 +262,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None, dryru
     ]
     status_list = []
     for json_payload in ut.ProgressIter(payloads, lbl='submitting URL', freq=1):
-        logger.info('[_send] URL=%r with json_payload=%r' % (url, json_payload))
+        logger.info('[_send] URL={!r} with json_payload={!r}'.format(url, json_payload))
         if dryrun:
             status = False
         else:
@@ -319,7 +320,7 @@ def wildbook_signal_name_changes(
         }
     }
     status_list = []
-    logger.info('[_send] URL=%r with json_payload=%r' % (url, json_payload))
+    logger.info('[_send] URL={!r} with json_payload={!r}'.format(url, json_payload))
     if dryrun:
         status = False
     else:
@@ -478,7 +479,7 @@ def wildbook_signal_imgsetid_list(
         aid_list = ibs.get_imageset_aids(imgsetid)
         assert (
             len(aid_list) > 0
-        ), 'ImageSet imgsetid=%r cannot be shipped with0 annots' % (imgsetid,)
+        ), 'ImageSet imgsetid={!r} cannot be shipped with0 annots'.format(imgsetid)
         unknown_flags = ibs.is_aid_unknown(aid_list)
         unnamed_aid_list = ut.compress(aid_list, unknown_flags)
         unnamed_ok_aid_list = ibs.filter_annots_general(unnamed_aid_list, minqual='ok')
@@ -508,14 +509,14 @@ def wildbook_signal_imgsetid_list(
     # Check and push 'done' imagesets
     status_list = []
     for imgsetid, imageset_uuid in zip(imgsetid_list, imageset_uuid_list):
-        logger.info('[_send] URL=%r' % (url,))
+        logger.info('[_send] URL={!r}'.format(url))
         json_payload = {'resolver': {'fromIAImageSet': str(imageset_uuid)}}
         if dryrun:
             status = False
         else:
             response = requests.post(url, json=json_payload)
             status = response.status_code == 200
-            logger.info('response = %r' % (response,))
+            logger.info('response = {!r}'.format(response))
             if set_shipped_flag:
                 ibs.set_imageset_shipped_flags([imgsetid], [status])
                 if status and open_url_on_complete:
@@ -537,19 +538,20 @@ def wildbook_signal_imgsetid_list(
 
 @register_ibs_method
 def get_wildbook_image_uuids(ibs):
-    from datetime import datetime
     import uuid
+    from datetime import datetime
+
     import pytz
 
     PST = pytz.timezone('US/Pacific')
 
     assert WILDBOOK_TARGET is not None
 
-    url = 'https://%s/acmIdSync.jsp' % (WILDBOOK_TARGET,)
+    url = 'https://{}/acmIdSync.jsp'.format(WILDBOOK_TARGET)
 
     now = datetime.now(tz=PST)
     timestamp = now.strftime('%Y-%m-%d-%H-00-00')
-    filename = 'wildbook.image.admid.%s.json' % (timestamp,)
+    filename = 'wildbook.image.admid.{}.json'.format(timestamp)
     filepath = ut.grab_file_url(url, appname='wbia', fname=filename)
 
     with open(filepath, 'r') as file:
@@ -609,19 +611,20 @@ def delete_wildbook_orphaned_image_uuids(ibs, auto_delete=True):
 
 @register_ibs_method
 def get_wildbook_annot_uuids(ibs, filter_match_against_on=True):
-    from datetime import datetime
     import uuid
+    from datetime import datetime
+
     import pytz
 
     PST = pytz.timezone('US/Pacific')
 
     assert WILDBOOK_TARGET is not None
 
-    url = 'https://%s/acmIdSync.jsp?annotations' % (WILDBOOK_TARGET,)
+    url = 'https://{}/acmIdSync.jsp?annotations'.format(WILDBOOK_TARGET)
 
     now = datetime.now(tz=PST)
     timestamp = now.strftime('%Y-%m-%d-%H-00-00')
-    filename = 'wildbook.annot.admid.%s.json' % (timestamp,)
+    filename = 'wildbook.annot.admid.{}.json'.format(timestamp)
     filepath = ut.grab_file_url(url, appname='wbia', fname=filename)
 
     with open(filepath, 'r') as file:
@@ -699,7 +702,7 @@ def get_wildbook_annot_uuids(ibs, filter_match_against_on=True):
                 bad_list.append(bad_species)
 
     if len(bad_list) > 0:
-        print('Found bad species: %r' % (set(bad_list),))
+        print('Found bad species: {!r}'.format(set(bad_list)))
     assert len(uuid_list) == len(species_list)
     assert len(uuid_list) == len(set(uuid_list))
     print('Validated %d Annotation UUIDs from Wildbook' % (len(uuid_list),))

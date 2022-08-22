@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from wbia.guitool.__PYQT__ import QtCore, QtWidgets
-
 # from wbia.guitool import guitool_components
 # (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
 import utool as ut
+
+from wbia.guitool.__PYQT__ import QtCore, QtWidgets
 
 ut.noinject(__name__, '[api_timestamp_delegate]', DEBUG=False)
 

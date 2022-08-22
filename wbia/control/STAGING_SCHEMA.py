@@ -10,8 +10,10 @@ CommandLine:
     python -m wbia.control.STAGING_SCHEMA --test-autogen_staging_schema
 """
 import logging
-from wbia import constants as const
+
 import utool as ut
+
+from wbia import constants as const
 
 # (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -215,8 +217,7 @@ def autogen_staging_schema():
         >>> from wbia.control.STAGING_SCHEMA import *  # NOQA
         >>> autogen_staging_schema()
     """
-    from wbia.control import STAGING_SCHEMA
-    from wbia.control import _sql_helpers
+    from wbia.control import STAGING_SCHEMA, _sql_helpers
 
     n = ut.get_argval('-n', int, default=-1)
     schema_spec = STAGING_SCHEMA

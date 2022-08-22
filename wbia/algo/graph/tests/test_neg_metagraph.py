@@ -8,6 +8,7 @@ accept the syntax of IBEIS doctests)
 """
 
 import logging
+
 import networkx as nx
 import utool as ut
 
@@ -21,7 +22,7 @@ def test_neg_metagraph_simple_add_remove():
     between PCCs through non-label-changing operations
     """
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
 
     # Create a graph with 5-sized CCs, with 3-pos-redun, and no negative edges
     infr = demo.demodata_infr(
@@ -82,7 +83,7 @@ def _test_neg_metagraph_merge():
     between PCCs through label-changing merge operations
     """
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
 
     # Create a graph with 4 CCs, with 3-pos-redun, and no negative edges
     infr = demo.demodata_infr(
@@ -172,7 +173,7 @@ def test_neg_metagraph_split_neg():
     between PCCs through label-changing split operations
     """
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
 
     # Create a graph with 4 CCs, with 3-pos-redun, and no negative edges
     infr = demo.demodata_infr(
@@ -193,7 +194,7 @@ def test_neg_metagraph_split_neg():
 
 def test_neg_metagraph_split_incomp():
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
 
     infr = demo.demodata_infr(
         num_pccs=4, pcc_size=5, pos_redun=3, ignore_pair=True, infer=True
@@ -216,7 +217,7 @@ def test_neg_metagraph_split_and_merge():
     between PCCs through label-changing split and merge operations
     """
     from wbia.algo.graph import demo
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
 
     # Create a graph with 4 CCs, with 3-pos-redun, and no negative edges
     infr = demo.demodata_infr(

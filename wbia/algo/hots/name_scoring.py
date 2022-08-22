@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-import logging
-import numpy as np
-import vtool as vt
-import utool as ut
 import itertools
-from wbia.algo.hots import hstypes
-from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+import logging
 from collections import namedtuple
+
+import numpy as np
+import utool as ut
+import vtool as vt
+
+from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots import hstypes
 
 (print, rrr, profile) = ut.inject2(__name__, '[nscoring]')
 logger = logging.getLogger('wbia')

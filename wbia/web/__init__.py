@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 import logging
+
 import utool
 
 (print, rrr, profile) = utool.inject2(__name__, '[web]')
 logger = logging.getLogger('wbia')
 
-from wbia.web import apis_detect
-from wbia.web import apis_engine
-from wbia.web import apis_json
-from wbia.web import apis_sync
-from wbia.web import apis_query
-from wbia.web import apis
-from wbia.web import app
-from wbia.web import appfuncs
-from wbia.web import routes_ajax
-from wbia.web import routes_demo
-from wbia.web import routes_csv
-from wbia.web import routes_experiments
-from wbia.web import routes_submit
-from wbia.web import routes
-
-
 from wbia.control import controller_inject
+from wbia.web import (
+    apis,
+    apis_detect,
+    apis_engine,
+    apis_json,
+    apis_query,
+    apis_sync,
+    app,
+    appfuncs,
+    routes,
+    routes_ajax,
+    routes_csv,
+    routes_demo,
+    routes_experiments,
+    routes_submit,
+)
 
 if controller_inject.MICROSOFT_API_ENABLED:
     from wbia.web import apis_microsoft

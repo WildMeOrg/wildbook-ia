@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # DEPRICATE?
 import logging
-from wbia.guitool.__PYQT__ import QtCore, QtGui
-from wbia.guitool.__PYQT__ import QtWidgets
-from wbia.guitool.__PYQT__.QtCore import Qt
-from wbia.guitool.guitool_delegates import ComboDelegate, ButtonDelegate
-from wbia.guitool import qtype
+
 import utool
+
+from wbia.guitool import qtype
+from wbia.guitool.__PYQT__ import QtCore, QtGui, QtWidgets
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool.guitool_delegates import ButtonDelegate, ComboDelegate
 
 (print, rrr, profile) = utool.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -256,7 +257,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
                 type_ = model.get_coltype(index.column())
                 data = qtype.cast_from_qt(var, type_)
             # Do actual setting of data
-            print(' * new_data = %s(%r)' % (utool.type_str(type_), data))
+            print(' * new_data = {}({!r})'.format(utool.type_str(type_), data))
             model.set_data(index, data)
             # Emit that data was changed and return succcess
             model.dataChanged.emit(index, index)
@@ -370,11 +371,11 @@ class ColumnListTableWidget(QtWidgets.QWidget):
 
     def set_column_as_delegate(cltw, column, delegate_type):
         if delegate_type == 'COMBO':
-            print('cltw.set_col_del %r %r' % (column, delegate_type))
+            print('cltw.set_col_del {!r} {!r}'.format(column, delegate_type))
             cltw.view.setItemDelegateForColumn(column, ComboDelegate(cltw.view))
             return True
         elif delegate_type == 'BUTTON':
-            print('cltw.set_col_del %r %r' % (column, delegate_type))
+            print('cltw.set_col_del {!r} {!r}'.format(column, delegate_type))
             cltw.view.setItemDelegateForColumn(column, ButtonDelegate(cltw.view))
             return False
 

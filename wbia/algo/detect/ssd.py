@@ -3,11 +3,12 @@
 Interface to SSD object proposals.
 """
 import logging
+import sys
+from os.path import abspath, dirname, exists, expanduser, join  # NOQA
+
+import numpy as np
 import utool as ut
 import vtool as vt
-from os.path import abspath, dirname, expanduser, join, exists  # NOQA
-import numpy as np
-import sys
 
 (print, rrr, profile) = ut.inject2(__name__, '[ssd]')
 logger = logging.getLogger('wbia')
@@ -30,8 +31,8 @@ if not ut.get_argflag('--no-ssd'):
         import caffe
 
         rrr(caffe)
-        from google.protobuf import text_format
         from caffe.proto import caffe_pb2
+        from google.protobuf import text_format
     except AssertionError:
         logger.info('WARNING Failed to find ssd. ' 'SSD is unavailable')
         # if ut.SUPER_STRICT:
@@ -260,7 +261,7 @@ def detect(
         image_resize = int(line_[-1])
         # Check to make sure
         assert image_resize in [300, 500, 512]
-        logger.info('FOUND image_resize = %r' % (image_resize,))
+        logger.info('FOUND image_resize = {!r}'.format(image_resize))
 
     # Input preprocessing: 'data' is the name of the input blob == net.inputs[0]
     transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})

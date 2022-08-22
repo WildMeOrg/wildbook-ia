@@ -10,6 +10,7 @@ using bash brace expansion.
 http://www.linuxjournal.com/content/bash-brace-expansion
 """
 import logging
+
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
@@ -31,7 +32,7 @@ def remove_prefix_hack(cfg, cfgtype, cfg_options, alias_keys):
                 try:
                     assert (
                         key[1:] in cfg or key[1:] in alias_keys
-                    ), 'key=%r, key[1:] =%r' % (key, key[1:])
+                    ), 'key={!r}, key[1:] ={!r}'.format(key, key[1:])
                 except AssertionError as ex:
                     ut.printex(
                         ex,
@@ -212,7 +213,7 @@ def parse_cfgstr_list2(
                             for cfg in special_combo:
                                 cfg.update(special_join_dict)
                 if is_nestedcfgtype:
-                    cfg_combo = tuple([combo for combo in special_combo_list])
+                    cfg_combo = tuple(combo for combo in special_combo_list)
                 else:
                     # not sure if this is right
                     cfg_combo = special_combo_list

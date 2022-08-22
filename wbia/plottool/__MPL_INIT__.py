@@ -35,8 +35,9 @@ CommandLine:
     python -m wbia.plottool.draw_func2 --exec-imshow --show --mplbe=cairo
 
 """
-import sys
 import os
+import sys
+
 import utool as ut
 
 ut.noinject(__name__, '[plottool.__MPL_INIT__]')
@@ -132,14 +133,16 @@ def get_target_backend():
         if target_backend is None:
             PyQt, pyqt_version = get_pyqt()
             if pyqt_version is None:
-                print('[!plotttool] WARNING backend fallback to %s' % (FALLBACK_BACKEND,))
+                print(
+                    '[!plotttool] WARNING backend fallback to {}'.format(FALLBACK_BACKEND)
+                )
                 target_backend = FALLBACK_BACKEND
             elif pyqt_version == 4:
                 target_backend = 'Qt4Agg'
             elif pyqt_version == 5:
                 target_backend = 'Qt5Agg'
             else:
-                raise ValueError('Unknown pyqt version %r' % (pyqt_version,))
+                raise ValueError('Unknown pyqt version {!r}'.format(pyqt_version))
     return target_backend
 
 

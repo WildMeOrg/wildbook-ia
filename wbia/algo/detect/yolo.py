@@ -3,6 +3,7 @@
 Interface to pydarknet yolo object detection.
 """
 import logging
+
 import utool as ut
 import vtool as vt
 

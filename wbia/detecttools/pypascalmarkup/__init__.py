@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import date
-import cv2
-
 # import numpy as np
 import os
+from datetime import date
 
+import cv2
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 

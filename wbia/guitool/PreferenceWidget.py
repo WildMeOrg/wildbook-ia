@@ -4,13 +4,14 @@ old code ported from utool
 """
 import sys
 import traceback
-from utool.Preferences import Pref, PrefNode, PrefChoice
-from wbia.guitool.__PYQT__ import _fromUtf8, _translate, QVariantHack
-from wbia.guitool.__PYQT__ import QtWidgets, QtCore
-from wbia.guitool.__PYQT__.QtCore import Qt
-from wbia.guitool import qtype
+
 import utool as ut
 from utool import util_type
+from utool.Preferences import Pref, PrefChoice, PrefNode
+
+from wbia.guitool import qtype
+from wbia.guitool.__PYQT__ import QtCore, QtWidgets, QVariantHack, _fromUtf8, _translate
+from wbia.guitool.__PYQT__.QtCore import Qt
 
 ut.noinject(__name__, '[PreferenceWidget]', DEBUG=False)
 
@@ -65,10 +66,10 @@ def _qt_set_leaf_data(self, qvar):
         self._intern.get_type()
         if isinstance(self._intern.value, bool):
             # new_val = bool(qvar.toBool())
-            print('qvar = %r' % (qvar,))
+            print('qvar = {!r}'.format(qvar))
             new_val = util_type.smart_cast(qvar, bool)
             # new_val = bool(eval(qvar, {}, {}))
-            print('new_val = %r' % (new_val,))
+            print('new_val = {!r}'.format(new_val))
         elif isinstance(self._intern.value, int):
             # new_val = int(qvar.toInt()[0])
             new_val = int(qvar)
@@ -210,12 +211,12 @@ class QPreferenceModel(QtCore.QAbstractItemModel):
         leafPref = self.index2Pref(qtindex)
         old_data = leafPref.qt_get_data(qtindex.column())
         if VERBOSE_PREF:
-            print('[qt] old_data = %r' % (old_data,))
-            print('[qt] old_data != data = %r' % (old_data != data,))
+            print('[qt] old_data = {!r}'.format(old_data))
+            print('[qt] old_data != data = {!r}'.format(old_data != data))
         if old_data != data:
             result = _qt_set_leaf_data(leafPref, data)
             if VERBOSE_PREF:
-                print('[qt] result = %r' % (result,))
+                print('[qt] result = {!r}'.format(result))
             # if result is True:
             # return result
         self.dataChanged.emit(qtindex, qtindex)

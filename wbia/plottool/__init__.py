@@ -7,6 +7,7 @@ Wrappers around matplotlib
 __version__ = '2.1.2'
 
 import logging
+
 import utool as ut
 
 ut.noinject(__name__, '[plottool.__init__]')
@@ -24,27 +25,24 @@ import matplotlib as mpl
 # mpl.use('Qt4Agg')
 import matplotlib.pyplot as plt
 
-from . import plot_helpers as ph
-from . import plot_helpers
+from . import color_funcs, custom_constants, custom_figure
+from . import draw_func2
+from . import draw_func2 as df2
+from . import (
+    draw_sv,
+    fig_presenter,
+    interact_annotations,
+    interact_impaint,
+    interact_keypoints,
+    interact_multi_image,
+    interactions,
+)
 from . import mpl_keypoint
 from . import mpl_keypoint as mpl_kp
 from . import mpl_sift as mpl_sift
-from . import draw_func2
-from . import draw_func2 as df2
-from . import fig_presenter
-from . import custom_constants
-from . import custom_figure
-from . import draw_sv
-from . import viz_featrow
-from . import viz_keypoints
-from . import viz_image2
-from . import plots
-from . import interact_annotations
-from . import interact_keypoints
-from . import interact_multi_image
-from . import interactions
-from . import interact_impaint
-from . import color_funcs
+from . import plot_helpers
+from . import plot_helpers as ph
+from . import plots, viz_featrow, viz_image2, viz_keypoints
 
 # from . import abstract_iteraction
 
@@ -66,16 +64,19 @@ IMPORT_TUPLES = [
     ('nx_helpers', None),
 ]
 
-# The other module shouldn't exist.
-# Functions in it need to be organized
-from .plots import draw_hist_subbin_maxima
+import sys
+
+import utool
+
+from . import fig_presenter
 
 # from .draw_func2 import *  # NOQA
 from .mpl_keypoint import draw_keypoints
 from .mpl_sift import draw_sifts, render_sift_on_patch
-from . import fig_presenter
 
-import utool
+# The other module shouldn't exist.
+# Functions in it need to be organized
+from .plots import draw_hist_subbin_maxima
 
 # def reload_subs():
 #    rrr()
@@ -88,8 +89,6 @@ import utool
 
 # rrrr = reload_subs
 
-
-import sys
 
 __DYNAMIC__ = '--nodyn' not in sys.argv
 
@@ -125,58 +124,21 @@ if DOELSE:
     pass
     # <AUTOGEN_INIT>
 
-    from . import plot_helpers
-    from . import fig_presenter
-    from . import custom_constants
-    from . import custom_figure
-    from . import plots
-    from . import draw_func2
-    from . import interact_impaint
-    from . import interactions
-    from . import interact_multi_image
-    from . import interact_keypoints
-    from . import interact_matches
-    from . import nx_helpers
-    from .plot_helpers import (
-        SIFT_OR_VECFIELD,
-        del_plotdat,
-        draw,
-        ensureqt,
-        get_bbox_centers,
-        get_plotdat,
-        get_plotdat_dict,
-        get_square_row_cols,
-        kp_info,
-        qt4ensure,
-        set_plotdat,
-    )
-    from .fig_presenter import (
-        SLEEP_TIME,
-        VERBOSE,
-        all_figures_bring_to_front,
-        all_figures_show,
-        all_figures_tight_layout,
-        all_figures_tile,
-        bring_to_front,
-        close_all_figures,
-        close_figure,
-        get_all_figures,
-        get_all_qt4_wins,
-        get_all_windows,
-        get_fig,
-        get_figure_window,
-        get_geometry,
-        get_main_win_base,
-        iup,
-        iupdate,
-        present,
-        register_qt4_win,
-        reset,
-        set_geometry,
-        show,
-        show_figure,
-        unregister_qt4_win,
-        update,
+    import utool
+
+    from . import (
+        custom_constants,
+        custom_figure,
+        draw_func2,
+        fig_presenter,
+        interact_impaint,
+        interact_keypoints,
+        interact_matches,
+        interact_multi_image,
+        interactions,
+        nx_helpers,
+        plot_helpers,
+        plots,
     )
     from .custom_constants import (
         BLACK,
@@ -198,23 +160,20 @@ if DOELSE:
         FIGSIZE_MED,
         FIGSIZE_SQUARE,
         FONTS,
-        FontProp,
         GRAY,
         GREEN,
         LARGE,
         LARGER,
-        LIGHTGRAY,
         LIGHT_BLUE,
         LIGHT_GREEN,
         LIGHT_PINK,
         LIGHT_PURPLE,
+        LIGHTGRAY,
         MED,
         NEUTRAL,
         NEUTRAL_BLUE,
         ORANGE,
         PHI,
-        PHI_denom,
-        PHI_numer,
         PINK,
         PURPLE,
         PURPLE2,
@@ -227,6 +186,9 @@ if DOELSE:
         UNKNOWN_PURP,
         WHITE,
         YELLOW,
+        FontProp,
+        PHI_denom,
+        PHI_numer,
         golden_wh,
         golden_wh2,
     )
@@ -258,34 +220,6 @@ if DOELSE:
         set_yticks,
         split,
     )
-    from .plots import (
-        colorline,
-        draw_histogram,
-        draw_time_distribution,
-        draw_time_histogram,
-        draw_timedelta_pie,
-        estimate_pdf,
-        get_good_logyscale_kwargs,
-        interval_line_plot,
-        interval_stats_plot,
-        is_default_dark_bg,
-        multi_plot,
-        plot_densities,
-        plot_multiple_scores,
-        plot_pdf,
-        plot_probabilities,
-        plot_probs,
-        plot_rank_cumhist,
-        plot_score_histograms,
-        plot_search_surface,
-        plot_sorted_scores,
-        plot_stems,
-        set_logyscale_from_data,
-        unicode_literals,
-        word_histogram2,
-        wordcloud,
-        zoom_effect01,
-    )
     from .draw_func2 import (
         BASE_FNUM,
         DARKEN,
@@ -293,15 +227,14 @@ if DOELSE:
         DF2_DIVIDER_KEY,
         FALSE,
         LEGEND_LOCATION,
-        OffsetImage2,
-        RenderingContext,
         SAFE_POS,
         TAU,
-        TMP_mevent,
         TRUE,
+        OffsetImage2,
+        RenderingContext,
+        TMP_mevent,
         absolute_lbl,
         add_alpha,
-        adjust_subplots,
         adjust_subplots,
         adjust_subplots_safe,
         append_phantom_legend_label,
@@ -364,7 +297,6 @@ if DOELSE:
         parse_fontkw,
         plot,
         plot2,
-        plotWidget,
         plot_bars,
         plot_descriptor_signature,
         plot_fmatch,
@@ -373,6 +305,7 @@ if DOELSE:
         plot_histpdf,
         plot_sift_signature,
         plot_surface3d,
+        plotWidget,
         pnum_generator,
         postsetup_axes,
         presetup_axes,
@@ -406,12 +339,43 @@ if DOELSE:
         variation_trunctate,
         width_from,
     )
-    from .interact_impaint import (
-        PAINTER_BASE,
-        PaintInteraction,
-        draw_demo,
-        impaint_mask2,
+    from .fig_presenter import (
+        SLEEP_TIME,
+        VERBOSE,
+        all_figures_bring_to_front,
+        all_figures_show,
+        all_figures_tight_layout,
+        all_figures_tile,
+        bring_to_front,
+        close_all_figures,
+        close_figure,
+        get_all_figures,
+        get_all_qt4_wins,
+        get_all_windows,
+        get_fig,
+        get_figure_window,
+        get_geometry,
+        get_main_win_base,
+        iup,
+        iupdate,
+        present,
+        register_qt4_win,
+        reset,
+        set_geometry,
+        show,
+        show_figure,
+        unregister_qt4_win,
+        update,
     )
+    from .interact_impaint import PAINTER_BASE, PaintInteraction, draw_demo, impaint_mask2
+    from .interact_keypoints import (
+        KeypointInteraction,
+        draw_feat_row,
+        ishow_keypoints,
+        show_keypoints,
+    )
+    from .interact_matches import MatchInteraction2, show_keypoint_gradient_orientations
+    from .interact_multi_image import BASE_CLASS, Button, MultiImageInteraction
     from .interactions import (
         ExpandableInteraction,
         PanEvents,
@@ -419,24 +383,9 @@ if DOELSE:
         pan_factory,
         zoom_factory,
     )
-    from .interact_multi_image import (
-        BASE_CLASS,
-        Button,
-        MultiImageInteraction,
-    )
-    from .interact_keypoints import (
-        KeypointInteraction,
-        draw_feat_row,
-        ishow_keypoints,
-        show_keypoints,
-    )
-    from .interact_matches import (
-        MatchInteraction2,
-        show_keypoint_gradient_orientations,
-    )
     from .nx_helpers import (
-        GraphVizLayoutConfig,
         LARGE_GRAPH,
+        GraphVizLayoutConfig,
         apply_graph_layout_attrs,
         draw_network2,
         dump_nx_ondisk,
@@ -453,7 +402,47 @@ if DOELSE:
         parse_point,
         show_nx,
     )
-    import utool
+    from .plot_helpers import (
+        SIFT_OR_VECFIELD,
+        del_plotdat,
+        draw,
+        ensureqt,
+        get_bbox_centers,
+        get_plotdat,
+        get_plotdat_dict,
+        get_square_row_cols,
+        kp_info,
+        qt4ensure,
+        set_plotdat,
+    )
+    from .plots import (
+        colorline,
+        draw_histogram,
+        draw_time_distribution,
+        draw_time_histogram,
+        draw_timedelta_pie,
+        estimate_pdf,
+        get_good_logyscale_kwargs,
+        interval_line_plot,
+        interval_stats_plot,
+        is_default_dark_bg,
+        multi_plot,
+        plot_densities,
+        plot_multiple_scores,
+        plot_pdf,
+        plot_probabilities,
+        plot_probs,
+        plot_rank_cumhist,
+        plot_score_histograms,
+        plot_search_surface,
+        plot_sorted_scores,
+        plot_stems,
+        set_logyscale_from_data,
+        unicode_literals,
+        word_histogram2,
+        wordcloud,
+        zoom_effect01,
+    )
 
     print, rrr, profile = utool.inject2(__name__, '[plottool]')
     logger = logging.getLogger('wbia')
@@ -470,7 +459,7 @@ if DOELSE:
         import wbia.plottool
 
         # Implicit reassignment.
-        seen_ = set([])
+        seen_ = set()
         for tup in IMPORT_TUPLES:
             if len(tup) > 2 and tup[2]:
                 continue  # dont import package names
@@ -497,7 +486,7 @@ if DOELSE:
             def fbrrr(*args, **kwargs):
                 """fallback reload"""
                 if verbose:
-                    print('No fallback relaod for mod=%r' % (mod,))
+                    print('No fallback relaod for mod={!r}'.format(mod))
                 # Breaks ut.Pref (which should be depricated anyway)
                 # import imp
                 # imp.reload(mod)

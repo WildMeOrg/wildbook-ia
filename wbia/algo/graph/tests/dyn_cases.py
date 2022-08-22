@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-from wbia.algo.graph import demo
+
 import utool as ut
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
-from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
+
+from wbia.algo.graph import demo
+from wbia.algo.graph.state import DIFF, INCMP, NEGTV, NULL, POSTV, SAME, UNREV  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -79,10 +80,12 @@ def do_infr_test(ccs, edges, new_edges):
         def __call__(self, infr, u, v, key, val, msg):
             data = infr.get_nonvisual_edge_data((u, v))
             if data is None:
-                assert infr.graph.has_edge(u, v), 'uv=%r, %r does not exist' % (u, v)
+                assert infr.graph.has_edge(u, v), 'uv={!r}, {!r} does not exist'.format(
+                    u, v
+                )
             got = data.get(key)
             if got != val:
-                msg1 = 'key=%s %r!=%r, ' % (key, got, val)
+                msg1 = 'key={} {!r}!={!r}, '.format(key, got, val)
                 errmsg = ''.join(
                     [
                         msg1,
@@ -257,7 +260,7 @@ def case_redo_incon():
     infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
 
     maybe_splits = infr2.get_edge_attrs('maybe_error', default=None)
-    logger.info('maybe_splits = %r' % (maybe_splits,))
+    logger.info('maybe_splits = {!r}'.format(maybe_splits))
     if not any(maybe_splits.values()):
         ut.cprint('FAILURE', 'red')
         logger.info('At least one edge should be marked as a split')
@@ -662,13 +665,13 @@ def case_all_types():
         state = d.get('inferred_state', '')
         if u < 20 or v < 20:
             if state is not None and 'inconsistent' not in state:
-                logger.info('u, v, state = %r, %r, %r' % (u, v, state))
+                logger.info('u, v, state = {!r}, {!r}, {!r}'.format(u, v, state))
                 err = AssertionError('all of cc0 should be incon')
                 logger.info(err)
                 errors.append(err)
         else:
             if state is not None and 'inconsistent' in state:
-                logger.info('u, v, state = %r, %r, %r' % (u, v, state))
+                logger.info('u, v, state = {!r}, {!r}, {!r}'.format(u, v, state))
                 err = AssertionError('outside of cc0 should not be incon')
                 logger.info(err)
                 errors.append(err)

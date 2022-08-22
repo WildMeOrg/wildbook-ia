@@ -11,10 +11,11 @@ ToRegenerate:
     python -m wbia.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
 import logging
-from wbia import constants as const
+
 import utool as ut
-from wbia.control import controller_inject
-from wbia.control import accessor_decors
+
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

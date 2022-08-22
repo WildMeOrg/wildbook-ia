@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import utool as ut
-from wbia.plottool import interact_helpers as ih
-import wbia.plottool as pt
 from functools import partial
-from wbia.viz import viz_chip
-from wbia.viz import viz_matches
+
+import utool as ut
+
+import wbia.plottool as pt
+from wbia.plottool import interact_helpers as ih
 from wbia.plottool.abstract_interaction import AbstractInteraction
+from wbia.viz import viz_chip, viz_matches
 
 ut.noinject(__name__, '[interact_query_decision]')
 
@@ -50,8 +51,8 @@ class QueryVerificationInteraction(AbstractInteraction):
     ):
         print('[matchver] __init__')
         super(QueryVerificationInteraction, self).__init__(**kwargs)
-        print('[matchver] comp_aids=%r' % (comp_aids,))
-        print('[matchver] suggest_aids=%r' % (suggest_aids,))
+        print('[matchver] comp_aids={!r}'.format(comp_aids))
+        print('[matchver] suggest_aids={!r}'.format(suggest_aids))
         self.ibs = qreq_.ibs
         self.qreq_ = qreq_
         self.cm = cm
@@ -416,8 +417,8 @@ class QueryVerificationInteraction(AbstractInteraction):
         )
 
     def figure_clicked(self, event=None):
-        from wbia.viz import viz_helpers as vh
         import wbia.guitool as gt
+        from wbia.viz import viz_helpers as vh
 
         ax = event.inaxes
         if ih.clicked_inside_axis(event):

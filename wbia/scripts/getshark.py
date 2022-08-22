@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import logging
-from os.path import splitext, join, exists, commonprefix
-import utool as ut
 import re
+from os.path import commonprefix, exists, join, splitext
+
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[getshark]')
 logger = logging.getLogger('wbia')
@@ -93,7 +94,7 @@ def sync_wildbook():
     is_miss = ut.flag_None_items(info_gid_list)
     hit_info = info.compress(is_hit)  # NOQA
     miss_info = info.compress(is_miss)  # NOQA
-    logger.info('The IA database has %r images' % (len(all_images),))
+    logger.info('The IA database has {!r} images'.format(len(all_images)))
     logger.info(
         'The IA database has %r/%r images not from this downloaded set'
         % (num_ia_unique, len(all_images))
@@ -114,7 +115,7 @@ def sync_wildbook():
     is_miss = ut.flag_None_items(info_gid_list)
     hit_info = info.compress(is_hit)  # NOQA
     miss_info = info.compress(is_miss)  # NOQA
-    logger.info('The IA database has %r images' % (len(all_images),))
+    logger.info('The IA database has {!r} images'.format(len(all_images)))
     logger.info(
         'The IA database has %r/%r images not from this downloaded set'
         % (num_ia_unique, len(all_images))
@@ -183,18 +184,18 @@ def sync_existing_images(ibs, hit_info, species, DRY):
     multi_hit_images = hit_images.compress(is_multi)
 
     logger.info('Syncing annot info in images. Checking annots/per/image')
-    logger.info(' * is_empty = %r' % (is_empty.sum(),))
-    logger.info(' * is_single = %r' % (is_single.sum(),))
-    logger.info(' * is_multi = %r' % (is_multi.sum(),))
+    logger.info(' * is_empty = {!r}'.format(is_empty.sum()))
+    logger.info(' * is_single = {!r}'.format(is_single.sum()))
+    logger.info(' * is_multi = {!r}'.format(is_multi.sum()))
 
     # We exepect an image to be empty if it has junk in the notes
     nonjunk_empty = [n != 'junk' for n in empty_hit_images.notes]
-    logger.info('empty_hit_images = %r' % (empty_hit_images.gids,))
+    logger.info('empty_hit_images = {!r}'.format(empty_hit_images.gids))
     review_empty = empty_hit_images.compress(nonjunk_empty)
-    logger.info('need to review %r empty images' % (len(review_empty),))
+    logger.info('need to review {!r} empty images'.format(len(review_empty)))
     if len(review_empty) > 0:
         empty_hit_info.compress(nonjunk_empty).print()
-        logger.info('Please manually review empty images %r' % (review_empty.gids,))
+        logger.info('Please manually review empty images {!r}'.format(review_empty.gids))
 
     # We expect multi images to be tagged with primary / secondary
     multi_annots = multi_hit_images._annot_groups
@@ -206,7 +207,7 @@ def sync_existing_images(ibs, hit_info, species, DRY):
         logger.info('Reviewing untagged multi images')
         review_multi = multi_hit_images.compress(nontagged)
         review_annots = review_multi._annot_groups
-        logger.info('review_multi = %r' % (review_multi.gids,))
+        logger.info('review_multi = {!r}'.format(review_multi.gids))
         multi_hit_info.compress(nontagged).print(
             ignore=[
                 'img_url',
@@ -231,7 +232,7 @@ def sync_existing_images(ibs, hit_info, species, DRY):
         flag = False
         for areas, g in zip(bbox_area_rat, review_multi):
             if np.any(areas > 0.9):
-                logger.info('PLEASE CHECK image %r' % (g,))
+                logger.info('PLEASE CHECK image {!r}'.format(g))
                 flag = True
         assert not flag, 'need to remove bad annots or change code'
         # assert False, 'Need to finish/review this code. Stopped in development'
@@ -342,7 +343,7 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
         for x, y in zip(single_info['orig_case_tags'], single_info['clean_case_tags'])
     ]
     dirty_info = single_info.compress(isdirty)
-    logger.info('removing redundant info from %r annots' % (len(dirty_info),))
+    logger.info('removing redundant info from {!r} annots'.format(len(dirty_info)))
     if not DRY:
         # dirty_info['orig_case_tags']
         ibs.overwrite_annot_case_tags(dirty_info['aid'], dirty_info['clean_case_tags'])
@@ -373,7 +374,7 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
     dirty_info = single_info.compress(isdirty)
     logger.info('new injur tags' + ut.repr4(ut.dict_hist(ut.flatten(new_injurtags))))
     logger.info(
-        'unioning new injur tags into %r/%r annots' % (sum(isdirty), len(isdirty))
+        'unioning new injur tags into {!r}/{!r} annots'.format(sum(isdirty), len(isdirty))
     )
     if not DRY:
         ibs.append_annot_case_tags(dirty_info['aid'], dirty_info['new_injurtags'])
@@ -389,7 +390,9 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
         'new_keywords' + ut.repr4(ut.dict_hist(ut.flatten(single_info['new_keywords'])))
     )
     logger.info(
-        'unioning new_keywords into %r/%r annots' % (len(dirty_info), len(isdirty))
+        'unioning new_keywords into {!r}/{!r} annots'.format(
+            len(dirty_info), len(isdirty)
+        )
     )
     if not DRY:
         ibs.append_annot_case_tags(dirty_info['aid'], dirty_info['new_keywords'])
@@ -402,7 +405,7 @@ def sync_annot_info(ibs, single_annots, single_info, species, DRY):
     isdirty = [len(t) > 0 for t in single_info['new_tags']]
     dirty_info = single_info.compress(isdirty)
     logger.info('new_tags' + ut.repr4(ut.dict_hist(ut.flatten(single_info['new_tags']))))
-    logger.info('unioning new_tags into %r annots' % (len(dirty_info),))
+    logger.info('unioning new_tags into {!r} annots'.format(len(dirty_info)))
     if not DRY:
         ibs.append_annot_case_tags(dirty_info['aid'], dirty_info['new_tags'])
 
@@ -531,19 +534,27 @@ def check_annot_disagree(
             for x, y, d in zip(info_prop, annot_prop, disagree)
         ]
 
-    logger.info('\n--- RECTIFY prop=%r --- ' % (key1,))
+    logger.info('\n--- RECTIFY prop={!r} --- '.format(key1))
 
     logger.info(
-        'Prop=%r has %r/%r out of sync items' % (key1, sum(out_of_sync), len(out_of_sync))
+        'Prop={!r} has {!r}/{!r} out of sync items'.format(
+            key1, sum(out_of_sync), len(out_of_sync)
+        )
     )
     logger.info(
-        'WB has populated info for %r/%r %r' % (sum(ia_empty), len(ia_empty), key1)
+        'WB has populated info for {!r}/{!r} {!r}'.format(
+            sum(ia_empty), len(ia_empty), key1
+        )
     )
     logger.info(
-        'IA has populated info for %r/%r %r' % (sum(wb_empty), len(wb_empty), key1)
+        'IA has populated info for {!r}/{!r} {!r}'.format(
+            sum(wb_empty), len(wb_empty), key1
+        )
     )
     logger.info(
-        'IA and WB disagree on info for %r/%r %r' % (sum(disagree), len(disagree), key1)
+        'IA and WB disagree on info for {!r}/{!r} {!r}'.format(
+            sum(disagree), len(disagree), key1
+        )
     )
     if is_set:
         logger.info(
@@ -713,7 +724,7 @@ def get_injur_categories(single_annots, verbose=False):
         return_map=True,
         delete_unmapped=True,
     )
-    assert len(unmapped) == 0, 'fixme %r' % (unmapped,)
+    assert len(unmapped) == 0, 'fixme {!r}'.format(unmapped)
     # Remove injur-other if other known injuries are present
 
     def fixinjur(aid, tags):
@@ -722,7 +733,9 @@ def get_injur_categories(single_annots, verbose=False):
         if injured:
             if 'healthy' in tags:
                 logger.info(
-                    'shark aid=%r labeled as injured and healty %r!!!' % (aid, tags)
+                    'shark aid={!r} labeled as injured and healty {!r}!!!'.format(
+                        aid, tags
+                    )
                 )
         if len(tags) == 0:
             return tags
@@ -742,7 +755,7 @@ def get_injur_categories(single_annots, verbose=False):
         logger.info(
             'mapping: ' + ut.repr3(ut.group_items(alias_map.keys(), alias_map.values()))
         )
-        logger.info('unmapped = %s' % (ut.repr3(unmapped),))
+        logger.info('unmapped = {}'.format(ut.repr3(unmapped)))
 
         given_tags = set(ut.flatten(injur_tags))
         alias_map_used = ut.odict()
@@ -790,7 +803,7 @@ def add_new_images(ibs, miss_info, species):
 
     # Check to see if adding any images failed
     failed_flags = ut.flag_None_items(miss_info['gid'])
-    logger.info('# failed to add %s images' % (sum(failed_flags),))
+    logger.info('# failed to add {} images'.format(sum(failed_flags)))
 
     passed_flags = ut.not_list(failed_flags)
     miss_info = miss_info.compress(passed_flags)
@@ -1129,6 +1142,7 @@ def parse_wildbook_images(url):
         >>> parse_wildbook_images(url)
     """
     from xml.dom.minidom import parseString
+
     from wbia.scripts import getshark
 
     number = None
@@ -1248,7 +1262,7 @@ def parse_whaleshark_org_keywords():
 
         cache_fpath = join(cache_dpath, 'req_' + ut.hashstr27(key_url) + '.json')
         if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 3000):
-            logger.info('Execute request %s' % (key_url,))
+            logger.info('Execute request {}'.format(key_url))
             resp = requests.get(key_url)
             logger.info('Got Response')
             assert resp.status_code == 200
@@ -1315,12 +1329,14 @@ def parse_whaleshark_org_keywords():
         logger.info('')
         logger.info(
             'Injured Keyword histogram:\n'
-            + ', '.join(['*%s*: %s' % (k, v) for k, v in injured_keyhist.items()][::-1])
+            + ', '.join(
+                ['*{}*: {}'.format(k, v) for k, v in injured_keyhist.items()][::-1]
+            )
         )
         logger.info('')
         logger.info(
             'Other Keyword histogram:\n'
-            + ', '.join(['*%s*: %s' % (k, v) for k, v in other_keyhist.items()][::-1])
+            + ', '.join(['*{}*: {}'.format(k, v) for k, v in other_keyhist.items()][::-1])
         )
 
         # Get tag co-occurrence
@@ -1351,7 +1367,7 @@ def parse_whaleshark_org_keywords():
 
 
 def postprocess_filenames(parsed, download_dir):
-    from os.path import commonprefix, basename  # NOQA
+    from os.path import basename, commonprefix  # NOQA
 
     # Create a new filename
     parsed['new_fpath'] = [join(download_dir, _fname) for _fname in parsed['new_fname']]
@@ -1452,8 +1468,8 @@ def postprocess_tags_filter(parsed):
 def download_missing_images(parsed, num=None):
     exist_flags = ut.lmap(exists, parsed['new_fpath'])
     missing_flags = ut.not_list(exist_flags)
-    logger.info('nExist = %r / %r' % (sum(exist_flags), len(exist_flags)))
-    logger.info('nMissing = %r / %r' % (sum(missing_flags), len(exist_flags)))
+    logger.info('nExist = {!r} / {!r}'.format(sum(exist_flags), len(exist_flags)))
+    logger.info('nMissing = {!r} / {!r}'.format(sum(missing_flags), len(exist_flags)))
     if any(missing_flags):
         missing = parsed.compress(missing_flags)
         logger.info('Downloading missing subset')
@@ -1563,10 +1579,10 @@ def postprocess_rectify_duplicates(unmerged):
         isambiguous = merged.map_column(key, ut.isiterable)
         num = sum(isambiguous)
         if num > 0:
-            ut.colorprint('X: key=%s has %r ambiguities!' % (key, num), 'red')
+            ut.colorprint('X: key={} has {!r} ambiguities!'.format(key, num), 'red')
             # merged.compress(isambiguous).print(keys=[key, 'suffix'])
         else:
-            ut.colorprint('o: key=%s is unambiguous' % (key,), 'green')
+            ut.colorprint('o: key={} is unambiguous'.format(key), 'green')
 
     # Take the first item from the columns that should only have one value
     # merged.cast_column(takeone_keys, lambda v: v[0])
@@ -1884,10 +1900,10 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
         taghist = {key: val for key, val in taghist.items() if val > 1}
 
         unknown_taghist = sorted(
-            [(val, key) for key, val in taghist.items() if key not in valid_tags]
+            (val, key) for key, val in taghist.items() if key not in valid_tags
         )[::-1]
         known_taghist = sorted(
-            [(val, key) for key, val in taghist.items() if key in valid_tags]
+            (val, key) for key, val in taghist.items() if key in valid_tags
         )[::-1]
 
         logger.info('Unknown')

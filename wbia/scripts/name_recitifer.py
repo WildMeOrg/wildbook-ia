@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -426,8 +427,8 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbo
 
     if verbose:
         logger.info('finding maximally consistent labeling')
-        logger.info('n_old_names = %r' % (n_old_names,))
-        logger.info('n_new_names = %r' % (n_new_names,))
+        logger.info('n_old_names = {!r}'.format(n_old_names))
+        logger.info('n_new_names = {!r}'.format(n_new_names))
 
     # For each old_name, determine now many new_names use it.
     oldname_sets = list(map(set, grouped_oldnames))
@@ -467,7 +468,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbo
             hitems = list(h.items())
             hvals = [i[1] for i in hitems]
             maxval = max(hvals)
-            g = min([k for k, v in hitems if v == maxval])
+            g = min(k for k, v in hitems if v == maxval)
             assignment[new_idx] = g
         else:
             # new-names that use no old-names can be ignored
@@ -477,9 +478,9 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbo
         n_trivial = len(trivial_oldnames)
         n_nontrivial = len(nontrivial_oldnames)
         logger.info('rectify %d trivial groups' % (n_trivial,))
-        logger.info('  * n_trivial_unchanged = %r' % (n_trivial_unchanged,))
-        logger.info('  * n_trivial_merges = %r' % (n_trivial_merges,))
-        logger.info('  * n_trivial_ignored = %r' % (n_trivial_ignored,))
+        logger.info('  * n_trivial_unchanged = {!r}'.format(n_trivial_unchanged))
+        logger.info('  * n_trivial_merges = {!r}'.format(n_trivial_merges))
+        logger.info('  * n_trivial_ignored = {!r}'.format(n_trivial_ignored))
         logger.info('rectify %d non-trivial groups' % (n_nontrivial,))
 
     # Partition nontrivial_oldnames into smaller disjoint sets
@@ -500,7 +501,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name', verbo
         )
         part_size_stats = ut.get_stats(map(len, nontrivial_partition))
         stats_str = ut.repr2(part_size_stats, precision=2, strkeys=True)
-        logger.info('  * partition size stats = %s' % (stats_str,))
+        logger.info('  * partition size stats = {}'.format(stats_str))
 
     # Rectify nontrivial cases
     for part_idxs in ut.ProgIter(
@@ -554,7 +555,7 @@ def find_consistent_labeling_old(
                 hitems = list(h.items())
                 hvals = [i[1] for i in hitems]
                 maxval = max(hvals)
-                g = min([k for k, v in hitems if v == maxval])
+                g = min(k for k, v in hitems if v == maxval)
                 assignment[idx] = g
             else:
                 assignment[idx] = None

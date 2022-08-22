@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
-from wbia.scripts import classify_shark
+
 import numpy as np
-import vtool as vt
 import utool as ut
+import vtool as vt
+
+from wbia.scripts import classify_shark
 
 (print, rrr, profile) = ut.inject2(__name__, '[sharkspotter]')
 logger = logging.getLogger('wbia')

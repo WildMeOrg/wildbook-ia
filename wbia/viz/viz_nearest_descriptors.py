@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
+
+import wbia.plottool as pt  # NOQA
 from wbia.plottool import draw_func2 as df2
 from wbia.plottool.viz_featrow import draw_feat_row
 from wbia.viz import viz_helpers as vh
-import wbia.plottool as pt  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -29,7 +31,7 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
     K = qreq_.qparams.K
     Knorm = qreq_.qparams.Knorm
     if ut.VERBOSE:
-        logger.info('Knorm = %r' % (Knorm,))
+        logger.info('Knorm = {!r}'.format(Knorm))
     qfx2_idx, qfx2_dist = qreq_.indexer.knn(qfx2_vecs, 10)
 
     if special:
@@ -47,7 +49,7 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
         flags_first = flags[:, 0:K]
         flags_last = flags[:, K:]
         num_gt_matches = flags_first.sum(axis=1) - flags_last.sum(axis=1)
-        logger.info('num_gt_matches = %r' % (num_gt_matches,))
+        logger.info('num_gt_matches = {!r}'.format(num_gt_matches))
         logger.info(num_gt_matches.max())
         has_good_num = num_gt_matches >= num_gt_matches.max() - 1
         candidate_qfxs = np.where(has_good_num)[0]
@@ -59,13 +61,13 @@ def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
         cand_dist_gf = cand_dist * ~cand_flags
         cand_score = cand_dist_gt.sum(axis=1) - cand_dist_gf.sum(axis=1)
         top_candxs = cand_score.argsort()
-        logger.info('cand_nids = %r' % (cand_nids,))
-        logger.info('top_candxs = %r' % (top_candxs,))
+        logger.info('cand_nids = {!r}'.format(cand_nids))
+        logger.info('top_candxs = {!r}'.format(top_candxs))
 
         cand_idx = top_candxs[1]
         # cand_idx = ut.take_percentile(top_candxs, .1)[-1]
         qfx = candidate_qfxs[cand_idx]
-        logger.info('qfx = %r' % (qfx,))
+        logger.info('qfx = {!r}'.format(qfx))
         qfx2_dist = qfx2_dist[qfx : (qfx + 1)]
         qfx2_idx = qfx2_idx[qfx : (qfx + 1)]
 
@@ -105,16 +107,15 @@ def show_top_featmatches(qreq_, cm_list):
     """
     # for cm in cm_list:
     #     cm.score_annot_csum(qreq_)
+    from functools import partial
+
     import numpy as np
     import vtool as vt
-    from functools import partial
 
     # Stack chipmatches
     ibs = qreq_.ibs
     infos = [cm.get_flat_fm_info() for cm in cm_list]
-    flat_metadata = dict(
-        [(k, np.concatenate(v)) for k, v in ut.dict_stack2(infos).items()]
-    )
+    flat_metadata = {k: np.concatenate(v) for k, v in ut.dict_stack2(infos).items()}
     fsv_flat = flat_metadata['fsv']
     flat_metadata['fs'] = fsv_flat.prod(axis=1)
     aids1 = flat_metadata['aid1'][:, None]
@@ -244,7 +245,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **
             if not ut.get_argflag('--texknormplot'):
                 aidstr = vh.get_aidstrs(aid)
                 nidstr = vh.get_nidstrs(ibs.get_annot_nids(aid))
-                id_str = ' ' + aidstr + ' ' + nidstr + ' fx=%r' % (fx,)
+                id_str = ' ' + aidstr + ' ' + nidstr + ' fx={!r}'.format(fx)
             else:
                 id_str = nidstr = aidstr = ''
             info = ''
@@ -256,7 +257,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **
                     info += '\n\\_'
                 else:
                     if len(id_str) > '':
-                        info = 'Query: %s' % (id_str,)
+                        info = 'Query: {}'.format(id_str)
                     else:
                         info = 'Query'
                 type_ = 'Query'
@@ -265,14 +266,16 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **
                 if ut.get_argflag('--texknormplot') and pt.is_texmode():
                     # info = 'Match:\n$k=%r$, $\\frac{||\\mathbf{d}_i - \\mathbf{d}_j||}{Z}=%.3f$' % (k, qfx2_dist[0, k])
                     info = '\\vspace{1cm}'
-                    info += 'Match: $\\mathbf{d}_{j_%r}$\n$\\textrm{dist}=%.3f$' % (
+                    info += 'Match: $\\mathbf{{d}}_{{j_{!r}}}$\n$\\textrm{{dist}}={:.3f}$'.format(
                         k,
                         qfx2_dist[0, k],
                     )
                     # info += '\n$s_{\\tt{LNBNN}}=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
                     info += '\n$s=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
                 else:
-                    info = 'Match:%s\nk=%r, dist=%.3f' % (id_str, k, qfx2_dist[0, k])
+                    info = 'Match:{}\nk={!r}, dist={:.3f}'.format(
+                        id_str, k, qfx2_dist[0, k]
+                    )
                     info += '\nLNBNN=%.3f' % (
                         qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k]
                     )
@@ -281,10 +284,14 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5, qreq_=None, **
                 if ut.get_argflag('--texknormplot') and pt.is_texmode():
                     # info = 'Norm: $j_%r$\ndist=%.3f' % (id_str, k, qfx2_dist[0, k])
                     info = '\\vspace{1cm}'
-                    info += 'Norm: $j_%r$\n$\\textrm{dist}=%.3f$' % (k, qfx2_dist[0, k])
+                    info += 'Norm: $j_{!r}$\n$\\textrm{{dist}}={:.3f}$'.format(
+                        k, qfx2_dist[0, k]
+                    )
                     info += '\n\\_'
                 else:
-                    info = 'Norm: %s\n$k=%r$, dist=$%.3f$' % (id_str, k, qfx2_dist[0, k])
+                    info = 'Norm: {}\n$k={!r}$, dist=${:.3f}$'.format(
+                        id_str, k, qfx2_dist[0, k]
+                    )
             else:
                 raise Exception('[viz] problem k=%r')
             return (rchip, kp, sift, fx, aid, info, type_)

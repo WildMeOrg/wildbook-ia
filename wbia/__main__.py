@@ -5,14 +5,14 @@ Runs IBIES gui
 """
 import logging
 import multiprocessing
-import utool as ut
-import ubelt as ub
 import sys
+
+import ubelt as ub
+import utool as ut
 
 from wbia.dev import devmain
 from wbia.entry_points import main, main_loop
 from wbia.scripts.rsync_wbiadb import rsync_ibsdb_main
-
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -39,9 +39,9 @@ def smoke_test():  # nocover
     utool_main()
     vtool_main()
 
-    from pyhesaff.__main__ import main as pyhesaff_main
-    from pyflann.__main__ import main as pyflann_main
     from pydarknet.__main__ import main as pydarknet_main
+    from pyflann.__main__ import main as pyflann_main
+    from pyhesaff.__main__ import main as pyhesaff_main
 
     # from pyrf.__main__ import main as pyrf_main
 
@@ -52,11 +52,11 @@ def smoke_test():  # nocover
 
     import brambox
 
-    print('Brambox: %r, %r' % (brambox.__version__, brambox.__file__))
+    print('Brambox: {!r}, {!r}'.format(brambox.__version__, brambox.__file__))
 
     import lightnet
 
-    print('Lightnet: %r, %r' % (lightnet.__version__, lightnet.__file__))
+    print('Lightnet: {!r}, {!r}'.format(lightnet.__version__, lightnet.__file__))
 
 
 def run_wbia():

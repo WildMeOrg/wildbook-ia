@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# DUPLICATE CODE, DELETE
-from wbia.plottool import interact_multi_image
-from wbia.plottool import draw_func2 as df2
 import utool
+
+# DUPLICATE CODE, DELETE
+from wbia.plottool import draw_func2 as df2
+from wbia.plottool import interact_multi_image
 
 # import wbia
 

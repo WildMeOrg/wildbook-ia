@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys
-from wbia.guitool.__PYQT__ import QtCore
-from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
-from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION  # NOQA
+
 import utool as ut
+
+from wbia.guitool.__PYQT__ import GUITOOL_PYQT_VERSION  # NOQA
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool.__PYQT__ import QtCore
 
 ut.noinject(__name__, '[guitool.main]', DEBUG=False)
 
@@ -33,7 +35,7 @@ class GuitoolApplication(QtWidgets.QApplication):
         if event.type() == QtCore.QEvent.KeyPress:
             if self.log_keys:
                 key = event.text()
-                print('key = %r' % (key,))
+                print('key = {!r}'.format(key))
                 self.keylog.append(key)
             # QtWidgets.QMessageBox.information(
             #    None, "Received Key Press Event!!", "You Pressed: " + event.text())
@@ -157,7 +159,7 @@ def qtapp_loop(
     # if not QUIET and VERBOSE:
     if not QUIET:
         print('[guitool.qtapp_loop()] ENTERING')
-    print('[guitool.qtapp_loop()] starting qt app loop: qwin=%r' % (qwin,))
+    print('[guitool.qtapp_loop()] starting qt app loop: qwin={!r}'.format(qwin))
     if enable_activate_qwin and (qwin is not None):
         activate_qwindow(qwin)
         qwin.timer = ping_python_interpreter(frequency=frequency)
@@ -180,7 +182,7 @@ def qtapp_loop(
             # sys.excepthook = qt_excepthook
             try:
                 retcode = QAPP.exec_()
-                print('QAPP retcode = %r' % (retcode,))
+                print('QAPP retcode = {!r}'.format(retcode))
                 QAPP.exit(retcode)
             except Exception as ex:
                 print('QException: %r' % ex)

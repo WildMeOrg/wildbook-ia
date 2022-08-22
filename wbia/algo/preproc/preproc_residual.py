@@ -2,6 +2,7 @@
 """
 """
 import logging
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_residual]')

@@ -2,11 +2,9 @@
 
 
 def rhombicuboctahedron():
-    import vtk
-
     # First, you need to store the vertex locations.
-
     import numpy as np
+    import vtk
 
     fu = 1  # full unit
     hu = 0.5  # half unit
@@ -15,8 +13,9 @@ def rhombicuboctahedron():
 
     # left view faces us
 
-    import utool as ut
     import itertools
+
+    import utool as ut
 
     counter = ut.partial(next, itertools.count(0))
 
@@ -36,7 +35,7 @@ def rhombicuboctahedron():
     # left, up, back
     vplist = ['L', 'U', 'B', 'R', 'D', 'F']
     vpdict = {}
-    print('perms = %r' % (perms,))
+    print('perms = {!r}'.format(perms))
     for x in range(3):
         vp = vplist[x]
         p = np.vstack(ut.take(plist, perms[x])).T
@@ -52,7 +51,7 @@ def rhombicuboctahedron():
     perms = [(0, 1, 2), (0, 2, 1), (2, 0, 1)]
     plist[-1] = -plist[-1]
     # right, down, front
-    print('perms = %r' % (perms,))
+    print('perms = {!r}'.format(perms))
     for x in range(3):
         p = np.vstack(ut.take(plist, perms[x])).T
         counts = [counter() for z in range(4)]
@@ -191,7 +190,6 @@ def rhombic_dodecahedron():
     import vtk
 
     # This is a Rhombic Dodecahedron.
-
     # First, you need to store the vertex locations.
     vertex_locations = vtk.vtkPoints()
     vertex_locations.SetNumberOfPoints(14)

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+import csv
 import os
 import re
-import csv
-import pypascalmarkup
-import numpy as np
-import ExifTags
-from PIL import Image
 from collections import defaultdict
+
+import ExifTags
+import numpy as np
+import pypascalmarkup
+from PIL import Image
 
 
 # maps img_id -> img_name, to look up images names from chip_table's ImgID

@@ -4,15 +4,17 @@
 DEPRICATE MOST OF THIS FILE IN FAVOR OF DOCTEST SCRIPTS
 """
 import logging
-from wbia._devscript import devcmd, devprecmd
-from os.path import split, join, expanduser
-from wbia.plottool import draw_func2 as df2
+from os.path import expanduser, join, split
+
 import numpy as np
 import utool
 import vtool.keypoint as ktool
+
 from wbia import sysres
-from wbia.other import ibsfuncs
+from wbia._devscript import devcmd, devprecmd
 from wbia.dbio import ingest_hsdb
+from wbia.other import ibsfuncs
+from wbia.plottool import draw_func2 as df2
 
 (print, rrr, profile) = utool.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -58,13 +60,15 @@ def openworkdirs_test():
         '/raid/work/Elephants_Stewart',
         '/raid/work/NAUT_test',
     ]
-    import wbia
-    from wbia.init import sysres
     import os
-    import utool as ut  # NOQA
     from os.path import join
-    from wbia.dbio import ingest_hsdb
+
+    import utool as ut  # NOQA
+
+    import wbia
     import wbia.other.dbinfo
+    from wbia.dbio import ingest_hsdb
+    from wbia.init import sysres
 
     wbia.other.dbinfo.rrr()
     workdir = sysres.get_workdir()
@@ -272,9 +276,9 @@ def export(ibs, aid_pairs=None):
             mkey = tuple(mrids_.tolist())
             try:
                 kpts_list = mkey2_kpts[mkey]
-                print('append to mkey=%r' % (mkey,))
+                print('append to mkey={!r}'.format(mkey))
             except KeyError:
-                print('new mkey=%r' % (mkey,))
+                print('new mkey={!r}'.format(mkey))
                 kpts_list = []
             kpts_list.append(mkpts_)
             mkey2_kpts[mkey] = kpts_list
@@ -305,7 +309,7 @@ def export(ibs, aid_pairs=None):
 
             header_lines = [
                 '# Exported keypoint matches (might be duplicates matches)',
-                '# matching_aids = %r' % (mkey,),
+                '# matching_aids = {!r}'.format(mkey),
             ]
             header_lines += [
                 '# img%d = %r' % (count, fname) for count, fname in enumerate(fnames_list)

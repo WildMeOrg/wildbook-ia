@@ -3,6 +3,7 @@
 TODO: use graph_iden.py instead.  Need to encapsulate some of this functionality.
 """
 import logging
+
 import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
@@ -193,8 +194,9 @@ class OrigAnnotInference(object):
         return thresh
 
     def make_graph(self, show=False):
-        import networkx as nx
         import itertools
+
+        import networkx as nx
 
         cm_list = self.cm_list
         unique_nids, prob_names = self.make_prob_names()
@@ -276,7 +278,7 @@ class OrigAnnotInference(object):
             nx.set_node_attributes(
                 graph,
                 name='label',
-                values={node: 'n%r' % (node[1],) for node in name_nodes},
+                values={node: 'n{!r}'.format(node[1]) for node in name_nodes},
             )
             nx.set_node_attributes(
                 graph,
@@ -291,6 +293,7 @@ class OrigAnnotInference(object):
 
     def make_clusters(self):
         import itertools
+
         import networkx as nx
 
         cm_list = self.cm_list
@@ -350,7 +353,7 @@ class OrigAnnotInference(object):
                 viewpoint_texts = ibs.get_annot_yaw_texts(aids)
                 view_to_aids = ut.group_items(aids, viewpoint_texts)
                 num_wanted_exemplars_per_view = 4
-                hack_set_these_qaids_as_exemplars = set([])
+                hack_set_these_qaids_as_exemplars = set()
                 for view, aids_ in view_to_aids.items():
                     heuristic_exemplar_aids = set(aids) - qaid_set
                     heuristic_non_exemplar_aids = set(aids).intersection(qaid_set)
@@ -494,7 +497,7 @@ class OrigAnnotInference(object):
             # try:
             text = ibs.get_name_texts(nid, apply_fix=False)
             if text is None:
-                text = 'NEWNAME_%s' % (str(nid),)
+                text = 'NEWNAME_{}'.format(str(nid))
             # uuid_ = uuid.UUID(text)
             # except ValueError:
             #    text = 'NEWNAME_%s' % (str(nid),)

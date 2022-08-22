@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
 import os
+import sys
 from itertools import izip
-from os.path import exists, join, dirname, split, isdir
+from os.path import dirname, exists, isdir, join, split
+
 import __REPOS__
 import meta_util_git as mu  # NOQA
 from meta_util_git import get_repo_dirs, get_repo_dname  # NOQA

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
-from wbia.guitool.__PYQT__ import QtCore, QtGui
-from wbia.guitool.__PYQT__ import QtWidgets
-from wbia.guitool.__PYQT__.QtCore import Qt
-from wbia.guitool.__PYQT__._internal import GUITOOL_PYQT_VERSION  # NOQA
-import utool as ut
-from wbia.guitool import guitool_dialogs
 import weakref
+
+import utool as ut
+
+from wbia.guitool import guitool_dialogs
+from wbia.guitool.__PYQT__ import QtCore, QtGui, QtWidgets
+from wbia.guitool.__PYQT__._internal import GUITOOL_PYQT_VERSION  # NOQA
+from wbia.guitool.__PYQT__.QtCore import Qt
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -697,7 +698,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
                 '['
                 + '#' * num_full
                 + '.' * num_empty
-                + '] %7.3f%% %s' % (global_fraction * 100, hook.lbl)
+                + '] {:7.3f}% {}'.format(global_fraction * 100, hook.lbl)
             )
             logger.info('\n')
         prog_bar = hook.prog_bar
@@ -1377,7 +1378,7 @@ def newLayout(parent=None, ori=None, spacing=None, margin=None):
         elif ori == Qt.Horizontal:
             layout = QtWidgets.QHBoxLayout(parent)
         else:
-            raise NotImplementedError('ori=%r' % (ori,))
+            raise NotImplementedError('ori={!r}'.format(ori))
     if spacing is not None:
         layout.setSpacing(spacing)
     if margin is not None:
@@ -1605,7 +1606,7 @@ def walk_widget_heirarchy(obj, **kwargs):
         else:
             try:
                 val = get_nested_attr(obj, attr + '()')
-                lines.append('  * %s = %r' % (attr, prop_text_map(attr, val)))
+                lines.append('  * {} = {!r}'.format(attr, prop_text_map(attr, val)))
             except AttributeError:
                 pass
     if skip and len(lines) == 1:
@@ -1812,7 +1813,7 @@ class ConfigConfirmWidget(GuitoolWidget):
         # Set default button
 
     def update_state(self, *args):
-        logger.info('*args = %r' % (args,))
+        logger.info('*args = {!r}'.format(args))
         logger.info('Update state')
         if self.param_info_dict is None:
             logger.info('Need dtool config')
@@ -1821,7 +1822,7 @@ class ConfigConfirmWidget(GuitoolWidget):
             row = self.row_dict[key]
             if pi.type_ is bool:
                 value = row.edit.currentValue()
-                logger.info('Changed: key, value = %r, %r' % (key, value))
+                logger.info('Changed: key, value = {!r}, {!r}'.format(key, value))
                 self.config[key] = value
 
         for key, pi in self.param_info_dict.items():
@@ -1831,7 +1832,7 @@ class ConfigConfirmWidget(GuitoolWidget):
 
     def confirm(self, confirm_option=None):
         logger.info('[gt] Confirmed config')
-        logger.info('confirm_option = %r' % (confirm_option,))
+        logger.info('confirm_option = {!r}'.format(confirm_option))
         self.confirm_option = confirm_option
         self.close()
 
@@ -1888,7 +1889,7 @@ class ConfigConfirmWidget(GuitoolWidget):
 
         def _adjust_widget(w):
             logger.info('-----------')
-            logger.info('w = %r' % (w,))
+            logger.info('w = {!r}'.format(w))
             orig_size = w.size()
             hint_size = w.sizeHint()
             # adj_size = adjusted_size(w)
@@ -1898,10 +1899,10 @@ class ConfigConfirmWidget(GuitoolWidget):
             # height = min(adj_size.height(), hint_size.height())
             height = hint_size.height()
             newsize = (orig_size.width(), height)
-            logger.info('orig_size = %r' % (orig_size,))
-            logger.info('hint_size = %r' % (hint_size,))
-            logger.info('adj_size = %r' % (adj_size,))
-            logger.info('newsize = %r' % (newsize,))
+            logger.info('orig_size = {!r}'.format(orig_size))
+            logger.info('hint_size = {!r}'.format(hint_size))
+            logger.info('adj_size = {!r}'.format(adj_size))
+            logger.info('newsize = {!r}'.format(newsize))
             # w.setMinimumSize(*newsize)
             w.resize(*newsize)
             logger.info('Actual new size = %r' % (w.size()))
@@ -2108,7 +2109,7 @@ def newComboBox(
     elif editor_mode == 'hybrid':
         combo = ComboRadioHybrid(num=num, **combo_kwargs)
     else:
-        raise ValueError('editor_mode=%r' % (editor_mode,))
+        raise ValueError('editor_mode={!r}'.format(editor_mode))
     # if changed is None:
     #    enabled = False
     combo.setVisible(visible)
@@ -2188,7 +2189,7 @@ class CustomComboBox(QtWidgets.QComboBox):
                 if value == text:
                     return index
             else:
-                raise ValueError('No such option value=%r' % (value,))
+                raise ValueError('No such option value={!r}'.format(value))
 
 
 class RadioButtonGroup(QtWidgets.QWidget):

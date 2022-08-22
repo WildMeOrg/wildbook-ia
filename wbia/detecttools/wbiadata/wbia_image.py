@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import cv2
-import os
 import math
+import os
 import xml.etree.ElementTree as xml
+
+import cv2
 
 from . import common as com
 from .wbia_object import IBEIS_Object

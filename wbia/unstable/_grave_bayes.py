@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 import logging
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -156,7 +157,7 @@ def try_query(model, infr, evidence, interest_ttypes=[], verbose=True):
             for n in names:
                 if n not in mapping:
                     mapping[n] = len(mapping)
-            new_names = tuple([temp_basis[mapping[n]] for n in names])
+            new_names = tuple(temp_basis[mapping[n]] for n in names)
             return new_names
 
         relabeled_rows = list(map(relabel_names, new_rows))
@@ -351,7 +352,7 @@ def name_model_mode5(num_annots, num_names=None, verbose=True, mode=1):
     #              for cpds in zip(trimatch_cpds)]
 
     cpd_list = name_cpds + score_cpds + match_cpds + trimatch_cpds
-    logger.info('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+    logger.info('score_cpds = {!r}'.format(ut.list_getattr(score_cpds, 'variable')))
 
     # Make Model
     model = pgm_ext.define_model(cpd_list)
@@ -436,7 +437,7 @@ def name_model_mode1(num_annots, num_names=None, verbose=True):
     # L___ End CPD Definitions ___
 
     cpd_list = name_cpds + score_cpds + match_cpds
-    logger.info('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+    logger.info('score_cpds = {!r}'.format(ut.list_getattr(score_cpds, 'variable')))
 
     # Make Model
     model = pgm_ext.define_model(cpd_list)
@@ -670,7 +671,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1):
         cpd_list = name_cpds + score_cpds + match_cpds + dup_cpds
 
     # logger.info('upper_diag_idxs = %r' % (upper_diag_idxs,))
-    logger.info('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+    logger.info('score_cpds = {!r}'.format(ut.list_getattr(score_cpds, 'variable')))
     # import sys
     # sys.exit(1)
 
@@ -710,9 +711,10 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         draw_tree_model(model, **kwargs)
         return
 
-    import wbia.plottool as pt
-    import networkx as netx
     import matplotlib as mpl
+    import networkx as netx
+
+    import wbia.plottool as pt
 
     fnum = pt.ensure_fnum(None)
     fig = pt.figure(fnum=fnum, pnum=(3, 1, (slice(0, 2), 0)), doclf=True)  # NOQA
@@ -848,7 +850,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
             fig.set_size_inches(23, 7)
         fig = pt.gcf()
 
-        title = 'num_names=%r, num_annots=%r' % (model.num_names, num_annots)
+        title = 'num_names={!r}, num_annots={!r}'.format(model.num_names, num_annots)
         map_assign = kwargs.get('map_assign', None)
         # max_marginal_list = []
         # for name, marginal in marginalized_joints.items():
@@ -862,7 +864,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
             map_assign, map_prob = top_assignments[0]
             if map_assign is not None:
                 # title += '\nMAP=' + ut.repr2(map_assign, strvals=True)
-                title += '\nMAP: ' + map_assign + ' @' + '%.2f%%' % (100 * map_prob,)
+                title += '\nMAP: ' + map_assign + ' @' + '{:.2f}%'.format(100 * map_prob)
         if kwargs.get('show_title', True):
             pt.set_figtitle(title, size=14)
         # pt.set_xlabel()
@@ -924,10 +926,9 @@ def flow():
     # Toy problem representing attempting to discover names via annotation
     # scores
 
+    import networkx as netx  # NOQA
     import pystruct  # NOQA
     import pystruct.models  # NOQA
-    import networkx as netx  # NOQA
-
     import vtool as vt
 
     num_annots = 10
@@ -939,6 +940,7 @@ def flow():
 
     if True:
         import vtool as vt
+
         import wbia.plottool as pt
 
         xdata = np.linspace(0, 100, 1000)
@@ -1015,9 +1017,9 @@ def flow():
     unique_lbls, lblgroupxs = vt.group_indices(labels)
     logger.info(groupxs)
     logger.info(lblgroupxs)
-    logger.info('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
+    logger.info('groupdiff = {!r}'.format(ut.compare_groupings(groupxs, lblgroupxs)))
     logger.info(
-        'common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),)
+        'common groups = {!r}'.format(ut.find_grouping_consistencies(groupxs, lblgroupxs))
     )
     # X_data, seconds_thresh, criterion='distance')
 
@@ -1033,9 +1035,9 @@ def flow():
     unique_lbls, lblgroupxs = vt.group_indices(labels)
     logger.info(groupxs)
     logger.info(lblgroupxs)
-    logger.info('groupdiff = %r' % (ut.compare_groupings(groupxs, lblgroupxs),))
+    logger.info('groupdiff = {!r}'.format(ut.compare_groupings(groupxs, lblgroupxs)))
     logger.info(
-        'common groups = %r' % (ut.find_grouping_consistencies(groupxs, lblgroupxs),)
+        'common groups = {!r}'.format(ut.find_grouping_consistencies(groupxs, lblgroupxs))
     )
 
     # import ddbscan

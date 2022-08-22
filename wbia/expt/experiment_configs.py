@@ -7,6 +7,7 @@ and lists specify the union of parameters
 Rename to pipe_cfgdef
 """
 import logging
+
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)

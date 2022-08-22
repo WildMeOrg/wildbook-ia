@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # I'm not quite sure how to organize these functions yet
-import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import vtool.histogram as htool
+import numpy as np
 import utool as ut
+import vtool.histogram as htool
 
 ut.noinject(__name__, '[pt.other]')
 

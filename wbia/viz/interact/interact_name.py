@@ -12,18 +12,20 @@ CommandLine:
 
 
 """
+import functools
 import logging
+
 import numpy as np
 import utool as ut
-from wbia.plottool import interact_helpers as ih
-import functools
+
 import wbia.plottool as pt
-from wbia import viz
 from wbia import constants as const
-from wbia.viz import viz_helpers as vh
+from wbia import viz
 from wbia.other import ibsfuncs
-from wbia.viz import viz_chip
+from wbia.plottool import interact_helpers as ih
 from wbia.plottool.abstract_interaction import AbstractInteraction
+from wbia.viz import viz_chip
+from wbia.viz import viz_helpers as vh
 
 (print, rrr, profile) = ut.inject2(__name__, '[interact_name]', DEBUG=False)
 logger = logging.getLogger('wbia')
@@ -37,7 +39,7 @@ MAX_COLS = 3
 
 
 def build_name_context_options(ibs, nids):
-    logger.info('build_name_context_options nids = %r' % (nids,))
+    logger.info('build_name_context_options nids = {!r}'.format(nids))
     callback_list = []
     from wbia.viz import viz_graph2
 
@@ -177,7 +179,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         if ut.VERBOSE:
             logger.info('[matchver] __init__')
         if ut.VERBOSE or ut.is_developer():
-            logger.info('[matchver] __init__ aid1=%r, aid2=%r ' % (aid1, aid2))
+            logger.info('[matchver] __init__ aid1={!r}, aid2={!r} '.format(aid1, aid2))
         super(MatchVerificationInteraction, self).__init__(**kwargs)
         self.ibs = ibs
         self.max_cols = max_cols
@@ -227,7 +229,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.is_split_case = self.nid1 == self.nid2
         self.all_aid_list = ut.unique_ordered([aid1, aid2] + self.gt1 + self.gt2)
         self.all_nid_list_orig = ibs.get_annot_name_rowids(self.all_aid_list)
-        self.other_aids = list(set(self.all_aid_list) - set([self.aid1, self.aid2]))
+        self.other_aids = list(set(self.all_aid_list) - {self.aid1, self.aid2})
 
         if self.is_split_case:
             # Split case
@@ -242,11 +244,15 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Grab not just the exemplars
 
         if ut.VERBOSE or ut.is_developer():
-            logger.info('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
+            logger.info(
+                '[matchver] __init__ nid1={!r}, nid2={!r} '.format(self.nid1, self.nid2)
+            )
             logger.info('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
 
         if ut.VERBOSE or ut.is_developer():
-            logger.info('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
+            logger.info(
+                '[matchver] __init__ nid1={!r}, nid2={!r} '.format(self.nid1, self.nid2)
+            )
             logger.info('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
 
     def get_other_nids(self):
@@ -420,8 +426,8 @@ class MatchVerificationInteraction(AbstractInteraction):
                         color = self.nid2_color[nid]
                 except Exception as ex:
                     ut.printex(ex)
-                    logger.info('nid = %r' % (nid,))
-                    logger.info('self.nid2_color = %s' % (ut.repr2(self.nid2_color),))
+                    logger.info('nid = {!r}'.format(nid))
+                    logger.info('self.nid2_color = {}'.format(ut.repr2(self.nid2_color)))
                     raise
                 px = colx + offset
                 ax = self.plot_chip(

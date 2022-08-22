@@ -14,9 +14,8 @@ elif _internal.GUITOOL_PYQT_VERSION == 5:
 else:
     raise ValueError('Unknown version of PyQt')
 
-from . import QtCore
-from . import QtGui
 from . import QtWidgets  # just a clone of QtGui in PyQt4
+from . import QtCore, QtGui
 
 
 def QVariantHack(*args):

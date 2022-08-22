@@ -12,34 +12,34 @@ TODO: need to split up into sub modules:
     then there are also convineience functions that need to be ordered at least
     within this file
 """
-import logging
-import types
-import functools
-import re
-from collections import OrderedDict
-from os.path import split, join, exists
-import numpy as np
-import vtool as vt
-import utool as ut
-from utool._internal.meta_util_six import get_funcname, set_funcname
-import ubelt as ub
-from functools import reduce
-import itertools as it
-from wbia import constants as const
-from wbia.control import accessor_decors
-from wbia.control import controller_inject
-from wbia import annotmatch_funcs  # NOQA
-from skimage import io
-import xml.etree.ElementTree as ET
 import datetime
-from PIL import Image
-import cv2
+import functools
+import itertools as it
+import logging
 import os
+import re
 import sys
+import types
+import xml.etree.ElementTree as ET
+from collections import OrderedDict
+from functools import reduce
+from os.path import exists, join, split
+
+import cv2
+import numpy as np
 import pytz
 import tqdm
-from vtool.exif import ORIENTATION_DICT_INVERSE, ORIENTATION_UNDEFINED, ORIENTATION_000
+import ubelt as ub
+import utool as ut
+import vtool as vt
+from PIL import Image
+from skimage import io
+from utool._internal.meta_util_six import get_funcname, set_funcname
+from vtool.exif import ORIENTATION_000, ORIENTATION_DICT_INVERSE, ORIENTATION_UNDEFINED
 
+from wbia import annotmatch_funcs  # NOQA
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
 
 PST = pytz.timezone('US/Pacific')
 
@@ -269,7 +269,7 @@ def assert_valid_species_texts(ibs, species_list, iswarning=True):
             species in valid_species  # or species == const.UNKNOWN
             for species in species_list
         ]
-        assert all(isvalid_list), 'invalid species found in %r: %r' % (
+        assert all(isvalid_list), 'invalid species found in {!r}: {!r}'.format(
             ut.get_caller_name(range(1, 3)),
             ut.compress(species_list, ut.not_list(isvalid_list)),
         )
@@ -300,11 +300,11 @@ def assert_valid_gids(ibs, gid_list, verbose=False, veryverbose=False):
     r""""""
     isinvalid_list = [gid is None for gid in ibs.get_image_gid(gid_list)]
     try:
-        assert not any(isinvalid_list), 'invalid gids: %r' % (
+        assert not any(isinvalid_list), 'invalid gids: {!r}'.format(
             ut.compress(gid_list, isinvalid_list),
         )
         isinvalid_list = [not isinstance(gid, ut.VALID_INT_TYPES) for gid in gid_list]
-        assert not any(isinvalid_list), 'invalidly typed gids: %r' % (
+        assert not any(isinvalid_list), 'invalidly typed gids: {!r}'.format(
             ut.compress(gid_list, isinvalid_list),
         )
     except AssertionError as ex:
@@ -477,11 +477,9 @@ def assert_images_are_unique(ibs, gid_list=None, verbose=True):
                 max_aids = max(aids_len_list)
 
                 filtered_gid_list = sorted(
-                    [
-                        gid
-                        for gid, aids_len in zip(gid_list, aids_len_list)
-                        if aids_len == max_aids
-                    ]
+                    gid
+                    for gid, aids_len in zip(gid_list, aids_len_list)
+                    if aids_len == max_aids
                 )
 
                 survive_gid = filtered_gid_list[0]
@@ -553,7 +551,7 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowi
         logger.info(
             '[!!!] (lbltype_rowid, lblannot_rowid) = : ' + ut.indentjoin(tup_list)
         )
-        logger.info('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
+        logger.info('[!!!] valid_lbltype_rowid: {!r}'.format(valid_lbltype_rowid))
 
         ut.printex(
             ex,
@@ -929,12 +927,14 @@ def check_annot_consistency(ibs, aid_list=None):
     logger.info('check annot consistency. len(aid_list)=%r' % len(aid_list))
     annot_gid_list = ibs.get_annot_gids(aid_list)
     num_None_annot_gids = sum(ut.flag_None_items(annot_gid_list))
-    logger.info('num_None_annot_gids = %r ' % (num_None_annot_gids,))
+    logger.info('num_None_annot_gids = {!r} '.format(num_None_annot_gids))
     assert num_None_annot_gids == 0
     # logger.info(ut.repr2(dict(ut.debug_duplicate_items(annot_gid_list))))
     assert_images_exist(ibs, annot_gid_list)
     unique_gids = list(set(annot_gid_list))
-    logger.info('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
+    logger.info(
+        'num_unique_images={!r} / {!r}'.format(len(unique_gids), len(annot_gid_list))
+    )
     cfpath_list = ibs.get_annot_chip_fpath(aid_list, ensure=False)
     valid_chip_list = [
         None if cfpath is None else exists(cfpath) for cfpath in cfpath_list
@@ -976,7 +976,7 @@ def check_annot_corrupt_uuids(ibs, aid_list=None):
                 ibs.get_annot_uuids(aid)
             except Exception:
                 failed_aids.append(aid)
-        logger.info('failed_aids = %r' % (failed_aids,))
+        logger.info('failed_aids = {!r}'.format(failed_aids))
         return failed_aids
     else:
         logger.info('uuids do not seem to be corrupt')
@@ -1340,7 +1340,7 @@ def check_cache_purge(ibs, ttl_days=90, dryrun=True, squeeze=True):
     now = datetime.datetime.now(tz=PST)
     expires = now - datetime.timedelta(days=ttl_days)
     expires = datetime.datetime(expires.year, expires.month, 1, 0, 0, 0, tzinfo=PST)
-    logger.info('Checking cached files since %r' % (expires,))
+    logger.info('Checking cached files since {!r}'.format(expires))
     timestamp = int(expires.timestamp())
 
     whitelist = [
@@ -1404,7 +1404,7 @@ def check_cache_purge(ibs, ttl_days=90, dryrun=True, squeeze=True):
         if entry.is_dir(follow_symlinks=False):
             name = entry.path.replace(ibs.dbdir, '.')
             if name not in whitelist:
-                print('Skipping: %r' % (entry,))
+                print('Skipping: {!r}'.format(entry))
                 continue
 
             entry_list = list(os.scandir(entry))
@@ -1448,7 +1448,7 @@ def check_cache_purge(ibs, ttl_days=90, dryrun=True, squeeze=True):
                 if os.path.exists(delete_path):
                     failed_list.append(delete_path)
 
-    logger.info('Purged: %s' % (bytes2human(purged_bytes),))
+    logger.info('Purged: {}'.format(bytes2human(purged_bytes)))
     logger.info('Failed: %d' % (len(failed_list),))
 
     table_list = []
@@ -1600,7 +1600,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
             dupaids_list.append(aids[1:])
 
         toremove_aids = ut.flatten(dupaids_list)
-        logger.info('About to delete toremove_aids=%r' % (toremove_aids,))
+        logger.info('About to delete toremove_aids={!r}'.format(toremove_aids))
         if ut.are_you_sure('About to delete %r aids' % (len(toremove_aids))):
             ibs.delete_annots(toremove_aids)
 
@@ -1798,8 +1798,8 @@ def fix_invalid_nids(ibs):
             and invalid_nids[0] == const.UNKNOWN_NAME_ROWID
             and invalid_texts[0] == const.UNKNOWN
         ):
-            logger.info('[ibs] found bad name rowids = %r' % (invalid_nids,))
-            logger.info('[ibs] found bad name texts  = %r' % (invalid_texts,))
+            logger.info('[ibs] found bad name rowids = {!r}'.format(invalid_nids))
+            logger.info('[ibs] found bad name texts  = {!r}'.format(invalid_texts))
             ibs.delete_names([const.UNKNOWN_NAME_ROWID])
         else:
             errmsg = 'Unfixable error: Found invalid (nid, text) pairs: '
@@ -1849,7 +1849,7 @@ def fix_invalid_name_texts(ibs):
             )
             base_str = 'fixedname%d' + invalid_text
             new_text = ut.get_nonconflicting_string(base_str, conflict_set, offset=count)
-            logger.info('Fixing name %r -> %r' % (invalid_text, new_text))
+            logger.info('Fixing name {!r} -> {!r}'.format(invalid_text, new_text))
             ibs.set_name_texts((invalid_nid,), (new_text,))
         logger.info('Fixed %d name texts' % (len(invalid_nids)))
     else:
@@ -2442,7 +2442,7 @@ def update_species_imagesets(ibs):
 
     key_list = sorted(species_dict.keys())
     imageset_text_list = [
-        'Species: %s' % (key.replace('_', ' ').title(),) for key in key_list
+        'Species: {}'.format(key.replace('_', ' ').title()) for key in key_list
     ]
 
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
@@ -2936,7 +2936,7 @@ def batch_rename_consecutive_via_species(
     def _assert_no_name_conflicts(ibs, new_nid_list, new_name_list):
         logger.info('checking for conflicting names')
         conflit_names = get_conflict_names(ibs, new_nid_list, new_name_list)
-        assert len(conflit_names) == 0, 'conflit_names=%r' % (conflit_names,)
+        assert len(conflit_names) == 0, 'conflit_names={!r}'.format(conflit_names)
 
     # Check to make sure new names dont conflict with other names
     _assert_no_name_conflicts(ibs, new_nid_list, new_name_list)
@@ -3029,7 +3029,7 @@ def get_consecutive_newname_list_via_species(
         for nid, unique_species_rowid_list in zip(nid_list, unique_species_rowids_list):
             if len(unique_species_rowid_list) > 1:
                 inconsistent_nid_list.append(nid)
-        message = 'Inconsistent nid_list = %r' % (inconsistent_nid_list,)
+        message = 'Inconsistent nid_list = {!r}'.format(inconsistent_nid_list)
         raise ValueError(message)
     code_list = ibs.get_species_codes(species_rowid_list)
 
@@ -3762,7 +3762,7 @@ def get_database_species_count(ibs, aid_list=None, BATCH_SIZE=25000):
     annotations = ibs.db._reflect_table('annotations')
     species = ibs.db._reflect_table('species')
 
-    from sqlalchemy.sql import select, func, desc, bindparam
+    from sqlalchemy.sql import bindparam, desc, func, select
 
     species_count = OrderedDict()
     stmt = (
@@ -3865,7 +3865,9 @@ def merge_names(ibs, merge_name, other_names):
         >>> ibs.print_names_table()
     """
     logger.info(
-        '[ibsfuncs] merging other_names=%r into merge_name=%r' % (other_names, merge_name)
+        '[ibsfuncs] merging other_names={!r} into merge_name={!r}'.format(
+            other_names, merge_name
+        )
     )
     other_nid_list = ibs.get_name_rowids_from_text(other_names)
     ibs.set_name_alias_texts(other_nid_list, [merge_name] * len(other_nid_list))
@@ -3880,8 +3882,8 @@ def merge_names(ibs, merge_name, other_names):
 
 def inspect_nonzero_yaws(ibs):
     """python dev.py --dbdir /raid/work2/PZ_Master --cmd --show"""
-    from wbia.viz import viz_chip
     import wbia.plottool as pt
+    from wbia.viz import viz_chip
 
     aids = ibs.get_valid_aids()
     yaws = ibs.get_annot_yaws(aids)
@@ -4154,7 +4156,7 @@ def report_sightings(ibs, complete=True, include_images=False, kaia=False, **kwa
         data_list = [str(data).replace(',', ':COMMA:') for data in list(data_list)]
         return_str = ','.join(data_list)
         return_str = return_str.replace(',None,', ',NONE,')
-        return_str = return_str.replace(',%s,' % (const.UNKNOWN,), ',UNKNOWN,')
+        return_str = return_str.replace(',{},'.format(const.UNKNOWN), ',UNKNOWN,')
         return_str = return_str.replace(',-1,', ',UNKNOWN,')
         return_str = return_str.replace(',-1,', ',UNKNOWN,')
         return_str = return_str.replace(',-1.0,', ',UNKNOWN,')
@@ -4788,7 +4790,7 @@ def testdata_ibs(defaultdb='testdb1'):
 
 def get_valid_multiton_nids_custom(ibs):
     nid_list_ = ibs._get_all_known_nids()
-    ismultiton_list = [len((aids)) > 1 for aids in ibs.get_name_aids(nid_list_)]
+    ismultiton_list = [len(aids) > 1 for aids in ibs.get_name_aids(nid_list_)]
     nid_list = ut.compress(nid_list_, ismultiton_list)
     return nid_list
 
@@ -5183,7 +5185,7 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         )
         min_name_timedelta_stats = ut.get_stats(min_timedeltas, use_nan=True)
         logger.info(
-            'min_name_timedelta_stats = %s' % (ut.repr2(min_name_timedelta_stats),)
+            'min_name_timedelta_stats = {}'.format(ut.repr2(min_name_timedelta_stats))
         )
     return filtered_aids
 
@@ -5395,27 +5397,27 @@ def dans_lists(ibs, positives=10, negatives=10, verbose=False):
         neg_age_list = ibs.get_annot_age_months_est(negative_list)
         neg_chip_list = ibs.get_annot_chip_fpath(negative_list)
 
-        logger.info('positive_aid_list = %s\n' % (positive_list,))
-        logger.info('positive_yaw_list = %s\n' % (pos_yaw_list,))
-        logger.info('positive_qua_list = %s\n' % (pos_qua_list,))
-        logger.info('positive_sex_list = %s\n' % (pos_sex_list,))
-        logger.info('positive_age_list = %s\n' % (pos_age_list,))
-        logger.info('positive_chip_list = %s\n' % (pos_chip_list,))
+        logger.info('positive_aid_list = {}\n'.format(positive_list))
+        logger.info('positive_yaw_list = {}\n'.format(pos_yaw_list))
+        logger.info('positive_qua_list = {}\n'.format(pos_qua_list))
+        logger.info('positive_sex_list = {}\n'.format(pos_sex_list))
+        logger.info('positive_age_list = {}\n'.format(pos_age_list))
+        logger.info('positive_chip_list = {}\n'.format(pos_chip_list))
 
         logger.info('-' * 90, '\n')
 
-        logger.info('negative_aid_list = %s\n' % (negative_list,))
-        logger.info('negative_yaw_list = %s\n' % (neg_yaw_list,))
-        logger.info('negative_qua_list = %s\n' % (neg_qua_list,))
-        logger.info('negative_sex_list = %s\n' % (neg_sex_list,))
-        logger.info('negative_age_list = %s\n' % (neg_age_list,))
-        logger.info('negative_chip_list = %s\n' % (neg_chip_list,))
+        logger.info('negative_aid_list = {}\n'.format(negative_list))
+        logger.info('negative_yaw_list = {}\n'.format(neg_yaw_list))
+        logger.info('negative_qua_list = {}\n'.format(neg_qua_list))
+        logger.info('negative_sex_list = {}\n'.format(neg_sex_list))
+        logger.info('negative_age_list = {}\n'.format(neg_age_list))
+        logger.info('negative_chip_list = {}\n'.format(neg_chip_list))
 
         logger.info('mkdir ~/Desktop/chips')
         for pos_chip in pos_chip_list:
-            logger.info('cp "%s" ~/Desktop/chips/' % (pos_chip,))
+            logger.info('cp "{}" ~/Desktop/chips/'.format(pos_chip))
         for neg_chip in neg_chip_list:
-            logger.info('cp "%s" ~/Desktop/chips/' % (neg_chip,))
+            logger.info('cp "{}" ~/Desktop/chips/'.format(neg_chip))
 
     return positive_list, negative_list
 
@@ -6031,8 +6033,9 @@ def get_annotconfig_stats(
         >>> stats_str2 = ut.repr2(stat_dict, si=True, nl=True, nobr=False)
         >>> print(stats_str2)
     """
-    import numpy as np
     import warnings
+
+    import numpy as np
 
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
@@ -6155,7 +6158,7 @@ def get_annotconfig_stats(
                 confusor_daids, 'd', **kwargs
             )
         if combined:
-            combined_aids = np.unique((np.hstack((qaids, daids))))
+            combined_aids = np.unique(np.hstack((qaids, daids)))
             combined_aids.sort()
             annotconfig_stats_strs_list1 += [
                 ('combined_aids', ibs.get_annot_stats_dict(combined_aids, **kwargs)),
@@ -6258,21 +6261,21 @@ def find_unlabeled_name_members(ibs, **kwargs):
         props_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
         flags_list = [np.isnan(props) for props in props_list]
         missing_time_aid_list = find_missing(props_list, flags_list)
-        logger.info('missing_time_aid_list = %r' % (len(missing_time_aid_list),))
+        logger.info('missing_time_aid_list = {!r}'.format(len(missing_time_aid_list)))
         selected_aids_list.append(missing_time_aid_list)
 
     if kwargs.get('yaw', False):
         props_list = ibs.unflat_map(ibs.get_annot_yaws, aids_list)
         flags_list = [ut.flag_None_items(props) for props in props_list]
         missing_yaw_aid_list = find_missing(props_list, flags_list)
-        logger.info('num_names_missing_yaw = %r' % (len(missing_yaw_aid_list),))
+        logger.info('num_names_missing_yaw = {!r}'.format(len(missing_yaw_aid_list)))
         selected_aids_list.append(missing_yaw_aid_list)
 
     if kwargs.get('qual', False):
         props_list = ibs.unflat_map(ibs.get_annot_qualities, aids_list)
         flags_list = [[p is None or p == -1 for p in props] for props in props_list]
         missing_qual_aid_list = find_missing(props_list, flags_list)
-        logger.info('num_names_missing_qual = %r' % (len(missing_qual_aid_list),))
+        logger.info('num_names_missing_qual = {!r}'.format(len(missing_qual_aid_list)))
         selected_aids_list.append(missing_qual_aid_list)
 
     if kwargs.get('suspect_yaws', False):
@@ -6599,7 +6602,7 @@ def _clean_species(ibs):
                     alias = species_nice
                     species_code, species_nice = const.SPECIES_MAPPING[species_nice]
             elif text is None or text.strip() in ['_', const.UNKNOWN, 'none', 'None', '']:
-                logger.info('[_clean_species] deleting species: %r' % (text,))
+                logger.info('[_clean_species] deleting species: {!r}'.format(text))
                 ibs.delete_species(rowid)
                 continue
             elif len(nice) == 0:
@@ -6607,9 +6610,9 @@ def _clean_species(ibs):
                     species_nice = text
                     species_code = _convert_species_nice_to_code([species_nice])[0]
                 else:
-                    logger.info('Found an unknown species: %r' % (text,))
-                    species_nice = input('Input a NICE name for %r: ' % (text,))
-                    species_code = input('Input a CODE name for %r: ' % (text,))
+                    logger.info('Found an unknown species: {!r}'.format(text))
+                    species_nice = input('Input a NICE name for {!r}: '.format(text))
+                    species_code = input('Input a CODE name for {!r}: '.format(text))
                     assert len(species_code) > 0 and len(species_nice) > 0
             else:
                 continue
@@ -6641,7 +6644,7 @@ def _clean_flann(ibs):
         return
 
     flann_cachedir = ibs.get_flann_cachedir()
-    flann_locks = ut.glob('%s/*.lock' % (flann_cachedir,))
+    flann_locks = ut.glob('{}/*.lock'.format(flann_cachedir))
 
     flann_delete = []
     for flann_lock in flann_locks:
@@ -6715,7 +6718,7 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
     patrol_tree = ET.parse(xml_path)
     namespace = '{http://www.smartconservationsoftware.org/xml/1.1/patrol}'
     # Load all waypoint elements
-    element = './/%swaypoints' % (namespace,)
+    element = './/{}waypoints'.format(namespace)
     waypoint_list = patrol_tree.findall(element)
     if len(waypoint_list) == 0:
         # raise IOError('There are no observations (waypoints) in this
@@ -6738,11 +6741,13 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
         ]
         if None in waypoint_info:
             raise IOError(
-                'The observation (waypoint) is missing information: %r' % (waypoint_info,)
+                'The observation (waypoint) is missing information: {!r}'.format(
+                    waypoint_info
+                )
             )
         # Get all of the waypoint's observations (we expect only one
         # normally)
-        element = './/%sobservations' % (namespace,)
+        element = './/{}observations'.format(namespace)
         observation_list = waypoint.findall(element)
         # if len(observation_list) == 0:
         #     raise IOError('There are no observations in this waypoint,
@@ -6756,10 +6761,10 @@ def _parse_smart_xml(back, xml_path, nTotal, offset=1):
             ):
                 # Get the photonumber attribute for the waypoint's
                 # observation
-                element = './/%sattributes[@attributeKey="photonumber"]' % (namespace,)
+                element = './/{}attributes[@attributeKey="photonumber"]'.format(namespace)
                 photonumber = observation.find(element)
                 if photonumber is not None:
-                    element = './/%ssValue' % (namespace,)
+                    element = './/{}sValue'.format(namespace)
                     # Get the value for photonumber
                     sValue = photonumber.find(element)
                     if sValue is None:
@@ -6837,7 +6842,7 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
     dst_xml_path = join(ibs.get_smart_patrol_dir(), xml_name)
     ut.copy(smart_xml_fpath, dst_xml_path, overwrite=True)
     # Process the XML File
-    logger.info('[ibs] Processing Patrol XML file: %r' % (dst_xml_path,))
+    logger.info('[ibs] Processing Patrol XML file: {!r}'.format(dst_xml_path))
     try:
         imageset_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
     except Exception as e:
@@ -6860,8 +6865,8 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
         smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = imageset_info
         start, end = range_
         gid_list_ = gid_list[start:end]
-        logger.info('[ibs]     Found Patrol ImageSet: %r' % (imageset_info,))
-        logger.info('[ibs]         GIDs: %r' % (gid_list_,))
+        logger.info('[ibs]     Found Patrol ImageSet: {!r}'.format(imageset_info))
+        logger.info('[ibs]         GIDs: {!r}'.format(gid_list_))
         if len(gid_list_) == 0:
             logger.info('[ibs]         SKIPPING EMPTY IMAGESET')
             continue
@@ -6953,8 +6958,8 @@ def compute_occurrences(ibs, config=None):
 
 @register_ibs_method
 def compute_ggr_path_dict(ibs):
-    from matplotlib.path import Path
     import shapefile
+    from matplotlib.path import Path
 
     path_dict = {}
 
@@ -6989,7 +6994,7 @@ def compute_ggr_path_dict(ibs):
 
     for zone in zone_dict:
         point_list = [point_dict[vertex] for vertex in zone_dict[zone]]
-        name = 'Zone %s' % (zone,)
+        name = 'Zone {}'.format(zone)
         path_dict[name] = Path(np.array(point_list))
 
     # ADD COUNTIES
@@ -7010,7 +7015,7 @@ def compute_ggr_path_dict(ibs):
             continue
         point_list = shape.points
         point_list = [list(point)[::-1] for point in point_list]
-        name = 'County %s' % (name,)
+        name = 'County {}'.format(name)
         path_dict[name] = Path(np.array(point_list))
 
     # ADD LAND TENURES
@@ -7024,7 +7029,7 @@ def compute_ggr_path_dict(ibs):
             continue
         point_list = shape.points
         point_list = [list(point)[::-1] for point in point_list]
-        name = 'Land Tenure %s' % (name,)
+        name = 'Land Tenure {}'.format(name)
         path_dict[name] = Path(np.array(point_list))
 
     return path_dict
@@ -7182,7 +7187,7 @@ def compute_ggr_imagesets(
 
     imageset_id_list = []
     for zone, gid_list in sorted(imageset_dict.items()):
-        imageset_str = 'GGR Special Zone - %s' % (zone,)
+        imageset_str = 'GGR Special Zone - {}'.format(zone)
         imageset_id = ibs.add_imagesets(imageset_str)
         imageset_id_list.append(imageset_id)
         args = (
@@ -7196,8 +7201,8 @@ def compute_ggr_imagesets(
 
     logger.info('SKIPPED %d IMAGES' % (skipped,))
     skipped_note_list = sorted(list(set(skipped_note_list)))
-    logger.info('skipped_note_list = %r' % (skipped_note_list,))
-    logger.info('skipped_gid_list = %r' % (skipped_gid_list,))
+    logger.info('skipped_note_list = {!r}'.format(skipped_note_list))
+    logger.info('skipped_gid_list = {!r}'.format(skipped_gid_list))
 
     return imageset_id_list, skipped_note_list, skipped_gid_list
 
@@ -7251,7 +7256,7 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
             s = closest_diff
             logger.info('FOUND LOCATION FOR AID %d' % (aid,))
             logger.info('\tDIFF   : %d H, %d M, %d S' % (h, m, s))
-            logger.info('\tNEW GPS: %s' % (closest_gps,))
+            logger.info('\tNEW GPS: {}'.format(closest_gps))
     logger.info(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found))
     return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
@@ -7263,7 +7268,7 @@ def parse_ggr_name(
     imageset_text = imageset_text.strip()
 
     if verbose:
-        logger.info('Processing %r' % (imageset_text,))
+        logger.info('Processing {!r}'.format(imageset_text))
 
     imageset_text_ = imageset_text.split(',')
 
@@ -7292,9 +7297,9 @@ def parse_ggr_name(
         return None
 
     if verbose:
-        logger.info('\tDataset: %r' % (dataset,))
-        logger.info('\tLetter : %r' % (letter,))
-        logger.info('\tNumber : %r' % (number,))
+        logger.info('\tDataset: {!r}'.format(dataset))
+        logger.info('\tLetter : {!r}'.format(letter))
+        logger.info('\tNumber : {!r}'.format(number))
 
     return dataset, letter, number
 
@@ -7302,8 +7307,8 @@ def parse_ggr_name(
 def search_ggr_qr_codes_worker(
     imageset_rowid, imageset_text, values, gid_list, filepath_list, note_list, timeout
 ):
-    import pyzbar.pyzbar as pyzbar
     import cv2
+    import pyzbar.pyzbar as pyzbar
 
     if values is None:
         logger.info(imageset_text)
@@ -7323,7 +7328,7 @@ def search_ggr_qr_codes_worker(
             logger.info('\tMatch was found')
             break
 
-        logger.info('\tProcessing %r (%s)' % (filepath, note))
+        logger.info('\tProcessing {!r} ({})'.format(filepath, note))
 
         image = cv2.imread(filepath, 0)
         qr_list = pyzbar.decode(image, [pyzbar.ZBarSymbol.QRCODE])
@@ -7337,11 +7342,11 @@ def search_ggr_qr_codes_worker(
                 data = data.split('/')[-1].strip('?')
                 data = data.split('&')
                 data = sorted(data)
-                logger.info('\t\t%r' % (data,))
+                logger.info('\t\t{!r}'.format(data))
 
                 assert data[0] == 'car=%d' % (number,)
                 assert data[1] == 'event=ggr2018'
-                assert data[2] == 'person=%s' % (letter.lower(),)
+                assert data[2] == 'person={}'.format(letter.lower())
 
                 match = True
                 logger.info('\t\tPassed!')
@@ -7554,7 +7559,11 @@ def fix_ggr_qr_codes(ibs, imageset_qr_dict):
             imageset_name,
             qr_gid,
             True,
-            ['car=%s' % (number,), 'event=ggr2018', 'person=%s' % (letter.lower(),)],
+            [
+                'car={}'.format(number),
+                'event=ggr2018',
+                'person={}'.format(letter.lower()),
+            ],
         ]
         imageset_list_.append(imageset)
 
@@ -7632,7 +7641,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
         letter_list = sorted(list(qr_dict.keys()))
         num_letters = len(letter_list)
         if num_letters == 0:
-            logger.info('Empty car: %r' % (number,))
+            logger.info('Empty car: {!r}'.format(number))
             break
         elif num_letters == 1:
             letter = letter_list[0]
@@ -7641,7 +7650,9 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
             match_gid = None
 
             if letter != 'A':
-                logger.info('Individual car missing A: %r (%r)' % (number, letter))
+                logger.info(
+                    'Individual car missing A: {!r} ({!r})'.format(number, letter)
+                )
                 match_gid = None
 
             if len(qr_list) == 0:
@@ -7660,7 +7671,7 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                         'Individual car incorrect QR: %r %r (imageset_rowid = %r)'
                         % (number, letter, imageset_rowid)
                     )
-                    logger.info('\t%r' % (qr_list,))
+                    logger.info('\t{!r}'.format(qr_list))
 
             if imageset_rowid in cleared_imageset_rowid_list:
                 logger.info('\tCleared Imageset: %d %r' % (number, letter))
@@ -7709,7 +7720,9 @@ def inspect_ggr_qr_codes(ibs, *args, **kwargs):
                     )
 
             if len(failed_list) > 0:
-                logger.info('Group car incorrect QR: %r (%r)' % (number, letter_list))
+                logger.info(
+                    'Group car incorrect QR: {!r} ({!r})'.format(number, letter_list)
+                )
                 for failed, imageset_rowid in failed_list:
                     logger.info(
                         '\tBad QR for %r %r (imageset_rowid = %r)'
@@ -7907,7 +7920,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
             continue
 
         if qr_gid is None:
-            logger.info('Skipping None QR %r' % (values,))
+            logger.info('Skipping None QR {!r}'.format(values))
             continue
 
         assert qr_gid in gid_list
@@ -7916,7 +7929,7 @@ def sync_ggr_with_qr_codes(ibs, local_offset=-8.0, gmt_offset=3.0, *args, **kwar
         assert anchor_gid != qr_gid
 
         if anchor_gid is None:
-            logger.info('Skipping None Anchor %r' % (values,))
+            logger.info('Skipping None Anchor {!r}'.format(values))
             continue
 
         qr_time = ibs.get_image_unixtime(qr_gid)
@@ -8025,7 +8038,7 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
     temp = -1 if individual else -2
     note_list = [','.join(note.strip().split(',')[:temp]) for note in note_list]
 
-    not_found = set([])
+    not_found = set()
     num_found = 0
     for gid in unrecovered_gid_list:
         unixtime = ibs.get_image_unixtime(gid)
@@ -8066,7 +8079,7 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
                 s = closest_diff
                 logger.info('FOUND LOCATION FOR GID %d' % (gid,))
                 logger.info('\tDIFF   : %d H, %d M, %d S' % (h, m, s))
-                logger.info('\tNEW GPS: %s' % (closest_gps,))
+                logger.info('\tNEW GPS: {}'.format(closest_gps))
             else:
                 not_found.add(note)
         else:
@@ -8077,7 +8090,7 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
     logger.info('Missing GPS: %d' % (num_bad,))
     logger.info('Recovered  : %d' % (num_recovered,))
     logger.info('Unrecovered: %d' % (num_unrecovered,))
-    logger.info('Not Found  : %r' % (not_found,))
+    logger.info('Not Found  : {!r}'.format(not_found))
     return recovered_gid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -8102,7 +8115,7 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
     temp = -1 if individual else -2
     note_list = [','.join(note.strip().split(',')[:temp]) for note in note_list]
 
-    not_found = set([])
+    not_found = set()
     num_found = 0
     for aid in unrecovered_aid_list:
         gid = ibs.get_annot_gids(aid)
@@ -8144,7 +8157,7 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
                 s = closest_diff
                 logger.info('FOUND LOCATION FOR AID %d' % (aid,))
                 logger.info('\tDIFF   : %d H, %d M, %d S' % (h, m, s))
-                logger.info('\tNEW GPS: %s' % (closest_gps,))
+                logger.info('\tNEW GPS: {}'.format(closest_gps))
             else:
                 not_found.add(note)
         else:
@@ -8155,7 +8168,7 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
     logger.info('Missing GPS: %d' % (num_bad,))
     logger.info('Recovered  : %d' % (num_recovered,))
     logger.info('Unrecovered: %d' % (num_unrecovered,))
-    logger.info('Not Found  : %r' % (not_found,))
+    logger.info('Not Found  : {!r}'.format(not_found))
     return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -8290,7 +8303,8 @@ def merge_ggr_staged_annots_marriage(
     ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.10
 ):
     import itertools
-    from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
+
+    from wbia.other.detectfuncs import general_overlap, general_parse_gt_annots
 
     gt_dict = {}
     for aid in aid_list:
@@ -8355,7 +8369,7 @@ def merge_ggr_staged_annots_marriage(
     marriage_list = sorted(marriage_list, reverse=True)
 
     segment_list = []
-    married_aid_set = set([])
+    married_aid_set = set()
     for missing, score, marriage_aids in marriage_list:
         polygamy = len(married_aid_set & marriage_aids) > 0
         if not polygamy:
@@ -8369,9 +8383,10 @@ def merge_ggr_staged_annots_marriage(
 def merge_ggr_staged_annots_cluster(
     ibs, user_id_list, user_dict, aid_list, index_list, min_overlap=0.25
 ):
-    from wbia.other.detectfuncs import general_parse_gt_annots, general_overlap
-    from sklearn import cluster
     from scipy import sparse
+    from sklearn import cluster
+
+    from wbia.other.detectfuncs import general_overlap, general_parse_gt_annots
 
     num_clusters = int(np.around(len(aid_list) / len(user_id_list)))
 
@@ -8409,7 +8424,7 @@ def merge_ggr_staged_annots_cluster(
     segment_dict = {}
     for aid, prediction in zip(aid_list, prediction_list):
         if prediction not in segment_dict:
-            segment_dict[prediction] = set([])
+            segment_dict[prediction] = set()
         segment_dict[prediction].add(aid)
     segment_list = list(segment_dict.values())
 
@@ -8562,7 +8577,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
             new_bbox_list.append(bbox)
             new_interest_list.append(interest)
 
-        logger.info('\tSegments = %r' % (segment_list,))
+        logger.info('\tSegments = {!r}'.format(segment_list))
         logger.info('\tAIDS = %d' % (len(segment_list),))
 
     logger.info(
@@ -8691,7 +8706,7 @@ def create_ggr_match_trees(ibs):
         ('Giraffe Low', 'giraffe_reticulated', 0.0, 5),
     ]
     for tag, species, threshold, levels in species_list:
-        logger.info('Processing Tag: %r' % (tag,))
+        logger.info('Processing Tag: {!r}'.format(tag))
         len_list = []
         imageset_rowid_list = []
         for number, imageset_rowid in value_list:
@@ -8898,7 +8913,7 @@ def fix_coco_species(ibs, **kwargs):
     species_text_list = ibs.get_annot_species_texts(aid_list)
     depc = ibs.depc_annot
     species_text_list_ = depc.get_property('labeler', aid_list, 'species')
-    species_set = set(['zebra_grevys', 'zebra_plains'])
+    species_set = {'zebra_grevys', 'zebra_plains'}
     zipped = zip(species_text_list, species_text_list_)
     species_fixed_text_list = [
         species_text_
@@ -8928,7 +8943,7 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
         ibs.get_imageset_text(ibs.get_valid_imgsetids(is_special=False))
     )
 
-    seen_set = set([])
+    seen_set = set()
     invalid_list = []
     duplicate_list = []
 
@@ -8978,10 +8993,10 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
 
     invalid = len(invalid_list) + len(duplicate_list) + len(missing_list)
     if invalid > 0:
-        logger.info('VALID:     %r' % (valid_list,))
-        logger.info('INVALID:   %r' % (invalid_list,))
-        logger.info('DUPLICATE: %r' % (duplicate_list,))
-        logger.info('MISSING:   %r' % (missing_list,))
+        logger.info('VALID:     {!r}'.format(valid_list))
+        logger.info('INVALID:   {!r}'.format(invalid_list))
+        logger.info('DUPLICATE: {!r}'.format(duplicate_list))
+        logger.info('MISSING:   {!r}'.format(missing_list))
     else:
         ibs.set_imageset_metadata(imageset_rowid_list, metadata_list)
 
@@ -9002,7 +9017,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
     gid_list = ibs.get_valid_gids()
     gname_list = ibs.get_image_gnames(gid_list)
 
-    seen_aid_set = set([])
+    seen_aid_set = set()
     # seen_nid_set = set([])
     invalid_list = []
     duplicate_list = []
@@ -9042,7 +9057,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 assert len(zip_list) == 1
                 gid_ = zip_list[0][1]
                 aid_list_ = ibs.get_image_aids(gid_)
-                logger.info('\t AID_LIST: %r' % (aid_list_,))
+                logger.info('\t AID_LIST: {!r}'.format(aid_list_))
             invalid_list.append(aid)
             continue
         if aid in seen_aid_set:
@@ -9072,7 +9087,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             assert len(zip_list) == 1
             gid_ = zip_list[0][1]
             aid_list_ = ibs.get_image_aids(gid_)
-            logger.info('\t AID_LIST: %r' % (aid_list_,))
+            logger.info('\t AID_LIST: {!r}'.format(aid_list_))
         seen_aid_set.add(aid)
         annot_rowid_list.append(aid)
         metadata_list.append(metadata_dict)
@@ -9097,7 +9112,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                         'Invalid NID %r for Secondary AID2 %r (aid %s, gname %s)' % args
                     )
                     if nid > 0 and nid is not None:
-                        logger.info('\tfixing to %r...' % (nid,))
+                        logger.info('\tfixing to {!r}...'.format(nid))
                         ibs.set_annot_name_rowids([aid2], [nid])
                         aid2_list = ut.flatten(ibs.get_name_aids([nid]))
                 # Check if found
@@ -9140,9 +9155,9 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
     invalid = len(invalid_list) + len(duplicate_list)  # + len(missing_list)
     if invalid > 0:
-        logger.info('VALID:     %r' % (valid_list,))
-        logger.info('INVALID:   %r' % (invalid_list,))
-        logger.info('DUPLICATE: %r' % (duplicate_list,))
+        logger.info('VALID:     {!r}'.format(valid_list))
+        logger.info('INVALID:   {!r}'.format(invalid_list))
+        logger.info('DUPLICATE: {!r}'.format(duplicate_list))
         # logger.info('MISSING:   %r' % (missing_list, ))
     else:
         ibs.set_annot_metadata(annot_rowid_list, metadata_list)
@@ -9171,14 +9186,14 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             if sex_symbol in ['M', 'F']:
                 name_sex_dict[name_rowid].append(sex_symbol)
             elif sex_symbol not in [None]:
-                raise ValueError('INVALID SEX: %r' % (sex_symbol,))
+                raise ValueError('INVALID SEX: {!r}'.format(sex_symbol))
             # Get species
             if name_rowid not in name_species_dict:
                 name_species_dict[name_rowid] = []
             if species_symbol in ['PLAINS', 'GREVY_S', 'GREVYS', 'HYBRID']:
                 name_species_dict[name_rowid].append(species_symbol)
             elif sex_symbol not in [None]:
-                raise ValueError('INVALID SPECIES: %r' % (species_symbol,))
+                raise ValueError('INVALID SPECIES: {!r}'.format(species_symbol))
             # Get age
             if name_rowid not in name_age_dict:
                 name_age_dict[name_rowid] = []
@@ -9190,7 +9205,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             ]:
                 name_age_dict[name_rowid].append(age_symbol)
             elif age_symbol not in [None]:
-                raise ValueError('INVALID AGE: %r' % (age_symbol,))
+                raise ValueError('INVALID AGE: {!r}'.format(age_symbol))
 
         aid_list_ = []
         species_text_ = []
@@ -9423,13 +9438,13 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, offset=61200, **kwargs):
             if (delta.seconds - offset) > 1:
                 printing = True
                 status_dict['sanity']['time'] += 1
-                difference_list.append('%0.02f' % (delta.seconds,))
+                difference_list.append('{:0.02f}'.format(delta.seconds))
 
             delta = datetime_ - value_dict['datetime']
             if (delta.seconds - offset) > 1:
                 printing = True
                 status_dict['sanity']['datetime'] += 1
-                difference_list.append('%0.02f' % (delta.seconds,))
+                difference_list.append('{:0.02f}'.format(delta.seconds))
 
             sequence = value_dict['sequence']
             if sequence < 0 or 10000 < sequence:
@@ -9439,7 +9454,7 @@ def princeton_cameratrap_ocr_bottom_bar_accuracy(ibs, offset=61200, **kwargs):
             printing = True
 
         if printing:
-            logger.info('Failed: %r' % (value_dict.get('split', None),))
+            logger.info('Failed: {!r}'.format(value_dict.get('split', None)))
     logger.info(ut.repr3(status_dict))
     return status_dict
 
@@ -9573,10 +9588,11 @@ def import_folder(ibs, path, recursive=True, **kwargs):
 
 @register_ibs_method
 def export_ggr_folders(ibs, output_path=None):
+    import math
     from os.path import exists, join
+
     import pytz
     import tqdm
-    import math
 
     if output_path is None:
         output_path_clean = '/media/jason.parham/princeton/GGR-2016-CLEAN/'

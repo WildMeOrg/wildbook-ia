@@ -5,16 +5,17 @@ sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --
 
 # TODO: Fix this name it is too special case
 """
+import functools
 import logging
 import uuid
-import functools
 
 # import numpy as np
 # import vtool as vt
 import numpy as np
+import utool as ut
+
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject  # NOQA
-import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
@@ -323,7 +324,7 @@ def delete_empty_species(ibs):
     unused_species_text_set = species_text_set - used_species_text_set
     unused_species_text_list = list(unused_species_text_set)
     unused_species_rowid_list = ibs.get_species_rowids_from_text(unused_species_text_list)
-    logger.info('Deleting unused species: %r' % (unused_species_text_list,))
+    logger.info('Deleting unused species: {!r}'.format(unused_species_text_list))
     ibs.delete_species(unused_species_rowid_list)
 
 

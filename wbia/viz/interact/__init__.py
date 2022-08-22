@@ -3,26 +3,27 @@
 # flake8: noqa
 
 import logging
+
 import utool as ut
 
 ut.noinject(__name__, '[wbia.viz.interact.__init__]', DEBUG=False)
 
+import utool
+
 from wbia.plottool import interact_helpers as ih
-
-from wbia.viz.interact import interact_annotations2
-from wbia.viz.interact import interact_chip
-from wbia.viz.interact import interact_image
-from wbia.viz.interact import interact_matches
-from wbia.viz.interact import interact_name
-from wbia.viz.interact import interact_qres
-from wbia.viz.interact import interact_sver
-
-from wbia.viz.interact.interact_image import ishow_image
+from wbia.viz.interact import (
+    interact_annotations2,
+    interact_chip,
+    interact_image,
+    interact_matches,
+    interact_name,
+    interact_qres,
+    interact_sver,
+)
 from wbia.viz.interact.interact_chip import ishow_chip
+from wbia.viz.interact.interact_image import ishow_image
 from wbia.viz.interact.interact_name import ishow_name
 from wbia.viz.interact.interact_sver import ishow_sver
-
-import utool
 
 print, rrr, profile = utool.inject2(__name__, '[wbia.viz.interact]')
 logger = logging.getLogger('wbia')
@@ -40,7 +41,7 @@ def reassign_submodule_attributes(verbose=True):
     import wbia.viz.interact
 
     # Implicit reassignment.
-    seen_ = set([])
+    seen_ = set()
     for tup in IMPORT_TUPLES:
         if len(tup) > 2 and tup[2]:
             continue  # dont import package names

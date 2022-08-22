@@ -4,14 +4,12 @@ User database models
 --------------------
 """
 import logging
-
-from sqlalchemy_utils import types as column_types
-
-from flask_login import current_user  # NOQA
-from wbia.web.extensions import db, TimestampViewed
-
 import uuid
 
+from flask_login import current_user  # NOQA
+from sqlalchemy_utils import types as column_types
+
+from wbia.web.extensions import TimestampViewed, db
 
 log = logging.getLogger(__name__)
 

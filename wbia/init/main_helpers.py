@@ -7,6 +7,7 @@ select subsets of annotations, pipeline configurations, and other filters.
 TODO: standardize function signatures
 """
 import logging
+
 import utool as ut
 
 # from wbia.init import old_main_helpers
@@ -172,9 +173,8 @@ def testdata_aids(
         >>> annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)
     """
     import wbia
+    from wbia.expt import annotation_configs, cfghelpers
     from wbia.init import filter_annots
-    from wbia.expt import annotation_configs
-    from wbia.expt import cfghelpers
 
     if verbose is None or verbose >= 1:
         logger.info('[main_helpers] testdata_aids')
@@ -524,8 +524,8 @@ def testdata_cm(
         a=a,
     )
     qaids = qreq_.qaids
-    logger.info('qaids = %r' % (qaids,))
-    assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
+    logger.info('qaids = {!r}'.format(qaids))
+    assert len(qaids) == 1, 'only one qaid for this tests, qaids={!r}'.format(qaids)
     cm = cm_list[0]
     return cm, qreq_
 
@@ -548,9 +548,11 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
         logger.info(ut.repr3(ut.lmap(ut.get_timedelta_str,
                                sorted(name_mindeltas))))
     """
-    from wbia.algo.preproc.occurrence_blackbox import cluster_timespace_sec
-    import numpy as np
     import datetime
+
+    import numpy as np
+
+    from wbia.algo.preproc.occurrence_blackbox import cluster_timespace_sec
 
     if len(aids) == 0:
         return

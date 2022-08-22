@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from wbia.control import controller_inject
-import logging
-import utool as ut
 import concurrent
+import logging
 import random
 import time
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
+import utool as ut
+
+from wbia.control import controller_inject
 
 logger = logging.getLogger('wbia')
 
@@ -147,7 +148,7 @@ def _testdata_feedback_payload(edge, decision):
 
 
 def _test_foo(future):
-    logger.info('FOO %r' % (future,))
+    logger.info('FOO {!r}'.format(future))
 
 
 # GRAPH_ACTOR_CLASS = ProcessActor if ut.LINUX or ut.WIN32 else ThreadActor
@@ -179,7 +180,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         else:
             func = getattr(actor, action, None)
             if func is None:
-                raise ValueError('Unknown action=%r' % (action,))
+                raise ValueError('Unknown action={!r}'.format(action))
             else:
                 try:
                     return func(**message)
@@ -298,7 +299,7 @@ class GraphClient(object):
     def cleanup(client):
         logger.info('GraphClient.cleanup')
         # remove done items from our list
-        logger.info('Current Futures: %r' % (client.futures,))
+        logger.info('Current Futures: {!r}'.format(client.futures))
         latest_actor_status = None
         new_futures = []
         for action, future in client.futures:
@@ -314,9 +315,9 @@ class GraphClient(object):
                 if exception is not None:
                     exception_str = str(exception)
                     # Skip any errors that arise from database integrity errors
-                    logger.warning('Found exception future: %s' % (exception_str,))
-                    logger.warning('\taction: %r' % (action,))
-                    logger.warning('\tfuture: %r' % (future,))
+                    logger.warning('Found exception future: {}'.format(exception_str))
+                    logger.warning('\taction: {!r}'.format(action))
+                    logger.warning('\tfuture: {!r}'.format(future))
 
                     if 'sqlite3.IntegrityError' in exception_str:
                         pass
@@ -331,7 +332,7 @@ class GraphClient(object):
                     new_futures.append((action, future))
 
         client.futures = new_futures
-        logger.info('New Futures: %r' % (client.futures,))
+        logger.info('New Futures: {!r}'.format(client.futures))
         return latest_actor_status
 
     def refresh_status(client):
@@ -383,7 +384,7 @@ class GraphClient(object):
             client.refresh_status()
             assert client.status == 'Finished'
             assert 'finished' in data_list
-            client.status = '%s (%s)' % (
+            client.status = '{} ({})'.format(
                 client.status,
                 data_list,
             )
@@ -534,7 +535,7 @@ class GraphAlgorithmActor(GraphActor):
         ibs = wbia.opendb(dbdir=dbdir, use_cache=False, web=False, force_serial=True)
 
         # Create the AnnotInference
-        logger.info('starting via actor with ibs = %r' % (ibs,))
+        logger.info('starting via actor with ibs = {!r}'.format(ibs))
         actor.infr = wbia.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         actor.graph_uuid = graph_uuid
 
@@ -578,9 +579,9 @@ class GraphAlgorithmActor(GraphActor):
         return 'added'
 
     def remove_aids(actor, aids, **kwargs):
-        logger.info('Removing aids=%r from AnnotInference' % (aids,))
+        logger.info('Removing aids={!r} from AnnotInference'.format(aids))
         response = actor.infr.remove_aids(aids)
-        logger.info('\t got response = %r' % (response,))
+        logger.info('\t got response = {!r}'.format(response))
         logger.info('Applying NonDynamic Update to AnnotInference')
         actor.infr.apply_nondynamic_update()
         logger.info('\t ...applied')

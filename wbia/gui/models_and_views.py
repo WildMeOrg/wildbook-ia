@@ -4,14 +4,16 @@ This provides concrete classes which inherit from abstract
 api_item_models/api_table_models/api_tree_models in guitool.
 """
 import logging
+
 import utool as ut
+
 from wbia.guitool import (
     APIItemModel,
+    APIItemWidget,
     APITableView,
     APITreeView,
-    APIItemWidget,
-    StripeProxyModel,
     ChangeLayoutContext,
+    StripeProxyModel,
 )
 
 print, rrr, profile = ut.inject2(__name__)

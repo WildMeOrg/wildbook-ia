@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import utool as ut
 
-
 __all__ = ('get_testdata_dir',)
 
 

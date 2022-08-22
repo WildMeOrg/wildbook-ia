@@ -4,16 +4,15 @@ CommandLine:
     python -m dtool.example_depcache --exec-dummy_example_depcacahe --show
     python -m dtool.depcache_control --exec-make_graph --show
 """
-from pathlib import Path
-from os.path import join
-
-import utool as ut
-import numpy as np
 import uuid
+from os.path import join
+from pathlib import Path
 
-from wbia.dtool import depcache_control
+import numpy as np
+import utool as ut
+
 from wbia import dtool
-
+from wbia.dtool import depcache_control
 
 HERE = Path(__file__).parent.resolve()
 
@@ -229,8 +228,9 @@ def testdata_depc(fname=None):
     Example of local registration
     """
 
-    from wbia import dtool
     import vtool as vt
+
+    from wbia import dtool
 
     gpath_list = ut.lmap(ut.grab_test_imgpath, ut.get_valid_test_imgkeys(), verbose=False)
 
@@ -288,8 +288,8 @@ def testdata_depc(fname=None):
             size = vt.get_size(chip)
             # size = (w, h)
             print('Dummpy preproc chip yeilds')
-            print('* chip_fpath = %r' % (chip_fpath,))
-            print('* size = %r' % (size,))
+            print('* chip_fpath = {!r}'.format(chip_fpath))
+            print('* size = {!r}'.format(size))
             # yield size, chip_fpath
             yield size, chip
 
@@ -326,7 +326,7 @@ def testdata_depc(fname=None):
     def dummy_preproc_kpts(depc, chip_rowids, config=None):
         if config is None:
             config = {}
-        print('config = %r' % (config,))
+        print('config = {!r}'.format(config))
         adapt_shape = config['adapt_shape']
         print('[preproc] Computing kpts')
 
@@ -334,7 +334,7 @@ def testdata_depc(fname=None):
         # This is in here to attempt to trigger a failure of the chips dont
         # exist and the feature cache is called.
         chip_fpath_list = depc.get_native('chip', chip_rowids, 'chip', read_extern=False)
-        print('computing featurse from chip_fpath_list = %r' % (chip_fpath_list,))
+        print('computing featurse from chip_fpath_list = {!r}'.format(chip_fpath_list))
 
         for rowid in chip_rowids:
             if adapt_shape:
@@ -406,6 +406,7 @@ def testdata_depc(fname=None):
         )
         def dummy_manual_chipmask(depc, parent_rowids, config=None):
             import vtool as vt
+
             from wbia.plottool import interact_impaint
 
             mask_dpath = join(depc.cache_dpath, 'ManualChipMask')
@@ -604,14 +605,14 @@ def example_getter_methods(depc, tablename, root_rowids):
     # has not been computed yet.
     tbl_rowids = depc.get_rowids(tablename, root_rowids, ensure=False)  # NOQA
     print('tbl_rowids = depc.get_rowids(tablename, root_rowids, ensure=False)')
-    print('tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
+    print('tbl_rowids = {}'.format(ut.trunc_repr(tbl_rowids)))
     # assert tbl_rowids[0] is None
 
     # The default is for the data to be computed though. Manaual interactions will
     # launch as necessary.
     tbl_rowids = depc.get_rowids(tablename, root_rowids, ensure=True)  # NOQA
     print('tbl_rowids = depc.get_rowids(tablename, root_rowids, ensure=True)')
-    print('tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
+    print('tbl_rowids = {}'.format(ut.trunc_repr(tbl_rowids)))
     assert tbl_rowids[0] is not None
 
     # Now the data is cached and will not need to be computed again
@@ -656,28 +657,28 @@ def example_getter_methods(depc, tablename, root_rowids):
 def test_getters(depc):
     # One input = one output
     chip = depc.get_property('chip', 1, 'chip')  # NOQA
-    print('[test] chip.sum() = %r' % (chip.sum(),))
+    print('[test] chip.sum() = {!r}'.format(chip.sum()))
 
     col_tup_list = depc.get_property('chip', [1], ('size',))
-    print('[test] col_tup_list = %r' % (col_tup_list,))
+    print('[test] col_tup_list = {!r}'.format(col_tup_list))
 
     col_list = depc.get_property('chip', [1], 'size')
-    print('[test] col_list = %r' % (col_list,))
+    print('[test] col_list = {!r}'.format(col_list))
 
     col = depc.get_property('chip', 1, 'size')
-    print('[test] col = %r' % (col,))
+    print('[test] col = {!r}'.format(col))
 
     cols = depc.get_property('chip', 1, 'size')
-    print('[test] cols = %r' % (cols,))
+    print('[test] cols = {!r}'.format(cols))
 
     if False:
         chip_dict = depc.get_obj('chip', 1)
 
-        print('chip_dict = %r' % (chip_dict,))
+        print('chip_dict = {!r}'.format(chip_dict))
         for key in chip_dict.keys():
-            print(ut.varinfo_str(chip_dict[key], 'chip_dict["%s"]' % (key,)))
+            print(ut.varinfo_str(chip_dict[key], 'chip_dict["{}"]'.format(key)))
         # print('chip_dict["chip"] = %s' % (ut.trunc_repr(chip_dict['chip']),))
-        print('chip_dict = %r' % (chip_dict,))
+        print('chip_dict = {!r}'.format(chip_dict))
 
 
 def dummy_example_depcacahe():
@@ -724,7 +725,7 @@ def dummy_example_depcacahe():
 
     # Try testing the algorithm
     req = depc.new_request('vsmany', root_rowids, root_rowids, {})
-    print('req = %r' % (req,))
+    print('req = {!r}'.format(req))
     req.execute()
 
     print('---------- 222 -----------')

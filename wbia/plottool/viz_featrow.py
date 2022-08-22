@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import utool as ut
 
+from wbia.plottool import custom_constants, custom_figure
+from wbia.plottool import plot_helpers as ph
+
 # import itertools
 from . import draw_func2 as df2
-from wbia.plottool import plot_helpers as ph
-from wbia.plottool import custom_constants
-from wbia.plottool import custom_figure
 
 # (print, print_, printDBG, rrr, profile) = ut.inject(
 #    __name__, '[viz_featrow]', DEBUG=False)
@@ -216,7 +216,7 @@ def draw_feat_row(
                 'query_dist: '
                 + ', '.join(
                     [
-                        '(%s, %s)' % (key, formatdist(val))
+                        '({}, {})'.format(key, formatdist(val))
                         for key, val in distmap_orig.items()
                     ]
                 )
@@ -227,7 +227,7 @@ def draw_feat_row(
                 'prev_dist: '
                 + ', '.join(
                     [
-                        '(%s, %s)' % (key, formatdist(val))
+                        '({}, {})'.format(key, formatdist(val))
                         for key, val in distmap_prev.items()
                     ]
                 )

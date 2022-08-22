@@ -3,12 +3,14 @@
 Interface to pyrf random forest object detection.
 """
 import logging
+import random
 from os.path import exists, join
-from wbia.algo.detect import grabmodels
+
+import cv2
 import utool as ut
 import vtool as vt
-import cv2
-import random
+
+from wbia.algo.detect import grabmodels
 
 (print, rrr, profile) = ut.inject2(__name__, '[randomforest]')
 logger = logging.getLogger('wbia')

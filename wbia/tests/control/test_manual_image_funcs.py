@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import pathlib
 import tempfile
+import uuid
 from unittest import mock
 from urllib.parse import quote
-import uuid
-
 
 IMAGE_UUIDS = [
     uuid.UUID('784817e0-ca90-425d-8a81-edccfe3e538b'),
@@ -27,7 +26,7 @@ QUOTED_AGAIN_URIS = [
 
 
 def test_add_images_uris():
-    from wbia.control.manual_image_funcs import add_images, _compute_image_uuids
+    from wbia.control.manual_image_funcs import _compute_image_uuids, add_images
 
     ibs = mock.Mock()
     ibs.cfg.other_cfg.auto_localize = False
@@ -60,7 +59,7 @@ def test_add_images_uris():
 
 
 def test_add_images_auto_localized():
-    from wbia.control.manual_image_funcs import add_images, _compute_image_uuids
+    from wbia.control.manual_image_funcs import _compute_image_uuids, add_images
 
     ibs = mock.Mock()
     ibs.cfg.other_cfg.auto_localize = False

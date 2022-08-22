@@ -6,19 +6,20 @@ TODO:
 
 
 """
-import logging
-from wbia.guitool.__PYQT__ import QtCore, QtGui, QVariantHack
-from wbia.guitool.__PYQT__.QtCore import Qt
-from wbia.guitool import qtype
-from wbia.guitool.guitool_decorators import checks_qt_error, signal_  # NOQA
-
 import functools
-import utool as ut
+import logging
+
+import cachetools
 
 # from .api_thumb_delegate import APIThumbDelegate
 import numpy as np
+import utool as ut
+
 from wbia.guitool import api_tree_node as _atn
-import cachetools
+from wbia.guitool import qtype
+from wbia.guitool.__PYQT__ import QtCore, QtGui, QVariantHack
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool.guitool_decorators import checks_qt_error, signal_  # NOQA
 
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
 # DO NOT INJECT THEM IN GUITOOL
@@ -235,7 +236,7 @@ class APIItemModel(API_MODEL_BASE):
         if ut.USE_ASSERT:
             assert ut.is_list(iders), 'bad type: %r' % type(iders)
             for index, ider in enumerate(iders):
-                assert ut.is_funclike(ider), 'bad type at index %r: %r' % (
+                assert ut.is_funclike(ider), 'bad type at index {!r}: {!r}'.format(
                     index,
                     type(ider),
                 )
@@ -274,7 +275,9 @@ class APIItemModel(API_MODEL_BASE):
             assert len(col_name_list) == len(col_level_list), 'inconsistent collevel'
             for colname, flag, func in zip(col_name_list, col_edit_list, col_setter_list):
                 if flag:
-                    assert func is not None, 'column=%r is editable but func is None' % (
+                    assert (
+                        func is not None
+                    ), 'column={!r} is editable but func is None'.format(
                         colname,
                     )
 
@@ -423,7 +426,7 @@ class APIItemModel(API_MODEL_BASE):
     def _about_to_change(model, force=False):
         if force or (not model._abouttochange and not model._changeblocked):
             if VERBOSE_MODEL:
-                logger.info('ABOUT TO CHANGE: %r' % (model.name,))
+                logger.info('ABOUT TO CHANGE: {!r}'.format(model.name))
             model._abouttochange = True
             model.layoutAboutToBeChanged.emit()
             return True
@@ -436,7 +439,7 @@ class APIItemModel(API_MODEL_BASE):
     def _change(model, force=False):
         if force or (model._abouttochange and not model._changeblocked):
             if VERBOSE_MODEL:
-                logger.info('LAYOUT CHANGED:  %r' % (model.name,))
+                logger.info('LAYOUT CHANGED:  {!r}'.format(model.name))
             model._abouttochange = False
             model.clear_cache()
             model.layoutChanged.emit()
@@ -517,7 +520,9 @@ class APIItemModel(API_MODEL_BASE):
             node = qtindex.internalPointer()
             if ut.USE_ASSERT:
                 try:
-                    assert isinstance(node, _atn.TreeNode), 'type(node)=%r, node=%r' % (
+                    assert isinstance(
+                        node, _atn.TreeNode
+                    ), 'type(node)={!r}, node={!r}'.format(
                         type(node),
                         node,
                     )
@@ -611,7 +616,7 @@ class APIItemModel(API_MODEL_BASE):
                 qtindex_rc = (qtindex.row(), qtindex.column())  # NOQA
                 ut.printex(
                     ex,
-                    '[api_item_model] problem getting in column %r' % (col,),
+                    '[api_item_model] problem getting in column {!r}'.format(col),
                     keys=[
                         'model.name',
                         'getter',
@@ -650,7 +655,9 @@ class APIItemModel(API_MODEL_BASE):
 
         setter = model.col_setter_list[col]
         if VERBOSE_MODEL:
-            logger.info('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
+            logger.info(
+                '[model] Setting data: row_id={!r}, setter={!r}'.format(row_id, setter)
+            )
         try:
             return setter(row_id, value)
         except Exception as ex:
@@ -822,10 +829,10 @@ class APIItemModel(API_MODEL_BASE):
         if model.num_rows_total is not None:
             if model.num_rows_loaded < model.num_rows_total:
                 if VERBOSE_MODEL:
-                    logger.info('canFetchMore %s? -- Yes' % (model.name,))
+                    logger.info('canFetchMore {}? -- Yes'.format(model.name))
                 return True
         if VERBOSE_MODEL:
-            logger.info('canFetchMore %s? -- No' % (model.name,))
+            logger.info('canFetchMore {}? -- No'.format(model.name))
         return False
         # if not parent.isValid():
         #    return False
@@ -858,7 +865,7 @@ class APIItemModel(API_MODEL_BASE):
         else:
             num_fetching = min(model.batch_size, remainder)
         if VERBOSE_MODEL:
-            logger.info('Fetching %r more %s' % (num_fetching, model.name))
+            logger.info('Fetching {!r} more {}'.format(num_fetching, model.name))
         idx1 = model.num_rows_total
         idx2 = model.num_rows_total + num_fetching - 1
         # model.beginInsertRows(QtCore.QModelIndex(), idx1, idx2)
@@ -869,7 +876,9 @@ class APIItemModel(API_MODEL_BASE):
         model.endInsertRows()
         if VERBOSE_MODEL:
             logger.info(
-                'Fetched %r/%r rows' % (model.num_rows_loaded, model.num_rows_total)
+                'Fetched {!r}/{!r} rows'.format(
+                    model.num_rows_loaded, model.num_rows_total
+                )
             )
         # model.numberPopulated.emit(num_loading)
 

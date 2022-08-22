@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from wbia.plottool import mpl_sift
-import numpy as np
 import matplotlib as mpl
+import numpy as np
 import utool as ut
+
+from wbia.plottool import mpl_sift
 
 ut.noinject(__name__, '[pt.mpl_keypoint]')
 
@@ -388,12 +389,12 @@ def orientation_actors(kpts, H=None):
         ]
     except ValueError as ex:
         print('\n[mplkp.2] !!! ERROR %s: ' % str(ex))
-        print('_oris.shape = %r' % (_oris.shape,))
+        print('_oris.shape = {!r}'.format(_oris.shape))
         # print('x, y, dx, dy = %r' % ((x, y, dx, dy),))
-        print('_dxs = %r' % (_dxs,))
-        print('_dys = %r' % (_dys,))
-        print('_xs = %r' % (_xs,))
-        print('_ys = %r' % (_ys,))
+        print('_dxs = {!r}'.format(_dxs))
+        print('_dys = {!r}'.format(_dys))
+        print('_xs = {!r}'.format(_xs))
+        print('_ys = {!r}'.format(_ys))
         raise
 
     return ori_actors

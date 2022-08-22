@@ -3,15 +3,16 @@
 Interface to Selective Search object proposals.
 """
 import logging
-import utool as ut
-import vtool as vt
-import tempfile
-import subprocess
-import shlex
 import os
-from os.path import abspath, dirname, expanduser, join, exists  # NOQA
+import shlex
+import subprocess
+import tempfile
+from os.path import abspath, dirname, exists, expanduser, join  # NOQA
+
 import numpy as np
 import scipy.io
+import utool as ut
+import vtool as vt
 
 (print, rrr, profile) = ut.inject2(__name__, '[selective search]')
 logger = logging.getLogger('wbia')
@@ -134,10 +135,10 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     # temporary results file.
     temp_file, temp_filepath = tempfile.mkstemp(suffix='.mat')
     os.close(temp_file)
-    gpath_str = '{%s}' % (','.join(["'%s'" % (gpath,) for gpath in gpath_list]))
-    matlab_command_str = "%s(%s, '%s')" % (matlab_command, gpath_str, temp_filepath)
+    gpath_str = '{%s}' % (','.join(["'{}'".format(gpath) for gpath in gpath_list]))
+    matlab_command_str = "{}({}, '{}')".format(matlab_command, gpath_str, temp_filepath)
     if verbose:
-        logger.info('Calling: %s' % (matlab_command_str,))
+        logger.info('Calling: {}'.format(matlab_command_str))
 
     # Execute command in MATLAB.
     bash_command = 'matlab -nojvm -r "try; %s; catch; exit; end; exit"'

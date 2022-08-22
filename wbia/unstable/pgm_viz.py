@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import networkx as nx
-import utool as ut
 import numpy as np
+import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -14,11 +15,11 @@ def print_ascii_graph(model_):
 
     python -c
     """
-    from PIL import Image  # NOQA
-
     # import networkx as nx
     import copy
     from io import StringIO
+
+    from PIL import Image  # NOQA
 
     model = copy.deepcopy(model_)
     assert model is not model_
@@ -31,7 +32,7 @@ def print_ascii_graph(model_):
     sio.write(png_str)
     sio.seek(0)
     with Image.open(sio) as pil_img:  # NOQA
-        logger.info('pil_img.size = %r' % (pil_img.size,))
+        logger.info('pil_img.size = {!r}'.format(pil_img.size))
     # def print_ascii_image(pil_img):
     #    img2txt = ut.import_module_from_fpath('/home/joncrall/venv/bin/img2txt.py')
     #    import sys
@@ -54,11 +55,11 @@ def print_ascii_graph(model_):
         img = pil_img
         S = (int(round(img.size[0] * SC * WCF * 3)), int(round(img.size[1] * SC)))
         img = np.sum(np.asarray(img.resize(S)), axis=2)
-        logger.info('img.shape = %r' % (img.shape,))
+        logger.info('img.shape = {!r}'.format(img.shape))
         img -= img.min()
         chars = np.asarray(list(' .,:;irsXA253hMHGS#9B&@'))
         img = (1.0 - img / img.max()) ** GCF * (chars.size - 1)
-        logger.info('\n'.join((''.join(r) for r in chars[img.astype(int)])))
+        logger.info('\n'.join(''.join(r) for r in chars[img.astype(int)]))
 
     print_ascii_image(pil_img)
     pil_img.close()
@@ -96,6 +97,7 @@ def _debug_repr_model(model):
 
 def _debug_repr_cpd(cpd):
     import re
+
     import utool as ut
 
     code_fmt = ut.codeblock(
@@ -137,17 +139,17 @@ def make_factor_text(factor, name):
     collapse_uniform = True
     if collapse_uniform and ut.almost_allsame(factor.values):
         # Reduce uniform text
-        ftext = name + ':\nuniform(%.3f)' % (factor.values[0],)
+        ftext = name + ':\nuniform({:.3f})'.format(factor.values[0])
     else:
         values = factor.values
         try:
             rowstrs = [
-                'p(%s)=%.3f' % (','.join(n), v)
+                'p({})={:.3f}'.format(','.join(n), v)
                 for n, v in zip(zip(*factor.statenames), values)
             ]
         except Exception:
             rowstrs = [
-                'p(%s)=%.3f' % (','.join(n), v)
+                'p({})={:.3f}'.format(','.join(n), v)
                 for n, v in zip(factor._row_labels(False), values)
             ]
         idxs = ut.list_argmaxima(values)
@@ -170,8 +172,8 @@ def get_bayesnet_layout(model, name_nodes=None, prog='dot'):
     """
     Ensures ordering of layers is in order of addition via templates
     """
-    import pygraphviz
     import networkx as nx
+    import pygraphviz
 
     # Add "invisible" edges to induce an ordering
     # Hack for layout (ordering of top level nodes)
@@ -425,8 +427,9 @@ def draw_bayesian_model(
     if not isinstance(model, BayesianModel):
         model = model.to_bayesian_model()
 
-    import wbia.plottool as pt
     import networkx as nx
+
+    import wbia.plottool as pt
 
     kwargs = kwargs.copy()
     factor_list = kwargs.pop('factor_list', [])
@@ -507,7 +510,7 @@ def draw_bayesian_model(
             ax.set_xlim((xmin - 42, xmax + 42))
             ax.set_ylim((ymin - 50, ymax + 50))
             fig.set_size_inches(23, 7)
-        title = 'num_names=%r, num_annots=%r' % (num_names, num_annots)
+        title = 'num_names={!r}, num_annots={!r}'.format(num_names, num_annots)
     else:
         title = ''
     map_assign = kwargs.get('map_assign', None)
@@ -520,7 +523,7 @@ def draw_bayesian_model(
         map_assign, map_prob = top_assignments[0]
         if map_assign is not None:
             title += '\n%sMAP: ' % (word_insert(kwargs.get('method', '')))
-            title += map_assign + ' @' + '%.2f%%' % (100 * map_prob,)
+            title += map_assign + ' @' + '{:.2f}%'.format(100 * map_prob)
     if kwargs.get('show_title', True):
         pt.set_figtitle(title, size=14)
 
@@ -574,8 +577,8 @@ def draw_markov_model(model, fnum=None, **kwargs):
         pos=pos, ax=ax, with_labels=True, node_color=node_color, node_size=1100
     )
 
-    from matplotlib.patches import FancyArrowPatch, Circle
     import numpy as np
+    from matplotlib.patches import Circle, FancyArrowPatch
 
     def draw_network(G, pos, ax, sg=None):
         for n in G:
@@ -676,7 +679,7 @@ def show_model(model, *args, **kwargs):
     elif modeltype in ['junc', 'junction']:
         return show_junction_tree(model, *args, **kwargs)
     else:
-        raise NotImplementedError('Unknown modeltype=%r' % (modeltype,))
+        raise NotImplementedError('Unknown modeltype={!r}'.format(modeltype))
 
 
 def show_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None, **kwargs):

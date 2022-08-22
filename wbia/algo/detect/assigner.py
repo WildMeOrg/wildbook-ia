@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 import logging
-
-# from os.path import expanduser, join
-from wbia import constants as const
-from wbia.control.controller_inject import make_ibs_register_decorator
-import utool as ut
 import os
 from collections import defaultdict
 
 # illustration imports
 from shutil import copy
+
+import utool as ut
 from PIL import Image, ImageDraw
+
 import wbia.plottool as pt
 
+# from os.path import expanduser, join
+from wbia import constants as const
+from wbia.control.controller_inject import make_ibs_register_decorator
 
 logger = logging.getLogger('wbia')
 
@@ -493,7 +494,7 @@ def illustrate_assignments(
 ):
     impath = ibs.get_image_paths(gid)
     imext = os.path.splitext(impath)[1]
-    new_fname = os.path.join(target_dir, '%s%s' % (gid, imext))
+    new_fname = os.path.join(target_dir, '{}{}'.format(gid, imext))
 
     os.makedirs(target_dir, exist_ok=True)
     copy(impath, new_fname)
@@ -529,7 +530,7 @@ def _draw_all_annots(ibs, image, assigned_aid_dict, gtruth_aid_dict):
 
 def _pil_distinct_colors(n_colors):
     float_colors = pt.distinct_colors(n_colors)
-    int_colors = [tuple([int(256 * f) for f in color]) for color in float_colors]
+    int_colors = [tuple(int(256 * f) for f in color) for color in float_colors]
     return int_colors
 
 

@@ -8,21 +8,17 @@ Auth resources
 import logging
 
 from flask_login import current_user, login_user, logout_user
+
 from flask_restx_patched import Resource
 from flask_restx_patched._http import HTTPStatus
-
 from wbia.web.extensions import oauth2
 from wbia.web.extensions.api import Namespace, api_v2
 from wbia.web.extensions.api.parameters import PaginationParameters
 from wbia.web.modules.users.models import User
 
-from . import schemas, parameters
-from .models import db, OAuth2Client
-from .utils import (
-    create_session_oauth2_token,
-    delete_session_oauth2_token,
-)
-
+from . import parameters, schemas
+from .models import OAuth2Client, db
+from .utils import create_session_oauth2_token, delete_session_oauth2_token
 
 log = logging.getLogger(__name__)
 api = Namespace('auth', description='Authentication')
@@ -61,7 +57,7 @@ class OAuth2Sessions(Resource):
             status = login_user(user, remember=False)
 
             if status:
-                log.info('Logged in User via API: %r' % (user,))
+                log.info('Logged in User via API: {!r}'.format(user))
                 create_session_oauth2_token()
             else:
                 failure = 'Account Disabled'
@@ -88,7 +84,7 @@ class OAuth2Sessions(Resource):
         """
         Log-out the active OAuth2 Session.
         """
-        log.info('Logging out User via API: %r' % (current_user,))
+        log.info('Logging out User via API: {!r}'.format(current_user))
 
         delete_session_oauth2_token()
         logout_user()

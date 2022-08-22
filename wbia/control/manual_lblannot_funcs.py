@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 import logging
 import uuid
+
+import utool as ut
+
 from wbia import constants as const
-from wbia.other import ibsfuncs
 from wbia.control.accessor_decors import (
     adder,
     deleter,
-    setter,
     getter_1to1,
     getter_1toM,
     ider,
+    setter,
 )
-import utool as ut
 from wbia.control.controller_inject import make_ibs_register_decorator
+from wbia.other import ibsfuncs
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

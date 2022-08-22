@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
 from os.path import join  # NOQA
+
 import cv2
 import numpy as np
 import torch
 import torch.nn
-import utool as ut
 import torchvision
+import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -100,10 +101,7 @@ def siam_vsone_train():
         test_dataset, batch_size=batch_size, shuffle=False, **data_kw
     )
 
-    from wbia.algo.verif.torch import fit_harness
-    from wbia.algo.verif.torch import models
-    from wbia.algo.verif.torch import netmath
-    from wbia.algo.verif.torch import lr_schedule
+    from wbia.algo.verif.torch import fit_harness, lr_schedule, models, netmath
 
     model = models.Siamese()
 

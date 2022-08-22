@@ -6,11 +6,13 @@ sh Tgen.sh --key test --invert --Tcfg with_getters=True with_setters=False --mod
 # TODO: Fix this name it is too special case
 """
 import logging
+import uuid
+
 import ubelt as ub  # NOQA
+import utool as ut
+
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject  # NOQA
-import utool as ut
-import uuid
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)

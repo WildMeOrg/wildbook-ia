@@ -5,10 +5,11 @@ Runs many queries and keeps track of some results
 import logging
 import sys
 import textwrap
+
 import numpy as np  # NOQA
 import utool as ut
-from wbia.expt import experiment_helpers
-from wbia.expt import test_result
+
+from wbia.expt import experiment_helpers, test_result
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -96,7 +97,7 @@ def run_expt(
             ).strip(),
             'white',
         )
-        msg = '[harn] Running %s using %s and %s' % (
+        msg = '[harn] Running {} using {} and {}'.format(
             ut.quantstr('test', len(acfg_list) * len(cfgdict_list)),
             ut.quantstr('pipeline config', len(cfgdict_list)),
             ut.quantstr('annot config', len(acfg_list)),
@@ -122,7 +123,9 @@ def run_expt(
         assert len(daids) != 0, '[harness] No database annotas specified'
         acfg = acfg_list[acfgx]
         if ut.NOT_QUIET:
-            ut.colorprint('\n---Annot config testnameid=%r' % (testnameid,), 'brightcyan')
+            ut.colorprint(
+                '\n---Annot config testnameid={!r}'.format(testnameid), 'brightcyan'
+            )
         subindexer_partial = ut.ProgPartial(
             parent_index=acfgx, parent_length=nAcfg, enabled=ut.NOT_QUIET
         )
@@ -217,14 +220,16 @@ def make_single_testres(
     for cfgx in cfgiter:
         qreq_ = cfgx2_qreq_[cfgx]
         cprint = ut.colorprint
-        cprint('testnameid=%r' % (testnameid,), 'green')
+        cprint('testnameid={!r}'.format(testnameid), 'green')
         cprint(
-            'annot_cfgstr = %s' % (qreq_.get_cfgstr(with_input=True, with_pipe=False),),
+            'annot_cfgstr = {}'.format(
+                qreq_.get_cfgstr(with_input=True, with_pipe=False)
+            ),
             'yellow',
         )
-        cprint('pipe_cfgstr= %s' % (qreq_.get_cfgstr(with_data=False),), 'brightcyan')
+        cprint('pipe_cfgstr= {}'.format(qreq_.get_cfgstr(with_data=False)), 'brightcyan')
 
-        cprint('pipe_hashstr = %s' % (qreq_.get_pipe_hashid(),), 'cyan')
+        cprint('pipe_hashstr = {}'.format(qreq_.get_pipe_hashid()), 'cyan')
         if DRY_RUN:
             continue
 

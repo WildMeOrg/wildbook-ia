@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 import sys
-import utool as ut
+
 import numpy as np
+import utool as ut
 
 try:
     import wbia.guitool as gt
-    from wbia.guitool.__PYQT__ import QtWidgets
-    from wbia.guitool.__PYQT__ import QtCore
+    from wbia.guitool.__PYQT__ import QtCore, QtWidgets
 except ImportError:
     try:
-        from PyQt4 import QtGui as QtWidgets
         from PyQt4 import QtCore
+        from PyQt4 import QtGui as QtWidgets
     except ImportError:
         pass
     try:
-        from PyQt5 import QtWidgets  # NOQA
         from PyQt5 import QtCore  # NOQA
+        from PyQt5 import QtWidgets  # NOQA
     except ImportError:
         pass
     print('Warning: guitool did not import correctly')

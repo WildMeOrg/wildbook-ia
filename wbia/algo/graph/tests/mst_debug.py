@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 import logging
-import networkx as nx
-import utool as ut
-import pandas as pd
-import numpy as np
-from wbia.algo.graph.nx_utils import connected_component_subgraphs, e_
 
+import networkx as nx
+import numpy as np
+import pandas as pd
+import utool as ut
+
+from wbia.algo.graph.nx_utils import connected_component_subgraphs, e_
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

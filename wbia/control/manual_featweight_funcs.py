@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
+
 from wbia.control import controller_inject
 
 print, rrr, profile = ut.inject2(__name__)

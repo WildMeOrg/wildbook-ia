@@ -4,13 +4,13 @@ from functools import wraps
 import flask
 import flask_marshmallow
 from flask_restx import Namespace as OriginalNamespace
-from flask_restx.utils import merge, unpack
 from flask_restx._http import HTTPStatus
+from flask_restx.utils import merge, unpack
 from webargs.flaskparser import parser as webargs_parser
 from werkzeug import cached_property  # NOQA
 from werkzeug import exceptions as http_exceptions
 
-from .model import Model, DefaultHTTPErrorSchema
+from .model import DefaultHTTPErrorSchema, Model
 
 
 class Namespace(OriginalNamespace):

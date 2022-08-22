@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import utool as ut
+
 import wbia.plottool.draw_sv as draw_sv
 
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sver]', DEBUG=False)

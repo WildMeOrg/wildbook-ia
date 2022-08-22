@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-from wbia.guitool.__PYQT__ import QtCore, QtGui
-from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
-from wbia.guitool.__PYQT__.QtCore import Qt
 import math
-import utool
+
 import six
+import utool
+
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtGui
+from wbia.guitool.__PYQT__.QtCore import Qt
 
 utool.noinject(__name__, '[StripProxyModel]', DEBUG=False)
 

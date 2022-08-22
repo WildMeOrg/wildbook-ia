@@ -8,11 +8,13 @@ stores some set of vectors which lose their association with
 their parent.
 """
 import logging
-import utool as ut
+
 import numpy as np
+import utool as ut
+
 from wbia import constants as const
-from wbia.init import sysres
 from wbia.algo.hots import hstypes
+from wbia.init import sysres
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -147,7 +149,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             )
         else:
             logger.info('Publishing model')
-        logger.info('publish_fpath = %r' % (publish_fpath,))
+        logger.info('publish_fpath = {!r}'.format(publish_fpath))
         ut.copy(archive_fpath, publish_fpath)
 
     def get_flann_fpath(dstcnvs_normer, cachedir):
@@ -300,7 +302,9 @@ class DistinctivnessNormalizer(ut.Cachable):
 
         """
         # ut.embed()
-        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), 'dcvs_K=%r' % (dcvs_K,)
+        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), 'dcvs_K={!r}'.format(
+            dcvs_K
+        )
         if len(qfx2_vec) == 0:
             # (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
             qfx2_idx = np.empty((0, dcvs_K), dtype=np.int32)
@@ -540,8 +544,8 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
     # TODO: Also paramatarize the downweighting based on the keypoint size
     ####
     # HACK IN ABILITY TO SET CONFIG
-    from wbia.init.main_commands import postload_commands
     from wbia.algo import Config
+    from wbia.init.main_commands import postload_commands
 
     postload_commands(ibs, None)
 
@@ -549,7 +553,6 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
 
     # cfglbl_list = cfgdict_list
     # ut.all_dict_combinations_lbls(varied_dict)
-
     # Get info to find distinctivness of
     species_text = ibs.get_annot_species(aid)
     # FIXME; qreq_ params for config rowid
@@ -673,9 +676,9 @@ def dev_train_distinctiveness(species=None):
             # FIXME: qreq_ params for config rowid
             vecs_list = ibs.get_annot_vecs(aid_list_)
             num_vecs = sum(list(map(len, vecs_list)))
-            logger.info('num_vecs = %r' % (num_vecs,))
+            logger.info('num_vecs = {!r}'.format(num_vecs))
             vecs = np.vstack(vecs_list)
-            logger.info('vecs size = %r' % (ut.get_object_size_str(vecs),))
+            logger.info('vecs size = {!r}'.format(ut.get_object_size_str(vecs)))
             dstcnvs_normer.init_support(vecs)
             dstcnvs_normer.save(global_distinctdir)
 

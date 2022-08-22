@@ -4,11 +4,13 @@
 Extracts parts chips from image and applies optional image normalizations.
 """
 import logging
-import utool as ut
+
 import numpy as np
-from wbia.control.controller_inject import register_preprocs, register_subprops
+import utool as ut
+
 from wbia import core_annots
 from wbia.constants import ANNOTATION_TABLE, PART_TABLE  # NOQA
+from wbia.control.controller_inject import register_preprocs, register_subprops
 
 # from wbia.constants import ANNOTATION_TABLE, PART_TABLE
 
@@ -71,7 +73,7 @@ def compute_part_chip(depc, part_rowid_list, config=None):
         >>> ibs.delete_parts(part_rowid_list)
     """
     logger.info('Preprocess Part Chips')
-    logger.info('config = %r' % (config,))
+    logger.info('config = {!r}'.format(config))
 
     ibs = depc.controller
 

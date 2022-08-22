@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
+
 import numpy as np
+import utool as ut
+
 from wbia.algo.hots.nn_weights import (
-    _register_nn_simple_weight_func,
     _register_misc_weight_func,
+    _register_nn_simple_weight_func,
 )
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -71,10 +73,9 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
 
 
 def get_mask_func(config):
-    from vtool import coverage_kpts, coverage_grid
+    from vtool import coverage_grid, coverage_kpts
 
     # DEPRICATE
-
     # maskscore_mode = config.get('maskscore_mode', 'grid')
     maskscore_mode = 'grid'
     # logger.info(maskscore_mode)
@@ -191,8 +192,8 @@ def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov
         >>> ut.show_if_requested()
     """
     if ut.VERYVERBOSE:
-        logger.info('[acov] make_mask_func = %r' % (make_mask_func,))
-        logger.info('[acov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
+        logger.info('[acov] make_mask_func = {!r}'.format(make_mask_func))
+        logger.info('[acov] cov_cfg = {}'.format(ut.repr2(cov_cfg)))
     return general_coverage_mask_generator(
         make_mask_func,
         qreq_,
@@ -238,8 +239,8 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
     import vtool as vt
 
     if ut.VERYVERBOSE:
-        logger.info('[ncov] make_mask_func = %r' % (make_mask_func,))
-        logger.info('[ncov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
+        logger.info('[ncov] make_mask_func = {!r}'.format(make_mask_func))
+        logger.info('[ncov] cov_cfg = {}'.format(ut.repr2(cov_cfg)))
     assert cm.dnid_list is not None, 'eval nids'
     unique_dnids, groupxs = vt.group_indices(cm.dnid_list)
     fm_groups = vt.apply_grouping_(cm.fm_list, groupxs)
@@ -266,8 +267,8 @@ def general_coverage_mask_generator(
     DEPRICATE
     """
     if ut.VERYVERBOSE:
-        logger.info('[acov] make_mask_func = %r' % (make_mask_func,))
-        logger.info('[acov] cov_cfg = %s' % (ut.repr2(cov_cfg),))
+        logger.info('[acov] make_mask_func = {!r}'.format(make_mask_func))
+        logger.info('[acov] cov_cfg = {}'.format(ut.repr2(cov_cfg)))
     # Distinctivness and foreground weight
     qweights = get_annot_kpts_baseline_weights(
         qreq_.ibs, [qaid], config2_=qreq_.extern_query_config2, config=config
@@ -376,8 +377,9 @@ def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum
     """
     DEPRICATE
     """
-    import wbia.plottool as pt
     import vtool as vt
+
+    import wbia.plottool as pt
     from wbia import viz
 
     fnum = pt.ensure_fnum(fnum)
@@ -426,7 +428,7 @@ def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum
             darken=0.5,
         )
     coverage_score = score_matching_mask(weight_mask_m, weight_mask)
-    pt.set_figtitle('score=%.4f' % (coverage_score,))
+    pt.set_figtitle('score={:.4f}'.format(coverage_score))
 
 
 def show_annot_weights(qreq_, aid, config={}):
@@ -476,6 +478,7 @@ def show_annot_weights(qreq_, aid, config={}):
 
 def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float):
     import vtool as vt
+
     from wbia.algo.hots import hstypes
 
     """

@@ -2,12 +2,13 @@
 """
 TODO: separate out the tests and make this file just generate the demo data
 """
-import logging
 import itertools as it
+import logging
+
 import numpy as np
 import utool as ut
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
-from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
+
+from wbia.algo.graph.state import DIFF, INCMP, NEGTV, NULL, POSTV, SAME, UNREV  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -79,10 +80,10 @@ def demo2():
         >>> result = demo2()
         >>> print(result)
     """
-    import wbia.plottool as pt
-
-    from wbia.scripts.thesis import TMP_RC
     import matplotlib as mpl
+
+    import wbia.plottool as pt
+    from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)
 
@@ -250,7 +251,7 @@ def demo2():
     infr.refresh_candidate_edges()
 
     VIZ_ALL = VISUALIZE and TARGET_REVIEW is None and START is None
-    logger.info('VIZ_ALL = %r' % (VIZ_ALL,))
+    logger.info('VIZ_ALL = {!r}'.format(VIZ_ALL))
 
     if VIZ_ALL or TARGET_REVIEW == 0:
         show_graph(infr, 'find-candidates')
@@ -412,8 +413,9 @@ def make_demo_infr(ccs, edges=[], nodes=[], infer=True):
     Depricate in favor of demodata_infr
     """
 
-    import wbia
     import networkx as nx
+
+    import wbia
 
     if nx.__version__.startswith('1'):
         nx.add_path = nx.Graph.add_path
@@ -481,6 +483,7 @@ def demodata_infr(**kwargs):
     """
     import networkx as nx
     import vtool as vt
+
     from wbia.algo.graph import nx_utils
 
     def kwalias(*args):
@@ -570,7 +573,7 @@ def demodata_infr(**kwargs):
 
             incon_idxs = np.where(states == 0)[0]
             if len(incon_idxs) > max_n_incon:
-                logger.info('max_n_incon = %r' % (max_n_incon,))
+                logger.info('max_n_incon = {!r}'.format(max_n_incon))
                 chosen = rng.choice(incon_idxs, max_n_incon, replace=False)
                 states[np.setdiff1d(incon_idxs, chosen)] = len(probs)
 
@@ -876,8 +879,9 @@ class DummyVerif(object):
                 for edge, probs in zip(group, zip(probs0, probs1, probs2)):
                     prob_cache[edge] = ut.dzip(states, probs)
 
-        from wbia.algo.graph import nx_utils as nxu
         import pandas as pd
+
+        from wbia.algo.graph import nx_utils as nxu
 
         probs = pd.DataFrame(
             ut.take(prob_cache, edges),

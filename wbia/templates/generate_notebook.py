@@ -36,9 +36,11 @@ CommandLine:
 
 
 """
-import utool as ut
-from wbia.templates import notebook_cells
 from functools import partial
+
+import utool as ut
+
+from wbia.templates import notebook_cells
 
 
 def autogen_ipynb(ibs, launch=None, run=None):
@@ -118,7 +120,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         )
         ut.cmd2(command, detatch=True, verbose=True)
     else:
-        print('notebook_str =\n%s' % (notebook_str,))
+        print('notebook_str =\n{}'.format(notebook_str))
 
 
 def get_default_cell_template_list(ibs):

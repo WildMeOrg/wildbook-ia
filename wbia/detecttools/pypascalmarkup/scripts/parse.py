@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import random
-from collections import defaultdict
 import xml.etree.ElementTree
+from collections import defaultdict
 
 
 # want to map a the filename -> all the animals present in the image

@@ -9,17 +9,17 @@ More details are available here:
 * http://flask-oauthlib.readthedocs.org/en/latest/oauth2.html
 * http://lepture.com/en/2013/create-oauth-server
 """
-import logging
+import datetime
 import enum
+import logging
+import uuid
 
+import pytz
 from sqlalchemy_utils.types import ScalarListType
 
 from wbia.web.extensions import db
 from wbia.web.extensions.auth import security
 from wbia.web.modules.users.models import User
-import datetime
-import pytz
-import uuid
 
 log = logging.getLogger(__name__)
 

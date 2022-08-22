@@ -10,11 +10,11 @@ from functools import lru_cache
 from os.path import exists, join, realpath
 from pathlib import Path
 
-import utool as ut
 import ubelt as ub
+import utool as ut
+
 from wbia import constants as const
 from wbia.dtool.copy_sqlite_to_postgres import copy_sqlite_to_postgres
-
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -39,7 +39,7 @@ def _wbia_cache_write(key, val):
     """Writes to global IBEIS cache
     TODO: Use text based config file
     """
-    logger.info('[sysres] set %s=%r' % (key, val))
+    logger.info('[sysres] set {}={!r}'.format(key, val))
     ut.global_cache_write(key, val, appname=__APPNAME__)
 
 
@@ -154,7 +154,7 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
 
 
 def set_logdir(log_dir):
-    from os.path import realpath, expanduser
+    from os.path import expanduser, realpath
 
     log_dir = realpath(expanduser(log_dir))
     ut.ensuredir(log_dir, verbose=True)
@@ -240,7 +240,9 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
     Implicitly gets dbdir. Searches for db inside of workdir
     """
     if ut.VERBOSE:
-        logger.info('[sysres] db_to_dbdir: db=%r, allow_newdir=%r' % (db, allow_newdir))
+        logger.info(
+            '[sysres] db_to_dbdir: db={!r}, allow_newdir={!r}'.format(db, allow_newdir)
+        )
 
     if db is None:
         raise ValueError('db is None')
@@ -271,7 +273,9 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
     # Complain if the implicit dbdir does not exist
     if not exists(dbdir):
         logger.info('!!!')
-        logger.info('[sysres] WARNING: db=%r not found in work_dir=%r' % (db, work_dir))
+        logger.info(
+            '[sysres] WARNING: db={!r} not found in work_dir={!r}'.format(db, work_dir)
+        )
         fname_list = os.listdir(work_dir)
         lower_list = [fname.lower() for fname in fname_list]
         index = ut.listfind(lower_list, db.lower())
@@ -333,8 +337,10 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
     """
     if not ut.QUIET and ut.VERBOSE:
         logger.info('[sysres] get_args_dbdir: parsing commandline for dbdir')
-        logger.info('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
-        logger.info('[sysres] db=%r, dbdir=%r' % (db, dbdir))
+        logger.info(
+            '[sysres] defaultdb={!r}, allow_newdir={!r}'.format(defaultdb, allow_newdir)
+        )
+        logger.info('[sysres] db={!r}, dbdir={!r}'.format(db, dbdir))
 
     def prioritize(dbdir_, db_):
         invalid = ['', ' ', '.', 'None']
@@ -569,9 +575,10 @@ def reset_mtest_graph():
         staging.clear()
 
     # Make this CC connected using positive edges
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, DIFF, NULL, SAME  # NOQA
-    from wbia.algo.graph import nx_utils as nxu
     import itertools as it
+
+    from wbia.algo.graph import nx_utils as nxu
+    from wbia.algo.graph.state import DIFF, INCMP, NEGTV, NULL, POSTV, SAME  # NOQA
 
     # Add some graph properties to MTEST
     infr = wbia.AnnotInference(ibs, 'all', autoinit=True)
@@ -599,7 +606,7 @@ def reset_mtest_graph():
                 infr.add_feedback(edge, NEGTV, user_id='user:setup3')
 
     # Make some small PCCs k-positive-redundant
-    from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+    from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
 
     cand = list(infr.find_pos_redun_candidate_edges())
     for edge in cand[0:2]:
@@ -628,6 +635,7 @@ def reset_mtest_graph():
 def copy_wbiadb(source_dbdir, dest_dbdir):
     # TODO: rectify with rsync, script, and merge script.
     from os.path import normpath
+
     import wbia
 
     exclude_dirs_ = wbia.const.EXCLUDE_COPY_REL_DIRS + ['_hsdb', '.hs_internals']
@@ -854,7 +862,7 @@ def ensure_pz_mtest_mergesplit_test():
         ibs.set_annot_name_rowids(aids_odd, [combo_nids[1]] * len(aids_odd))
 
     final_result = ibs.unflat_map(ibs.get_annot_nids, modify_aids)
-    logger.info('final_result = %s' % (ub.repr2(final_result),))
+    logger.info('final_result = {}'.format(ub.repr2(final_result)))
 
 
 def ensure_wilddogs():
@@ -924,7 +932,7 @@ def ensure_db_from_url(zipped_db_url):
             if exc:
                 raise exc
 
-    logger.info('have %s=%r' % (zipped_db_url, dbdir))
+    logger.info('have {}={!r}'.format(zipped_db_url, dbdir))
     return dbdir
 
 

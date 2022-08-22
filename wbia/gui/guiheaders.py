@@ -11,9 +11,11 @@ TODO: need to cache the total number of annotations or something about
 imagesets on disk to help startuptime.
 """
 import logging
-from wbia import constants as const
-import utool as ut
 from functools import partial
+
+import utool as ut
+
+from wbia import constants as const
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -198,40 +200,38 @@ def make_table_declarations(ibs):
 
     # the columns which are editable
     TABLE_EDITSET = {
-        IMAGE_TABLE: set(['reviewed', 'imgnotes', 'gps']),
-        ANNOTATION_TABLE: set(
-            [
-                'name',
-                'species',
-                'annotnotes',
-                'exemplar',
-                'viewpoint',
-                'quality_text',
-                'age_min',
-                'age_max',
-                'sex_text',
-                'tag_text',
-            ]
-        ),
-        NAME_TABLE: set(['name', 'namenotes']),
-        QRES_TABLE: set(['name']),
-        IMAGESET_TABLE: set(
-            ['imagesettext', 'imageset_shipped_flag', 'imageset_processed_flag']
-        ),
-        IMAGE_GRID: set([]),
-        THUMB_TABLE: set([]),
-        NAMES_TREE: set(
-            [
-                'exemplar',
-                'name',
-                'namenotes',
-                'viewpoint',
-                'quality_text',
-                'age_min',
-                'age_max',
-                'sex_text',
-            ]
-        ),
+        IMAGE_TABLE: {'reviewed', 'imgnotes', 'gps'},
+        ANNOTATION_TABLE: {
+            'name',
+            'species',
+            'annotnotes',
+            'exemplar',
+            'viewpoint',
+            'quality_text',
+            'age_min',
+            'age_max',
+            'sex_text',
+            'tag_text',
+        },
+        NAME_TABLE: {'name', 'namenotes'},
+        QRES_TABLE: {'name'},
+        IMAGESET_TABLE: {
+            'imagesettext',
+            'imageset_shipped_flag',
+            'imageset_processed_flag',
+        },
+        IMAGE_GRID: set(),
+        THUMB_TABLE: set(),
+        NAMES_TREE: {
+            'exemplar',
+            'name',
+            'namenotes',
+            'viewpoint',
+            'quality_text',
+            'age_min',
+            'age_max',
+            'sex_text',
+        },
     }
 
     if const.SIMPLIFY_INTERFACE:

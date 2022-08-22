@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
+
 import numpy as np  # NOQA
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[_wbia_object]')
 logger = logging.getLogger('wbia')
@@ -79,7 +80,9 @@ def _inject_getter_attrs(
     if depcache_attrs is None:
         metaself._depcache_attrs = []
     else:
-        metaself._depcache_attrs = ['%s_%s' % (tbl, col) for tbl, col in depcache_attrs]
+        metaself._depcache_attrs = [
+            '{}_{}'.format(tbl, col) for tbl, col in depcache_attrs
+        ]
     if aliased_attrs is not None:
         metaself._attrs_aliases = aliased_attrs
     else:
@@ -125,7 +128,7 @@ def _inject_getter_attrs(
     # that takes explicit rowids.
 
     def _make_setters(objname, attrname):
-        ibs_funcname = 'set_%s_%s' % (objname, attrname)
+        ibs_funcname = 'set_{}_{}'.format(objname, attrname)
 
         def _rowid_setter(self, rowids, values, *args, **kwargs):
             ibs_callable = getattr(self._ibs, ibs_funcname)
@@ -138,7 +141,7 @@ def _inject_getter_attrs(
     # ---
 
     def _make_getters(objname, attrname):
-        ibs_funcname = 'get_%s_%s' % (objname, attrname)
+        ibs_funcname = 'get_{}_{}'.format(objname, attrname)
 
         def _rowid_getter(self, rowids):
             ibs_callable = getattr(self._ibs, ibs_funcname)
@@ -152,7 +155,7 @@ def _inject_getter_attrs(
         return _rowid_getter, _getter
 
     def _make_cfg_getters(objname, attrname):
-        ibs_funcname = 'get_%s_%s' % (objname, attrname)
+        ibs_funcname = 'get_{}_{}'.format(objname, attrname)
 
         def _rowid_getter(self, rowids):
             ibs_callable = getattr(self._ibs, ibs_funcname)
@@ -203,7 +206,7 @@ def _inject_getter_attrs(
 
     if depcache_attrs is not None:
         for tbl, col in depcache_attrs:
-            attrname = '%s_%s' % (tbl, col)
+            attrname = '{}_{}'.format(tbl, col)
             _rowid_getter, _getter = _make_depc_getters(depc_name, attrname, tbl, col)
             prop = property(fget=_getter, fset=None)
             rowid_getters.append((attrname, _rowid_getter))
@@ -265,11 +268,13 @@ def _inject_getter_attrs(
         for attrname, prop in properties:
             getter_name = None if prop.fget is None else ut.get_funcname(prop.fget)
             setter_name = None if prop.fset is None else ut.get_funcname(prop.fset)
-            source = '    %s = property(%s, %s)' % (attrname, getter_name, setter_name)
+            source = '    {} = property({}, {})'.format(
+                attrname, getter_name, setter_name
+            )
             explicit_lines.append(source)
 
         for alias, attrname in aliases:
-            source = '    %s = %s' % (alias, attrname)
+            source = '    {} = {}'.format(alias, attrname)
             explicit_lines.append(source)
 
         explicit_source = (
@@ -286,13 +291,13 @@ def _inject_getter_attrs(
             % (objname,)
         )
         explicit_source += '\n'.join(explicit_lines)
-        explicit_fname = '_autogen_%s_base.py' % (objname,)
+        explicit_fname = '_autogen_{}_base.py'.format(objname)
         from os.path import dirname, join
 
         ut.writeto(join(dirname(__file__), explicit_fname), explicit_source + '\n')
 
     if attr_to_aliases:
-        raise AssertionError('Unmapped aliases %r' % (attr_to_aliases,))
+        raise AssertionError('Unmapped aliases {!r}'.format(attr_to_aliases))
 
 
 class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
@@ -306,7 +311,7 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
         self.obj1d = obj1d
 
     def __nice__(self):
-        return 'rowid=%s, uuid=%s' % (self._rowids, self.uuids)
+        return 'rowid={}, uuid={}'.format(self._rowids, self.uuids)
 
     def __getattr__(self, key):
         vals = getattr(self.obj1d, key)
@@ -555,9 +560,9 @@ class ObjectView1D(ut.NiceRepr):
         key = 'vecs'
         """
         try:
-            _rowid_getter = getattr(self._obj1d, '_rowid_get_%s' % (key,))
+            _rowid_getter = getattr(self._obj1d, '_rowid_get_{}'.format(key))
         except AttributeError:
-            raise AttributeError('ObjectView1D has no attribute %r' % (key,))
+            raise AttributeError('ObjectView1D has no attribute {!r}'.format(key))
         if self._caching:
             rowid_to_value = self._cache[key]
             miss_rowids = [
@@ -579,7 +584,7 @@ class ObjectView1D(ut.NiceRepr):
         return len(self._rowids)
 
     def __nice__(self):
-        return 'unique=%r, num=%r' % (len(self._unique_rowids), len(self))
+        return 'unique={!r}, num={!r}'.format(len(self._unique_rowids), len(self))
 
     # def __hash__(self):
     #     return hash(self.group_uuid())

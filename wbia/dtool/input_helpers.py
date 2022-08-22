@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
-import numpy as np
+
 import networkx as nx  # NOQA
+import numpy as np
+import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__, '[depc_input_helpers]')
 logger = logging.getLogger('wbia.dtool')
@@ -310,7 +311,7 @@ def make_expanded_input_graph(graph, target):
             for source_node in source_nodes
         ]
     )
-    rootmost_nodes = set([])
+    rootmost_nodes = set()
     for path in path_list:
         flags = [node_dict[node]['root_specifiable'] for node in path]
         valid_nodes = ut.compress(path, flags)
@@ -442,7 +443,7 @@ def sort_rmi_list(rmi_list):
     # rmi = rmi_list[0]  # hack
     # reverse_compute_branches = [path[::-1] for path in nx.all_simple_paths(rmi.exi_graph, rmi.node, rmi.sink)]
     sort_keys = [
-        tuple([r.branch_id.parent_colx for r in rs]) for rs in reverse_compute_branches
+        tuple(r.branch_id.parent_colx for r in rs) for rs in reverse_compute_branches
     ]
     sortx = ut.argsort(sort_keys)
     rmi_list = ut.take(rmi_list, sortx)
@@ -531,13 +532,13 @@ class TableInput(ut.NiceRepr):
                 for source_node in source_nodes
             ]
         )
-        rootmost_nodes = set([])
+        rootmost_nodes = set()
         rootmost_candidates = set(rootmost_exi_nodes)
-        rootmost_nodes = set([])
+        rootmost_nodes = set()
         for path in path_list:
             flags = [node in rootmost_candidates for node in path]
             if not any(flags):
-                raise ValueError('Missing RMI on path=%r' % (path,))
+                raise ValueError('Missing RMI on path={!r}'.format(path))
             valid_nodes = ut.compress(path, flags)
             rootmost_nodes.add(valid_nodes[-1])
 
@@ -821,7 +822,7 @@ class TableInput(ut.NiceRepr):
             ut.partial(
                 pt.show_nx,
                 exi_graph,
-                title='Expanded Input (%s)' % (tablename,),
+                title='Expanded Input ({})'.format(tablename),
                 **plot_kw,
             )
         )

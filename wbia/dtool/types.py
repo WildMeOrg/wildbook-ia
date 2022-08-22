@@ -4,13 +4,12 @@ import io
 import uuid
 
 import numpy as np
-from utool.util_cache import from_json, to_json
 import sqlalchemy
+import utool as ut
 from sqlalchemy.sql import text
 from sqlalchemy.types import Integer as SAInteger
 from sqlalchemy.types import TypeDecorator, UserDefinedType
-import utool as ut
-
+from utool.util_cache import from_json, to_json
 
 __all__ = (
     'Dict',

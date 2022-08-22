@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+import functools
 import logging
+import uuid
+
+import utool as ut
+
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject
 from wbia.control.controller_inject import make_ibs_register_decorator
-import functools
-import utool as ut
-import uuid
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -289,7 +291,7 @@ def get_imageset_num_names_with_exemplar(ibs, imgsetid_list):
     ]
     # num_names_list = [len(groups) for groups in groups_list]
     num_exemplared_names_list = [
-        sum([any(exflags) for exflags in groups.values()]) for groups in groups_list
+        sum(any(exflags) for exflags in groups.values()) for groups in groups_list
     ]
     return num_exemplared_names_list
 
@@ -319,7 +321,7 @@ def get_imageset_fraction_names_with_exemplar(ibs, imgsetid_list):
     #               for exflags, nids in zip(exflags_list, nids_list)]
     num_names_list = list(map(len, nids_list))
     num_exemplared_names_list = [
-        sum([any(exflags) for exflags in flags_list]) for flags_list in flags_list_list
+        sum(any(exflags) for exflags in flags_list) for flags_list in flags_list_list
     ]
     fraction_exemplared_names_list = [
         None if num_names == 0 else num_exemplared_names / num_names
@@ -365,7 +367,7 @@ def get_imageset_fraction_imgs_reviewed(ibs, imgsetid_list):
 
 
 def _percent_str(pcnt):
-    return 'undef' if pcnt is None else '%06.2f %%' % (pcnt * 100,)
+    return 'undef' if pcnt is None else '{:06.2f} %'.format(pcnt * 100)
 
 
 @register_ibs_method
@@ -1560,7 +1562,7 @@ def get_imageset_smart_xml_fnames(ibs, imageset_rowid_list):
 # @accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_XML_FNAME)
 @register_api('/api/imageset/smart/xml/file/content/', methods=['GET'])
 def get_imageset_smart_xml_contents(ibs, imageset_rowid_list):
-    from os.path import join, exists
+    from os.path import exists, join
 
     imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(imageset_rowid_list)
     content_list = []

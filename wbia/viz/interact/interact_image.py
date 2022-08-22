@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import utool as ut
+
 from wbia import viz
-from wbia.viz import viz_helpers as vh
 from wbia.plottool import draw_func2 as df2
 from wbia.plottool import interact_helpers as ih
+from wbia.viz import viz_helpers as vh
 
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[interact_img]', DEBUG=False
@@ -14,7 +15,7 @@ from wbia.plottool import interact_helpers as ih
 def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None, **kwargs):
     if ut.VERBOSE:
         print(ut.get_caller_name(range(9)))
-        print('[interact_image] gid=%r fnum=%r' % (gid, fnum))
+        print('[interact_image] gid={!r} fnum={!r}'.format(gid, fnum))
     if fnum is None:
         fnum = df2.next_fnum()
     # TODO: change to class based structure

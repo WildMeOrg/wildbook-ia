@@ -6,7 +6,6 @@ import utool as ut
 from wbia.dtool.depcache_control import DependencyCache
 from wbia.dtool.example_depcache import DummyController
 
-
 HERE = Path(__file__).parent.resolve()
 
 

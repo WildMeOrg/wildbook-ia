@@ -2,32 +2,35 @@
 """
 provides common methods for api_tree_view and api_table_view
 """
-import logging
-from wbia.guitool.__PYQT__ import QtGui  # NOQA
-from wbia.guitool.__PYQT__ import QtCore
-from wbia.guitool.__PYQT__ import QtWidgets
-from wbia.guitool.__PYQT__.QtCore import Qt
 import functools
-from wbia.guitool import qtype
-from wbia.guitool import api_button_delegate
-from wbia.guitool import api_thumb_delegate
-from wbia.guitool import guitool_main
-from wbia.guitool import guitool_misc
-import utool
-import utool as ut
+import logging
 import operator
 from functools import reduce
 
+import utool
+import utool as ut
+
+from wbia.guitool import (
+    api_button_delegate,
+    api_thumb_delegate,
+    guitool_main,
+    guitool_misc,
+    qtype,
+)
+from wbia.guitool.__PYQT__ import QtGui  # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtWidgets
+from wbia.guitool.__PYQT__.QtCore import Qt
+from wbia.guitool.api_item_model import APIItemModel
+from wbia.guitool.filter_proxy_model import FilterProxyModel
+
 # Valid API Models
 from wbia.guitool.stripe_proxy_model import StripeProxyModel
-from wbia.guitool.filter_proxy_model import FilterProxyModel
-from wbia.guitool.api_item_model import APIItemModel
 
 (print, rrr, profile) = utool.inject2(__name__, '[APIItemView]')
 logger = logging.getLogger('wbia')
 
 VERBOSE_QT = ut.get_argflag(('--verbose-qt', '--verbqt'))
-VERBOSE_ITEM_VIEW = ut.get_argflag(('--verbose-item-view'))
+VERBOSE_ITEM_VIEW = ut.get_argflag('--verbose-item-view')
 VERBOSE = utool.VERBOSE or VERBOSE_QT or VERBOSE_ITEM_VIEW
 
 API_VIEW_BASE = QtWidgets.QAbstractItemView
@@ -267,7 +270,9 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
                 select_flag = QtCore.QItemSelectionModel.ClearAndSelect
                 # select_flag = QtCore.QItemSelectionModel.Select
                 # select_flag = QtCore.QItemSelectionModel.NoUpdate
-                with ut.Timer('[api_item_view] selecting name. qtindex=%r' % (qtindex,)):
+                with ut.Timer(
+                    '[api_item_view] selecting name. qtindex={!r}'.format(qtindex)
+                ):
                     select_model.select(qtindex, select_flag)
                 with ut.Timer('[api_item_view] expanding'):
                     view.setExpanded(qtindex, True)
@@ -302,7 +307,7 @@ def connect_keypress_to_slot(view, func):
 def selectedRows(view):
     selected_qtindex_list = view.selectedIndexes()
     selected_qtindex_list2 = []
-    seen_ = set([])
+    seen_ = set()
     for qindex in selected_qtindex_list:
         row = qindex.row()
         if row not in seen_:

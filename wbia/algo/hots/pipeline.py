@@ -42,15 +42,14 @@ TODO:
     been computed?
 """
 import logging
-import numpy as np
-import vtool as vt
-from wbia.algo.hots import hstypes
-from wbia.algo.hots import chip_match
-from wbia.algo.hots import nn_weights
-from wbia.algo.hots import scoring
-from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
+
+import numpy as np
 import utool as ut
+import vtool as vt
+
+from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
+from wbia.algo.hots import chip_match, hstypes, nn_weights, scoring
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -117,7 +116,7 @@ class Neighbors(ut.NiceRepr):
         return (self.neighb_idxs, self.neighb_dists)[index]
 
     def __nice__(self):
-        return '(qaid=%r,nQfxs=%r,nNbs=%r)' % (
+        return '(qaid={!r},nQfxs={!r},nNbs={!r})'.format(
             self.qaid,
             self.num_query_feats,
             self.neighb_idxs.shape[1],
@@ -447,7 +446,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     nn_mid_cacheid = ''.join(
         [data_hashid, nn_cfgstr, chip_cfgstr, feat_cfgstr, flann_cfgstr, aug_cfgstr]
     )
-    logger.info('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
+    logger.info('nn_mid_cacheid = {!r}'.format(nn_mid_cacheid))
 
     if HACK_KCFG:
         kbase = qreq_.qparams.K + int(qreq_.qparams.Knorm)
@@ -465,7 +464,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     # ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
     ut.ensuredir(nn_cachedir)
     if ut.VERBOSE:
-        logger.info('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
+        logger.info('nn_mid_cacheid = {!r}'.format(nn_mid_cacheid))
         pass
     return nn_cachedir, nn_mid_cacheid_list
 
@@ -530,7 +529,9 @@ def cachemiss_nn_compute_fn(
 
     if verbose:
         if len(qvecs_list) == 1:
-            logger.info('[hs] depth(qvecs_list) = %r' % (ut.depth_profile(qvecs_list),))
+            logger.info(
+                '[hs] depth(qvecs_list) = {!r}'.format(ut.depth_profile(qvecs_list))
+            )
     # Mark progress ane execute nearest indexer nearest neighbor code
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
     if requery:
@@ -690,7 +691,7 @@ def nearest_neighbors(
     # Get both match neighbors (including padding) and normalizing neighbors
     if verbose:
         logger.info(
-            '[hs] Step 1) Assign nearest neighbors: %s' % (qreq_.qparams.nn_cfgstr,)
+            '[hs] Step 1) Assign nearest neighbors: {}'.format(qreq_.qparams.nn_cfgstr)
         )
 
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
@@ -1093,7 +1094,7 @@ def build_chipmatches(
     Knorm = qreq_.qparams.Knorm
     if verbose:
         pipeline_root = qreq_.qparams.pipeline_root
-        logger.info('[hs] Step 4) Building chipmatches %s' % (pipeline_root,))
+        logger.info('[hs] Step 4) Building chipmatches {}'.format(pipeline_root))
 
     # Iterate over INTERNAL query annotation ids
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()

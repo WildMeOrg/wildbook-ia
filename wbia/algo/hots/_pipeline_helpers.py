@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
@@ -32,17 +33,16 @@ def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
         >>> print(source)
         >>> ut.replace_between_tags(source, '', sentinal)
     """
-    from wbia.algo.hots.pipeline import (
-        nearest_neighbors,
+    from wbia.algo.hots.pipeline import (  # vsone_reranking,
         baseline_neighbor_filter,
-        weight_neighbors,
         build_chipmatches,
-        spatial_verification,
-        # vsone_reranking,
         build_impossible_daids_list,
+        nearest_neighbors,
+        spatial_verification,
+        weight_neighbors,
     )
 
-    logger.info('RUN PIPELINE UPTO: %s' % (stop_node,))
+    logger.info('RUN PIPELINE UPTO: {}'.format(stop_node))
 
     logger.info(qreq_)
 
@@ -90,7 +90,7 @@ def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
     if stop_node == 'end':
         return locals()
 
-    assert False, 'unknown stop_node=%r' % (stop_node,)
+    assert False, 'unknown stop_node={!r}'.format(stop_node)
 
     # qaid2_svtups = qreq_.metadata['qaid2_svtups']
     return locals()

@@ -5,16 +5,17 @@ terms of development time)
 """
 
 import logging
-from wbia import guitool
-from wbia.guitool.__PYQT__ import QtCore
-from wbia.guitool.__PYQT__ import QtWidgets
-from wbia.guitool.api_item_model import APIItemModel
-from wbia.guitool.api_table_view import APITableView
-from wbia.guitool.api_tree_view import APITreeView
 
 # from wbia.guitool import guitool_components as comp
 from functools import partial
+
 import utool as ut
+
+from wbia import guitool
+from wbia.guitool.__PYQT__ import QtCore, QtWidgets
+from wbia.guitool.api_item_model import APIItemModel
+from wbia.guitool.api_table_view import APITableView
+from wbia.guitool.api_tree_view import APITreeView
 
 (print, rrr, profile) = ut.inject2(__name__, '[APIItemWidget]')
 logger = logging.getLogger('wbia')
@@ -365,7 +366,7 @@ class CustomAPI(object):
                 val = getter[index]
             except IndexError:
                 logger.info('index error at column index=%r' % (index))
-                logger.info('getter = %r' % (getter,))
+                logger.info('getter = {!r}'.format(getter))
                 # logger.info('index for column=%r' % (self.column_names[index]))
                 raise
         else:
@@ -492,7 +493,7 @@ class APIItemWidget(WIDGET_BASE):
             elif view_class == 'table':
                 view_class = APITableView
             else:
-                raise ValueError('Unknown view_class=%r' % (view_class,))
+                raise ValueError('Unknown view_class={!r}'.format(view_class))
         # Create vertical layout for the table to go into
         widget.vert_layout = QtWidgets.QVBoxLayout(widget)
         # Create a ColumnListTableView for the AbstractItemModel

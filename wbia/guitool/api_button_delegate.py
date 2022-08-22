@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from wbia.guitool.__PYQT__ import QtGui, QtCore  # NOQA
-from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
-from wbia.guitool import guitool_components
-import utool
-
 # (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
+import utool
 import utool as ut
+
+from wbia.guitool import guitool_components
+from wbia.guitool.__PYQT__ import QtWidgets  # NOQA
+from wbia.guitool.__PYQT__ import QtCore, QtGui  # NOQA
 
 ut.noinject(__name__, '[api_button_delegate]', DEBUG=False)
 

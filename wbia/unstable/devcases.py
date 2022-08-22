@@ -8,12 +8,14 @@ TODO:
 
     Excplitict Negative Matches between chips
 """
-import logging
-from wbia.algo.hots import hstypes
-from uuid import UUID
-import utool as ut
 import copy
+import logging
+from uuid import UUID
+
 import numpy as np
+import utool as ut
+
+from wbia.algo.hots import hstypes
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -70,8 +72,8 @@ def fix_pz_master():
     import wbia
 
     wbia._preload()
-    from wbia.gui import inspect_gui
     from wbia import guitool
+    from wbia.gui import inspect_gui
 
     ibs = wbia.opendb('PZ_Master0')
     daids = ibs.get_valid_aids(minqual='poor')
@@ -138,10 +140,10 @@ def myquery():
         >>> ut.dev_ipython_copypaster(myquery) if ut.inIPython() else myquery()
         >>> pt.show_if_requested()
     """
-    from wbia.algo.hots import special_query  # NOQA
-    from wbia.algo.hots import distinctiveness_normalizer  # NOQA
-    from wbia import viz  # NOQA
     import wbia.plottool as pt
+    from wbia import viz  # NOQA
+    from wbia.algo.hots import distinctiveness_normalizer  # NOQA
+    from wbia.algo.hots import special_query  # NOQA
 
     index = ut.get_argval('--index', int, 0)
     ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
@@ -195,7 +197,7 @@ def myquery():
     # FiltKeys = hstypes.FiltKeys
     # FIXME: Use other way of doing gridsearch
     grid_basis = distinctiveness_normalizer.DCVS_DEFAULT.get_grid_basis()
-    gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
+    gridsearch = ut.GridSearch(grid_basis, label='qvuuid={!r}'.format(qvuuid))
     logger.info('Begin Grid Search')
     for cfgdict in ut.ProgressIter(gridsearch, lbl='GridSearch'):
         qres_copy, tp_score, tn_score = try_config(qreq_, qres_orig, cfgdict)
@@ -270,7 +272,7 @@ def myquery():
     tp_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[aid2]), ':')
     tn_stats_str = ut.align(get_stats_str(qres_copy.aid2_fsv[tn_aid]), ':')
     info_str_list = []
-    info_str_list.append('qres_copy.filtkey_list = %r' % (qres_copy.filtkey_list,))
+    info_str_list.append('qres_copy.filtkey_list = {!r}'.format(qres_copy.filtkey_list))
     info_str_list.append('CORRECT STATS')
     info_str_list.append(tp_stats_str)
     info_str_list.append('INCORRECT STATS')
@@ -340,8 +342,9 @@ def testdata_my_exmaples(index):
         >>> from wbia.algo.hots.devcases import *  # NOQA
         >>> index = 1
     """
-    import wbia
     from uuid import UUID
+
+    import wbia
 
     ibs = wbia.opendb('GZ_ALL')
     vsone_pair_examples = [
@@ -434,6 +437,7 @@ def show_power_law_plots():
         >>> pt.show_if_requested()
     """
     import numpy as np
+
     import wbia.plottool as pt
 
     xdata = np.linspace(0, 1, 1000)
@@ -444,7 +448,11 @@ def show_power_law_plots():
     pnum_next = pt.make_pnum_nextgen(nRows, nCols)
     for p in powers:
         plotkw = dict(
-            fnum=fnum, marker='g-', linewidth=2, pnum=pnum_next(), title='p=%r' % (p,)
+            fnum=fnum,
+            marker='g-',
+            linewidth=2,
+            pnum=pnum_next(),
+            title='p={!r}'.format(p),
         )
         ydata_ = ydata ** p
         pt.plot2(xdata, ydata_, **plotkw)
@@ -541,6 +549,7 @@ def load_gztest(ibs):
         >>> ibs = wbia.opendb('GZ_ALL')
     """
     from os.path import join
+
     from wbia.algo.hots import match_chips4 as mc4
 
     dir_ = ut.get_module_dir(mc4)

@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-import utool
-from . import draw_func2 as df2
 import numpy as np
+import utool
+
 from wbia.plottool import plot_helpers as ph
+
+from . import draw_func2 as df2
 
 # (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_keypoints]', DEBUG=False)
 utool.noinject(__name__, '[viz_keypoints]')
 
 
 def testdata_kpts():
+    import pyhesaff
     import utool as ut
     import vtool as vt
-    import pyhesaff
 
     img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='star.png'))
     kwargs = ut.parse_dict_from_argv(pyhesaff.get_hesaff_default_params())

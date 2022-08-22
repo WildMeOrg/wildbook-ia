@@ -5,9 +5,9 @@ Definitions for common aid configurations
 Rename to annot_cfgdef
 """
 import logging
-import utool as ut
-import numpy as np  # NOQA
 
+import numpy as np  # NOQA
+import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -492,7 +492,7 @@ def print_acfg_list(
                 dupindex = seen_[key]
                 dupdict = varied_compressed_dict_list[dupindex[0]]
                 if not only_summary:
-                    logger.info('DUPLICATE of index %r' % (dupindex,))
+                    logger.info('DUPLICATE of index {!r}'.format(dupindex))
                     logger.info('DUP OF acfg = ' + ut.repr2(dupdict, si=True))
     logger.info('hashid summary = ' + ut.repr2(hashid_list, nl=1))
     ut.colorprint('L___ </Info acfg_list> ___', 'white')

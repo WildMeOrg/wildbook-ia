@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
+from urllib.parse import urlparse
 
 from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
 from requests_oauthlib import OAuth2Session
-from urllib.parse import urlparse
-
 
 # Allow non-ssl communication
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -58,7 +57,7 @@ def call_houston(uri, method='GET', retry=True, **kwargs):
     clean_uri = uri.replace('houston+', '')
 
     parse_uri = urlparse(clean_uri)
-    hostname = '%s://%s' % (
+    hostname = '{}://{}'.format(
         parse_uri.scheme,
         parse_uri.netloc,
     )

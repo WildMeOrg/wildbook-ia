@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # developer convenience functions for ibs
 import logging
+
 import utool as ut
+
 from wbia import constants as const
 
 (print, rrr, profile) = ut.inject2(__name__, '[duct_tape]')
@@ -23,7 +25,7 @@ def fix_compname_configs(ibs):
     for rowid, suffix in filter(
         lambda tup: tup[1].startswith('_MANUAL_'), zip(configid_list, cfgsuffix_list)
     ):
-        logger.info('EVALUATING: %r, %r' % (rowid, suffix))
+        logger.info('EVALUATING: {!r}, {!r}'.format(rowid, suffix))
         # Fix the tables with bad config_rowids
         ibs.db.executeone(
             """

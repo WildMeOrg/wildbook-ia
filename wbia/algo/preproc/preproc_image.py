@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
-from os.path import splitext, basename, isabs
 import warnings
-import vtool.exif as vtexif
-import utool as ut
-from vtool.exif import ORIENTATION_DICT_INVERSE, ORIENTATION_UNDEFINED, ORIENTATION_000
-from wbia.utils import call_houston
+from os.path import basename, isabs, splitext
 
+import utool as ut
+import vtool.exif as vtexif
+from vtool.exif import ORIENTATION_000, ORIENTATION_DICT_INVERSE, ORIENTATION_UNDEFINED
+
+from wbia.utils import call_houston
 
 EXIF_UNDEFINED = ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]
 EXIF_NORMAL = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
@@ -59,12 +60,12 @@ def parse_imageinfo(gpath, cleanup=False):
         >>> assert str(uuid) == '16008058-788c-2d48-cd50-f6029f726cbf'
     """
     # Try to open the image
-    from PIL import Image
     import tempfile
-    import requests
-    import cv2
-
     import urllib
+
+    import cv2
+    import requests
+    from PIL import Image
 
     if gpath is None:
         return None, None
@@ -98,7 +99,7 @@ def parse_imageinfo(gpath, cleanup=False):
                 _, ext = splitext(filename)
                 # base = filename
                 base = ut.random_nonce(16)
-                suffix = '.%s%s' % (base, ext)
+                suffix = '.{}{}'.format(base, ext)
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
                 args = (
                     gpath,
@@ -125,11 +126,11 @@ def parse_imageinfo(gpath, cleanup=False):
                         ), '200 code not received on download'
                     except Exception:
                         parts = urlsplit(uri_, allow_fragments=False)
-                        uri_ = uri_[len('%s://' % (parts.scheme,)) :]
+                        uri_ = uri_[len('{}://'.format(parts.scheme)) :]
                         hostname = urlquote(parts.hostname.encode('utf8'))
                         if parts.port:
                             hostname = f'{hostname}:{parts.port}'
-                        uri_ = '%s://%s%s' % (parts.scheme, hostname, parts.path)
+                        uri_ = '{}://{}{}'.format(parts.scheme, hostname, parts.path)
                         response = requests.get(uri_, stream=True, allow_redirects=True)
                         assert (
                             response.status_code == 200
@@ -159,7 +160,7 @@ def parse_imageinfo(gpath, cleanup=False):
             Image.DecompressionBombError,
         ) as ex:
             # ut.embed()
-            logger.info('[preproc] IOError: %s' % (str(ex),))
+            logger.info('[preproc] IOError: {}'.format(str(ex)))
             return None, None
 
         if len(w) > 0:

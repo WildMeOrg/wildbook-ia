@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-from os.path import exists, splitext, join, split
-import utool as ut
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import warnings
 import functools
-from wbia.plottool import custom_constants
+import warnings
+from os.path import exists, join, split, splitext
+
+import matplotlib as mpl
 import matplotlib.gridspec as gridspec  # NOQA
+import matplotlib.pyplot as plt
+import utool as ut
+
+from wbia.plottool import custom_constants
 
 ut.noinject(__name__, '[customfig]')
 
@@ -192,8 +194,8 @@ def figure(
         fig.clf()
     if docla or len(axes_list) == 0:
         if pnum is not None:
-            assert pnum[0] > 0, 'nRows must be > 0: pnum=%r' % (pnum,)
-            assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
+            assert pnum[0] > 0, 'nRows must be > 0: pnum={!r}'.format(pnum)
+            assert pnum[1] > 0, 'nCols must be > 0: pnum={!r}'.format(pnum)
             subspec = _pnum_to_subspec(pnum)
             ax = fig.add_subplot(*subspec, projection=projection)
             if docla:
@@ -224,7 +226,7 @@ def prepare_figure_for_save(fnum, dpi=None, figsize=None, fig=None):
         if figsize is not None and figsize is not False:
             # Enforce inches and DPI
             figw, figh = figsize[0], figsize[1]
-            print('fig w,h (inches) = %r, %r' % (figw, figh))
+            print('fig w,h (inches) = {!r}, {!r}'.format(figw, figh))
             fig.set_size_inches(figw, figh)
         return fig, fig.number
     else:
@@ -273,7 +275,7 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose, dpath=
         if fig._suptitle is not None:
             # safer than using the canvas window title
             # that only works in qt
-            title = 'fig(%r) ' % (fig.number,) + fig._suptitle.get_text()
+            title = 'fig({!r}) '.format(fig.number) + fig._suptitle.get_text()
         else:
             title = fig.canvas.get_window_title()
     if fpath is None:
@@ -324,8 +326,8 @@ def get_image_from_figure(fig):
     References:
         http://stackoverflow.com/questions/7821518/save-plot-to-numpy-array
     """
-    import numpy as np
     import cv2
+    import numpy as np
 
     fig.canvas.draw()
     shape = fig.canvas.get_width_height()[::-1] + (3,)
@@ -393,7 +395,7 @@ def save_figure(
     savekw = {'dpi': dpi}
     if verbose > 1:
         # print('verbose = %r' % (verbose,))
-        print('[pt.save_figure] saveax = %r' % (saveax,))
+        print('[pt.save_figure] saveax = {!r}'.format(saveax))
 
     if False:
         import wbia.plottool as pt
@@ -403,19 +405,20 @@ def save_figure(
 
     if saveax is not None and saveax is not False:
         if verbose > 0:
-            print('\n[pt.save_figure] SAVING ONLY EXTENT saveax=%r\n' % (saveax,))
+            print('\n[pt.save_figure] SAVING ONLY EXTENT saveax={!r}\n'.format(saveax))
         if saveax is True:
             saveax = plt.gca()
         # ut.embed()
         # saveax.set_aspect('auto')
-        import wbia.plottool as pt
         import numpy as np
+
+        import wbia.plottool as pt
 
         xy, w, h = pt.get_axis_xy_width_height(saveax)
         ar = np.abs(w / h)
         if verbose == 2:
-            print('[pt.save_figure] saveax xywh = %r' % ((xy, w, h),))
-            print('[pt.save_figure] saveax ar = %.2f' % (ar,))
+            print('[pt.save_figure] saveax xywh = {!r}'.format((xy, w, h)))
+            print('[pt.save_figure] saveax ar = {:.2f}'.format(ar))
         saveax.set_aspect('equal')
         # extent is bbox in the form [[x0, y0], [x1, y1]]
         extent = saveax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
@@ -436,13 +439,13 @@ def save_figure(
         warnings.filterwarnings('ignore', category=DeprecationWarning)
         if overwrite or not exists(fpath_clean):
             if verbose == 2:
-                print('[pt.save_figure] save_figure() full=%r' % (fpath_clean,))
+                print('[pt.save_figure] save_figure() full={!r}'.format(fpath_clean))
             elif verbose == 1:
                 fpathndir = ut.path_ndir_split(fpath_clean, 5)
                 print('[pt.save_figure] save_figure() ndir=%r' % (fpathndir))
             # fig.savefig(fpath_clean)
             if verbose > 1 or ut.VERBOSE:
-                print(']pt.save_figure] fpath_clean = %s' % (fpath_clean,))
+                print(']pt.save_figure] fpath_clean = {}'.format(fpath_clean))
                 print('[pt.save_figure] savekw = ' + ut.repr2(savekw))
             # savekw['bbox_inches'] = 'tight'
             # print('savekw = %r' % (savekw,))

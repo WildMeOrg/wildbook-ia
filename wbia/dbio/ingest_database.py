@@ -31,14 +31,16 @@ Example:
     >>> ibs.append_annot_case_tags(aid_list, '<annotation tags>')
 """
 import logging
-import wbia
 import os
-from os.path import relpath, dirname, exists, join, realpath, basename, abspath
-from wbia.other import ibsfuncs
-from wbia import constants as const
+from os.path import abspath, basename, dirname, exists, join, realpath, relpath
+
+import parse
 import utool as ut
 import vtool as vt
-import parse
+
+import wbia
+from wbia import constants as const
+from wbia.other import ibsfuncs
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -90,7 +92,7 @@ class Ingestable(object):
             self.img_dir = wbia.sysres.db_to_dbdir(
                 self.dbname, extra_workdirs=[rawdir], allow_newdir=True
             )
-        msg = 'Cannot find img_dir for dbname=%r, img_dir=%r' % (
+        msg = 'Cannot find img_dir for dbname={!r}, img_dir={!r}'.format(
             self.dbname,
             self.img_dir,
         )
@@ -211,7 +213,7 @@ class Ingestable2(object):
         elif ingest_type == 'unknown':
             name_list = [const.UNKNOWN for _ in range(len(gpath_list))]
         else:
-            raise NotImplementedError('unknwon ingest_type=%r' % (ingest_type,))
+            raise NotImplementedError('unknwon ingest_type={!r}'.format(ingest_type))
 
         # Add Images
         gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
@@ -321,7 +323,9 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     species_text = ingestable.species
     postingest_func = ingestable.postingest_func
     logger.info(
-        '[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type)
+        '[ingest] ingesting rawdata: img_dir={!r}, injest_type={!r}'.format(
+            img_dir, ingest_type
+        )
     )
     # Get images in the image directory
 
@@ -333,7 +337,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
         gpath_list = []
         if len(zipfile_list) > 0:
-            logger.info('Found zipfile_list = %r' % (zipfile_list,))
+            logger.info('Found zipfile_list = {!r}'.format(zipfile_list))
             ut.ensuredir(unzipped_file_base_dir)
             for zipfile in zipfile_list:
                 unziped_file_relpath = dirname(
@@ -379,7 +383,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     elif ingest_type == 'unknown':
         name_list = [const.UNKNOWN for _ in range(len(gpath_list))]
     else:
-        raise NotImplementedError('unknwon ingest_type=%r' % (ingest_type,))
+        raise NotImplementedError('unknwon ingest_type={!r}'.format(ingest_type))
 
     # Find names likely to be the same?
     RECTIFY_NAMES_HUERISTIC = True
@@ -451,7 +455,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         annot_orig_uris = ibs.get_image_uris_original(parent_gids)
 
         def parse_turtle_uri(uri):
-            from os.path import splitext, dirname, basename
+            from os.path import basename, dirname, splitext
 
             info = {}
             uril = uri.lower()
@@ -710,6 +714,7 @@ def ingest_testdb1(dbname):
 
     def postingest_tesdb1_func(ibs):
         import numpy as np
+
         from wbia import constants as const
 
         logger.info('postingest_tesdb1_func')
@@ -958,7 +963,7 @@ def get_standard_ingestable(dbname):
     if dbname in STANDARD_INGEST_FUNCS:
         return STANDARD_INGEST_FUNCS[dbname](dbname)
     else:
-        raise AssertionError('Unknown dbname=%r' % (dbname,))
+        raise AssertionError('Unknown dbname={!r}'.format(dbname))
 
 
 def ingest_standard_database(dbname, force_delete=False):
@@ -978,7 +983,7 @@ def ingest_standard_database(dbname, force_delete=False):
     """
     from wbia.control import IBEISControl
 
-    logger.info('[ingest] Ingest Standard Database: dbname=%r' % (dbname,))
+    logger.info('[ingest] Ingest Standard Database: dbname={!r}'.format(dbname))
     ingestable = get_standard_ingestable(dbname)
     dbdir = wbia.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True)
     ut.ensuredir(dbdir, verbose=True)
@@ -1092,7 +1097,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
     num_gt_files = len(gt_fname_list)
     query_annots = []
     gname2_annots_raw = ut.ddict(list)
-    name_set = set([])
+    name_set = set()
     logger.info(' * num_gt_files = %d ' % num_gt_files)
     #
     # Iterate over each groundtruth file
@@ -1310,8 +1315,9 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         >>> import wbia.plottool as pt
         >>> ut.show_if_requested()
     """
-    import simplejson as json
     import datetime
+
+    import simplejson as json
 
     logger.info('Loading PASCAL VOC Style Images from: ' + dbdir)
 
@@ -1325,14 +1331,14 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         'val2014',
     ]
 
-    test2014_seen_set = set([])
+    test2014_seen_set = set()
     cat_dict = {}
     lic_dict = {}
     image_dict = {}
     for dataset_name in dataset_name_list:
-        logger.info('Processing Dataset %r' % (dataset_name,))
+        logger.info('Processing Dataset {!r}'.format(dataset_name))
         logger.info('\tLoading Instances JSON...')
-        inst_filepath = join(annot_path, 'instances_%s.json' % (dataset_name,))
+        inst_filepath = join(annot_path, 'instances_{}.json'.format(dataset_name))
         if exists(inst_filepath):
             with open(inst_filepath) as inst_file:
                 inst_dict = json.load(inst_file)
@@ -1340,7 +1346,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             inst_dict = {}
 
         logger.info('\tLoading Captions JSON...')
-        capt_filepath = join(annot_path, 'captions_%s.json' % (dataset_name,))
+        capt_filepath = join(annot_path, 'captions_{}.json'.format(dataset_name))
         if exists(capt_filepath):
             with open(capt_filepath) as capt_file:
                 capt_dict = json.load(capt_file)
@@ -1348,7 +1354,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             capt_dict = {}
 
         logger.info('\tLoading Info JSON...')
-        info_filepath = join(annot_path, 'image_info_%s.json' % (dataset_name,))
+        info_filepath = join(annot_path, 'image_info_{}.json'.format(dataset_name))
         if exists(info_filepath):
             with open(info_filepath) as info_file:
                 info_dict = json.load(info_file)
@@ -1436,7 +1442,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
                 id_dict[image_id] = image_filename
             # Add dataset name
             if 'datasets' not in image_dict[image_filename]:
-                image_dict[image_filename]['datasets'] = set([])
+                image_dict[image_filename]['datasets'] = set()
             image_dict[image_filename]['datasets'].add(dataset_name)
             # Add test2014, if needed
             if dataset_name == 'test2015' and image_id in test2014_seen_set:
@@ -1516,7 +1522,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
     image_annot_species_list_list = []
     image_annot_metadata_list_list = []
     for image_filename in image_filename_list:
-        logger.info('Processing: %r' % (image_filename,))
+        logger.info('Processing: {!r}'.format(image_filename))
         image = image_dict[image_filename]
         image_filepath_list.append(image['filepath'])
         image_original_url_list.append(image['coco_url'])
@@ -1540,13 +1546,13 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         image_metadata_list.append(image_metadata_dict)
         # Get the Imagesets for the datasets
         image_imageset_list = [
-            'DATASET: %s' % (image_dataset,) for image_dataset in image_dataset_list
+            'DATASET: {}'.format(image_dataset) for image_dataset in image_dataset_list
         ]
         if len(image_imageset_list) == 0:
             image_imageset_list.append('DATASET: UNSPECIFIED')
         # Get the Imagesets for the annotations
-        image_category_set = set([])
-        image_super_category_set = set([])
+        image_category_set = set()
+        image_super_category_set = set()
         image_annot_bbox_list = []
         image_annot_species_list = []
         image_annot_metadata_list = []
@@ -1574,11 +1580,11 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         image_annot_metadata_list_list.append(image_annot_metadata_list)
         # Add categories
         image_imageset_list += [
-            'CATEGORY: %s' % (image_category,)
+            'CATEGORY: {}'.format(image_category)
             for image_category in sorted(list(image_category_set))
         ]
         image_imageset_list += [
-            'SUPER CATEGORY: %s' % (image_super_category,)
+            'SUPER CATEGORY: {}'.format(image_super_category)
             for image_super_category in sorted(list(image_super_category_set))
         ]
         image_imagesets_list.append(image_imageset_list)
@@ -1589,7 +1595,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         # Add images to the database
         gid_list = ibs.add_images(image_filepath_list)
 
-        seen_set = set([])
+        seen_set = set()
         flag_list = []
         for gid in gid_list:
             flag_list.append(gid not in seen_set)
@@ -1638,7 +1644,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
             gid_list_, image_annot_bbox_list, species_list=image_annot_species_list
         )
 
-        seen_set = set([])
+        seen_set = set()
         flag_list = []
         for aid in aid_list:
             flag_list.append(aid not in seen_set)
@@ -1700,13 +1706,13 @@ def ingest_serengeti_mamal_cameratrap(species):
     else:
         serengeti_sepcies = species
 
-    logger.info('species = %r' % (species,))
-    logger.info('serengeti_sepcies = %r' % (serengeti_sepcies,))
+    logger.info('species = {!r}'.format(species))
+    logger.info('serengeti_sepcies = {!r}'.format(serengeti_sepcies))
 
     dbname = code + '_Serengeti'
-    logger.info('dbname = %r' % (dbname,))
+    logger.info('dbname = {!r}'.format(dbname))
     dbdir = ut.ensuredir(join(wbia.sysres.get_workdir(), dbname))
-    logger.info('dbdir = %r' % (dbdir,))
+    logger.info('dbdir = {!r}'.format(dbdir))
     image_dir = ut.ensuredir(join(dbdir, 'images'))
 
     base_url = 'http://datadryad.org/bitstream/handle/10255'
@@ -1722,10 +1728,10 @@ def ingest_serengeti_mamal_cameratrap(species):
     search_effort_fpath = ut.grab_file_url(search_effort_url, download_dir=dbdir)
     gold_standard_fpath = ut.grab_file_url(gold_standard_url, download_dir=dbdir)
 
-    logger.info('all_images_fpath         = %r' % (all_images_fpath,))
-    logger.info('consensus_metadata_fpath = %r' % (consensus_metadata_fpath,))
-    logger.info('search_effort_fpath      = %r' % (search_effort_fpath,))
-    logger.info('gold_standard_fpath      = %r' % (gold_standard_fpath,))
+    logger.info('all_images_fpath         = {!r}'.format(all_images_fpath))
+    logger.info('consensus_metadata_fpath = {!r}'.format(consensus_metadata_fpath))
+    logger.info('search_effort_fpath      = {!r}'.format(search_effort_fpath))
+    logger.info('gold_standard_fpath      = {!r}'.format(gold_standard_fpath))
 
     def read_csv(csv_fpath):
         import utool as ut
@@ -1800,7 +1806,7 @@ def ingest_serengeti_mamal_cameratrap(species):
         ' * len(species_class_chosen_idx_list) = %r'
         % (len(species_class_chosen_idx_list),)
     )
-    logger.info(' * len(chosen_eventid_list) = %r' % (len(chosen_eventid_list),))
+    logger.info(' * len(chosen_eventid_list) = {!r}'.format(len(chosen_eventid_list)))
 
     # Read info about which events have which images
     images_csv_data, image_csv_header = read_csv(all_images_fpath)

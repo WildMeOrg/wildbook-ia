@@ -17,18 +17,20 @@ CommandLine:
 
 """
 import logging
-from wbia import constants as const
-from wbia.control import accessor_decors, controller_inject
-from wbia.control.controller_inject import make_ibs_register_decorator
+import os
 
 # from os.path import join, exists, abspath, normpath, isabs
-from os.path import join, exists, isabs
+from os.path import exists, isabs, join
+
 import numpy as np
 import utool as ut
 import vtool as vt
-from wbia.web import routes_ajax
+
+from wbia import constants as const
+from wbia.control import accessor_decors, controller_inject
+from wbia.control.controller_inject import make_ibs_register_decorator
 from wbia.utils import call_houston
-import os
+from wbia.web import routes_ajax
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -285,7 +287,7 @@ def _compute_image_uuids(ibs, gpath_list, sanitize=True, ensure=True, **kwargs):
     ]
 
     logger.info(
-        '\n'.join([' ! Failed reading gpath=%r' % (gpath,) for gpath in failed_list])
+        '\n'.join([' ! Failed reading gpath={!r}'.format(gpath) for gpath in failed_list])
     )
 
     if ensure and len(failed_list) > 0:
@@ -399,7 +401,7 @@ def add_images(
                 uri_ = params_[1]
                 cache_uri_dict[uri_] = gpath_
 
-    logger.info('Using cache_uri_dict = %s' % (ut.repr3(cache_uri_dict),))
+    logger.info('Using cache_uri_dict = {}'.format(ut.repr3(cache_uri_dict)))
 
     # <DEBUG>
     debug = False
@@ -437,7 +439,7 @@ def add_images(
     )
 
     # Filter for valid images and de-duplicate
-    none_set = set([None])
+    none_set = {None}
     all_gid_set = set(all_gid_list)
     all_valid_gid_set = all_gid_set - none_set
     all_valid_gid_list = list(all_valid_gid_set)
@@ -463,16 +465,16 @@ def add_images(
         bad_load_set = set(bad_load_list)
         bad_exif_set = set(bad_exif_list)
 
-        delete_gid_set = set([])
+        delete_gid_set = set()
         for valid_gid, valid_gpath in zip(all_valid_gid_list, valid_gpath_list):
             if ensure_loadable and valid_gid in bad_load_set:
                 logger.info(
-                    'Loadable Image Validation: Failed to load %r' % (valid_gpath,)
+                    'Loadable Image Validation: Failed to load {!r}'.format(valid_gpath)
                 )
                 delete_gid_set.add(valid_gid)
             if ensure_exif and valid_gid in bad_exif_set:
                 logger.info(
-                    'Loadable EXIF Validation:  Failed to load %r' % (valid_gpath,)
+                    'Loadable EXIF Validation:  Failed to load {!r}'.format(valid_gpath)
                 )
                 delete_gid_set.add(valid_gid)
 
@@ -572,9 +574,9 @@ def localize_images(ibs, gid_list_=None, cache_uri_dict=None, cleanup=True):
 
     """
     # from os.path import isabs
-    import requests
-
     import urllib
+
+    import requests
 
     if cache_uri_dict is None:
         cache_uri_dict = {}
@@ -629,7 +631,7 @@ def localize_images(ibs, gid_list_=None, cache_uri_dict=None, cleanup=True):
             else:
                 logger.info('\t...local cache file is missing, fetching')
 
-        logger.info('Localizing %r -> %r' % (uri, loc_gpath))
+        logger.info('Localizing {!r} -> {!r}'.format(uri, loc_gpath))
         if isproto(uri, valid_protos):
             if isproto(uri, s3_proto):
                 logger.info('\tAWS S3 Fetch')
@@ -650,11 +652,11 @@ def localize_images(ibs, gid_list_=None, cache_uri_dict=None, cleanup=True):
                     ), '200 code not received on download'
                 except Exception:
                     parts = urlsplit(uri_, allow_fragments=False)
-                    uri_ = uri_[len('%s://' % (parts.scheme,)) :]
+                    uri_ = uri_[len('{}://'.format(parts.scheme)) :]
                     hostname = urlquote(parts.hostname.encode('utf8'))
                     if parts.port:
                         hostname = f'{hostname}:{parts.port}'
-                    uri_ = '%s://%s%s' % (parts.scheme, hostname, parts.path)
+                    uri_ = '{}://{}{}'.format(parts.scheme, hostname, parts.path)
                     response = requests.get(uri_, stream=True, allow_redirects=True)
                     assert (
                         response.status_code == 200
@@ -683,7 +685,7 @@ def localize_images(ibs, gid_list_=None, cache_uri_dict=None, cleanup=True):
                 logger.info('\tSkipping (already localized)')
 
         if cleanup and is_cache:
-            logger.info('Deleting cache file %r' % (cache_uri,))
+            logger.info('Deleting cache file {!r}'.format(cache_uri))
             os.unlink(cache_uri)
 
     # Update database uris
@@ -803,7 +805,7 @@ def set_image_cameratrap(ibs, gid_list, cameratrap_list):
     Sets the image all instances found bit
     """
     id_iter = ((gid,) for gid in gid_list)
-    valid_set = set([False, True, None])
+    valid_set = {False, True, None}
     valid_list = [cameratrap in valid_set for cameratrap in cameratrap_list]
     assert False not in valid_list
     val_list = ((cameratrap,) for cameratrap in cameratrap_list)
@@ -1148,9 +1150,9 @@ def set_image_orientation(ibs, gid_list, orientation_list):
         URL:    /api/image/orientation/
     """
     from vtool.exif import (
+        ORIENTATION_000,
         ORIENTATION_DICT_INVERSE,
         ORIENTATION_UNDEFINED,
-        ORIENTATION_000,
     )
 
     undefined = ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]
@@ -1183,16 +1185,16 @@ def set_image_orientation(ibs, gid_list, orientation_list):
             continue
         path = (existing_orientation, orientation)
         path_func = path_funcs.get(path, None)
-        assert path_func is not None, 'Could not find path %r' % (path,)
+        assert path_func is not None, 'Could not find path {!r}'.format(path)
         path_func([gid])
 
 
 def update_image_rotate_90(ibs, gid_list, direction):
     from vtool.exif import (
+        ORIENTATION_000,
         ORIENTATION_DICT_INVERSE,
         ORIENTATION_ORDER_LIST,
         ORIENTATION_UNDEFINED,
-        ORIENTATION_000,
     )
 
     def _update_bounding_boxes(gid, val):
@@ -1229,18 +1231,20 @@ def update_image_rotate_90(ibs, gid_list, direction):
         if orient == ORIENTATION_DICT_INVERSE[ORIENTATION_UNDEFINED]:
             orient = ORIENTATION_DICT_INVERSE[ORIENTATION_000]
 
-        assert orient in ORIENTATION_ORDER_LIST, 'Unrecognized orientation = %r in %r' % (
+        assert (
+            orient in ORIENTATION_ORDER_LIST
+        ), 'Unrecognized orientation = {!r} in {!r}'.format(
             orient,
             ORIENTATION_ORDER_LIST,
         )
 
         current_index = ORIENTATION_ORDER_LIST.index(orient)
-        new_index = int((current_index + val)) % len(ORIENTATION_ORDER_LIST)
+        new_index = int(current_index + val) % len(ORIENTATION_ORDER_LIST)
 
         new_orient = ORIENTATION_ORDER_LIST[new_index]
         new_orient_list.append(new_orient)
 
-    logger.info('Rotating images %r -> %r' % (orient_list, new_orient_list))
+    logger.info('Rotating images {!r} -> {!r}'.format(orient_list, new_orient_list))
     ibs._set_image_orientation(gid_list, new_orient_list)
 
     # We've just rotated, invert the width, height values in the database for each image
@@ -1357,7 +1361,7 @@ def get_image_thumbtup(ibs, gid_list, **kwargs):
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
     """
     if DEBUG_THUMB:
-        logger.info('{TUPPLE} get thumbtup kwargs = %r' % (kwargs,))
+        logger.info('{{TUPPLE}} get thumbtup kwargs = {!r}'.format(kwargs))
     # logger.info('gid_list = %r' % (gid_list,))
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
@@ -1392,8 +1396,8 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     """
     if DEBUG_THUMB:
         logger.info('[GET} get_image_thumbpath for %d gids' % (len(gid_list)))
-        logger.info('[GET} get thumbtup config = %r' % (config,))
-        logger.info('[GET} get thumbtup ensure_paths = %r' % (ensure_paths,))
+        logger.info('[GET}} get thumbtup config = {!r}'.format(config))
+        logger.info('[GET}} get thumbtup ensure_paths = {!r}'.format(ensure_paths))
     # raise Exception("FOOBAR")
     depc = ibs.depc_image
     # Do not force computation just ask where the thumbs will go
@@ -1420,7 +1424,7 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     #    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
     #                               read_extern=False)
     if DEBUG_THUMB:
-        logger.info('[GET} thumbpath_list = %r' % (thumbpath_list,))
+        logger.info('[GET}} thumbpath_list = {!r}'.format(thumbpath_list))
     return thumbpath_list
 
 
@@ -1753,7 +1757,7 @@ def get_image_hash(ibs, gid_list=None, algo='md5'):
     elif algo == 'sha512':
         hash_func = hashlib.sha512
     else:
-        raise ValueError('algo must be in %r' % (algo,))
+        raise ValueError('algo must be in {!r}'.format(algo))
 
     hash_list = []
     for image_path in image_path_list:

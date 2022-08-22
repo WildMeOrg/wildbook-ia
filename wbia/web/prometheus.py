@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
-from prometheus_client import Info, Gauge, Counter, Enum, Histogram  # NOQA
+
+import utool as ut
+from prometheus_client import Counter, Enum, Gauge, Histogram, Info  # NOQA
+
+import wbia.constants as const
 from wbia.control import controller_inject
 from wbia.web.apis_query import RENDER_STATUS  # NOQA
-import wbia.constants as const
-import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -246,7 +248,7 @@ def prometheus_update(ibs, *args, **kwargs):
                         'max': status_dict_template.copy(),
                     }
 
-                    endpoints = set([])
+                    endpoints = set()
                     working_endpoint = None
                 except Exception:
                     pass
@@ -259,8 +261,8 @@ def prometheus_update(ibs, *args, **kwargs):
                         endpoint = job_status['endpoint']
                         jobcounter = job_status['jobcounter']
 
-                        status = '%s' % (status,)
-                        endpoint = '%s' % (endpoint,)
+                        status = '{}'.format(status)
+                        endpoint = '{}'.format(endpoint)
 
                         if status not in status_dict_template.keys():
                             status = '_error'
@@ -275,8 +277,8 @@ def prometheus_update(ibs, *args, **kwargs):
                     try:
                         if status in ['working']:
                             from wbia.web.job_engine import (
-                                calculate_timedelta,
                                 _timestamp,
+                                calculate_timedelta,
                             )
 
                             started = job_status['time_started']
@@ -302,7 +304,7 @@ def prometheus_update(ibs, *args, **kwargs):
 
                     try:
                         if status not in status_dict_template:
-                            logger.info('UNRECOGNIZED STATUS %r' % (status,))
+                            logger.info('UNRECOGNIZED STATUS {!r}'.format(status))
                         status_dict[endpoint][status] += 1
                         status_dict['*'][status] += 1
 

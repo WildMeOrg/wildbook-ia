@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-import logging
-import utool as ut
-import numpy as np
-import vtool as vt
 import functools
-from wbia.algo.hots import hstypes
+import logging
+
+import numpy as np
+import utool as ut
+import vtool as vt
+
 from wbia.algo.hots import _pipeline_helpers as plh
+from wbia.algo.hots import hstypes
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -37,7 +39,7 @@ def _register_nn_normalized_weight_func(func):
     global NN_WEIGHT_FUNC_DICT
     filtkey = ut.get_funcname(func).replace('_fn', '').lower()
     if ut.VERYVERBOSE:
-        logger.info('[nn_weights] registering norm func: %r' % (filtkey,))
+        logger.info('[nn_weights] registering norm func: {!r}'.format(filtkey))
     filtfunc = functools.partial(nn_normalized_weight, func)
     NN_WEIGHT_FUNC_DICT[filtkey] = filtfunc
     return func
@@ -49,7 +51,7 @@ def _register_nn_simple_weight_func(func):
     """
     filtkey = ut.get_funcname(func).replace('_match_weighter', '').lower()
     if ut.VERYVERBOSE:
-        logger.info('[nn_weights] registering simple func: %r' % (filtkey,))
+        logger.info('[nn_weights] registering simple func: {!r}'.format(filtkey))
     NN_WEIGHT_FUNC_DICT[filtkey] = func
     return func
 
@@ -57,7 +59,7 @@ def _register_nn_simple_weight_func(func):
 def _register_misc_weight_func(func):
     filtkey = ut.get_funcname(func).replace('_match_weighter', '').lower()
     if ut.VERYVERBOSE:
-        logger.info('[nn_weights] registering simple func: %r' % (filtkey,))
+        logger.info('[nn_weights] registering simple func: {!r}'.format(filtkey))
     MISC_WEIGHT_FUNC_DICT[filtkey] = func
     return func
 
@@ -218,7 +220,7 @@ def get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule):
         >>> assert np.all(neighb_normk2 <= Knorm + K) and np.all(neighb_normk2 > K)
     """
     K = len(neighb_idx.T) - Knorm
-    assert K > 0, 'K=%r cannot be 0' % (K,)
+    assert K > 0, 'K={!r} cannot be 0'.format(K)
     # neighb_nndist = neighb_dist.T[0:K].T
     if normalizer_rule == 'last':
         neighb_normk = np.zeros(len(neighb_idx), hstypes.FK_DTYPE) + (K + Knorm - 1)

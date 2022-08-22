@@ -3,18 +3,20 @@
 Dependencies: flask, tornado
 """
 import logging
-import random
 import math
+import os
+import random
+
+import numpy as np
 import simplejson as json
-from flask import request, redirect, current_app, url_for
-from wbia.control import controller_inject
+import utool as ut
+from flask import current_app, redirect, request, url_for
+
 from wbia import constants as const
 from wbia.constants import KEY_DEFAULTS, SPECIES_KEY
+from wbia.control import controller_inject
 from wbia.web import appfuncs as appf
 from wbia.web import routes_ajax
-import utool as ut
-import numpy as np
-import os
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -987,7 +989,7 @@ def view_advanced1(**kwargs):
 
     histogram_bins = list(range(1, num_bins + 1))
     bar_label_list = [
-        '%s+' % (bin_,) if bin_ == histogram_bins[-1] else '%s' % (bin_,)
+        '{}+'.format(bin_) if bin_ == histogram_bins[-1] else '{}'.format(bin_)
         for bin_ in histogram_bins
     ]
     bar_values_dict = {}
@@ -1186,7 +1188,7 @@ def view_advanced3(**kwargs):
         temp_list = []
         for car in contrib_dict[dataset_tag]:
             letter_dict = contrib_dict[dataset_tag][car]
-            combined_list = list([(_[1], _[0]) for _ in letter_dict.items()])
+            combined_list = list((_[1], _[0]) for _ in letter_dict.items())
             combined_list = sorted(combined_list, reverse=True)
             letter_list = [_[1] for _ in combined_list]
             total = sum(letter_dict.values())
@@ -1247,7 +1249,7 @@ def view_advanced4(**kwargs):
     def filter_species_of_interest(gid_list):
         if not gid_list:  # no need to filter if empty
             return gid_list
-        wanted_set = set(['zebra_plains', 'zebra_grevys', 'giraffe_masai'])
+        wanted_set = {'zebra_plains', 'zebra_grevys', 'giraffe_masai'}
         aids_list = ibs.get_image_aids(gid_list)
         speciess_list = ut.unflat_map(ibs.get_annot_species_texts, aids_list)
         speciess_set = map(set, speciess_list)
@@ -1275,7 +1277,7 @@ def view_advanced4(**kwargs):
     def filter_bad_metadata(gid_list):
         if not gid_list:  # no need to filter if empty
             return gid_list
-        wanted_set = set(['2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31'])
+        wanted_set = {'2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31'}
         date_list = _date_list(gid_list)
         gps_list = ibs.get_image_gps(gid_list)
         gid_list_filtered = []
@@ -1647,7 +1649,7 @@ def view_graphs(sync=False, **kwargs):
         # Reset sex for new names from old names
         nid_list_ = ibs.get_annot_nids(aid_list_)
 
-        seen = set([])
+        seen = set()
         new_nid_list = []
         new_sex_list = []
         for nid_, sex_ in zip(nid_list_, sex_list_):
@@ -1665,7 +1667,7 @@ def view_graphs(sync=False, **kwargs):
         graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
         if graph_client is None:
             continue
-        graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid),)
+        graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(graph_uuid))
         graph_uuid_str = graph_uuid_str.replace(': ', ':')
         graph_status, graph_exception = graph_client.refresh_status()
         actor_status = graph_client.actor_status
@@ -1676,13 +1678,13 @@ def view_graphs(sync=False, **kwargs):
 
             trace = traceback.format_tb(graph_exception.__traceback__)
             trace = '\n\n'.join(trace)
-            graph_exception = 'Exception: %s\n%s' % (graph_exception, trace)
+            graph_exception = 'Exception: {}\n{}'.format(graph_exception, trace)
         if graph_client.review_dict is None:
             num_edges = None
         else:
             edge_list = list(graph_client.review_dict.keys())
             num_edges = len(edge_list)
-        phase = 'Phase %s (%s)' % (
+        phase = 'Phase {} ({})'.format(
             actor_status.get('phase', None),
             actor_status.get('loop_phase', None),
         )
@@ -1691,7 +1693,7 @@ def view_graphs(sync=False, **kwargs):
             state = -1
         elif actor_status.get('is_converged', False):
             state = 1
-        reviews = '%s (%s - %s)' % (
+        reviews = '{} ({} - {})'.format(
             num_edges,
             actor_status.get('num_meaningful', None),
             actor_status.get('num_pccs', None),
@@ -2290,7 +2292,7 @@ def review_detection(
         for key, default in default_list
     }
     config_str_list = [
-        '%s=%s' % (key, 'true' if config[key] else 'false') for key in config.keys()
+        '{}={}'.format(key, 'true' if config[key] else 'false') for key in config.keys()
     ]
     config_str = '&'.join(config_str_list)
 
@@ -2309,7 +2311,7 @@ def review_detection(
         )
 
         try:
-            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list),)
+            progress = '{:0.2f}'.format(100.0 * reviewed_list.count(True) / len(gid_list))
         except ZeroDivisionError:
             progress = '100.0'
 
@@ -2317,7 +2319,7 @@ def review_detection(
             staged_progress = appf.imageset_image_staged_progress(
                 ibs, gid_list, reviews_required=staged_reviews_required
             )
-            staged_progress = '%0.2f' % (100.0 * staged_progress,)
+            staged_progress = '{:0.2f}'.format(100.0 * staged_progress)
         else:
             staged_progress = None
 
@@ -2515,7 +2517,7 @@ def review_detection(
             ibs.get_annot_part_rowids(staged_aid_list, is_staged=True)
         )
 
-        imgesetid_list = list(set(ibs.get_image_imgsetids(gid)) - set([imgsetid]))
+        imgesetid_list = list(set(ibs.get_image_imgsetids(gid)) - {imgsetid})
         imagesettext_list = ibs.get_imageset_text(imgesetid_list)
         imagesettext_list = [_ for _ in imagesettext_list if not _.startswith('*')]
         imagesettext_list_str = ', '.join(imagesettext_list)
@@ -2637,7 +2639,7 @@ def review_detection(
 
                     THROW_TEST_AOI_REVIEWING_MANIFEST.append(
                         {
-                            'action': 'alteration-%s' % (direction,),
+                            'action': 'alteration-{}'.format(direction),
                             'values': annotation_list[index],
                         }
                     )
@@ -2670,7 +2672,7 @@ def review_detection(
 
                     THROW_TEST_AOI_REVIEWING_MANIFEST.append(
                         {
-                            'action': 'translation-%s' % (direction,),
+                            'action': 'translation-{}'.format(direction),
                             'values': annotation_list[index],
                         }
                     )
@@ -2698,17 +2700,17 @@ def review_detection(
     part_type_list = ibs.get_part_types(part_rowid_list)
     zipped = list(zip(part_species_text_list, part_type_list))
 
-    species_part_dict = {const.UNKNOWN: set([])}
+    species_part_dict = {const.UNKNOWN: set()}
     for part_species_text, part_type in zipped:
         if part_species_text not in species_part_dict:
-            species_part_dict[part_species_text] = set([const.UNKNOWN])
+            species_part_dict[part_species_text] = {const.UNKNOWN}
         species_part_dict[part_species_text].add(part_type)
         species_part_dict[const.UNKNOWN].add(part_type)
 
     # Add any images that did not get added because they aren't assigned any annotations
     for species_text in species_text_list:
         if species_text not in species_part_dict:
-            species_part_dict[species_text] = set([const.UNKNOWN])
+            species_part_dict[species_text] = {const.UNKNOWN}
     for key in species_part_dict:
         species_part_dict[key] = sorted(list(species_part_dict[key]))
     species_part_dict_json = json.dumps(species_part_dict)
@@ -2734,7 +2736,7 @@ def review_detection(
     if is_canonical:
         settings['ia-detection-setting-parts-show'] = True
 
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid)
+    callback_url = '{}?imgsetid={}'.format(url_for('submit_detection'), imgsetid)
     return appf.template(
         'review',
         'detection',
@@ -2792,7 +2794,7 @@ def review_detection_canonical(
 
     reviewed_list = appf.imageset_annot_canonical(ibs, aid_list)
     try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list),)
+        progress = '{:0.2f}'.format(100.0 * reviewed_list.count(True) / len(aid_list))
     except ZeroDivisionError:
         progress = '100.0'
 
@@ -2869,7 +2871,7 @@ def review_detection_dynamic(**kwargs):
     else:
         species = KEY_DEFAULTS[SPECIES_KEY]
 
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), gid)
+    callback_url = '{}?imgsetid={}'.format(url_for('submit_detection'), gid)
     return appf.template(
         'review',
         'detection_dynamic',
@@ -3092,7 +3094,9 @@ def review_annotation_canonical(
 
     try:
         logger.info('Total len(reviewed_list) = %d' % (len(reviewed_list),))
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list),)
+        progress = '{:0.2f}'.format(
+            100.0 * reviewed_list.count(True) / len(reviewed_list)
+        )
     except ZeroDivisionError:
         progress = '100.0'
 
@@ -3174,7 +3178,7 @@ def review_splits(aid=None, **kwargs):
         annotation_list = list(zip(aid_list))
 
     annotation_list.sort(key=lambda t: t[0])
-    callback_url = '%s' % (url_for('submit_splits'),)
+    callback_url = '{}'.format(url_for('submit_splits'))
     return appf.template(
         'review',
         'splits',
@@ -3200,7 +3204,7 @@ def review_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
         for key, default in default_list
     }
     config_str_list = [
-        '%s=%s' % (key, 'true' if config[key] else 'false') for key in config.keys()
+        '{}={}'.format(key, 'true' if config[key] else 'false') for key in config.keys()
     ]
     config_str = '&'.join(config_str_list)
 
@@ -3213,7 +3217,9 @@ def review_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
     reviewed_list = appf.imageset_part_contour_processed(ibs, part_rowid_list)
 
     try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(reviewed_list),)
+        progress = '{:0.2f}'.format(
+            100.0 * reviewed_list.count(True) / len(reviewed_list)
+        )
     except ZeroDivisionError:
         progress = '100.0'
 
@@ -3253,7 +3259,7 @@ def review_contour(part_rowid=None, imgsetid=None, previous=None, **kwargs):
         for (settings_key, settings_default) in settings_key_list
     }
 
-    callback_url = '%s?imgsetid=%s' % (url_for('submit_contour'), imgsetid)
+    callback_url = '{}?imgsetid={}'.format(url_for('submit_contour'), imgsetid)
     return appf.template(
         'review',
         'contour',
@@ -3440,7 +3446,9 @@ def review_part_types(
     reviewed_list = appf.imageset_part_type_processed(ibs, part_rowid_list)
 
     try:
-        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(part_rowid_list),)
+        progress = '{:0.2f}'.format(
+            100.0 * reviewed_list.count(True) / len(part_rowid_list)
+        )
     except ZeroDivisionError:
         progress = '0.00'
     part_rowid = request.args.get('part_rowid', '')
@@ -3488,7 +3496,7 @@ def review_part_types(
             'triple_black',
             'long_white',
         ]
-        all_part_types = sorted(list(set(all_part_types) - set([const.UNKNOWN])))
+        all_part_types = sorted(list(set(all_part_types) - {const.UNKNOWN}))
 
     if not refresh and previous_part_types is not None:
         try:
@@ -3984,7 +3992,7 @@ def load_identification_query_object(
     query_object = current_app.QUERY_OBJECT
     while len(current_app.QUERY_OBJECT_FEEDBACK_BUFFER) > 0:
         feedback = current_app.QUERY_OBJECT_FEEDBACK_BUFFER.pop()
-        logger.info('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback,))
+        logger.info('Popping {!r} out of QUERY_OBJECT_FEEDBACK_BUFFER'.format(feedback))
         aid1, aid2, state, tags = feedback
         query_object.add_feedback((aid1, aid2), state, tags=tags)
         query_object.GLOBAL_FEEDBACK_COUNTER += 1
@@ -4109,13 +4117,13 @@ def review_identification(
                     'Feedback counter    = %r / %r'
                     % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT)
                 )
-                logger.info('Status dict         = %r' % (status_dict,))
-                logger.info('Raw list len        = %r' % (len(raw_review_list),))
-                logger.info('len(query_aid_list) = %r' % (len(query_object.aids),))
-                logger.info('Estimated remaining = %r' % (status_remaining,))
-                logger.info('Reviews list len    = %r' % (len(review_aid1_list),))
+                logger.info('Status dict         = {!r}'.format(status_dict))
+                logger.info('Raw list len        = {!r}'.format(len(raw_review_list)))
+                logger.info('len(query_aid_list) = {!r}'.format(len(query_object.aids)))
+                logger.info('Estimated remaining = {!r}'.format(status_remaining))
+                logger.info('Reviews list len    = {!r}'.format(len(review_aid1_list)))
                 try:
-                    progress = '%0.02f' % (
+                    progress = '{:0.02f}'.format(
                         100.0 * (1.0 - (status_remaining / len(query_object.aids))),
                     )
                 except ZeroDivisionError:
@@ -4133,7 +4141,7 @@ def review_identification(
                         finished = False
                         if not choice:
                             index = random.randint(0, len(review_aid1_list) - 1)
-                            logger.info('Picked random index = %r' % (index,))
+                            logger.info('Picked random index = {!r}'.format(index))
                             aid1 = review_aid1_list[index]
                             aid2 = review_aid2_list[index]
 
@@ -4262,19 +4270,19 @@ def review_identification(
             days = 60.0 * 60.0 * 24.0 * 365.0
 
             if timedelta < secs:
-                timedelta_str = '%0.2f seconds' % (timedelta,)
+                timedelta_str = '{:0.2f} seconds'.format(timedelta)
             elif timedelta < mins:
                 timedelta /= secs
-                timedelta_str = '%0.2f minutes' % (timedelta,)
+                timedelta_str = '{:0.2f} minutes'.format(timedelta)
             elif timedelta < hrs:
                 timedelta /= mins
-                timedelta_str = '%0.2f hours' % (timedelta,)
+                timedelta_str = '{:0.2f} hours'.format(timedelta)
             elif timedelta < days:
                 timedelta /= hrs
-                timedelta_str = '%0.2f days' % (timedelta,)
+                timedelta_str = '{:0.2f} days'.format(timedelta)
             else:
                 timedelta /= days
-                timedelta_str = '%0.2f years' % (timedelta,)
+                timedelta_str = '{:0.2f} years'.format(timedelta)
 
     callback_url = url_for('submit_identification')
     return appf.template(
@@ -4492,7 +4500,7 @@ def _princeton_kaia_filtering(
     if tier in [4, 5]:
         ibs.delete_empty_nids()
 
-        valid_nid_set = set([])
+        valid_nid_set = set()
         new_nid_list = ibs.get_annot_nids(new_aid_list)
         for new_aid, new_nid in zip(new_aid_list, new_nid_list):
             if new_nid > 0:
@@ -4559,8 +4567,8 @@ def _zebra_annot_filtering(ibs, current_aids, desired_species):
 
 
 def gradient_magnitude(image_filepath):
-    import numpy as np
     import cv2
+    import numpy as np
 
     try:
         image = cv2.imread(image_filepath)
@@ -4585,7 +4593,7 @@ def review_identification_lca_refer(aids, **kwargs):
     ibs = current_app.ibs
 
     annot_uuid_set = set(ibs.get_annot_uuids(aids))
-    annot_uuid_list = sorted(annot_uuid_set - set([None]))
+    annot_uuid_list = sorted(annot_uuid_set - {None})
 
     print('Starting LCA with %d annotations' % (len(annot_uuid_list),))
 
@@ -4784,7 +4792,7 @@ def review_identification_graph_refer(
             quality_thresh_ = 0 if canonical_ else 2
             if quality_ <= quality_thresh_:
                 failed_tag = 'CA<=junk' if canonical_ else 'NCA<=poor'
-                failed_str = 'species->viewpoint->quality[%s]' % (failed_tag,)
+                failed_str = 'species->viewpoint->quality[{}]'.format(failed_tag)
                 failed[failed_str] += 1
                 continue
             svq_aid_list_.append(aid)
@@ -4819,7 +4827,7 @@ def review_identification_graph_refer(
         aid_list_ = list(set(gradient_aid_list_))
         assert len(aid_list_) + sum(failed.values()) == len(aid_list)
         logger.info('Using %d aids' % (len(aid_list_),))
-        logger.info('Failed %s' % (ut.repr3(failed),))
+        logger.info('Failed {}'.format(ut.repr3(failed)))
 
         aid_set_ = set(aid_list_)
         review_rowid_list = ibs._get_all_review_rowids()
@@ -5043,7 +5051,7 @@ def review_identification_graph(
 
                 graph_uuid_list = list(current_app.GRAPH_CLIENT_DICT.keys())
                 for graph_uuid_ in graph_uuid_list:
-                    logger.info('Processing %r' % (graph_uuid_,))
+                    logger.info('Processing {!r}'.format(graph_uuid_))
 
                     graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid_, None)
                     if graph_client is None:
@@ -5116,7 +5124,7 @@ def review_identification_graph(
                         progress += cc_status.get('num_names_max', 0)
                 progress = int(progress)
 
-                logger.info('Using Hogwild graph_uuid = %r' % (graph_uuid,))
+                logger.info('Using Hogwild graph_uuid = {!r}'.format(graph_uuid))
             except AssertionError:
                 hogwild = False
                 pass
@@ -5204,7 +5212,7 @@ def review_identification_graph(
             else:
                 base = url_for('review_identification_graph')
             sep = '&' if '?' in base else '?'
-            url = '%s%sgraph_uuid=%s' % (base, sep, ut.to_json(graph_uuid))
+            url = '{}{}graph_uuid={}'.format(base, sep, ut.to_json(graph_uuid))
             if hardcase:
                 url += '&hardcase=True'
             url = url.replace(': ', ':')
@@ -5223,7 +5231,7 @@ def review_identification_graph(
     except controller_inject.WebUnavailableUUIDException as ex:
         finished = 'unavailable'
         refer_query_uuid = ex.query_uuid
-        refer_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(refer_query_uuid),)
+        refer_graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(refer_query_uuid))
         refer_graph_uuid_str = refer_graph_uuid_str.replace(': ', ':')
     except controller_inject.WebReviewFinishedException:
         finished = True
@@ -5256,19 +5264,19 @@ def review_identification_graph(
                 days = 60.0 * 60.0 * 24.0 * 365.0
 
                 if timedelta < secs:
-                    timedelta_str = '%0.2f seconds' % (timedelta,)
+                    timedelta_str = '{:0.2f} seconds'.format(timedelta)
                 elif timedelta < mins:
                     timedelta /= secs
-                    timedelta_str = '%0.2f minutes' % (timedelta,)
+                    timedelta_str = '{:0.2f} minutes'.format(timedelta)
                 elif timedelta < hrs:
                     timedelta /= mins
-                    timedelta_str = '%0.2f hours' % (timedelta,)
+                    timedelta_str = '{:0.2f} hours'.format(timedelta)
                 elif timedelta < days:
                     timedelta /= hrs
-                    timedelta_str = '%0.2f days' % (timedelta,)
+                    timedelta_str = '{:0.2f} days'.format(timedelta)
                 else:
                     timedelta /= days
-                    timedelta_str = '%0.2f years' % (timedelta,)
+                    timedelta_str = '{:0.2f} years'.format(timedelta)
 
         if progress is None:
             graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
@@ -5325,7 +5333,7 @@ def review_identification_graph(
         review_rowid_list = ibs._get_all_review_rowids()
         identity_list = ibs.get_review_identity(review_rowid_list)
         num_auto = sum(
-            [1 if identity.startswith('algo:') else 0 for identity in identity_list]
+            1 if identity.startswith('algo:') else 0 for identity in identity_list
         )
         num_manual = len(review_rowid_list) - num_auto
         match_data['Reviews'] = {
@@ -5352,15 +5360,15 @@ def review_identification_graph(
         alert = False
         timedelta_str = None
 
-    graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(graph_uuid),)
+    graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(graph_uuid))
     graph_uuid_str = graph_uuid_str.replace(': ', ':')
     if kaia:
         base = url_for('submit_identification_v2_kaia')
     else:
         base = url_for('submit_identification_v2')
-    callback_url = '%s?%s' % (base, graph_uuid_str)
+    callback_url = '{}?{}'.format(base, graph_uuid_str)
 
-    hogwild_graph_uuid_str = 'graph_uuid=%s' % (ut.to_json(hogwild_graph_uuid),)
+    hogwild_graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(hogwild_graph_uuid))
     hogwild_graph_uuid_str = hogwild_graph_uuid_str.replace(': ', ':')
 
     confidence_dict = const.CONFIDENCE.NICE_TO_CODE
@@ -5664,7 +5672,7 @@ def review_demographics(species='zebra_grevys', aid=None, **kwargs):
         logger.info('!' * 100)
 
         try:
-            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list),)
+            progress = '{:0.2f}'.format(100.0 * reviewed_list.count(True) / len(aid_list))
         except ZeroDivisionError:
             progress = '0.00'
 
@@ -5829,7 +5837,7 @@ def api_root(**kwargs):
         methods = rule.methods
         url = str(rule)
         if '/api/' in url:
-            methods -= set(['HEAD', 'OPTIONS'])
+            methods -= {'HEAD', 'OPTIONS'}
             if len(methods) == 0:
                 continue
             # if len(methods) > 1:
@@ -5840,7 +5848,7 @@ def api_root(**kwargs):
             rule_dict[method].append((method, url))
     for method in rule_dict.keys(**kwargs):
         rule_dict[method].sort()
-    url = '%s/api/core/dbname/' % (current_app.server_url,)
+    url = '{}/api/core/dbname/'.format(current_app.server_url)
     app_auth = controller_inject.get_url_authorization(url)
     return appf.template(
         None,
@@ -5873,7 +5881,7 @@ def dbinfo(**kwargs):
         dbinfo_str = ibs.get_dbinfo_str()
     except Exception:
         dbinfo_str = ''
-    dbinfo_str_formatted = '<pre>%s</pre>' % (dbinfo_str,)
+    dbinfo_str_formatted = '<pre>{}</pre>'.format(dbinfo_str)
     return dbinfo_str_formatted
 
 
@@ -5946,8 +5954,8 @@ def error404(exception=None):
 
     exception_str = str(exception)
     traceback_str = str(traceback.format_exc())
-    logger.info('[web] %r' % (exception_str,))
-    logger.info('[web] %r' % (traceback_str,))
+    logger.info('[web] {!r}'.format(exception_str))
+    logger.info('[web] {!r}'.format(traceback_str))
     return appf.template(
         None, '404', exception_str=exception_str, traceback_str=traceback_str
     )

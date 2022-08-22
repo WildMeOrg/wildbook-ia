@@ -11,19 +11,17 @@ More details are available here:
 * http://lepture.com/en/2013/create-oauth-server
 """
 
-from datetime import datetime, timedelta
 import functools
 import logging
+from datetime import datetime, timedelta
 
-
+import sqlalchemy
 from flask import request, session
 from flask_login import current_user
 from flask_oauthlib import provider
+
 from flask_restx_patched._http import HTTPStatus
-import sqlalchemy
-
 from wbia.web.extensions import api, db
-
 
 log = logging.getLogger(__name__)
 
@@ -155,7 +153,7 @@ class OAuth2Provider(provider.OAuth2Provider):
 
                 access_token = None
 
-                log.debug('Using locations = %r' % (locations,))
+                log.debug('Using locations = {!r}'.format(locations))
 
                 if 'headers' not in locations:
                     # Invalidate authorization if developer specifically

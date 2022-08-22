@@ -4,19 +4,14 @@
 Requirements:
     pip install gitpython click ubelt
 """
-import re
 import functools
-from os.path import exists
-from os.path import join
-from os.path import dirname
-from os.path import abspath
+import logging
+import os
+import re
+from os.path import abspath, dirname, exists, join
 
 import click
 import ubelt as ub
-
-import logging
-import os
-
 
 logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO'))
 

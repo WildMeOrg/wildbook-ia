@@ -15,15 +15,26 @@ TODO:
     the neg redun graph, we just filter them out afterwords)
 
 """
+import itertools as it
 import logging
+
+import networkx as nx
 import numpy as np
 import utool as ut
-import itertools as it
-import networkx as nx
+
 from wbia import constants as const
 from wbia.algo.graph import nx_utils as nxu
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN, UNINFERABLE
-from wbia.algo.graph.state import SAME, DIFF, NULL  # NOQA
+from wbia.algo.graph.state import (  # NOQA
+    DIFF,
+    INCMP,
+    NEGTV,
+    NULL,
+    POSTV,
+    SAME,
+    UNINFERABLE,
+    UNKWN,
+    UNREV,
+)
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -105,7 +116,7 @@ class DynamicUpdate(object):
             # incomparable and unreview have the same inference structure
             action = infr._uninferable_decision(edge, decision)
         else:
-            raise AssertionError('Unknown decision=%r' % (decision,))
+            raise AssertionError('Unknown decision={!r}'.format(decision))
         return action
 
     def _add_review_edges_from(infr, edges, decision=UNREV):
@@ -634,8 +645,8 @@ class Recovery(object):
         if neg_edges:
             pos_subgraph_ = infr.pos_graph.subgraph(cc, dynamic=False).copy()
             if not nx.is_connected(pos_subgraph_):
-                logger.info('cc = %r' % (cc,))
-                logger.info('pos_subgraph_ = %r' % (pos_subgraph_,))
+                logger.info('cc = {!r}'.format(cc))
+                logger.info('pos_subgraph_ = {!r}'.format(pos_subgraph_))
                 raise AssertionError('must be connected')
             hypothesis = dict(infr.hypothesis_errors(pos_subgraph_, neg_edges))
             assert len(hypothesis) > 0, 'must have at least one'
@@ -656,17 +667,17 @@ class Recovery(object):
 
     def _reset_inconsistency_reviews(infr):
         for nid in infr.nid_to_errors:
-            infr.print('Cleaning up NID %s' % (nid,), 3)
+            infr.print('Cleaning up NID {}'.format(nid), 3)
             cc = infr.pos_graph.component(nid)
             pos_subgraph = infr.pos_graph.subgraph(cc, dynamic=False).copy()
             pos_edges = list(pos_subgraph.edges())
             neg_edges = list(nxu.edges_inside(infr.neg_graph, cc))
 
             pos_edges = sorted(
-                set([(n1, n2) if n1 < n2 else (n2, n1) for n1, n2 in pos_edges])
+                {(n1, n2) if n1 < n2 else (n2, n1) for n1, n2 in pos_edges}
             )
             neg_edges = sorted(
-                set([(n1, n2) if n1 < n2 else (n2, n1) for n1, n2 in neg_edges])
+                {(n1, n2) if n1 < n2 else (n2, n1) for n1, n2 in neg_edges}
             )
 
             edges = pos_edges + neg_edges
@@ -788,7 +799,7 @@ class Recovery(object):
 
         # Solve a multicut problem for multiple pairs of terminal nodes.
         # Running multiple min-cuts produces a k-factor approximation
-        maybe_error_edges = set([])
+        maybe_error_edges = set()
         for (s, t), join_weight in zip(neg_edges, neg_weight):
             cut_weight, parts = nx.minimum_cut(pos_subgraph, s, t, capacity=capacity)
             cut_edgeset = nxu.edges_cross(pos_subgraph, *parts)
@@ -969,7 +980,7 @@ class _RedundancyComputers(object):  # NOQA
         """
         pos_graph = infr.pos_graph
         neg_graph = infr.neg_graph
-        out_neg_nids = set([])
+        out_neg_nids = set()
         for u in cc:
             nid1 = pos_graph.node_label(u)
             for v in neg_graph.neighbors(u):
@@ -1165,7 +1176,7 @@ class Redundancy(_RedundancyComputers):
             if len(other_nids) > 0:
                 infr._set_neg_redun_flags(nid, other_nids, flags)
             else:
-                infr.print('neg_redun skip update nid=%r' % (nid,), 6)
+                infr.print('neg_redun skip update nid={!r}'.format(nid), 6)
 
     @profile
     def update_neg_redun_to(
@@ -1220,7 +1231,7 @@ class Redundancy(_RedundancyComputers):
         elif need_remove:
             infr._set_pos_redun_flag(nid, False)
         else:
-            infr.print('pos_redun skip update nid=%r' % (nid,), 6)
+            infr.print('pos_redun skip update nid={!r}'.format(nid), 6)
 
     @profile
     def _set_pos_redun_flag(infr, nid, flag):
@@ -1230,9 +1241,9 @@ class Redundancy(_RedundancyComputers):
         was_pos_redun = nid in infr.pos_redun_nids
         if flag:
             if not was_pos_redun:
-                infr.print('pos_redun flag=T nid=%r' % (nid,), 5)
+                infr.print('pos_redun flag=T nid={!r}'.format(nid), 5)
             else:
-                infr.print('pos_redun flag=T nid=%r (already done)' % (nid,), 6)
+                infr.print('pos_redun flag=T nid={!r} (already done)'.format(nid), 6)
             infr.pos_redun_nids.add(nid)
             cc = infr.pos_graph.component(nid)
             infr.remove_internal_priority(cc)
@@ -1242,9 +1253,9 @@ class Redundancy(_RedundancyComputers):
                 )
         else:
             if was_pos_redun:
-                infr.print('pos_redun flag=F nid=%r' % (nid,), 5)
+                infr.print('pos_redun flag=F nid={!r}'.format(nid), 5)
             else:
-                infr.print('pos_redun flag=F nid=%r (already done)' % (nid,), 6)
+                infr.print('pos_redun flag=F nid={!r} (already done)'.format(nid), 6)
             cc = infr.pos_graph.component(nid)
             infr.pos_redun_nids -= {nid}
             infr.reinstate_internal_priority(cc)
@@ -1548,7 +1559,7 @@ class NonDynamicUpdate(object):
 
         # External inconsistentices are edges leaving inconsistent components
         incon_internal_nids = {n1 for n1, n2 in incon_internal_ne}
-        incon_external_ne = set([])
+        incon_external_ne = set()
         # Find all edges leaving an inconsistent PCC
         for key in (NEGTV,) + UNINFERABLE:
             incon_external_ne.update(

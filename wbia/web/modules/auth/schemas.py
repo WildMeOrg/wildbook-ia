@@ -6,6 +6,7 @@ Auth schemas
 """
 
 from flask_marshmallow import base_fields
+
 from flask_restx_patched import ModelSchema, Schema
 
 from .models import OAuth2Client

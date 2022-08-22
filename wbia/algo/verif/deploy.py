@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-from os.path import join, exists, basename
-from wbia.algo.verif import sklearn_utils
-from wbia.algo.verif import verifier
+from os.path import basename, exists, join
+
 import utool as ut
+
+from wbia.algo.verif import sklearn_utils, verifier
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -223,16 +224,17 @@ class Deployer(object):
 
     def load_published(self, ibs, species):
         task_fnames = self.published[species]
-        logger.info('loading published: %r' % (task_fnames,))
+        logger.info('loading published: {!r}'.format(task_fnames))
         classifiers = {
             task_key: self._load_published(ibs, species, task_key)
             for task_key in task_fnames.keys()
         }
-        logger.info('loaded classifiers: %r' % (classifiers,))
+        logger.info('loaded classifiers: {!r}'.format(classifiers))
         return classifiers
 
     def find_pretrained(self):
         import glob
+
         import parse
 
         fname_fmt = self.fname_fmtstr + '.cPkl'
@@ -260,8 +262,8 @@ class Deployer(object):
             >>> task_clf_names = self.find_latest_remote()
         """
         base_url = 'https://{remote}/public/models/pairclf'.format(**self.publish_info)
-        import requests
         import bs4
+        import requests
 
         resp = requests.get(base_url)
         soup = bs4.BeautifulSoup(resp.text, 'html.parser')

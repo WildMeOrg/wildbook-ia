@@ -3,14 +3,15 @@
 Interface to Darknet object proposals.
 """
 import logging
+import os
+import shlex
+import subprocess
+import tempfile
+from os.path import abspath, dirname, exists, expanduser, join  # NOQA
+
+import numpy as np
 import utool as ut
 import vtool as vt
-import tempfile
-import subprocess
-import shlex
-import os
-from os.path import abspath, dirname, expanduser, join, exists  # NOQA
-import numpy as np
 
 (print, rrr, profile) = ut.inject2(__name__, '[darknet]')
 logger = logging.getLogger('wbia')
@@ -225,7 +226,7 @@ def detect(
         )
         bash_str = './darknet detector test %s %s %s %s %s -thresh %0.5f' % bash_args
         if verbose:
-            logger.info('Calling: %s' % (bash_str,))
+            logger.info('Calling: {}'.format(bash_str))
         bash_list = shlex.split(bash_str)
         with open('/dev/null', 'w') as null:
             process_id = subprocess.Popen(bash_list, stdout=null, cwd=SCRIPT_PATH)

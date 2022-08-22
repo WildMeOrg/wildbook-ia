@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
+
 import wbia.plottool as pt
 from wbia.plottool import plot_helpers as ph
 from wbia.viz import viz_helpers as vh
@@ -76,9 +78,9 @@ def testdata_showchip():
     logger.info('kwargs = ' + ut.repr4(kwargs, nl=True))
     default_config = dict(wbia.algo.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
-    logger.info('[viz_chip.testdata] cfgdict = %r' % (cfgdict,))
+    logger.info('[viz_chip.testdata] cfgdict = {!r}'.format(cfgdict))
     config2_ = cfgdict
-    logger.info('[viz_chip.testdata] aid_list = %r' % (aid_list,))
+    logger.info('[viz_chip.testdata] aid_list = {!r}'.format(aid_list))
     return ibs, aid_list, kwargs, config2_
 
 
@@ -183,7 +185,7 @@ def show_chip(
         >>> pt.show_if_requested()
     """
     if ut.VERBOSE:
-        logger.info('[viz] show_chip(aid=%r)' % (aid,))
+        logger.info('[viz] show_chip(aid={!r})'.format(aid))
     # ibs.assert_valid_aids((aid,))
     # Get chip
     # logger.info('in_image = %r' % (in_image,))

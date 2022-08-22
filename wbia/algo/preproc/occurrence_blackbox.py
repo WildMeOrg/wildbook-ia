@@ -24,11 +24,12 @@ print('thresh_km = %r' % (thresh_km,))
 thresh_sec = thresh_km / km_per_sec
 print('thresh_sec = %r' % (thresh_sec,))
 """
-import logging
 import functools
+import logging
+
 import numpy as np
-import utool as ut
 import scipy.cluster.hierarchy
+import utool as ut
 from scipy.spatial import distance
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -596,7 +597,7 @@ def main():
     sec = [0] * len(args.lat) if args.sec is None else args.sec
     latlons = np.vstack([args.lat, args.lon]).T
     X_labels = cluster_timespace_km(sec, latlons, args.thresh, km_per_sec=args.km_per_sec)
-    logger.info('X_labels = %r' % (X_labels.tolist(),))
+    logger.info('X_labels = {!r}'.format(X_labels.tolist()))
 
 
 if __name__ == '__main__':

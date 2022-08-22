@@ -33,19 +33,20 @@ Note:
     This submodule only provides function headers, the source code still
       resides in the injected modules.
 """
-import logging
-from wbia import dtool
 import atexit
+import logging
 import weakref
-import utool as ut
-import ubelt as ub
 from os.path import join, split
-from wbia.init import sysres
-from wbia import constants as const
-from wbia.control import accessor_decors, controller_inject
-from wbia.dtool.dump import dump
 from pathlib import Path
 
+import ubelt as ub
+import utool as ut
+
+from wbia import constants as const
+from wbia import dtool
+from wbia.control import accessor_decors, controller_inject
+from wbia.dtool.dump import dump
+from wbia.init import sysres
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__)
@@ -415,8 +416,8 @@ class IBEISController(BASE_CLASS):
         self.containerized = const.CONTAINERIZED
         self.production = const.PRODUCTION
 
-        logger.info('[ibs.__init__] CONTAINERIZED: %s\n' % (self.containerized,))
-        logger.info('[ibs.__init__] PRODUCTION: %s\n' % (self.production,))
+        logger.info('[ibs.__init__] CONTAINERIZED: {}\n'.format(self.containerized))
+        logger.info('[ibs.__init__] PRODUCTION: {}\n'.format(self.production))
 
         # Hack to store HTTPS flag (deliver secure content in web)
         self.https = const.HTTPS
@@ -472,7 +473,7 @@ class IBEISController(BASE_CLASS):
         self.table_cache = accessor_decors.init_tablecache()
 
     def clear_table_cache(self, tablename=None):
-        logger.info('[ibs] clearing table_cache[%r]' % (tablename,))
+        logger.info('[ibs] clearing table_cache[{!r}]'.format(tablename))
         if tablename is None:
             self.reset_table_cache()
         else:
@@ -545,7 +546,7 @@ class IBEISController(BASE_CLASS):
         )
         total_size_str = '\nlen(table_cache) = %r' % (len(self.table_cache))
         table_size_str_list = [
-            ut.get_object_size_str(val, lbl='size(table_cache[%s]): ' % (key,))
+            ut.get_object_size_str(val, lbl='size(table_cache[{}]): '.format(key))
             for key, val in self.table_cache.items()
         ]
         cachestats_str = total_size_str + ut.indentjoin(table_size_str_list, '\n  * ')
@@ -706,8 +707,8 @@ class IBEISController(BASE_CLASS):
         self.readonly = False
 
         # Upgrade the database
-        from wbia.control._sql_helpers import ensure_correct_version
         from wbia.control import DB_SCHEMA
+        from wbia.control._sql_helpers import ensure_correct_version
 
         ensure_correct_version(
             self,
@@ -735,8 +736,8 @@ class IBEISController(BASE_CLASS):
         self.readonly = False
 
         # Upgrade the database
-        from wbia.control._sql_helpers import ensure_correct_version
         from wbia.control import STAGING_SCHEMA
+        from wbia.control._sql_helpers import ensure_correct_version
 
         ensure_correct_version(
             self,
@@ -988,7 +989,7 @@ class IBEISController(BASE_CLASS):
         if engine_slot in ['none', 'null', '1', 'default']:
             engine_shelve_dir = 'engine_shelves'
         else:
-            engine_shelve_dir = 'engine_shelves_%s' % (engine_slot,)
+            engine_shelve_dir = 'engine_shelves_{}'.format(engine_slot)
         return join(self.get_cachedir(), engine_shelve_dir)
 
     def get_trashdir(self):
@@ -1221,7 +1222,7 @@ class IBEISController(BASE_CLASS):
         # hash_str = hex(id(ibs))
         # ibsstr = '<%s(%s) at %s>' % (typestr, dbname, hash_str, )
         hash_str = self.get_db_init_uuid()
-        ibsstr = '<%s(%s) with UUID %s>' % (typestr, dbname, hash_str)
+        ibsstr = '<{}({}) with UUID {}>'.format(typestr, dbname, hash_str)
         return ibsstr
 
     def __str__(self):
@@ -1278,14 +1279,14 @@ class IBEISController(BASE_CLASS):
         api_rule = CORE_DB_UUID_INIT_API_RULE
         target_uuid = self.get_db_init_uuid()
         for candidate_port in range(port_base, port_base + scan_limit + 1):
-            candidate_url = 'http://%s:%s%s' % (url_base, candidate_port, api_rule)
+            candidate_url = 'http://{}:{}{}'.format(url_base, candidate_port, api_rule)
             try:
                 response = requests.get(candidate_url)
             except (requests.ConnectionError):
                 if verbose:
-                    logger.info('Failed to find IA server at %s' % (candidate_url,))
+                    logger.info('Failed to find IA server at {}'.format(candidate_url))
                 continue
-            logger.info('Found IA server at %s' % (candidate_url,))
+            logger.info('Found IA server at {}'.format(candidate_url))
             try:
                 response = ut.from_json(response.text)
                 candidate_uuid = response.get('response')
@@ -1294,7 +1295,7 @@ class IBEISController(BASE_CLASS):
             except (AssertionError):
                 if verbose:
                     logger.info(
-                        'Invalid response from IA server at %s' % (candidate_url,)
+                        'Invalid response from IA server at {}'.format(candidate_url)
                     )
                 continue
 

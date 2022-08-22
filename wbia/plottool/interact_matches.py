@@ -2,8 +2,9 @@
 """
 Unfinished non-wbia dependent version of interact matches
 """
-import utool as ut
 import numpy as np
+import utool as ut
+
 from wbia.plottool import abstract_interaction
 
 BASE_CLASS = abstract_interaction.AbstractInteraction
@@ -125,13 +126,13 @@ class MatchInteraction2(BASE_CLASS):
 
         if verbose:
             print('-- CHIPMATCH VIEW --')
-            print('[ichipmatch_view] self.mode = %r' % (self.mode,))
+            print('[ichipmatch_view] self.mode = {!r}'.format(self.mode))
         mode = kwargs_.get('mode', self.mode)
         draw_ell = mode >= 1
         draw_lines = mode == 2
         if verbose:
-            print('[ichipmatch_view] draw_lines = %r' % (draw_lines,))
-            print('[ichipmatch_view] draw_ell = %r' % (draw_ell,))
+            print('[ichipmatch_view] draw_lines = {!r}'.format(draw_lines))
+            print('[ichipmatch_view] draw_ell = {!r}'.format(draw_ell))
         # pt.figure(fnum=fnum, docla=True, doclf=True)
         # NOTE: i remove the clf here. might cause issues
         pt.figure(fnum=fnum, docla=True, doclf=False)
@@ -147,7 +148,7 @@ class MatchInteraction2(BASE_CLASS):
         show_matches_kw.update(kwargs_)
 
         if verbose:
-            print('self.warp_homog = %r' % (self.warp_homog,))
+            print('self.warp_homog = {!r}'.format(self.warp_homog))
         if self.warp_homog:
             show_matches_kw['H1'] = self.H1
             show_matches_kw['H2'] = self.H2
@@ -183,8 +184,8 @@ class MatchInteraction2(BASE_CLASS):
         features weights, keypoint details, and sift descriptions
         """
         import wbia.plottool as pt
-        from wbia.plottool import viz_featrow
         from wbia.plottool import interact_helpers as ih
+        from wbia.plottool import viz_featrow
 
         fnum = self.fnum
         same_fig = self.same_fig
@@ -197,8 +198,8 @@ class MatchInteraction2(BASE_CLASS):
         fs = self.fs
         print('score stats:')
         print(ut.repr2(ut.get_stats(fsv, axis=0), nl=1))
-        print('fsv[mx] = %r' % (fsv[mx],))
-        print('fs[mx] = %r' % (fs[mx],))
+        print('fsv[mx] = {!r}'.format(fsv[mx]))
+        print('fs[mx] = {!r}'.format(fs[mx]))
         # ----------------------
         # Get info for the select_ith_match plot
         self.mode = 1
@@ -211,7 +212,7 @@ class MatchInteraction2(BASE_CLASS):
         kp1, kp2 = self.kpts1[fx1], self.kpts2[fx2]
         vecs1, vecs2 = self.vecs1[fx1], self.vecs2[fx2]
         info1 = '\nquery'
-        info2 = '\nk=%r fscore=%r' % (fk2, fscore2)
+        info2 = '\nk={!r} fscore={!r}'.format(fk2, fscore2)
         # self.last_fx = fx1
         self.last_fx = fx1
 
@@ -327,10 +328,10 @@ class MatchInteraction2(BASE_CLASS):
             mx = sortx[idx]
             (fx1, fx2) = self.fm[mx]
             (fx1, fx2) = self.fm[mx]
-            print('... selected score at rank idx=%r' % (idx,))
-            print('... selected score with fs=%r' % (self.fs[mx],))
+            print('... selected score at rank idx={!r}'.format(idx))
+            print('... selected score with fs={!r}'.format(self.fs[mx]))
             print('... resolved to mx=%r' % mx)
-            print('... fx1, fx2 = %r, %r' % (fx1, fx2))
+            print('... fx1, fx2 = {!r}, {!r}'.format(fx1, fx2))
             self.select_ith_match(mx)
         else:
             print('...Unknown viztype: %r' % viztype)
@@ -354,12 +355,12 @@ class MatchInteraction2(BASE_CLASS):
             def toggle_attr():
                 new_value = (value + 1) % (num_states)
                 new_value = type_(new_value)
-                print('new_value(%s) = %r' % (attr, new_value))
+                print('new_value({}) = {!r}'.format(attr, new_value))
                 setattr(self, attr, new_value)
                 self.show_page()
                 self.draw()
 
-            itemstr = 'Toggle %s=%r' % (attr, value)
+            itemstr = 'Toggle {}={!r}'.format(attr, value)
             return (itemstr, toggle_attr)
 
         options = [

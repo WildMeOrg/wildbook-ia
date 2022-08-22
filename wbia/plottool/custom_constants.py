@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import numpy as np
 import matplotlib as mpl
+import numpy as np
 import utool as ut
 
 # (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[custom_constants]', DEBUG=False)

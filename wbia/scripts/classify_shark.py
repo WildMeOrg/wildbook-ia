@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 import logging
-import utool as ut
+
 import numpy as np
 import sklearn
 import sklearn.datasets
-import sklearn.svm
 import sklearn.metrics
+import sklearn.svm
+import utool as ut
 from sklearn import preprocessing
 
 try:
@@ -35,8 +36,8 @@ def shark_net(dry=False):
         >>> from wbia.scripts.classify_shark import *  # NOQA
         >>> shark_net()
     """
-    from wbia.scripts import classify_shark
     import wbia
+    from wbia.scripts import classify_shark
 
     ibs = wbia.opendb('WS_ALL')  # NOQA
     config = {'dim_size': (224, 224), 'resize_dim': 'wh'}
@@ -394,6 +395,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
     >>> dataset = get_shark_dataset(target_type)
     """
     from wbia_cnn.dataset import DataSet
+
     from wbia.scripts import classify_shark
 
     tup = classify_shark.get_shark_labels_and_metadata(target_type)
@@ -525,7 +527,7 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     # if False:
     #    x = ibs.images().compress(isempty)
     num_empty_images = sum(isempty)
-    logger.info('Images without annotations: %r' % (num_empty_images,))
+    logger.info('Images without annotations: {!r}'.format(num_empty_images))
 
     logger.info(
         'Building labels for %r annotations from %r images'
@@ -575,12 +577,12 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
             ('injur-.*', None),
         ]
     else:
-        raise ValueError('Unknown target_type=%r' % (target_type,))
+        raise ValueError('Unknown target_type={!r}'.format(target_type))
 
     tag_vocab = ut.flat_unique(*category_tags)
     alias_map = ut.build_alias_map(regex_map, tag_vocab)
     unmapped = list(set(tag_vocab) - set(alias_map.keys()))
-    logger.info('unmapped = %r' % (unmapped,))
+    logger.info('unmapped = {!r}'.format(unmapped))
     category_tags2 = ut.alias_tags(category_tags, alias_map)
 
     ntags_list = np.array(ut.lmap(len, category_tags2))
@@ -606,9 +608,11 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     multi_annots = all_annots.compress(is_multi_tag)  # NOQA
     # ibs.set_image_imagesettext(multi_annots.gids, ['MultiTaged'] * is_multi_tag.sum())
 
-    logger.info("can't use %r annots due to no labels" % (is_no_tag.sum(),))
-    logger.info("can't use %r annots due to inconsistent labels" % (is_multi_tag.sum(),))
-    logger.info('will use %r annots with consistent labels' % (is_single_tag.sum(),))
+    logger.info("can't use {!r} annots due to no labels".format(is_no_tag.sum()))
+    logger.info(
+        "can't use {!r} annots due to inconsistent labels".format(is_multi_tag.sum())
+    )
+    logger.info('will use {!r} annots with consistent labels'.format(is_single_tag.sum()))
 
     annot_tags = ut.compress(category_tags2, is_single_tag)
     annots = all_annots.compress(is_single_tag)
@@ -747,13 +751,15 @@ class ClfProblem(object):
             )
             clf.fit(x_train, y_train)
             # (NOTE grid.predict only uses the best estimator)
-            logger.info('clf.best_params_ = %r' % (clf.best_params_,))
+            logger.info('clf.best_params_ = {!r}'.format(clf.best_params_))
             logger.info('Best parameters set found on development set:')
             logger.info(clf.best_params_)
             logger.info('Grid scores on development set:')
             for params, mean_score, scores in clf.grid_scores_:
                 logger.info(
-                    '%0.3f (+/-%0.03f) for %r' % (mean_score, scores.std() * 2, params)
+                    '{:0.3f} (+/-{:0.03f}) for {!r}'.format(
+                        mean_score, scores.std() * 2, params
+                    )
                 )
             xdata = np.array([t[0]['C'] for t in clf.grid_scores_])
             ydata = np.array([t[1] for t in clf.grid_scores_])
@@ -946,7 +952,7 @@ def set_model_state(clf, model_state):
     attr_names_ = attr_namesA + attr_namesB + attr_namesC
     for a in attr_names_:
         val = model_state[a]
-        logger.info('a = %r' % (a,))
+        logger.info('a = {!r}'.format(a))
         try:
             setattr(clf, a, val)
         except AttributeError:
@@ -1106,7 +1112,7 @@ def shark_svm():
             ):
                 yield _
 
-    clf_fpath = join(model_dpath, '%s_svc_folds_%s.cPkl' % (target_type, n_folds))
+    clf_fpath = join(model_dpath, '{}_svc_folds_{}.cPkl'.format(target_type, n_folds))
     if not ut.checkpath(clf_fpath):
         """
         Curate strategy:
@@ -1186,7 +1192,9 @@ def shark_svm():
 
             for params, mean_score, scores in grid.grid_scores_:
                 logger.info(
-                    '%0.3f (+/-%0.03f) for %r' % (mean_score, scores.std() * 2, params)
+                    '{:0.3f} (+/-{:0.03f}) for {!r}'.format(
+                        mean_score, scores.std() * 2, params
+                    )
                 )
 
             c_xdata = np.array([t[0]['C'] for t in grid.grid_scores_])
@@ -1197,9 +1205,9 @@ def shark_svm():
             submaxima_x, submaxima_y = vt.argsubmaxima(c_ydata, c_xdata)
             # pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
             C = submaxima_x[0]
-            logger.info('C = %r' % (C,))
+            logger.info('C = {!r}'.format(C))
         else:
-            logger.info('C = %r' % (C,))
+            logger.info('C = {!r}'.format(C))
 
         clf_all = sklearn.svm.SVC(
             kernel=str('linear'),
@@ -1311,6 +1319,7 @@ def shark_svm():
 
 def inspect_results(ds, result_list):
     import pandas as pd
+
     import wbia.plottool as pt
 
     pd.set_option('display.max_rows', 20)
@@ -1352,7 +1361,7 @@ def inspect_results(ds, result_list):
     def grab_subchunk(frac, n, target):
         df_chunk = target_partition(target)
         sl = ut.snapped_slice(len(df_chunk), frac, n)
-        logger.info('sl = %r' % (sl,))
+        logger.info('sl = {!r}'.format(sl))
         idx = df_chunk.index[sl]
         df_chunk = df_chunk.loc[idx]
         min_frac = sl.start / len(df_chunk)
@@ -1368,7 +1377,7 @@ def inspect_results(ds, result_list):
 
     def grab_subchunk2(df_chunk, frac, n):
         sl = ut.snapped_slice(len(df_chunk), frac, n)
-        logger.info('sl = %r' % (sl,))
+        logger.info('sl = {!r}'.format(sl))
         idx = df_chunk.index[sl]
         df_chunk = df_chunk.loc[idx]
         min_frac = sl.start / len(df_chunk)

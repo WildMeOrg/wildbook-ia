@@ -6,17 +6,18 @@ sh Tgen.sh --key edge weight --invert --Tcfg with_getters=True with_setters=Fals
 # TODO: Fix this name it is too special case
 """
 import logging
-import six  # NOQA
-from six.moves import zip, map, reduce
+import uuid
 
 # import numpy as np
 # import vtool as vt
 import numpy as np
+import six  # NOQA
 import ubelt as ub  # NOQA
+import utool as ut
+from six.moves import map, reduce, zip
+
 from wbia import constants as const
 from wbia.control import accessor_decors, controller_inject  # NOQA
-import utool as ut
-import uuid
 from wbia.control.controller_inject import make_ibs_register_decorator
 
 print, rrr, profile = ut.inject2(__name__)
@@ -413,7 +414,7 @@ def get_edge_weight_rowids_between(ibs, aids1, aids2=None, method=1):
             rowids = ut.filter_Nones(rowids)
             rowids = ut.flatten(rowids)
     else:
-        raise ValueError('no method=%r' % (method,))
+        raise ValueError('no method={!r}'.format(method))
 
     return rowids
 
@@ -544,7 +545,7 @@ def get_edge_weight_rowids_from_only(ibs, aid_list, eager=True, nInput=None):
 def get_edge_weight_rowids_from_single(ibs, aid_list, eager=True, nInput=None):
     colnames = (WEIGHT_ROWID,)
     params_iter = [(aid, aid) for aid in aid_list]
-    where_clause = '%s=? OR %s=?' % (WEIGHT_AID1, WEIGHT_AID2)
+    where_clause = '{}=? OR {}=?'.format(WEIGHT_AID1, WEIGHT_AID2)
     weight_rowids = ibs.staging.get_where(
         const.WEIGHT_TABLE,
         colnames,

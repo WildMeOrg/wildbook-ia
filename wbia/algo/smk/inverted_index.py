@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
-from wbia import dtool
+
+import numpy as np
 import utool as ut
 import vtool as vt
-import numpy as np
+
+from wbia import dtool
 from wbia.algo.smk import smk_funcs
 from wbia.control.controller_inject import register_preprocs
 
@@ -97,7 +99,7 @@ class InvertedAnnotsExtras(object):
         logger.info(
             ut.align(ut.repr3(ut.map_dict_vals(ut.byte_str2, sizes), strvals=True), ':')
         )
-        logger.info('total_nbytes = %r' % (ut.byte_str2(total_nbytes),))
+        logger.info('total_nbytes = {!r}'.format(ut.byte_str2(total_nbytes)))
 
     def get_nbytes(inva):
         sizes = inva.get_size_info()
@@ -402,7 +404,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
             >>> print('wx_to_weight = %r' % (wx_to_weight,))
         """
         wx_list = sorted(inva.wx_to_aids.keys())
-        with ut.Timer('Computing %s weights' % (method,)):
+        with ut.Timer('Computing {} weights'.format(method)):
             if method == 'idf':
                 ndocs_total = len(inva.aids)
                 # Unweighted documents
@@ -474,7 +476,7 @@ class SingleAnnot(ut.NiceRepr):
         X.wx_set = None
 
     def __nice___(X):
-        return '%s' % (X.aid,)
+        return '{}'.format(X.aid)
 
     @classmethod
     def from_inva(cls, inva, idx):

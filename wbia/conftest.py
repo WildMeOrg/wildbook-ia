@@ -17,7 +17,6 @@ from wbia.init.sysres import (
     set_default_dbdir,
 )
 
-
 TEST_DBNAMES = (
     'NAUT_test',
     'PZ_MTEST',
@@ -53,7 +52,7 @@ def postgres_base_uri(request):
         return None
 
     # If the URI contains a database name, we need to remove it
-    from sqlalchemy.engine.url import make_url, URL
+    from sqlalchemy.engine.url import URL, make_url
 
     url = make_url(uri)
     url_kwargs = {

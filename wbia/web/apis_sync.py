@@ -5,14 +5,16 @@ Dependencies: flask, tornado
 SeeAlso:
     routes.review_identification
 """
-import logging
-from wbia.control import controller_inject
-from flask import url_for, request, current_app  # NOQA
-import numpy as np  # NOQA
-import utool as ut
-import uuid
-import requests
 import json
+import logging
+import uuid
+
+import numpy as np  # NOQA
+import requests
+import utool as ut
+from flask import current_app, request, url_for  # NOQA
+
+from wbia.control import controller_inject
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -46,7 +48,7 @@ else:
         REMOTE_UUID = None
 
 
-REMOTE_URL = 'https://%s:%s' % (REMOTE_DOMAIN, REMOTE_PORT)
+REMOTE_URL = 'https://{}:{}'.format(REMOTE_DOMAIN, REMOTE_PORT)
 REMOTE_UUID = None if REMOTE_UUID is None else uuid.UUID(REMOTE_UUID)
 
 
@@ -55,7 +57,7 @@ def _construct_route_url(route_rule):
         route_rule = '/' + route_rule
     if not route_rule.endswith('/'):
         route_rule = route_rule + '/'
-    route_url = '%s%s' % (REMOTE_URL, route_rule)
+    route_url = '{}{}'.format(REMOTE_URL, route_rule)
     return route_url
 
 
@@ -108,7 +110,7 @@ def _assert_remote_online(ibs):
         if REMOTE_UUID is not None:
             assert uuid == REMOTE_UUID
     except Exception:
-        raise IOError('Remote WBIA DETECT database offline at %s' % (REMOTE_URL,))
+        raise IOError('Remote WBIA DETECT database offline at {}'.format(REMOTE_URL))
 
 
 @register_ibs_method
@@ -134,7 +136,7 @@ def _detect_remote_push_imageset(ibs, image_uuid_list):
     db_name = ibs.get_dbname()
     db_uuid = ibs.get_db_init_uuid()
     time_str = ut.get_timestamp()
-    imageset_text = 'Sync from %s (%s) at %s' % (db_name, db_uuid, time_str)
+    imageset_text = 'Sync from {} ({}) at {}'.format(db_name, db_uuid, time_str)
     imageset_text_list = [imageset_text] * len(image_uuid_list)
 
     data_dict = {
@@ -170,7 +172,7 @@ def _detect_remote_push_metadata(
 ):
     route_url = _construct_route_url(route_rule)
 
-    logger.info('\tSetting %s metadata for %s' % (route_rule, uuid_str))
+    logger.info('\tSetting {} metadata for {}'.format(route_rule, uuid_str))
     data_dict = {
         uuid_str: uuid_list,
         value_str: value_list,

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from sqlalchemy import Column, MetaData, Table, Integer
+from sqlalchemy import Column, Integer, MetaData, Table
 from sqlalchemy.engine import create_engine
 
 # On import the events will be registered with SQLAlchemy.

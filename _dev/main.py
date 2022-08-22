@@ -12,7 +12,6 @@ When running from non-pyinstaller source use
 """
 from wbia.__main__ import run_wbia
 
-
 if __name__ == '__main__':
     import multiprocessing
 

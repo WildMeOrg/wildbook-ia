@@ -10,12 +10,14 @@ ToRegenerate:
     python -m wbia.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --diff
     python -m wbia.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
-import logging
 import functools  # NOQA
-from wbia import constants as const
+import logging
+
 import utool as ut
-from wbia.control import controller_inject
+
+from wbia import constants as const
 from wbia.control import accessor_decors  # NOQA
+from wbia.control import controller_inject
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

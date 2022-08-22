@@ -28,6 +28,7 @@ CommandLine:
 import logging
 import sys
 from os.path import expanduser
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -186,7 +187,7 @@ def parse_latex_comments_for_commmands():
         cmd_list2.append(cmd)
     cmd_list = cmd_list2
 
-    logger.info('cmd_list = %s' % (ut.repr2(cmd_list),))
+    logger.info('cmd_list = {}'.format(ut.repr2(cmd_list)))
     from os.path import splitext
 
     script_fname = 'regen_' + splitext(fname)[0] + '.sh'
@@ -439,7 +440,7 @@ def get_results_command(expt_name, media_name):
         margs = 'wbia.expt.experiment_helpers --exec-get_annotcfg_list:0'
         dynamic_flags = '-a {acfg_name} --db {dbname} '
     else:
-        raise NotImplementedError('media_name=%r' % (media_name,))
+        raise NotImplementedError('media_name={!r}'.format(media_name))
     static_flags += ' $@'
     dynamic_flags = dynamic_flags + dynamic_flags_
     basecmd = 'python -m ' + margs
@@ -507,8 +508,9 @@ def write_script_lines(line_list, fname):
     script_lines.extend(line_list)
     script = '\n'.join(script_lines)
     logger.info(script)
-    import wbia
     from os.path import dirname, join
+
+    import wbia
 
     dpath = dirname(ut.get_module_dir(wbia))
     fpath = join(dpath, fname)

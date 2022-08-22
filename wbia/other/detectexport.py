@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
-import utool as ut
 
+import utool as ut
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectexport]')
@@ -20,8 +20,9 @@ def get_cnn_classifier_cameratrap_binary_training_images_pytorch(
     skip_rate_pos=0.0,
     skip_rate_neg=0.0,
 ):
-    from os.path import join, expanduser
     import random
+    from os.path import expanduser, join
+
     import cv2
 
     if dest_path is None:
@@ -127,8 +128,9 @@ def get_cnn_classifier_multiclass_training_images_pytorch(
     purge=True,
     skip_rate=0.0,
 ):
-    from os.path import join, expanduser
     import random
+    from os.path import expanduser, join
+
     import cv2
 
     if dest_path is None:
@@ -207,8 +209,9 @@ def get_cnn_classifier_canonical_training_images_pytorch(
     skip_rate_pos=0.0,
     skip_rate_neg=0.0,
 ):
-    from os.path import join, expanduser, exists
     import random
+    from os.path import exists, expanduser, join
+
     import cv2
 
     if dest_path is None:
@@ -320,10 +323,12 @@ def get_cnn_localizer_canonical_training_images_pytorch(
     purge=True,
     skip_rate=0.0,
 ):
-    from os.path import join, expanduser, exists
-    from wbia.other.detectfuncs import _canonical_get_boxes
     import random
+    from os.path import exists, expanduser, join
+
     import cv2
+
+    from wbia.other.detectfuncs import _canonical_get_boxes
 
     if dest_path is None:
         dest_path = expanduser(join('~', 'Desktop', 'extracted'))
@@ -393,8 +398,8 @@ def get_cnn_localizer_canonical_training_images_pytorch(
         with open(label_filepath, 'w') as label_file:
             bbox = list(bbox)
             for index in range(len(bbox)):
-                bbox[index] = '%0.08f' % (bbox[index],)
-            label_file.write('%s\n' % (','.join(bbox),))
+                bbox[index] = '{:0.08f}'.format(bbox[index])
+            label_file.write('{}\n'.format(','.join(bbox)))
 
     return name_path
 
@@ -415,8 +420,9 @@ def get_cnn_labeler_training_images_pytorch(
     use_axis_aligned_chips=False,
     train_gid_set=None,
 ):
-    from os.path import join, expanduser, exists
     import random
+    from os.path import exists, expanduser, join
+
     import cv2
 
     if dest_path is None:
@@ -435,9 +441,9 @@ def get_cnn_labeler_training_images_pytorch(
     ut.ensuredir(train_path)
     ut.ensuredir(valid_path)
 
-    logger.info('category mapping = %s' % (ut.repr3(category_mapping),))
-    logger.info('viewpoint mapping = %s' % (ut.repr3(viewpoint_mapping),))
-    logger.info('flip mapping = %s' % (ut.repr3(flip_mapping),))
+    logger.info('category mapping = {}'.format(ut.repr3(category_mapping)))
+    logger.info('viewpoint mapping = {}'.format(ut.repr3(viewpoint_mapping)))
+    logger.info('flip mapping = {}'.format(ut.repr3(flip_mapping)))
 
     # train_gid_set = ibs.get_valid_gids()
     if train_gid_set is None:
@@ -513,8 +519,8 @@ def get_cnn_labeler_training_images_pytorch(
             counter += 1
 
     # Get the list of species that do not have enough viewpoint examples for training
-    invalid_seen_set = set([])
-    invalid_yaw_set = set([])
+    invalid_seen_set = set()
+    invalid_yaw_set = set()
     for species in seen_dict:
         # Check that the number of instances is above the min_examples
         if seen_dict[species] < min_examples:
@@ -566,9 +572,9 @@ def get_cnn_labeler_training_images_pytorch(
             if yaw is None:
                 skipped_yaw += 1
                 continue
-            category = '%s:%s' % (species, yaw)
+            category = '{}:{}'.format(species, yaw)
         elif species in valid_seen_set:
-            category = '%s' % (species,)
+            category = '{}'.format(species)
         else:
             skipped_seen += 1
             continue
@@ -580,7 +586,7 @@ def get_cnn_labeler_training_images_pytorch(
     logger.info('Flipped: %d / total %d' % (sum(flipped_list_), len(flipped_list_)))
 
     for category in sorted(set(category_list_)):
-        logger.info('Making folder for %r' % (category,))
+        logger.info('Making folder for {!r}'.format(category))
         ut.ensuredir(join(train_path, category))
         ut.ensuredir(join(valid_path, category))
 
@@ -623,7 +629,7 @@ def get_cnn_labeler_training_images_pytorch(
         cv2.imwrite(patch_filepath, chip)
 
         # Compute label
-        label = '%s,%s' % (patch_filename, category)
+        label = '{},{}'.format(patch_filename, category)
         label_list.append(label)
 
     logger.info('Using labels for labeler training:')

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
-from os.path import join, dirname, split, basename, splitext
 import re
+from os.path import basename, dirname, join, split, splitext
+
 import utool as ut
 
 print, rrr, profile = ut.inject2(__name__)

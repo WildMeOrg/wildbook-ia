@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import colorsys
+
 import numpy as np
+
 from wbia.plottool import color_funcs
 
 

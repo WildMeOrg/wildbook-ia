@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import utool as ut
+
 import wbia.constants as const
 
 (print, rrr, profile) = ut.inject2(__name__)

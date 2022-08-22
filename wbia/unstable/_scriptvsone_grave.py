@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 import logging
+
 import utool as ut
 
 (print, rrr, profile) = ut.inject2(__name__)
@@ -703,6 +704,7 @@ def bigcache_vsone(qreq_, hyper_params):
         >>> hyper_params = self.hyper_params
     """
     import vtool as vt
+
     import wbia
 
     # Get a set of training pairs
@@ -861,6 +863,7 @@ def bigcache_vsone(qreq_, hyper_params):
         >>> hyper_params = self.hyper_params
     """
     import vtool as vt
+
     import wbia
 
     # Get a set of training pairs

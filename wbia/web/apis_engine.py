@@ -4,10 +4,12 @@
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
 import logging
-import utool as ut
 import uuid  # NOQA
-from wbia.control import controller_inject
+
+import utool as ut
+
 import wbia.constants as const
+from wbia.control import controller_inject
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -51,7 +53,7 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
     assert None not in [annot_uuid_list, name_list]
     assert len(annot_uuid_list) == len(name_list)
 
-    bad_uuid_set = set([])
+    bad_uuid_set = set()
 
     annot_dict = {}
     zipped = zip(annot_uuid_list, name_list)
@@ -63,7 +65,7 @@ def web_check_annot_uuids_with_names(annot_uuid_list, name_list):
             )
 
         if annot_uuid not in annot_dict:
-            annot_dict[annot_uuid] = set([])
+            annot_dict[annot_uuid] = set()
 
         if name not in ['', const.UNKNOWN, None]:
             annot_dict[annot_uuid].add(name)
@@ -555,7 +557,7 @@ def start_identify_annots_query(
         state = ''.join(state.split())
         assert (
             state in flat_states
-        ), 'matching_state_list has unrecognized states. Should be one of %r' % (
+        ), 'matching_state_list has unrecognized states. Should be one of {!r}'.format(
             prefered_states,
         )
         return state
@@ -614,7 +616,7 @@ def start_identify_annots_query(
         logger.info(ut.repr3(query_config_dict))
         pop_key_list = ['curvrank_daily_tag']
         for pop_key in pop_key_list:
-            logger.info('Popping irrelevant key for config: %r' % (pop_key,))
+            logger.info('Popping irrelevant key for config: {!r}'.format(pop_key))
             query_config_dict.pop(pop_key, None)
 
     # Check UUIDs

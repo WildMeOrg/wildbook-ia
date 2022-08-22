@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import numpy as np
 import utool as ut
-from wbia.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, NULL  # NOQA
+
+from wbia.algo.graph.state import INCMP, NEGTV, NULL, POSTV, UNREV  # NOQA
 
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -252,8 +254,9 @@ def demo_refresh():
     import wbia.plottool as pt
 
     pt.qtensure()
-    from wbia.scripts.thesis import TMP_RC
     import matplotlib as mpl
+
+    from wbia.scripts.thesis import TMP_RC
 
     mpl.rcParams.update(TMP_RC)
     pt.multi_plot(
@@ -302,8 +305,8 @@ def _dev_iters_until_threshold():
     paramter (how far we look ahead) to how far we actually are willing to go.
     """
     import numpy as np
-    import utool as ut
     import sympy as sym
+    import utool as ut
 
     i = sym.symbols('i', integer=True, nonnegative=True, finite=True)
     # mu_i = sym.symbols('mu_i', integer=True, nonnegative=True, finite=True)
@@ -580,7 +583,7 @@ def _dev_iters_until_threshold():
                 [float(pp.subs({a: aval}).evalf()) for aval in a_vals]
             )  # NOQA
 
-            pt.plot(a_vals, pp_vals, label='s=%r' % (sval,))
+            pt.plot(a_vals, pp_vals, label='s={!r}'.format(sval))
         pt.legend()
         pt.gca().set_xlabel('a')
         pt.gca().set_ylabel('poisson prob after a reviews')
@@ -599,7 +602,7 @@ def _dev_iters_until_threshold():
             pp_vals = np.array(
                 [float(pp.subs({a: aval}).evalf()) for aval in a_vals]
             )  # NOQA
-            pt.plot(a_vals, pp_vals, label='s=%r' % (sval,))
+            pt.plot(a_vals, pp_vals, label='s={!r}'.format(sval))
         pt.legend()
         pt.gca().set_xlabel('a')
         pt.gca().set_ylabel('binom prob after a reviews')
@@ -620,7 +623,7 @@ def _dev_iters_until_threshold():
             pp_vals = np.array(
                 [float(pp.subs({s: sval}).evalf()) for sval in s_vals]
             )  # NOQA
-            pt.plot(s_vals, pp_vals, label='a=%r' % (aval,))
+            pt.plot(s_vals, pp_vals, label='a={!r}'.format(aval))
         pt.legend()
         pt.gca().set_xlabel('s')
         pt.gca().set_ylabel('poisson prob')
@@ -639,7 +642,7 @@ def _dev_iters_until_threshold():
             pp_vals = np.array(
                 [float(pp.subs({s: sval}).evalf()) for sval in s_vals]
             )  # NOQA
-            pt.plot(s_vals, pp_vals, label='a=%r' % (aval,))
+            pt.plot(s_vals, pp_vals, label='a={!r}'.format(aval))
         pt.legend()
         pt.gca().set_xlabel('s')
         pt.gca().set_ylabel('binom prob')

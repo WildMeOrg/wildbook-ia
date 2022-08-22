@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import requests
 import sys
+
+import requests
 
 config = {
     'protocol': 'http',

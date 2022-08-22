@@ -6,10 +6,12 @@ Dependencies: flask, tornado
 # from os.path import splitext, basename
 import logging
 import uuid
-from wbia.web.routes_ajax import image_src
-from wbia.control import controller_inject
+
 import utool as ut
+
 import wbia.constants as const
+from wbia.control import controller_inject
+from wbia.web.routes_ajax import image_src
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -485,7 +487,7 @@ def add_images_json(
         gid_list_ = ut.filter_items(gid_list, flag_list)
         image_unixtime_list_ = ut.filter_items(image_unixtime_list, flag_list)
 
-        logger.info('Setting times: %r -> %r' % (gid_list_, image_unixtime_list_))
+        logger.info('Setting times: {!r} -> {!r}'.format(gid_list_, image_unixtime_list_))
         ibs.set_image_unixtime(gid_list_, image_unixtime_list_)
 
     if image_gps_lat_list is not None and image_gps_lon_list is not None:
@@ -2098,7 +2100,7 @@ def chaos_imageset(ibs):
     Args:
         image_uuid_list (list of str) : list of image UUIDs to be delete from IBEIS
     """
-    from random import shuffle, randint
+    from random import randint, shuffle
 
     gid_list = ibs.get_valid_gids()
     shuffle(gid_list)

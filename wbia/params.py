@@ -25,9 +25,9 @@ nnkj/enerate this module automagically from
     print(parse_codeblock)
 """
 import logging
-from utool import util_arg
-import utool as ut
 
+import utool as ut
+from utool import util_arg
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import logging
-import utool as ut
 import builtins
+import logging
+
+import utool as ut
 from utool._internal.meta_util_six import get_funcname
 
 print, rrr, profile = ut.inject2(__name__)
@@ -13,7 +14,7 @@ DEBUG_GETTERS = False
 # DEBUG_ADDERS  = ut.get_argflag(('--debug-adders', '--verbadd'))
 # DEBUG_SETTERS = ut.get_argflag(('--debug-setters', '--verbset'))
 # DEBUG_GETTERS = ut.get_argflag(('--debug-getters', '--verbget'))
-VERB_CONTROL = ut.get_argflag(('--verb-control'))
+VERB_CONTROL = ut.get_argflag('--verb-control')
 
 # DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
 # DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
@@ -332,9 +333,9 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                     'INVALIDATING tblname=%r, colnames=%r, rowidx=%r, force=%r'
                     % (tblname, colnames, rowidx, force)
                 )
-                logger.info('self = %r' % (self,))
-                logger.info('args = %r' % (args,))
-                logger.info('kwargs = %r' % (kwargs,))
+                logger.info('self = {!r}'.format(self))
+                logger.info('args = {!r}'.format(args))
+                logger.info('kwargs = {!r}'.format(kwargs))
                 logger.info('colscache_ = ' + ut.repr2(colscache_, truncate=1))
 
             # Clear the cache of any specified colname

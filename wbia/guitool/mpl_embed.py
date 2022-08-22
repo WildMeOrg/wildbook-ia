@@ -8,10 +8,12 @@ http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html
 # import os
 # import random
 import time
-from wbia.guitool.__PYQT__ import QtCore
-from wbia.guitool.__PYQT__ import QtGui as QtWidgets
+
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+
+from wbia.guitool.__PYQT__ import QtCore
+from wbia.guitool.__PYQT__ import QtGui as QtWidgets
 
 # from matplotlib.backends import qt_compat
 

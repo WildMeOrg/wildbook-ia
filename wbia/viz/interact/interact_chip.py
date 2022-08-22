@@ -7,13 +7,15 @@ CommandLine:
     python -m wbia.viz.interact.interact_chip --test-ishow_chip --show --aid 2
 """
 import logging
+from functools import partial
+
 import utool as ut
 import vtool as vt
+
 import wbia.plottool as pt  # NOQA
-from functools import partial
 from wbia import viz
-from wbia.viz import viz_helpers as vh
 from wbia.plottool import interact_helpers as ih
+from wbia.viz import viz_helpers as vh
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -149,7 +151,7 @@ def build_annot_context_options(
             if refresh_func is None:
                 logger.info('no refresh func')
             else:
-                logger.info('calling refresh_func=%r' % (refresh_func,))
+                logger.info('calling refresh_func={!r}'.format(refresh_func))
                 refresh_func()
             return ret
 
@@ -168,14 +170,14 @@ def build_annot_context_options(
     @refresh_wrp
     def toggle_exemplar_func():
         new_flag = not is_exemplar
-        logger.info('set_annot_exemplar(%r, %r)' % (aid, new_flag))
+        logger.info('set_annot_exemplar({!r}, {!r})'.format(aid, new_flag))
         ibs.set_annot_exemplar_flags(aid, new_flag)
 
     def set_viewpoint_func(view_code):
         # @refresh_wrp()
         def _wrap_view():
             ibs.set_annot_viewpoint_codes([aid], [view_code])
-            logger.info('set_annot_yaw(%r, %r)' % (aid, view_code))
+            logger.info('set_annot_yaw({!r}, {!r})'.format(aid, view_code))
 
         return _wrap_view
 
@@ -183,7 +185,7 @@ def build_annot_context_options(
         # @refresh_wrp()
         def _wrp_qual():
             ibs.set_annot_quality_texts([aid], [qualtext])
-            logger.info('set_annot_quality(%r, %r)' % (aid, qualtext))
+            logger.info('set_annot_quality({!r}, {!r})'.format(aid, qualtext))
 
         return _wrp_qual
 
@@ -191,7 +193,7 @@ def build_annot_context_options(
         # @refresh_wrp()
         def _wrp():
             ibs.set_annot_multiple([aid], [flag])
-            logger.info('set_annot_multiple(%r, %r)' % (aid, flag))
+            logger.info('set_annot_multiple({!r}, {!r})'.format(aid, flag))
 
         return _wrp
 
@@ -273,7 +275,7 @@ def build_annot_context_options(
     callback_list += [
         # ('Set Viewpoint: ' + key, set_viewpoint_func(key))
         (
-            'Set &Viewpoint (%s): ' % (current_viewcode,),
+            'Set &Viewpoint ({}): '.format(current_viewcode),
             [
                 (
                     '&'
@@ -291,7 +293,7 @@ def build_annot_context_options(
     callback_list += [
         # ('Set Quality: ' + key, set_quality_func(key))
         (
-            'Set &Quality (%s): ' % (current_qualtext,),
+            'Set &Quality ({}): '.format(current_qualtext),
             [
                 (
                     '&'
@@ -329,7 +331,7 @@ def build_annot_context_options(
         def _wrap_set_annot_prop(prop, toggle_val):
             if ut.VERBOSE:
                 logger.info(
-                    '[SETTING] Clicked set prop=%r to val=%r' % (prop, toggle_val)
+                    '[SETTING] Clicked set prop={!r} to val={!r}'.format(prop, toggle_val)
                 )
             ibs.set_annot_prop(prop, [aid], [toggle_val])
             if ut.VERBOSE:
@@ -363,7 +365,7 @@ def build_annot_context_options(
         name = ibs.get_annot_name_texts([aid])[0]
         newname = gt.user_input(title='edit name', msg=name, text=name)
         if newname is not None:
-            logger.info('[ctx] _setname_callback aid=%r resp=%r' % (aid, newname))
+            logger.info('[ctx] _setname_callback aid={!r} resp={!r}'.format(aid, newname))
             ibs.set_annot_name_texts([aid], [newname])
 
     callback_list += [('Set name', _setname_callback)]
@@ -381,23 +383,25 @@ def build_annot_context_options(
 
     def print_annot_info():
         logger.info('[interact_chip] Annotation Info = ' + ut.repr2(annot_info, nl=4))
-        logger.info('config2_ = %r' % (config2_,))
+        logger.info('config2_ = {!r}'.format(config2_))
         if config2_ is not None:
-            logger.info('config2_.__dict__ = %s' % (ut.repr3(config2_.__dict__),))
+            logger.info('config2_.__dict__ = {}'.format(ut.repr3(config2_.__dict__)))
 
     dev_callback_list = []
 
     def dev_edit_annot_tags():
-        logger.info('ibs = %r' % (ibs,))
+        logger.info('ibs = {!r}'.format(ibs))
         text = ibs.get_annot_tag_text([aid])[0]
         resp = gt.user_input(title='edit tags', msg=text, text=text)
         if resp is not None:
             try:
-                logger.info('resp = %r' % (resp,))
-                logger.info('[ctx] set_annot_tag_text aid=%r resp=%r' % (aid, resp))
+                logger.info('resp = {!r}'.format(resp))
+                logger.info(
+                    '[ctx] set_annot_tag_text aid={!r} resp={!r}'.format(aid, resp)
+                )
                 ibs.set_annot_tag_text(aid, resp)
                 new_text = ibs.get_annot_tag_text([aid])[0]
-                logger.info('new_text = %r' % (new_text,))
+                logger.info('new_text = {!r}'.format(new_text))
                 assert new_text == resp, 'should have had text change'
             except Exception as ex:
                 ut.printex(ex, 'error in dev edit tags')
@@ -408,11 +412,13 @@ def build_annot_context_options(
         resp = gt.user_input(title='edit species', msg=text, text=text)
         if resp is not None:
             try:
-                logger.info('resp = %r' % (resp,))
-                logger.info('[ctx] set_annot_tag_text aid=%r resp=%r' % (aid, resp))
+                logger.info('resp = {!r}'.format(resp))
+                logger.info(
+                    '[ctx] set_annot_tag_text aid={!r} resp={!r}'.format(aid, resp)
+                )
                 ibs.set_annot_species(aid, resp)
                 new_text = ibs.get_annot_species_texts([aid])[0]
-                logger.info('new_text = %r' % (new_text,))
+                logger.info('new_text = {!r}'.format(new_text))
                 assert new_text == resp, 'should have had text change'
             except Exception as ex:
                 ut.printex(ex, 'error in dev edit species')
@@ -427,8 +433,8 @@ def build_annot_context_options(
     if ut.is_developer():
 
         def dev_debug():
-            logger.info('aid = %r' % (aid,))
-            logger.info('config2_ = %r' % (config2_,))
+            logger.info('aid = {!r}'.format(aid))
+            logger.info('config2_ = {!r}'.format(config2_))
 
         def dev_embed(ibs=ibs, aid=aid, config2_=config2_):
             # import wbia.plottool as pt

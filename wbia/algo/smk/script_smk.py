@@ -165,11 +165,11 @@ the number of features to from 12.5M to 19.2M by lowering feature detection thre
 
 """
 import logging
-import utool as ut
+
 import numpy as np
-from wbia.algo.smk import inverted_index
-from wbia.algo.smk import smk_funcs
-from wbia.algo.smk import smk_pipeline
+import utool as ut
+
+from wbia.algo.smk import inverted_index, smk_funcs, smk_pipeline
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -197,7 +197,7 @@ class SMK(ut.NiceRepr):
         else:
             smk.kernel = smk.kernel_smk
 
-        assert len(kwargs) == 0, 'unexpected kwargs=%r' % (kwargs,)
+        assert len(kwargs) == 0, 'unexpected kwargs={!r}'.format(kwargs)
 
     def gamma(smk, X):
         """
@@ -291,7 +291,8 @@ def load_oxford_2007():
 
     >>> from wbia.algo.smk.script_smk import *  # NOQA
     """
-    from os.path import join, basename, splitext
+    from os.path import basename, join, splitext
+
     import pandas as pd
     import vtool as vt
 
@@ -397,11 +398,12 @@ def load_oxford_2013():
     # Remember that matlab is 1 indexed!
     # DONT FORGET TO CONVERT TO 0 INDEXING!
     """
-    from yael.ynumpy import fvecs_read
-    from yael.yutils import load_ext
+    from os.path import join
+
     import scipy.io
     import vtool as vt
-    from os.path import join
+    from yael.ynumpy import fvecs_read
+    from yael.yutils import load_ext
 
     dbdir = ut.truepath('/raid/work/Oxford/')
     datadir = dbdir + '/smk_data_iccv_2013/data/'
@@ -768,7 +770,7 @@ def run_asmk_script():
         logger.info('Looking at average percents')
         percent_list = [flags_.sum() / flags_.shape[0] for flags_ in query_flags_list]
         percent_stats = ut.get_stats(percent_list)
-        logger.info('percent_stats = %s' % (ut.repr4(percent_stats),))
+        logger.info('percent_stats = {}'.format(ut.repr4(percent_stats)))
 
         import vtool as vt
 
@@ -952,7 +954,7 @@ def run_asmk_script():
 
         # Execute matches (could go faster by enumerating candidates)
         scores_list = []
-        for X in ut.ProgIter(X_list, label='query %s' % (smk,)):
+        for X in ut.ProgIter(X_list, label='query {}'.format(smk)):
             scores = [smk.kernel(X, Y) for Y in Y_list_]
             scores = np.array(scores)
             scores = np.nan_to_num(scores)
@@ -962,14 +964,14 @@ def run_asmk_script():
 
         avep_list = []
         _iter = list(zip(scores_list, X_list))
-        _iter = ut.ProgIter(_iter, label='evaluate %s' % (smk,))
+        _iter = ut.ProgIter(_iter, label='evaluate {}'.format(smk))
         for scores, X in _iter:
             truth = [X.nid == Y.nid for Y in Y_list_]
             avep = sklearn.metrics.average_precision_score(truth, scores)
             avep_list.append(avep)
         avep_list = np.array(avep_list)
         mAP = np.mean(avep_list)
-        logger.info('mAP  = %r' % (mAP,))
+        logger.info('mAP  = {!r}'.format(mAP))
 
 
 def new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec):
@@ -1151,8 +1153,8 @@ def sanity_checks(offset_list, Y_list, query_annots, ibs):
         # Visualize queries
         # Look at the standard query images here
         # http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
-        from wbia.viz import viz_chip
         import wbia.plottool as pt
+        from wbia.viz import viz_chip
 
         pt.qt4ensure()
         fnum = 1
@@ -1207,7 +1209,7 @@ def load_internal_data():
     cm_list = qreq_.execute()
     ave_precisions = [cm.get_annot_ave_precision() for cm in cm_list]
     mAP = np.mean(ave_precisions)
-    logger.info('mAP = %.3f' % (mAP,))
+    logger.info('mAP = {:.3f}'.format(mAP))
     cm = cm_list[-1]
     return qreq_, cm
 
@@ -1261,8 +1263,9 @@ def show_data_image(data_uri_order, i, offset_list, all_kpts, all_vecs):
     """
     i = 12
     """
-    import vtool as vt
     from os.path import join
+
+    import vtool as vt
 
     imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
     gpath = join(imgdir, data_uri_order[i] + '.jpg')
@@ -1284,8 +1287,9 @@ def check_image_sizes(data_uri_order, all_kpts, offset_list):
     """
     Check if any keypoints go out of bounds wrt their associated images
     """
-    import vtool as vt
     from os.path import join
+
+    import vtool as vt
 
     imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
     gpath_list = [join(imgdir, imgid + '.jpg') for imgid in data_uri_order]
@@ -1305,9 +1309,10 @@ def check_image_sizes(data_uri_order, all_kpts, offset_list):
 
 
 def hyrule_vocab_test():
-    from yael.yutils import load_ext
     from os.path import join
+
     import sklearn.cluster
+    from yael.yutils import load_ext
 
     dbdir = ut.truepath('/raid/work/Oxford/')
     datadir = dbdir + '/smk_data_iccv_2013/data/'

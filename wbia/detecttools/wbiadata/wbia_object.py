@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import math
+
 from . import common as com
 from .wbia_part import IBEIS_Part
-
 
 BINS = [
     'left',
