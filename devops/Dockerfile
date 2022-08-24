@@ -129,7 +129,6 @@ RUN set -ex \
      opencv-contrib-python-headless
 
 # Run smoke tests
-# TODO: get blend smoke test passing
 RUN set -ex \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit \
