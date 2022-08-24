@@ -165,6 +165,12 @@ if ut.get_argflag('--pie-v2'):
     ]
 
 
+if ut.get_argflag('--blend'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-blend', '--noblend'), 'wbia_blend._plugin'),
+    ]
+
+
 if ut.get_argflag('--lca'):
     AUTOLOAD_PLUGIN_MODNAMES += [
         (('--no-lca', '--nolca'), 'wbia_lca._plugin'),

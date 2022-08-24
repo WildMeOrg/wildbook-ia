@@ -39,7 +39,15 @@ RUN set -ex \
  && git clone https://github.com/WildMeOrg/wbia-plugin-flukematch.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git
+ && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git 
+
+RUN set -ex \
+ && cd /wbia \
+ && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-blend.git \
+ && cd /wbia/wbia-plugin-blend/wbia_blend \
+ && git fetch origin \
+ && git checkout main
+
 
 # Clone third-party WBIA plug-in repositories
 RUN set -ex \
@@ -114,6 +122,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-pie-v2 \
  && /bin/bash run_developer_setup.sh'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-blend \
+ && pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-finfindr \
