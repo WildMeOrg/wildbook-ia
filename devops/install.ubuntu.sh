@@ -195,6 +195,8 @@ git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-flukematch.g
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
+git clone https://github.com/WildMeOrg/wbia-plugin-blend.git
+
 
 cd ${CODE}
 git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-curvrank.git
@@ -244,6 +246,9 @@ cd ${CODE}/wbia-plugin-cnn
 
 cd ${CODE}/wbia-plugin-pie
 ./run_developer_setup.sh
+
+cd ${CODE}/wbia-plugin-blend
+pip install -e .
 
 cd ${CODE}/wbia-plugin-finfindr
 pip install -e .
@@ -306,6 +311,7 @@ rm -rf /tmp/cv2
 python -c "import wbia;            from wbia.__main__ import smoke_test; smoke_test()"
 python -c "import wbia_cnn;        from wbia_cnn.__main__ import main;   main()"
 python -c "import wbia_pie;        from wbia_pie.__main__ import main;   main()"
+python -c "import wbia_blend;      from wbia_blend.__main__ import main;   main()"
 python -c "import wbia_flukematch; from wbia_flukematch.plugin import *"
 python -c "import wbia_curvrank;   from wbia_curvrank._plugin  import *"
 python -c "import wbia_finfindr;   from wbia_finfindr._plugin  import *"
