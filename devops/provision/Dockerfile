@@ -40,7 +40,13 @@ RUN set -ex \
  && git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git \ 
- && git clone https://github.com/WildMeOrg/wbia-plugin-blend.git
+
+RUN set -ex \
+ && cd /wbia \
+ && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-blend.git \
+ && cd /wbia/wbia-plugin-blend/wbia_blend \
+ && git fetch origin \
+ && git checkout main
 
 
 # Clone third-party WBIA plug-in repositories
