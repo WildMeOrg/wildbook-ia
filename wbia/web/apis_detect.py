@@ -79,7 +79,7 @@ def wic_cnn_json(ibs, gid_list, config={}, **kwargs):
 #         >>> import wbia
 #         >>> ibs = wbia.opendb('testdb1')
 #         >>> gid_list = ibs.get_valid_gids()[0:2]
-#         >>> species = cons.TEST_SPECIES.ZEB_PLAIN
+#         >>> species = const.TEST_SPECIES.ZEB_PLAIN
 #         >>> aids_list = ibs.detect_random_forest(gid_list, species)
 #         >>> # Visualize results
 #         >>> if ut.show_was_requested():
