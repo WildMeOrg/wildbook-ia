@@ -1973,7 +1973,7 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
         tau = 2 * pi
 
     SeeAlso:
-        wbia.const.VIEWTEXT_TO_YAW_RADIANS
+        wbia.constants.VIEWTEXT_TO_YAW_RADIANS
 
     Returns:
         yaw_list (list): the yaw (in radians) for the annotation
@@ -2265,7 +2265,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
             (tau = 2 * pi)
 
     SeeAlso:
-        wbia.const.VIEWTEXT_TO_YAW_RADIANS
+        wbia.constants.VIEWTEXT_TO_YAW_RADIANS
 
     References:
         http://upload.wikimedia.org/wikipedia/commons/7/7e/Rollpitchyawplain.png
@@ -3580,7 +3580,7 @@ def get_annot_qualities(ibs, aid_list, eager=True):
         tbl = annot
 
     SeeAlso:
-        wbia.const.QUALITY_INT_TO_TEXT
+        wbia.constants.QUALITY_INT_TO_TEXT
 
     RESTful:
         Method: GET
@@ -3625,7 +3625,7 @@ def set_annot_qualities(ibs, aid_list, annot_quality_list):
         annot_quality_list
 
     SeeAlso:
-        wbia.const.QUALITY_INT_TO_TEXT
+        wbia.constants.QUALITY_INT_TO_TEXT
 
     RESTful:
         Method: PUT

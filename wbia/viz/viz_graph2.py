@@ -12,9 +12,9 @@ import numpy as np
 import utool as ut
 import vtool as vt
 
-import wbia.constants as const
 import wbia.guitool as gt
 import wbia.plottool as pt
+from wbia import constants as const
 from wbia import dtool
 from wbia.algo.graph.state import INCMP, NEGTV, POSTV, UNKWN, UNREV  # NOQA
 from wbia.guitool import PrefWidget2, mpl_widget
@@ -516,14 +516,12 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         user_id=None,
     ):
         # from wbia.guitool.__PYQT__ import QtWidgets
-        import wbia
-
         if user_id is None:
             user_id = ut.get_user_name() + '@' + ut.get_computer_name() + ':qt'
 
-        EVIDENCE_DECISION = wbia.const.EVIDENCE_DECISION
+        EVIDENCE_DECISION = const.EVIDENCE_DECISION
         # TODO: meta decision
-        CONFIDENCE = wbia.const.CONFIDENCE
+        CONFIDENCE = const.CONFIDENCE
 
         match_state_codes = list(EVIDENCE_DECISION.CODE_TO_INT.keys())
         user_conf_codes = list(CONFIDENCE.CODE_TO_INT.keys())
@@ -694,15 +692,13 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         self.close()
 
     def feedback_dict(self):
-        import wbia
-
         decision_nice = self.match_state_combo.currentText()
         conf_nice = self.conf_combo.currentText()
-        decision_code = wbia.const.EVIDENCE_DECISION.NICE_TO_CODE[decision_nice]
+        decision_code = const.EVIDENCE_DECISION.NICE_TO_CODE[decision_nice]
         tags = [key for key, check in self.tag_checkboxes.items() if check.checkState()]
         tags += self.pairtag_edit.tags()
         tags = [t for t in tags if len(t) != 0]
-        confidence = wbia.const.CONFIDENCE.NICE_TO_CODE[conf_nice]
+        confidence = const.CONFIDENCE.NICE_TO_CODE[conf_nice]
         user_id = self.user_edit.text()
         feedback = {
             'edge': self.edge,

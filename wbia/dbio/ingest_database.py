@@ -1684,7 +1684,7 @@ def ingest_serengeti_mamal_cameratrap(species):
         >>> # SCRIPT
         >>> from wbia.dbio.ingest_database import *  # NOQA
         >>> import wbia
-        >>> species = ut.get_argval('--species', type_=str, default=wbia.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> species = ut.get_argval('--species', type_=str, default=const.TEST_SPECIES.ZEB_PLAIN)
         >>> # species = ut.get_argval('--species', type_=str, default='cheetah')
         >>> result = ingest_serengeti_mamal_cameratrap(species)
         >>> print(result)

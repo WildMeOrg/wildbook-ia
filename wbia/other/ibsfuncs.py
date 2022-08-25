@@ -2481,6 +2481,7 @@ def get_ungrouped_gids(ibs):
         >>> # ENABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia  # NOQA
+        >>> from wbia import constants as const
         >>> ibs = wbia.opendb('testdb1')
         >>> ibs.delete_all_imagesets()
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
@@ -3135,6 +3136,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> # ENABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> ibs1 = wbia.opendb('testdb1')
         >>> ibs2 = wbia.opendb('PZ_MTEST')
         >>> ibs3 = wbia.opendb('NAUT_test')
@@ -3312,7 +3314,8 @@ def get_primary_species_viewpoint(species, plus=0):
         >>> # ENABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
+        >>> from wbia import constants as const
+        >>> species = const.TEST_SPECIES.ZEB_PLAIN
         >>> aid_subset = get_primary_species_viewpoint(species, 0)
         >>> result = ('aid_subset = %s' % (str(aid_subset),))
         >>> print(result)
@@ -5224,9 +5227,10 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> # ENABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> species = wbia.const.TEST_SPECIES.ZEB_GREVY
+        >>> species = const.TEST_SPECIES.ZEB_GREVY
         >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)
@@ -5554,6 +5558,7 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
 def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
     """
     from wbia.other.ibsfuncs import *  # NOQA
+    from wbia import constants as const
     getter_func = ibs.get_annot_viewpoints
     prop_basis = list(const.VIEWTEXT_TO_YAW_RADIANS.keys())
     size = 2
@@ -6904,6 +6909,7 @@ def compute_occurrences(ibs, config=None):
         >>> # ENABLE_DOCTEST
         >>> from wbia.control.IBEISControl import *  # NOQA
         >>> import wbia  # NOQA
+        >>> from wbia import constants as const
         >>> ibs = wbia.opendb('testdb1')
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> ibs.update_special_imagesets()

@@ -22,6 +22,8 @@ from os.path import basename, dirname, join, splitext
 
 import utool as ut
 
+from wbia import constants as const
+
 print, rrr, profile = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
@@ -163,10 +165,8 @@ def find_installed_tomcat(check_unpacked=True, strict=True):
             logger.info(msg)
             return None
     if check_unpacked:
-        import wbia
-
         # Check that webapps was unpacked
-        wb_target = wbia.const.WILDBOOK_TARGET
+        wb_target = const.WILDBOOK_TARGET
         webapps_dpath = join(tomcat_dpath, 'webapps')
         unpacked_war_dpath = join(webapps_dpath, wb_target)
         ut.assertpath(unpacked_war_dpath)
@@ -469,7 +469,7 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         >>> import wbia
         >>> tomcat_dpath = find_installed_tomcat()
         >>> webapps_dpath = join(tomcat_dpath, 'webapps')
-        >>> wb_target = wbia.const.WILDBOOK_TARGET
+        >>> wb_target = const.WILDBOOK_TARGET
         >>> unpacked_war_dpath = join(webapps_dpath, wb_target)
         >>> locals_ = ut.exec_func_src(update_wildbook_install_config, globals())
         >>> #update_wildbook_install_config(webapps_dpath, unpacked_war_dpath)
@@ -669,15 +669,13 @@ def startup_wildbook_server(verbose=ut.NOT_QUIET):
         >>> ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     """
     # TODO: allow custom specified tomcat directory
-    import wbia
-
     tomcat_dpath = find_installed_tomcat()
 
     with ut.ChdirContext(get_tomcat_startup_tmpdir()):
         startup_fpath = join(tomcat_dpath, 'bin', 'startup.sh')
         ut.cmd(ut.quote_single_command(startup_fpath))
         time.sleep(1)
-    wb_url = 'http://127.0.0.1:8080/' + wbia.const.WILDBOOK_TARGET
+    wb_url = 'http://127.0.0.1:8080/' + const.WILDBOOK_TARGET
     # TODO go to http://127.0.0.1:8080/wbia/createAssetStore.jsp
     return wb_url
 
@@ -729,15 +727,13 @@ def monitor_wildbook_logs(verbose=ut.NOT_QUIET):
         >>> monitor_wildbook_logs()
     """
     # TODO: allow custom specified tomcat directory
-    import wbia
-
     tomcat_dpath = find_installed_tomcat()
 
     with ut.ChdirContext(get_tomcat_startup_tmpdir()):
         startup_fpath = join(tomcat_dpath, 'bin', 'startup.sh')
         ut.cmd(ut.quote_single_command(startup_fpath))
         time.sleep(1)
-    wb_url = 'http://127.0.0.1:8080/' + wbia.const.WILDBOOK_TARGET
+    wb_url = 'http://127.0.0.1:8080/' + const.WILDBOOK_TARGET
     return wb_url
 
 
@@ -757,10 +753,8 @@ def tryout_wildbook_login():
         >>> tryout_wildbook_login()
     """
     # Use selenimum to login to wildbook
-    import wbia
-
     manaul_login = False
-    wb_target = wbia.const.WILDBOOK_TARGET
+    wb_target = const.WILDBOOK_TARGET
     wb_url = 'http://127.0.0.1:8080/' + wb_target
     if manaul_login:
         ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)

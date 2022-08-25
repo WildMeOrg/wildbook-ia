@@ -208,8 +208,9 @@ def build_nnindex_cfgstr(qreq_, daid_list):
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> ibs = wbia.opendb(db='testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> daid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list, cfgdict=dict(fg_on=False))
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
         >>> result = str(nnindex_cfgstr)
@@ -332,8 +333,9 @@ def request_augmented_wbia_nnindexer(
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> # build test data
-        >>> ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN
+        >>> ZEB_PLAIN = const.TEST_SPECIES.ZEB_PLAIN
         >>> ibs = wbia.opendb('testdb1')
         >>> use_memcache, max_covers, verbose = True, None, True
         >>> daid_list = sorted(ibs.get_valid_aids(species=ZEB_PLAIN))[0:6]
@@ -456,10 +458,11 @@ def request_memcached_wbia_nnindexer(
         >>> # DISABLE_DOCTEST
         >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> # build test data
         >>> ibs = wbia.opendb('testdb1')
         >>> qreq_.qparams.min_reindex_thresh = 3
-        >>> ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN
+        >>> ZEB_PLAIN = const.TEST_SPECIES.ZEB_PLAIN
         >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:3]
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> verbose = True
@@ -549,9 +552,10 @@ def request_diskcached_wbia_nnindexer(
         >>> # DISABLE_DOCTEST
         >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> # build test data
         >>> ibs = wbia.opendb('testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> daid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
         >>> verbose = True
@@ -619,8 +623,9 @@ def group_daids_by_cached_nnindexer(
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> ibs = wbia.opendb('testdb1')
-        >>> ZEB_PLAIN = wbia.const.TEST_SPECIES.ZEB_PLAIN
+        >>> ZEB_PLAIN = const.TEST_SPECIES.ZEB_PLAIN
         >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> # Set the params a bit lower
@@ -820,9 +825,10 @@ def request_background_nnindexer(qreq_, daid_list):
         >>> # DISABLE_DOCTEST
         >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> # build test data
         >>> ibs = wbia.opendb('testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> daid_list = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> # execute function
         >>> request_background_nnindexer(qreq_, daid_list)

@@ -60,7 +60,7 @@ def testdata_distinctiveness():
         species = ibs.get_annot_species_texts(aid)
     if species is None:
         if db == 'testdb1':
-            species = wbia.const.TEST_SPECIES.ZEB_PLAIN
+            species = const.TEST_SPECIES.ZEB_PLAIN
     daids = ibs.get_valid_aids(species=species)
     qaids = [aid] if aid is not None else daids
     qreq_ = ibs.new_query_request(qaids, daids)
@@ -423,10 +423,11 @@ def request_wbia_distinctiveness_normalizer(qreq_, verbose=True):
         >>> # SLOW_DOCTEST
         >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> # build test data
         >>> ibs = wbia.opendb('testdb1')
-        >>> daids = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=wbia.const.TEST_SPECIES.ZEB_PLAIN)
+        >>> daids = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)
+        >>> qaids = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)
         >>> qreq_ = ibs.new_query_request(qaids, daids)
         >>> # execute function
         >>> dstcnvs_normer = request_wbia_distinctiveness_normalizer(qreq_)

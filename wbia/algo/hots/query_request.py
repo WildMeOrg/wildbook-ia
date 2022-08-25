@@ -15,7 +15,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 
-import wbia.constants as const
+from wbia import constants as const
 from wbia import dtool
 
 # from wbia.algo.hots import multi_index
@@ -769,7 +769,7 @@ class QueryRequest(ut.NiceRepr):
     #        >>> import wbia
     #        >>> # build test data
     #        >>> ibs = wbia.opendb('testdb1')
-    #        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
+    #        >>> species = const.TEST_SPECIES.ZEB_PLAIN
     #        >>> daids = ibs.get_valid_aids(species=species, is_exemplar=True)
     #        >>> qaids = ibs.get_valid_aids(species=species, is_exemplar=False)
     #        >>> qreq_ = ibs.new_query_request(qaids, daids)

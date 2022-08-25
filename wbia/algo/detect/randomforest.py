@@ -222,9 +222,10 @@ def detect_gid_list_with_species(ibs, gid_list, species, downsample=True, **kwar
         >>> from wbia.algo.detect.randomforest import *  # NOQA
         >>> from wbia.algo.detect.randomforest import _get_models  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> # build test data
         >>> ibs = wbia.opendb('testdb1')
-        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
+        >>> species = const.TEST_SPECIES.ZEB_PLAIN
         >>> gid_list = ibs.get_valid_gids()
         >>> downsample = True
         >>> kwargs = {}
@@ -358,8 +359,9 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.detect.randomforest import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> ibs = wbia.opendb(defaultdb='testdb1')
-        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
+        >>> species = const.TEST_SPECIES.ZEB_PLAIN
         >>> modeldir = 'default'
         >>> cfg_override = True
         >>> verbose = False
