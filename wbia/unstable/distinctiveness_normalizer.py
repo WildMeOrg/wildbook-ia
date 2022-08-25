@@ -423,6 +423,7 @@ def request_wbia_distinctiveness_normalizer(qreq_, verbose=True):
         >>> # SLOW_DOCTEST
         >>> from wbia.algo.hots.distinctiveness_normalizer import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> # build test data
         >>> ibs = wbia.opendb('testdb1')
         >>> daids = ibs.get_valid_aids(species=const.TEST_SPECIES.ZEB_PLAIN)
