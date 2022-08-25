@@ -721,7 +721,7 @@ def get_part_qualities(ibs, part_rowid_list, eager=True):
         tbl = part
 
     SeeAlso:
-        const.QUALITY_INT_TO_TEXT
+        wbia.constants.QUALITY_INT_TO_TEXT
 
     RESTful:
         Method: GET
@@ -1245,7 +1245,7 @@ def set_part_qualities(ibs, part_rowid_list, part_quality_list):
         part_quality_list
 
     SeeAlso:
-        const.QUALITY_INT_TO_TEXT
+        wbia.constants.QUALITY_INT_TO_TEXT
 
     RESTful:
         Method: PUT
