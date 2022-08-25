@@ -45,8 +45,9 @@ def get_species_trees_paths(species, modeldir='default'):
         >>> # ENABLE_DOCTEST
         >>> from wbia.algo.detect.grabmodels import *  # NOQA
         >>> import wbia
+        >>> from wbia import constants as const
         >>> # build test data
-        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
+        >>> species = const.TEST_SPECIES.ZEB_PLAIN
         >>> modeldir = 'default'
         >>> # execute function
         >>> trees_path = get_species_trees_paths(species, modeldir)

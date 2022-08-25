@@ -3312,7 +3312,7 @@ def get_primary_species_viewpoint(species, plus=0):
         >>> # ENABLE_DOCTEST
         >>> from wbia.other.ibsfuncs import *  # NOQA
         >>> import wbia
-        >>> species = wbia.const.TEST_SPECIES.ZEB_PLAIN
+        >>> species = const.TEST_SPECIES.ZEB_PLAIN
         >>> aid_subset = get_primary_species_viewpoint(species, 0)
         >>> result = ('aid_subset = %s' % (str(aid_subset),))
         >>> print(result)
@@ -5226,7 +5226,7 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> import wbia
         >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> species = wbia.const.TEST_SPECIES.ZEB_GREVY
+        >>> species = const.TEST_SPECIES.ZEB_GREVY
         >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)

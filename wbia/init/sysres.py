@@ -636,9 +636,7 @@ def copy_wbiadb(source_dbdir, dest_dbdir):
     # TODO: rectify with rsync, script, and merge script.
     from os.path import normpath
 
-    import wbia
-
-    exclude_dirs_ = wbia.const.EXCLUDE_COPY_REL_DIRS + ['_hsdb', '.hs_internals']
+    exclude_dirs_ = const.EXCLUDE_COPY_REL_DIRS + ['_hsdb', '.hs_internals']
     exclude_dirs = [ut.ensure_unixslash(normpath(rel)) for rel in exclude_dirs_]
 
     rel_tocopy = ut.glob(

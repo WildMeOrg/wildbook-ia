@@ -9,6 +9,8 @@ import logging
 
 import utool as ut
 
+from wbia import constants as const
+
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
@@ -27,7 +29,7 @@ def sync_wbiadb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=F
 
     assert dbname is not None, 'must specify a database name'
     # Excluded temporary and cached data
-    exclude_dirs = list(map(ut.ensure_unixslash, wbia.const.EXCLUDE_COPY_REL_DIRS))
+    exclude_dirs = list(map(ut.ensure_unixslash, const.EXCLUDE_COPY_REL_DIRS))
     # Specify local workdir
     if workdir is None:
         workdir = wbia.sysres.get_workdir()
