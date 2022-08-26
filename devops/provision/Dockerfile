@@ -39,7 +39,7 @@ RUN set -ex \
  && git clone https://github.com/WildMeOrg/wbia-plugin-flukematch.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git 
+ && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git
 
 RUN set -ex \
  && cd /wbia \
