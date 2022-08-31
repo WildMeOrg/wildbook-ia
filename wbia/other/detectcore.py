@@ -1314,7 +1314,7 @@ def redownload_detection_models(ibs):
         >>> import wbia  # NOQA
         >>> ibs = wbia.opendb('testdb1')
         >>> result = redownload_detection_models(ibs)
-        >>> logger.info(result)
+        >>> print(result)
     """
     logger.info('[other.detectcore] redownload_detection_models')
     from wbia.algo.detect import grabmodels

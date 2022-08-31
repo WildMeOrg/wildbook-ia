@@ -981,7 +981,7 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
         >>>     for _ in gid_list
         >>> ]
         >>> try:
-        >>>     logger.info(ut.repr2(unixtime_list))
+        >>>     print(ut.repr2(unixtime_list))
         >>>     ibs.set_image_unixtime(gid_list, unixtime_list)
         >>> except AssertionError:
         >>>     pass

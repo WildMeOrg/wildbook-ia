@@ -71,7 +71,7 @@ class ThumbnailConfig(dtool.Config):
     configclass=ThumbnailConfig,
     fname='thumbcache',
     rm_extern_on_delete=True,
-    chunksize=4096,
+    chunksize=256,
 )
 def compute_thumbnails(depc, gid_list, config=None):
     r"""Compute the thumbnail for a given input image.
@@ -908,7 +908,7 @@ class LocalizerOriginalConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerOriginalConfig,
     fname='localizationscache',
-    chunksize=64 if const.CONTAINERIZED else 1536,
+    chunksize=8 if const.CONTAINERIZED else 128,
 )
 def compute_localizations_original(depc, gid_list, config=None):
     r"""Extract the localizations for a given input image.
@@ -1468,7 +1468,7 @@ class LocalizerConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=LocalizerConfig,
     fname='detectcache',
-    chunksize=64 if const.CONTAINERIZED else 8192,
+    chunksize=64 if const.CONTAINERIZED else 256,
 )
 def compute_localizations(depc, loc_orig_id_list, config=None):
     r"""Extract the localizations for a given input image.

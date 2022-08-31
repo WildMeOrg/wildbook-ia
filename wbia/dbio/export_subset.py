@@ -1292,11 +1292,11 @@ def check_database_overlap(ibs1, ibs2):
 """
 def MERGE_NNP_MASTER_SCRIPT():
 
-    logger.info(ut.truncate_str(ibs_dst.db.get_table_csv(wbia.const.ANNOTATION_TABLE,
+    logger.info(ut.truncate_str(ibs_dst.db.get_table_csv(wbia.constants.ANNOTATION_TABLE,
         exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
-    logger.info(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE,
+    logger.info(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.constants.ANNOTATION_TABLE,
         exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
-    logger.info(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.const.ANNOTATION_TABLE), 10000))
+    logger.info(ut.truncate_str(ibs_src1.db.get_table_csv(wbia.constants.ANNOTATION_TABLE), 10000))
 
     from wbia.dbio.export_subset import *  # NOQA
     import wbia
