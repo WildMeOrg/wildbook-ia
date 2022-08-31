@@ -518,7 +518,7 @@ def general_parse_gt_annots(
     for gid, aid in zip(gid_list, aid_list):
         width, height = ibs.get_image_sizes(gid)
 
-        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        is_tile = ibs.get_tile_flags(gid)
         reference_tile_gid = gid if is_tile else None
         bbox = ibs.get_annot_bboxes(aid, reference_tile_gid=reference_tile_gid)
         theta = ibs.get_annot_thetas(aid)
@@ -4145,7 +4145,7 @@ def _canonical_get_boxes(ibs, gid_list, species):
     zipped = zip(aid_list, flag_list, part_rowids_list, part_types_list)
     for aid, flag, part_rowid_list, part_type_list in zipped:
         gid = ibs.get_annot_gids(aid)
-        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        is_tile = ibs.get_tile_flags(gid)
         reference_tile_gid = gid if is_tile else None
 
         part_rowid_ = None
@@ -4856,7 +4856,7 @@ def aoi2_confusion_matrix_algo_plot(
             image = _resize(image, t_width=600, verbose=False)
             height_, width_, channels_ = image.shape
 
-            is_tile = ibs.get_vulcan_image_tile_flags(test_gid)
+            is_tile = ibs.get_tile_flags(test_gid)
             reference_tile_gid = test_gid if is_tile else None
 
             for test_aid in manifest_dict[test_gid]:
@@ -5041,7 +5041,7 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
 
     gt_dict = {}
     for gid, uuid in zip(gid_list, uuid_list):
-        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        is_tile = ibs.get_tile_flags(gid)
         reference_tile_gid = gid if is_tile else None
         width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)

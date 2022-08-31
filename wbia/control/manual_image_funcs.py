@@ -208,14 +208,14 @@ def filter_image_set(
 
     if is_tile is True:
         # corresponding unoptimized hack for is_staged
-        flag_list = ibs.get_vulcan_image_tile_flags(gid_list)
+        flag_list = ibs.get_tile_flags(gid_list)
         gid_list = ut.compress(gid_list, flag_list)
     elif is_tile is False:
-        flag_list = ibs.get_vulcan_image_tile_flags(gid_list)
+        flag_list = ibs.get_tile_flags(gid_list)
         gid_list = ut.filterfalse_items(gid_list, flag_list)
 
     if is_tile is not None and is_tile_border is not None:
-        border_flag_list = ibs.get_vulcan_image_tile_border_flag(gid_list)
+        border_flag_list = ibs.get_tile_border_flag(gid_list)
         if is_tile_border:
             gid_list = ut.compress(gid_list, border_flag_list)
         else:
@@ -2460,7 +2460,7 @@ def get_image_aids(
     """
     from wbia.control.manual_annot_funcs import ANNOT_STAGED_FLAG
 
-    flag_list = ibs.get_vulcan_image_tile_flags(gid_list)
+    flag_list = ibs.get_tile_flags(gid_list)
 
     if check_tiles:
         image_gid_list = ut.filterfalse_items(gid_list, flag_list)
@@ -2468,7 +2468,7 @@ def get_image_aids(
         image_gid_dict = dict(zip(image_gid_list, image_aids_list))
 
         tile_gid_list = ut.compress(gid_list, flag_list)
-        tile_aids_list = ibs.get_vulcan_image_tile_aids(tile_gid_list)
+        tile_aids_list = ibs.get_tile_aids(tile_gid_list)
         tile_gid_dict = dict(zip(tile_gid_list, tile_aids_list))
 
         aids_list = []
@@ -2715,13 +2715,13 @@ def delete_images(ibs, gid_list, trash_images=True):
     # ut.view_directory(trash_dir)
 
     # Delete tiles first, find any tiles that depend on these images as an ancestor
-    descendants_gids_list = ibs.get_vulcan_image_tile_descendants_gids(gid_list)
+    descendants_gids_list = ibs.get_tile_descendants_gids(gid_list)
     descendants_gid_list = list(set(ut.flatten(descendants_gids_list)))
     if len(descendants_gid_list) > 0:
         ibs.delete_images(descendants_gid_list)
 
     # Delete annotations second (only for images not tiles)
-    tile_flag_list = ibs.get_vulcan_image_tile_flags(gid_list)
+    tile_flag_list = ibs.get_tile_flags(gid_list)
     image_gid_list = ut.filterfalse_items(gid_list, tile_flag_list)
     aid_list = ut.flatten(ibs.get_image_aids(image_gid_list))
     if len(aid_list) > 0:
@@ -3080,8 +3080,8 @@ def get_image_contributor_tag(ibs, gid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/vulcan/image/tile/parent/rowid/', methods=['GET'])
-def get_vulcan_image_tile_parent_gids(ibs, gid_list):
+@register_api('/api/tile/parent/rowid/', methods=['GET'])
+def get_tile_parent_gids(ibs, gid_list):
     parent_gid_list = ibs.db.get(
         const.IMAGE_TABLE, ('image_tile_parent_rowid',), gid_list
     )
@@ -3090,12 +3090,12 @@ def get_vulcan_image_tile_parent_gids(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/vulcan/image/tile/ancestor/rowid/', methods=['GET'])
-def get_vulcan_image_tile_ancestor_gids(ibs, gid_list):
-    parent_gid_list = ibs.get_vulcan_image_tile_parent_gids(gid_list)
+@register_api('/api/tile/ancestor/rowid/', methods=['GET'])
+def get_tile_ancestor_gids(ibs, gid_list):
+    parent_gid_list = ibs.get_tile_parent_gids(gid_list)
 
     ancestor_gid_list = [
-        gid if parent_gid is None else ibs.get_vulcan_image_tile_ancestor_gids(parent_gid)
+        gid if parent_gid is None else ibs.get_tile_ancestor_gids(parent_gid)
         for gid, parent_gid in zip(gid_list, parent_gid_list)
     ]
 
@@ -3104,14 +3104,14 @@ def get_vulcan_image_tile_ancestor_gids(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/vulcan/image/tile/children/rowid/', methods=['GET'])
-def get_vulcan_image_tile_children_gids(ibs, gid_list):
+@register_api('/api/tile/children/rowid/', methods=['GET'])
+def get_tile_children_gids(ibs, gid_list):
     # params_iter = ((gid,) for gid in gid_list)
     # where_colnames = ('image_tile_parent_rowid', )
     # children_gid_list = ibs.db.get_where_eq(ibs.const.IMAGE_TABLE, (IMAGE_ROWID,),
     #                                         params_iter, where_colnames, unpack_scalars=False)
     all_gid_list = ibs.get_valid_gids(is_tile=None)
-    parent_gid_list = ibs.get_vulcan_image_tile_parent_gids(all_gid_list)
+    parent_gid_list = ibs.get_tile_parent_gids(all_gid_list)
 
     children_gid_dict = {parent_gid: [] for parent_gid in set(gid_list)}
     for gid, parent_gid in zip(all_gid_list, parent_gid_list):
@@ -3129,12 +3129,12 @@ def get_vulcan_image_tile_children_gids(ibs, gid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api(
-    '/api/vulcan/image/tile/descendants/rowid/',
+    '/api/tile/descendants/rowid/',
     methods=['GET'],
     __api_plural_check__=False,
 )
-def get_vulcan_image_tile_descendants_gids(ibs, gid_list):
-    children_gids_list = ibs.get_vulcan_image_tile_children_gids(gid_list)
+def get_tile_descendants_gids(ibs, gid_list):
+    children_gids_list = ibs.get_tile_children_gids(gid_list)
 
     descendants_cache = {}
 
@@ -3145,9 +3145,7 @@ def get_vulcan_image_tile_descendants_gids(ibs, gid_list):
             if children_gid in descendants_cache:
                 descendants_gid_list_ = descendants_cache[children_gid]
             else:
-                descendants_gid_list_ = ibs.get_vulcan_image_tile_descendants_gids(
-                    children_gid
-                )
+                descendants_gid_list_ = ibs.get_tile_descendants_gids(children_gid)
                 descendants_cache[children_gid] = descendants_gid_list_
             descendants_gid_list += descendants_gid_list_
 
@@ -3159,8 +3157,8 @@ def get_vulcan_image_tile_descendants_gids(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/vulcan/image/tile/', methods=['GET'])
-def get_vulcan_image_tile_flags(ibs, gid_list):
+@register_api('/api/tile/', methods=['GET'])
+def get_tile_flags(ibs, gid_list):
     r"""
     returns if an image is tile
 
@@ -3172,7 +3170,7 @@ def get_vulcan_image_tile_flags(ibs, gid_list):
         list: image_tile_flag_list - True if image is tile
 
     CommandLine:
-        python -m wbia.control.manual_image_funcs --test-get_vulcan_image_tile_flags
+        python -m wbia.control.manual_image_funcs --test-get_tile_flags
 
     RESTful:
         Method: GET
@@ -3184,23 +3182,23 @@ def get_vulcan_image_tile_flags(ibs, gid_list):
         >>> import wbia
         >>> ibs = wbia.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()
-        >>> gid_list = get_vulcan_image_tile_flags(ibs, gid_list)
+        >>> gid_list = get_tile_flags(ibs, gid_list)
         >>> result = str(gid_list)
         >>> print(result)
     """
-    parent_gid_list = ibs.get_vulcan_image_tile_parent_gids(gid_list)
+    parent_gid_list = ibs.get_tile_parent_gids(gid_list)
     image_tile_flag_list = [parent_gid is not None for parent_gid in parent_gid_list]
     return image_tile_flag_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/vulcan/image/tile/level/', methods=['GET'])
-def get_vulcan_image_tile_level(ibs, gid_list):
-    parent_gid_list = ibs.get_vulcan_image_tile_parent_gids(gid_list)
+@register_api('/api/tile/level/', methods=['GET'])
+def get_tile_level(ibs, gid_list):
+    parent_gid_list = ibs.get_tile_parent_gids(gid_list)
 
     level_list = [
-        0 if parent_gid is None else 1 + ibs.get_vulcan_image_tile_level(parent_gid)
+        0 if parent_gid is None else 1 + ibs.get_tile_level(parent_gid)
         for parent_gid in parent_gid_list
     ]
     return level_list
@@ -3209,8 +3207,8 @@ def get_vulcan_image_tile_level(ibs, gid_list):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1toM
-@register_api('/api/vulcan/image/tile/bbox/', methods=['GET'])
-def get_vulcan_image_tile_bboxes(ibs, gid_list):
+@register_api('/api/tile/bbox/', methods=['GET'])
+def get_tile_bboxes(ibs, gid_list):
     r"""
     Returns:
         bbox_list (list):  image bounding boxes in image space
@@ -3232,10 +3230,8 @@ def get_vulcan_image_tile_bboxes(ibs, gid_list):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1toM
-@register_api(
-    '/api/vulcan/image/tile/verts/', methods=['GET'], __api_plural_check__=False
-)
-def get_vulcan_image_tile_verts(ibs, gid_list):
+@register_api('/api/tile/verts/', methods=['GET'], __api_plural_check__=False)
+def get_tile_verts(ibs, gid_list):
     r"""
     Returns:
         bbox_list (list):  image bounding boxes in image space
@@ -3244,7 +3240,7 @@ def get_vulcan_image_tile_verts(ibs, gid_list):
         Method: GET
         URL:    /api/image/bbox/
     """
-    bbox_list = ibs.get_vulcan_image_tile_bboxes(gid_list)
+    bbox_list = ibs.get_tile_bboxes(gid_list)
     vert_list = [
         [(xtl, ytl), (xtl + w, ytl), (xtl + w, ytl + h), (xtl, ytl + h), (xtl, ytl)]
         for xtl, ytl, w, h in bbox_list
@@ -3254,16 +3250,16 @@ def get_vulcan_image_tile_verts(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/vulcan/image/tile/border/', methods=['GET'])
-def get_vulcan_image_tile_border_flag(ibs, gid_list):
+@register_api('/api/tile/border/', methods=['GET'])
+def get_tile_border_flag(ibs, gid_list):
     border_list = ibs.db.get(const.IMAGE_TABLE, ('image_tile_border_flag',), gid_list)
     return border_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/vulcan/image/tile/config/', methods=['GET'])
-def get_vulcan_image_tile_config(ibs, gid_list, return_raw=False):
+@register_api('/api/tile/config/', methods=['GET'])
+def get_tile_config(ibs, gid_list, return_raw=False):
     config_str_list = ibs.db.get(const.IMAGE_TABLE, ('image_tile_config_json',), gid_list)
     config_list = []
     for config_str in config_str_list:
@@ -3277,8 +3273,8 @@ def get_vulcan_image_tile_config(ibs, gid_list, return_raw=False):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/vulcan/image/tile/config/hash/', methods=['GET'])
-def get_vulcan_image_tile_config_hashid(ibs, gid_list):
+@register_api('/api/tile/config/hash/', methods=['GET'])
+def get_tile_config_hashid(ibs, gid_list):
     config_hash_list = ibs.db.get(
         const.IMAGE_TABLE, ('image_tile_config_hashid',), gid_list
     )
@@ -3287,16 +3283,16 @@ def get_vulcan_image_tile_config_hashid(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-@register_api('/api/vulcan/tile/annot/rowid/', methods=['GET'])
-def get_vulcan_image_tile_aids(ibs, gid_list, is_staged=False):
+@register_api('/api/tile/annot/rowid/', methods=['GET'])
+def get_tile_aids(ibs, gid_list, is_staged=False):
     from shapely.geometry import Polygon
 
-    flag_list = ibs.get_vulcan_image_tile_flags(gid_list)
+    flag_list = ibs.get_tile_flags(gid_list)
     assert False not in flag_list
 
     # These most likely have shared ancestors, so build a
     # dict of their Polygons for quicker lookup
-    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(gid_list)
+    ancestor_gid_list = ibs.get_tile_ancestor_gids(gid_list)
 
     ancestor_gid_dict = {}
     for ancestor_gid in set(ancestor_gid_list):
@@ -3310,7 +3306,7 @@ def get_vulcan_image_tile_aids(ibs, gid_list, is_staged=False):
             'polys': ancestor_poly_list,
         }
 
-    tile_vert_list = ibs.get_vulcan_image_tile_verts(gid_list)
+    tile_vert_list = ibs.get_tile_verts(gid_list)
     tile_poly_list = [Polygon(tile_vert) for tile_vert in tile_vert_list]
 
     aids_list = []
@@ -3329,7 +3325,7 @@ def get_vulcan_image_tile_aids(ibs, gid_list, is_staged=False):
 
 
 @register_ibs_method
-def _set_vulcan_image_tile_parent_gids(ibs, gid_list, parent_gid_list):
+def _set_tile_parent_gids(ibs, gid_list, parent_gid_list):
     r"""
     Returns:
         list_ (list): all nids of known animals
@@ -3342,7 +3338,11 @@ def _set_vulcan_image_tile_parent_gids(ibs, gid_list, parent_gid_list):
 
 @register_ibs_method
 @accessor_decors.setter
-def _set_vulcan_image_tile_bboxes(ibs, gid_list, bbox_list, border_list):
+def _set_tile_bboxes(ibs, gid_list, bbox_list, border_list):
+    assert len(gid_list) == len(bbox_list)
+    assert len(gid_list) == len(border_list)
+    if len(gid_list) == 0:
+        return
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     val_iter = zip(xtl_list, ytl_list, width_list, height_list, border_list)
     id_iter = ((aid,) for aid in gid_list)
@@ -3359,8 +3359,8 @@ def _set_vulcan_image_tile_bboxes(ibs, gid_list, bbox_list, border_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/vulcan/image/tile/config/', methods=['PUT'])
-def _set_vulcan_image_tile_config(ibs, gid_list, config_dict_list, config_hashid_list):
+@register_api('/api/tile/config/', methods=['PUT'])
+def _set_tile_config(ibs, gid_list, config_dict_list, config_hashid_list):
     r"""
     Sets the image's config using a config dictionary
 
@@ -3410,7 +3410,7 @@ def _set_vulcan_image_tile_config(ibs, gid_list, config_dict_list, config_hashid
 
 
 @register_ibs_method
-def set_vulcan_image_tile_source(
+def set_tile_source(
     ibs,
     gid_list,
     parent_gid_list,
@@ -3424,13 +3424,13 @@ def set_vulcan_image_tile_source(
         list_ (list): all nids of known animals
         (does not include unknown names)
     """
-    ibs._set_vulcan_image_tile_parent_gids(gid_list, parent_gid_list)
-    ibs._set_vulcan_image_tile_bboxes(gid_list, bbox_list, border_list)
-    ibs._set_vulcan_image_tile_config(gid_list, config_dict_list, config_hashid_list)
+    ibs._set_tile_parent_gids(gid_list, parent_gid_list)
+    ibs._set_tile_bboxes(gid_list, bbox_list, border_list)
+    ibs._set_tile_config(gid_list, config_dict_list, config_hashid_list)
 
 
 @register_ibs_method
-@register_api('/api/vulcan/image/tile/', methods=['POST'])
+@register_api('/api/tile/', methods=['POST'])
 def compute_tiles(ibs, gid_list=None, **config):
     r"""
     Returns:

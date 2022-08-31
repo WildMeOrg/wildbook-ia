@@ -27,5 +27,5 @@ from wbia.web import (
 
 if controller_inject.MICROSOFT_API_ENABLED:
     from wbia.web import apis_microsoft
-if controller_inject.VULCAN_API_ENABLED:
-    from wbia.web import apis_vulcan
+if controller_inject.SCOUT_API_ENABLED:
+    from wbia.web import apis_scout

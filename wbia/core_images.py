@@ -266,9 +266,9 @@ class ClassifierConfig(dtool.Config):
                 'densenet+lightnet!',
                 'tile_aggregation',
                 'tile_aggregation_quick',
-                'vulcan_detectnet',
-                'vulcan_detectnet_csv',
-                'vulcan_faster_rcnn_csv',
+                'scout_detectnet',
+                'scout_detectnet_csv',
+                'scout_faster_rcnn_csv',
             ],
         ),
         ut.ParamInfo('classifier_weight_filepath', None),
@@ -358,11 +358,11 @@ def compute_classifications(depc, gid_list, config=None):
         classifier_algo_, model_tag_ = classifier_weight_filepath
 
         include_grid2 = config['classifier_algo'] in ['tile_aggregation']
-        tid_list = ibs.vulcan_get_valid_tile_rowids(
+        tid_list = ibs.scout_get_valid_tile_rowids(
             gid_list=gid_list, include_grid2=include_grid2
         )
-        ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
-        confidence_list = ibs.vulcan_wic_test(
+        ancestor_gid_list = ibs.get_tile_ancestor_gids(tid_list)
+        confidence_list = ibs.scout_wic_test(
             tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_
         )
 
@@ -396,14 +396,14 @@ def compute_classifications(depc, gid_list, config=None):
         # ut.embed()
         # classifier_weight_filepath = config['classifier_weight_filepath']
 
-        # all_bbox_list = ibs.get_vulcan_image_bboxes(gid_list)
-        # wic_confidence_list = ibs.vulcan_wic_test(gid_list, classifier_algo='densenet',
+        # all_bbox_list = ibs.get_image_bboxes(gid_list)
+        # wic_confidence_list = ibs.scout_wic_test(gid_list, classifier_algo='densenet',
         #                                           model_tag=classifier_weight_filepath)
         #
-        # ancestor_gid_list = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gid_list)))
-        # all_tile_list = list(set(ibs.vulcan_get_valid_tile_rowids(gid_list=ancestor_gid_list)))
-        # all_bbox_list = ibs.get_vulcan_image_bboxes(all_tile_list)
-        # all_confidence_list = ibs.vulcan_wic_test(all_tile_list, classifier_algo='densenet',
+        # ancestor_gid_list = list(set(ibs.get_tile_ancestor_gids(gid_list)))
+        # all_tile_list = list(set(ibs.scout_get_valid_tile_rowids(gid_list=ancestor_gid_list)))
+        # all_bbox_list = ibs.get_image_bboxes(all_tile_list)
+        # all_confidence_list = ibs.scout_wic_test(all_tile_list, classifier_algo='densenet',
         #                                           model_tag=classifier_weight_filepath)
         #
         # TODO: USE THRESHOLDED AVERAGE, NOT MAX
@@ -424,7 +424,7 @@ def compute_classifications(depc, gid_list, config=None):
         #         recovered += 1
         #     result = (best_score, best_key, )
         #     result_list.append(result)
-    elif config['classifier_algo'] in ['vulcan_detectnet']:
+    elif config['classifier_algo'] in ['scout_detectnet']:
         import json
 
         json_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
@@ -451,7 +451,7 @@ def compute_classifications(depc, gid_list, config=None):
                 best_key,
             )
             result_list.append(result)
-    elif config['classifier_algo'] in ['vulcan_detectnet_csv', 'vulcan_faster_rcnn_csv']:
+    elif config['classifier_algo'] in ['scout_detectnet_csv', 'scout_faster_rcnn_csv']:
         uuid_str_list = list(map(str, ibs.get_image_uuids(gid_list)))
 
         manifest_filepath = join(ibs.dbdir, 'WIC_manifest_output.csv')
@@ -491,11 +491,11 @@ def compute_classifications(depc, gid_list, config=None):
             best_score = csv_dict.get(uuid_str, None)
             assert best_score is not None
 
-            if config['classifier_algo'] in ['vulcan_detectnet_csv']:
+            if config['classifier_algo'] in ['scout_detectnet_csv']:
                 assert best_score in ['yes', 'no']
                 best_key = 'positive' if best_score == 'yes' else 'negative'
                 best_score = 1.0
-            elif config['classifier_algo'] in ['vulcan_faster_rcnn_csv']:
+            elif config['classifier_algo'] in ['scout_faster_rcnn_csv']:
                 best_score = float(best_score)
                 if best_score >= 0.5:
                     best_key = 'positive'
@@ -537,7 +537,7 @@ def compute_classifications(depc, gid_list, config=None):
             ) = classifier_weight_filepath
             wic_thresh = float(wic_thresh)
             nms_thresh = float(nms_thresh)
-            wic_confidence_list = ibs.vulcan_wic_test(
+            wic_confidence_list = ibs.scout_wic_test(
                 gid_list, classifier_algo='densenet', model_tag=wic_model_tag
             )
             wic_filter = config['classifier_algo'] in ['densenet+lightnet']
@@ -885,8 +885,8 @@ class LocalizerOriginalConfig(dtool.Config):
                 '_COMBINED',
                 'tile_aggregation',
                 'tile_aggregation_quick',
-                'vulcan_detectnet_json',
-                'vulcan_faster_rcnn_json',
+                'scout_detectnet_json',
+                'scout_faster_rcnn_json',
             ],
         ),
         ut.ParamInfo('species', None),
@@ -1177,12 +1177,12 @@ def compute_localizations_original(depc, gid_list, config=None):
         from wbia.other.detectfuncs import general_intersection_over_union
 
         include_grid2 = config['algo'] in ['tile_aggregation']
-        tid_list = ibs.vulcan_get_valid_tile_rowids(
+        tid_list = ibs.scout_get_valid_tile_rowids(
             gid_list=gid_list, include_grid2=include_grid2
         )
 
-        ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
-        bbox_list = ibs.get_vulcan_image_tile_bboxes(tid_list)
+        ancestor_gid_list = ibs.get_tile_ancestor_gids(tid_list)
+        bbox_list = ibs.get_tile_bboxes(tid_list)
         size_list = ibs.get_image_sizes(tid_list)
 
         config_filepath = config['config_filepath']
@@ -1210,7 +1210,7 @@ def compute_localizations_original(depc, gid_list, config=None):
             wic_model_tag, wic_thresh, weight_filepath, nms_thresh = model_tag_
             wic_thresh = float(wic_thresh)
             nms_thresh = float(nms_thresh)
-            wic_confidence_list = ibs.vulcan_wic_test(
+            wic_confidence_list = ibs.scout_wic_test(
                 tid_list, classifier_algo='densenet', model_tag=wic_model_tag
             )
 
@@ -1366,7 +1366,7 @@ def compute_localizations_original(depc, gid_list, config=None):
 
             detect = (score, bboxes, thetas, confs, classes)
             detect_gen.append(detect)
-    elif config['algo'] in ['vulcan_detectnet_json', 'vulcan_faster_rcnn_json']:
+    elif config['algo'] in ['scout_detectnet_json', 'scout_faster_rcnn_json']:
         import json
 
         uuid_str_list = list(map(str, ibs.get_image_uuids(gid_list)))
@@ -2940,8 +2940,8 @@ def compute_tiles(depc, gid_list, config=None):
         >>> gid_list = sorted(ibs.get_valid_gids())[0:5]
         >>> config = {'tile_width': 128, 'tile_height': 128}
         >>> result = depc.get_property('tiles', gid_list, 'num', config=config)
-        >>> nums = list(map(len, ibs.get_vulcan_image_tile_children_gids(gid_list)))
-        >>> nums_ = list(map(len, ibs.get_vulcan_image_tile_descendants_gids(gid_list)))
+        >>> nums = list(map(len, ibs.get_tile_children_gids(gid_list)))
+        >>> nums_ = list(map(len, ibs.get_tile_descendants_gids(gid_list)))
         >>> assert result == nums
         >>> assert result == nums_
         >>> assert result == [204, 136, 221, 221, 221]
@@ -3047,7 +3047,7 @@ def compute_tiles(depc, gid_list, config=None):
         config_dict_list = [config_dict] * num
         config_hashid_list = [config_hashid] * num
 
-        ibs.set_vulcan_image_tile_source(
+        ibs.set_tile_source(
             gids,
             parent_gids,
             bbox_list,

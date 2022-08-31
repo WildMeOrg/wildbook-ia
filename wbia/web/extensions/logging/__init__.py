@@ -28,8 +28,8 @@ class Logging(object):
         app.logger.propagate = True
 
         if app.debug:
-            logging.getLogger('flask_oauthlib').setLevel(logging.DEBUG)
-            app.logger.setLevel(logging.DEBUG)
+            logging.getLogger('flask_oauthlib').setLevel(logging.INFO)
+            app.logger.setLevel(logging.INFO)
 
         # We don't need the default SQLAlchemy loggers when using our invoke
         # tasks since we set up beautiful colorful loggers globally.

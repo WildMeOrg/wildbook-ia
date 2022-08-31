@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Converts a Vulcan-style raw data to WBIA database."""
+"""Converts a Scout-style raw data to WBIA database."""
 import json
 import logging
 import random
@@ -32,8 +32,8 @@ SPECIES_MAPPING = {
 }
 
 
-def _convert_vulcan_to_wbia(
-    vulcan_path,
+def _convert_scout_to_wbia(
+    scout_path,
     dbdir=None,
     purge=False,
     purge_existing_annotations=True,
@@ -43,7 +43,7 @@ def _convert_vulcan_to_wbia(
     ensure_image=True,
     recursive=False,
     layer=1,
-    vulcan_tag=None,
+    scout_tag=None,
     **kwargs
 ):
     def _walk(direct_list):
@@ -68,7 +68,7 @@ def _convert_vulcan_to_wbia(
 
     ibs = wbia.opendb(dbdir=dbdir)
 
-    direct = Directory(vulcan_path, recursive=True)
+    direct = Directory(scout_path, recursive=True)
     directory_list = direct.directory_list
     if recursive:
         directory_list = _walk(directory_list)
@@ -171,7 +171,7 @@ def _convert_vulcan_to_wbia(
             imageset_text = directory.absolute_directory_path
             # imageset_text, imageset_text_1 = split(imageset_text)
             # imageset_text, imageset_text_2 = split(imageset_text)
-            # imageset_text = '%s %s' % (vulcan_tag, imageset_text_2, )
+            # imageset_text = '%s %s' % (scout_tag, imageset_text_2, )
             imageset_text = imageset_text.split('/')
             imageset_text = imageset_text[8]
 
@@ -304,12 +304,12 @@ def _convert_vulcan_to_wbia(
     return all_gid_list
 
 
-def _process_vulcan_sequence_metadata(
-    vulcan_path, vulcan_tag, ibs, gid_list, version=1, **kwargs
+def _process_scout_sequence_metadata(
+    scout_path, scout_tag, ibs, gid_list, version=1, **kwargs
 ):
     import xlrd
 
-    direct = Directory(vulcan_path, recursive=True)
+    direct = Directory(scout_path, recursive=True)
 
     duplicate_filename_list = []
     duplicate_metadata_list = []
@@ -386,7 +386,7 @@ def _process_vulcan_sequence_metadata(
         filename_list = []
         seen_set = set()
         for filepath_original in filepath_original_list:
-            filepath_original = filepath_original.replace(vulcan_path, '')
+            filepath_original = filepath_original.replace(scout_path, '')
             filepath_original = filepath_original.replace('Photos/', '')
             start = filepath_original.split('/')[0]
             start = start.split('-')
@@ -511,7 +511,7 @@ def _process_vulcan_sequence_metadata(
     imageset_imageset_metadata_list = []
     for transect in sorted(metadata_dict_.keys()):
         for photoside in sorted(metadata_dict_[transect].keys()):
-            imageset_text = '{} Transect {} ({})'.format(vulcan_tag, transect, photoside)
+            imageset_text = '{} Transect {} ({})'.format(scout_tag, transect, photoside)
             values_list = metadata_dict_[transect][photoside]
             values_list = sorted(values_list)
             temp_list = ut.take_column(values_list, 1)
@@ -535,121 +535,119 @@ def _process_vulcan_sequence_metadata(
     )
 
 
-def convert_vulcan2018_to_wbia(vulcan_path, dbdir=None, **kwargs):
-    r"""Convert the raw 2018 Vulcan data to an wbia database.
+def convert_scout2018_to_wbia(scout_path, dbdir=None, **kwargs):
+    r"""Convert the raw 2018 Scout Phase 1 data to an wbia database.
 
     Args
-        vulcan_path (str): Directory to folder *containing* raw Vulcan 2018 data
+        scout_path (str): Directory to folder *containing* raw Scout Phase 1 2018 data
         dbdir (str): Output directory
 
     CommandLine:
-        python -m wbia convert_vulcan_to_wbia
+        python -m wbia convert_scout_to_wbia
 
     Example:
         >>> # SCRIPT
-        >>> from wbia.dbio.ingest_vulcan import *  # NOQA
-        >>> default_vulcan_path = join('/', 'data', 'raw', 'processed', 'Vulcan_Elephants_S3', 'WildMe')
-        >>> default_dbdir = join('/', 'data', 'wbia', 'ELPH_Vulcan')
+        >>> from wbia.dbio.ingest_scout import *  # NOQA
+        >>> default_scout_path = join('/', 'data', 'raw', 'processed', 'scout_Elephants_S3', 'WildMe')
+        >>> default_dbdir = join('/', 'data', 'wbia', 'ELPH_scout')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> vulcan_path = ut.get_argval('--vulcan', type_=str, default=default_vulcan_path)
-        >>> result = convert_vulcan2018_to_wbia(vulcan_path, dbdir=dbdir, purge=False, dry_run=False)
+        >>> scout_path = ut.get_argval('--scout', type_=str, default=default_scout_path)
+        >>> result = convert_scout2018_to_wbia(scout_path, dbdir=dbdir, purge=False, dry_run=False)
         >>> logger.info(result)
     """
     ignore_directory_list = ['OlPejeta_2016']
-    ibs, gid_list = _convert_vulcan_to_wbia(
-        vulcan_path, dbdir, ignore_directory_list=ignore_directory_list, **kwargs
+    ibs, gid_list = _convert_scout_to_wbia(
+        scout_path, dbdir, ignore_directory_list=ignore_directory_list, **kwargs
     )
     return ibs, gid_list
 
 
-def convert_vulcan2019_to_wbia(vulcan_path, dbdir=None, **kwargs):
-    r"""Convert the raw 2019 Vulcan data to an wbia database.
+def convert_scout2019_to_wbia(scout_path, dbdir=None, **kwargs):
+    r"""Convert the raw 2019 Scout Phase 1 data to an wbia database.
 
     Args
-        vulcan_path (str): Directory to folder *containing* raw Vulcan 2019 data
+        scout_path (str): Directory to folder *containing* raw Scout Phase 1 2019 data
         dbdir (str): Output directory
 
     CommandLine:
-        python -m wbia convert_vulcan_to_wbia
+        python -m wbia convert_scout_to_wbia
 
     Example:
         >>> # SCRIPT
-        >>> from wbia.dbio.ingest_vulcan import *  # NOQA
-        >>> default_vulcan_path = join('/', 'data', 'raw', 'processed', 'Vulcan_Elephants_S3', 'WildMe', 'OlPejeta_2016')
-        >>> default_dbdir = join('/', 'data', 'wbia', 'ELPH_Vulcan')
+        >>> from wbia.dbio.ingest_scout import *  # NOQA
+        >>> default_scout_path = join('/', 'data', 'raw', 'processed', 'scout_Elephants_S3', 'WildMe', 'OlPejeta_2016')
+        >>> default_dbdir = join('/', 'data', 'wbia', 'ELPH_scout')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> vulcan_path = ut.get_argval('--vulcan', type_=str, default=default_vulcan_path)
-        >>> result = convert_vulcan2019_to_wbia(vulcan_path, dbdir=dbdir, purge=False, dry_run=False)
+        >>> scout_path = ut.get_argval('--scout', type_=str, default=default_scout_path)
+        >>> result = convert_scout2019_to_wbia(scout_path, dbdir=dbdir, purge=False, dry_run=False)
         >>> logger.info(result)
     """
     ignore_directory_list = ['Metadata']
-    ibs, gid_list = _convert_vulcan_to_wbia(
-        vulcan_path, dbdir, ignore_directory_list=ignore_directory_list, **kwargs
+    ibs, gid_list = _convert_scout_to_wbia(
+        scout_path, dbdir, ignore_directory_list=ignore_directory_list, **kwargs
     )
-    _process_vulcan_sequence_metadata(
-        vulcan_path, 'OlPejeta-2016', ibs, gid_list, **kwargs
-    )
+    _process_scout_sequence_metadata(scout_path, 'OlPejeta-2016', ibs, gid_list, **kwargs)
     return ibs, gid_list
 
 
-def convert_vulcan2019_sequences_to_wbia(dbdir=None, **kwargs):
-    r"""Convert the raw 2019 Vulcan data to an wbia database.
+def convert_scout2019_sequences_to_wbia(dbdir=None, **kwargs):
+    r"""Convert the raw 2019 Scout Phase 1 data to an wbia database.
 
     Args
-        vulcan_path (str): Directory to folder *containing* raw Vulcan 2019 data
+        scout_path (str): Directory to folder *containing* raw Scout Phase 1 2019 data
         dbdir (str): Output directory
 
     CommandLine:
-        python -m wbia convert_vulcan_to_wbia
+        python -m wbia convert_scout_to_wbia
 
     Example:
         >>> # SCRIPT
-        >>> from wbia.dbio.ingest_vulcan import *  # NOQA
-        >>> default_dbdir = join('/', 'data', 'wbia', 'ELPH_Vulcan')
+        >>> from wbia.dbio.ingest_scout import *  # NOQA
+        >>> default_dbdir = join('/', 'data', 'wbia', 'ELPH_scout')
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=default_dbdir)
-        >>> result = convert_vulcan2019_sequences_to_wbia(dbdir=dbdir, purge=False, dry_run=False)
+        >>> result = convert_scout2019_sequences_to_wbia(dbdir=dbdir, purge=False, dry_run=False)
         >>> logger.info(result)
     """
-    vulcan_path_list = [
+    scout_path_list = [
         (
-            '/data/raw/processed/Vulcan_Elephants_2019_Sequence/QENP_201809_29-30/Photos/',
+            '/data/raw/processed/scout_Elephants_2019_Sequence/QENP_201809_29-30/Photos/',
             False,
             'QENP-2018',
-            '/data/raw/processed/Vulcan_Elephants_2019_Sequence/QENP_201809_29-30/',
+            '/data/raw/processed/scout_Elephants_2019_Sequence/QENP_201809_29-30/',
         ),
         (
-            '/data/raw/processed/Vulcan_Elephants_2019_Sequence/Tsavo_201703_12/Photos/',
+            '/data/raw/processed/scout_Elephants_2019_Sequence/Tsavo_201703_12/Photos/',
             True,
             'Tsavo-2017',
-            '/data/raw/processed/Vulcan_Elephants_2019_Sequence/Tsavo_201703_12/',
+            '/data/raw/processed/scout_Elephants_2019_Sequence/Tsavo_201703_12/',
         ),
     ]
     for (
-        vulcan_image_path,
-        vulcan_recusrive,
-        vulcan_tag,
-        vulcan_metadata_path,
-    ) in vulcan_path_list:
-        assert exists(vulcan_image_path)
-        assert exists(vulcan_metadata_path)
-        layer = 2 if vulcan_recusrive else 1
-        version = 2 if vulcan_recusrive else 1
-        ibs, gid_list = _convert_vulcan_to_wbia(
-            vulcan_image_path,
+        scout_image_path,
+        scout_recusrive,
+        scout_tag,
+        scout_metadata_path,
+    ) in scout_path_list:
+        assert exists(scout_image_path)
+        assert exists(scout_metadata_path)
+        layer = 2 if scout_recusrive else 1
+        version = 2 if scout_recusrive else 1
+        ibs, gid_list = _convert_scout_to_wbia(
+            scout_image_path,
             dbdir,
             dry_run=True,
-            recursive=vulcan_recusrive,
+            recursive=scout_recusrive,
             layer=layer,
-            vulcan_tag=vulcan_tag,
+            scout_tag=scout_tag,
             **kwargs
         )
-        _process_vulcan_sequence_metadata(
-            vulcan_metadata_path, vulcan_tag, ibs, gid_list, version=version, **kwargs
+        _process_scout_sequence_metadata(
+            scout_metadata_path, scout_tag, ibs, gid_list, version=version, **kwargs
         )
     return ibs, gid_list
 
 
-def walk_vulcan_s3_directory(direct_list, validation_match_str='VALIDATION'):
+def walk_scout_s3_directory(direct_list, validation_match_str='VALIDATION'):
     direct_list_ = []
     for direct_ in direct_list:
         found = []
@@ -662,11 +660,11 @@ def walk_vulcan_s3_directory(direct_list, validation_match_str='VALIDATION'):
                     found.append(file_)
         if len(found) > 0:
             direct_list_.append((direct_, found))
-        direct_list_ += walk_vulcan_s3_directory(direct_.directory_list)
+        direct_list_ += walk_scout_s3_directory(direct_.directory_list)
     return direct_list_
 
 
-def convert_vulcan_s3_to_wbia(dbdir, auto_localize=False, ensure_image=True):
+def convert_scout_s3_to_wbia(dbdir, auto_localize=False, ensure_image=True):
     r"""
     Training:
         D MWS/WildMe/elephant/
@@ -786,8 +784,8 @@ def convert_vulcan_s3_to_wbia(dbdir, auto_localize=False, ensure_image=True):
         MWS/WildMe/TA23_MPZ_R_2014-08-21-PM-Lolkisale
         MWS/WildMe/TA23_MPZ_training_pics
     """
-    vulcan_prefix = '/data/raw/processed/'
-    vulcan_path_list = [
+    scout_prefix = '/data/raw/processed/'
+    scout_path_list = [
         'MWS/WildMe/elephant/',
         'MWS/WildMe/RR18_BIG_2015_09_23_R_AM/',
         'MWS/WildMe/TA24_TPM_L_2016-10-30-A/',
@@ -816,14 +814,14 @@ def convert_vulcan_s3_to_wbia(dbdir, auto_localize=False, ensure_image=True):
 
     # Locate all folders with JSON files (excluding VALIDATION files)
     direct_list = []
-    for vulcan_path in vulcan_path_list:
-        vulcan_path_absolute = join(vulcan_prefix, vulcan_path)
-        direct = Directory(vulcan_path_absolute, recursive=True)
-        direct_list += walk_vulcan_s3_directory([direct] + direct.directory_list)
+    for scout_path in scout_path_list:
+        scout_path_absolute = join(scout_prefix, scout_path)
+        direct = Directory(scout_path_absolute, recursive=True)
+        direct_list += walk_scout_s3_directory([direct] + direct.directory_list)
 
     # Filter out multiple JSON files for a given folder
     def _filter(json_filepath_):
-        if 'annotations_vulcan_april2019.json' in json_filepath_:
+        if 'annotations_scout_april2019.json' in json_filepath_:
             return True
         if 'annotations_20161106_Nikon_Left_Corrected.json' in json_filepath_:
             return True
@@ -1071,12 +1069,12 @@ def convert_vulcan_s3_to_wbia(dbdir, auto_localize=False, ensure_image=True):
     for gid, filepath in zip(gid_list, global_image_filtered_list):
         bbox_list, species_list, json_filepath = processed_dict[filepath]
 
-        assert json_filepath.startswith(vulcan_prefix)
-        json_filepath = json_filepath.replace(vulcan_prefix, '')
+        assert json_filepath.startswith(scout_prefix)
+        json_filepath = json_filepath.replace(scout_prefix, '')
         imageset_text = None
-        for vulcan_path in vulcan_path_list:
-            if json_filepath.startswith(vulcan_path):
-                imageset_text = vulcan_path
+        for scout_path in scout_path_list:
+            if json_filepath.startswith(scout_path):
+                imageset_text = scout_path
                 break
         assert imageset_text is not None
         imageset_text = imageset_text.replace('/Photos/', '')

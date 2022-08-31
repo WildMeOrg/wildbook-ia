@@ -96,7 +96,7 @@ try:
 
     FORMAT = '[%(name)s] %(message)s'
     logging.basicConfig(
-        level=logging.DEBUG, format=FORMAT, datefmt='[%X]', handlers=[handler]
+        level=logging.INFO, format=FORMAT, datefmt='[%X]', handlers=[handler]
     )
 except ImportError:  # pragma: no cover
     logging.basicConfig()

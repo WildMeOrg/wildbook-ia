@@ -366,7 +366,7 @@ def add_annots(
         logger.info(ut.repr2(locals()))
         return []
 
-    tile_list = ibs.get_vulcan_image_tile_flags(gid_list)
+    tile_list = ibs.get_tile_flags(gid_list)
     assert True not in tile_list, 'Cannot add annotations to tiles'
 
     preprocess_dict = ibs.compute_annot_visual_semantic_uuids(
@@ -1199,9 +1199,9 @@ def get_annot_bboxes(ibs, aid_list, reference_tile_gid=None):
     bbox_list = ibs.db.get(const.ANNOTATION_TABLE, colnames, aid_list)
 
     if reference_tile_gid is not None:
-        is_tile = ibs.get_vulcan_image_tile_flags(reference_tile_gid)
+        is_tile = ibs.get_tile_flags(reference_tile_gid)
         if is_tile:
-            tile_bbox = ibs.get_vulcan_image_tile_bboxes(reference_tile_gid)
+            tile_bbox = ibs.get_tile_bboxes(reference_tile_gid)
             tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
             bbox_list = [
                 (xtl - tile_xtl, ytl - tile_ytl, w, h) for xtl, ytl, w, h in bbox_list
@@ -1321,11 +1321,11 @@ def get_annot_image_rowids(ibs, aid_list):
 
 
 @register_ibs_method
-@register_api('/api/vulcan/annot/image/tile/rowid/', methods=['GET'])
+@register_api('/api/annot/tile/rowid/', methods=['GET'])
 def get_annot_image_tile_rowids(ibs, aid_list):
     gid_list = ibs.get_annot_gids(aid_list)
-    tile_gid_list = ut.flatten(ibs.get_vulcan_image_tile_descendants_gids(gid_list))
-    aids_list = ibs.get_image_vulcan_tile_aids(tile_gid_list)
+    tile_gid_list = ut.flatten(ibs.get_tile_descendants_gids(gid_list))
+    aids_list = ibs.get_image_scout_tile_aids(tile_gid_list)
 
     aid_dict = {}
     for aids, tile_gid in zip(aids_list, tile_gid_list):

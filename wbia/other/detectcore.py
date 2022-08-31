@@ -48,8 +48,8 @@ def nms(dets, scores, thresh, use_cpu=True):
 
 
 @register_ibs_method
-@register_api('/api/export/vulcan/', methods=['POST'])
-def export_to_vulcan(
+@register_api('/api/export/scout/', methods=['POST'])
+def export_to_scout(
     ibs,
     species_list=None,
     species_mapping=None,
@@ -59,10 +59,10 @@ def export_to_vulcan(
     use_original_uris=False,
     **kwargs,
 ):
-    """Create Vulcan format for database data"""
+    """Create Scout format for database data"""
     import json
 
-    export_path = join(ibs.get_cachedir(), 'VulcanExport')
+    export_path = join(ibs.get_cachedir(), 'ScoutExport')
 
     if purge:
         ut.delete(export_path)
@@ -78,7 +78,7 @@ def export_to_vulcan(
         species_list = list(set(ibs.get_annot_species_texts(aid_list)))
 
     if species_mapping is None:
-        from wbia.dbio.ingest_vulcan import SPECIES_MAPPING
+        from wbia.dbio.ingest_scout import SPECIES_MAPPING
 
         species_mapping = {}
         for key in SPECIES_MAPPING:
@@ -328,7 +328,7 @@ def export_to_xml(
 
     logger.info('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
-        is_tile = ibs.get_vulcan_image_tile_flags(gid)
+        is_tile = ibs.get_tile_flags(gid)
 
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
@@ -509,7 +509,7 @@ def export_to_coco(
 
     logger.info('Using species_list = {!r}'.format(species_list))
 
-    vulcan_prefix = '/data/raw/processed/'
+    scout_prefix = '/data/raw/processed/'
 
     current_year = int(date.today().year)
     datadir = abspath(join(ibs.get_cachedir(), 'coco'))
@@ -740,8 +740,8 @@ def export_to_coco(
                 'flickr_url': None,
                 'id': image_index,
                 'uuid': str(ibs.get_image_uuids(gid)),
-                'vulcan_image_path': str(
-                    ibs.get_image_uris_original(gid).replace(vulcan_prefix, '')
+                'scout_image_path': str(
+                    ibs.get_image_uris_original(gid).replace(scout_prefix, '')
                 ),
             }
         )

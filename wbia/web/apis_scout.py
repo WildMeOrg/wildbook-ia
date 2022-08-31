@@ -15,7 +15,7 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
     __name__
 )
 
-PREFIX = controller_inject.VULCAN_API_PREFIX
+PREFIX = controller_inject.SCOUT_API_PREFIX
 register_api = controller_inject.get_wbia_flask_api(__name__)
 register_route = controller_inject.get_wbia_flask_route(__name__)
 
@@ -102,7 +102,7 @@ def _ensure_sequence_exist(ibs, sequence):
 
 
 @register_route(_prefix('swagger'), methods=['GET'])
-def vulcan_core_specification_swagger(*args, **kwargs):
+def scout_core_specification_swagger(*args, **kwargs):
     r"""
     Returns the API specification in the Swagger 2.0 (OpenAPI) JSON format.
 
@@ -152,10 +152,10 @@ def vulcan_core_specification_swagger(*args, **kwargs):
           description: Returns the Swagger 2.0 JSON format
     """
     swag = swagger(current_app)
-    swag['info']['title'] = 'Wild Me - Vulcan MWS Project, Phase 1'
+    swag['info']['title'] = 'Wild Me - Scout MWS Project, Phase 1'
     swag['info'][
         'description'
-    ] = 'Documentation for all REST API endpoints provided by Wild Me for the Vulcan collaboration'
+    ] = 'Documentation for all REST API endpoints provided by Wild Me for the Scout collaboration'
     swag['info']['version'] = 'v0.1'
     swag['info']['contact'] = {
         'name': 'Wild Me',
@@ -176,7 +176,7 @@ def vulcan_core_specification_swagger(*args, **kwargs):
 
 
 @register_api(_prefix('status'), methods=['GET'], __api_plural_check__=False)
-def vulcan_core_status(ibs, *args, **kwargs):
+def scout_core_status(ibs, *args, **kwargs):
     r"""
     Returns the health status of the API back-end; optionally can be used as a service heatbeat.
     ---
@@ -204,7 +204,7 @@ def vulcan_core_status(ibs, *args, **kwargs):
 
 
 @register_api(_prefix('image'), methods=['POST'])
-def vulcan_image_upload(ibs, precompute=False, return_times=False, *args, **kwargs):
+def scout_image_upload(ibs, precompute=False, return_times=False, *args, **kwargs):
     r"""
     Upload an image for future processing.
 
@@ -255,7 +255,7 @@ def vulcan_image_upload(ibs, precompute=False, return_times=False, *args, **kwar
 
     with ut.Timer('Tiling') as time_tile:
         # Pre-compute tiles
-        ibs.vulcan_get_valid_tile_rowids(gid_list=[gid], include_grid2=True)
+        ibs.scout_get_valid_tile_rowids(gid_list=[gid], include_grid2=True)
 
     if return_times:
         return image, time_upload, time_tile
@@ -264,7 +264,7 @@ def vulcan_image_upload(ibs, precompute=False, return_times=False, *args, **kwar
 
 
 @register_api(_prefix('image'), methods=['GET'])
-def vulcan_image(ibs, image, *args, **kwargs):
+def scout_image(ibs, image, *args, **kwargs):
     r"""
     Check if an Image is available in the database.
 
@@ -294,7 +294,7 @@ def vulcan_image(ibs, image, *args, **kwargs):
 
 
 @register_api(_prefix('sequence'), methods=['POST'])
-def vulcan_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
+def scout_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
     r"""
     Add an image sequence for future processing using a list of previously-uploaded images
 
@@ -373,7 +373,7 @@ def vulcan_sequence_add(ibs, name, images, overwrite=False, *args, **kwargs):
 
 
 @register_api(_prefix('sequence'), methods=['GET'])
-def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
+def scout_sequence_images(ibs, sequence, *args, **kwargs):
     r"""
     Return the sequence's images
 
@@ -406,7 +406,7 @@ def vulcan_sequence_images(ibs, sequence, *args, **kwargs):
 
 
 @register_ibs_method
-def vulcan_pipeline(
+def scout_pipeline(
     ibs,
     images,
     testing=False,
@@ -428,7 +428,7 @@ def vulcan_pipeline(
         with ut.Timer('Config') as time_config:
             include_grid2 = not quick
 
-            detection_config = ibs.vulcan_detect_config(quick=quick)
+            detection_config = ibs.scout_detect_config(quick=quick)
             detection_agg_weight = detection_config['weight_filepath']
             (
                 detection_weight_algo,
@@ -452,7 +452,7 @@ def vulcan_pipeline(
         with ut.Timer('Test Deleting') as time_test:
             if testing:
                 logger.info('TESTING')
-                tile_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
+                tile_list = ibs.scout_get_valid_tile_rowids(gid_list=gid_list)
                 flag_list = [tile for tile in tile_list if tile is not None]
                 tile_list = ut.compress(tile_list, flag_list)
                 ibs.depc_image.delete_property_all('tiles', gid_list)
@@ -463,14 +463,14 @@ def vulcan_pipeline(
 
         with ut.Timer('Tiling') as time_tile:
             # Pre-compute tiles
-            tile_list = ibs.vulcan_get_valid_tile_rowids(
+            tile_list = ibs.scout_get_valid_tile_rowids(
                 gid_list=gid_list, include_grid2=include_grid2
             )
             num_tiles_wic = len(tile_list)
-            # ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
+            # ancestor_gid_list = ibs.get_tile_ancestor_gids(tile_list)
 
         with ut.Timer('WIC') as time_wic:
-            wic_confidence_list = ibs.vulcan_wic_test(
+            wic_confidence_list = ibs.scout_wic_test(
                 tile_list,
                 classifier_algo=detection_weight_algo_wic,
                 model_tag=detection_weight_config_wic_model_tag,
@@ -485,12 +485,12 @@ def vulcan_pipeline(
         # with ut.Timer('LOC All') as time_loc_all:
         #     if _run_all_loc:
         #         model_tag               = '%s,%0.03f,%s,%0.02f' % (wic_model_tag, wic_sensitivity, loc_model_tag, loc_nms, )
-        #         all_loc_confidence_list = ibs.vulcan_wic_test(tile_list, classifier_algo=loc_all_classifier_algo, model_tag=model_tag)
+        #         all_loc_confidence_list = ibs.scout_wic_test(tile_list, classifier_algo=loc_all_classifier_algo, model_tag=model_tag)
         #         all_loc_flag_list       = [all_loc_confidence >= loc_sensitivity for all_loc_confidence in all_loc_confidence_list]  # NOQA
 
         with ut.Timer('LOC') as time_loc:
             # detections_list =
-            ibs.vulcan_localizer_test(
+            ibs.scout_localizer_test(
                 tile_list_filtered,
                 algo=detection_weight_algo_loc,
                 model_tag=detection_weight_config_loc_model_tag,
@@ -500,7 +500,7 @@ def vulcan_pipeline(
             # filtered_loc_flag_list       = [filtered_loc_confidence >= loc_sensitivity for filtered_loc_confidence in filtered_loc_confidence_list]  # NOQA
 
         with ut.Timer('Cluster + Aggregate') as time_agg:
-            result_list, time_cluster = ibs.vulcan_detect(
+            result_list, time_cluster = ibs.scout_detect(
                 gid_list, detection_config=detection_config, return_times=True
             )
 
@@ -522,7 +522,7 @@ def vulcan_pipeline(
     except Exception:
         traceback.print_exc()
         raise controller_inject.WebException(
-            'The Vulcan pipeline process has failed for an unknown reason'
+            'The Scout pipeline process has failed for an unknown reason'
         )
 
     response = {
@@ -557,7 +557,7 @@ def vulcan_pipeline(
 
 
 @register_api(_prefix('pipeline'), methods=['POST'])
-def vulcan_pipeline_upload(ibs, *_args, **kwargs):
+def scout_pipeline_upload(ibs, *_args, **kwargs):
     r"""
     Returns the results for an uploaded image and a provided model configuration.
     ---
@@ -582,15 +582,15 @@ def vulcan_pipeline_upload(ibs, *_args, **kwargs):
     ibs = current_app.ibs
 
     # Input argument validation
-    image, time_upload, time_tile = vulcan_image_upload(ibs, return_times=True)
+    image, time_upload, time_tile = scout_image_upload(ibs, return_times=True)
     images = [image]
     args = (images,)
-    response = vulcan_pipeline(ibs, *args, time_upload=time_upload, **kwargs)
+    response = scout_pipeline(ibs, *args, time_upload=time_upload, **kwargs)
     return response
 
 
 @register_api(_prefix('pipeline/batch'), methods=['POST'])
-def vulcan_pipeline_batch(
+def scout_pipeline_batch(
     ibs,
     images,
     asynchronous=True,
@@ -675,17 +675,17 @@ def vulcan_pipeline_batch(
     args = (images,)
     if asynchronous:
         taskid = ibs.job_manager.jobiface.queue_job(
-            'vulcan_pipeline', callback_url, callback_method, *args, **kwargs
+            'scout_pipeline', callback_url, callback_method, *args, **kwargs
         )
         response = _task(ibs, taskid)
     else:
-        response = ibs.vulcan_pipeline(*args, **kwargs)
+        response = ibs.scout_pipeline(*args, **kwargs)
 
     return response
 
 
 @register_api(_prefix('pipeline/sequence'), methods=['POST'])
-def vulcan_pipeline_sequence(ibs, sequence, *args, **kwargs):
+def scout_pipeline_sequence(ibs, sequence, *args, **kwargs):
     r"""
     A wrapper around $prefix/batch to send an entire sequence to the detection pipeline.  Takes in the same configuration parameters as that call.
     ---
@@ -707,18 +707,18 @@ def vulcan_pipeline_sequence(ibs, sequence, *args, **kwargs):
         description: The task returns an array of arrays of results, in parallel lists with the provided Image models
     """
     ibs = current_app.ibs
-    sequence_dict = vulcan_sequence_images(ibs, sequence)
+    sequence_dict = scout_sequence_images(ibs, sequence)
     sequence_list = sequence_dict['sequence']
     images = [
         sequence_['image']
         for sequence_ in sequence_list
         if sequence_['image'] is not None
     ]
-    return vulcan_pipeline_batch(ibs, images, *args, **kwargs)
+    return scout_pipeline_batch(ibs, images, *args, **kwargs)
 
 
 @register_ibs_method
-def vulcan_count_pipeline(
+def scout_count_pipeline(
     ibs, sequence_list, overlap=0.0, direction='right', *args, **kwargs
 ):
 
@@ -750,7 +750,7 @@ def vulcan_count_pipeline(
             index_mapping[index_internal] = index_external
             index_external += 1
 
-    results = ibs.vulcan_pipeline(images, *args, **kwargs)
+    results = ibs.scout_pipeline(images, *args, **kwargs)
     results = results['results']
 
     boxes = 0
@@ -871,7 +871,7 @@ def vulcan_count_pipeline(
 
 
 @register_api(_prefix('count/sequence'), methods=['POST'])
-def vulcan_count_sequence(
+def scout_count_sequence(
     ibs,
     sequence,
     asynchronous=True,
@@ -896,13 +896,13 @@ def vulcan_count_sequence(
         $ref: "#/definitions/Sequence"
     - name: overlap
       in: body
-      description: The amount of global overlap expected between the images along the x-axis.  [Value passed to ibs.vulcan_count_pipeline()]
+      description: The amount of global overlap expected between the images along the x-axis.  [Value passed to ibs.scout_count_pipeline()]
       required: false
       type: float
       default: 0.0
     - name: direction
       in: body
-      description: The direction of travel of the camera, used to calibrate the overlap margin at the end-points of the sequence.  Valid values include ['left' and 'right'].  For example, when the direction is "right" the direction of travel for the plane from image N-1, N and N+1 as the sequence (N-1, N, N+1).  The direction of "left" means the direction of travel is reversed and has the sequence (N+1, N, N-1).  [Value passed to ibs.vulcan_count_pipeline()]
+      description: The direction of travel of the camera, used to calibrate the overlap margin at the end-points of the sequence.  Valid values include ['left' and 'right'].  For example, when the direction is "right" the direction of travel for the plane from image N-1, N and N+1 as the sequence (N-1, N, N+1).  The direction of "left" means the direction of travel is reversed and has the sequence (N+1, N, N-1).  [Value passed to ibs.scout_count_pipeline()]
       required: false
       type: string
       default: left
@@ -936,7 +936,7 @@ def vulcan_count_sequence(
     ibs = current_app.ibs
 
     # Input argument validation
-    sequence_dict = vulcan_sequence_images(ibs, sequence)
+    sequence_dict = scout_sequence_images(ibs, sequence)
     sequence_list = sequence_dict['sequence']
 
     try:
@@ -971,17 +971,17 @@ def vulcan_count_sequence(
     args = (sequence_list,)
     if asynchronous:
         taskid = ibs.job_manager.jobiface.queue_job(
-            'vulcan_count_pipeline', callback_url, callback_method, *args, **kwargs
+            'scout_count_pipeline', callback_url, callback_method, *args, **kwargs
         )
         response = _task(ibs, taskid)
     else:
-        response = ibs.vulcan_count_pipeline(*args, **kwargs)
+        response = ibs.scout_count_pipeline(*args, **kwargs)
 
     return response
 
 
 @register_api(_prefix('task'), methods=['GET'])
-def vulcan_task_status(ibs, task):
+def scout_task_status(ibs, task):
     r"""
     Check the status of an asynchronous Task.
 
@@ -1043,7 +1043,7 @@ def vulcan_task_status(ibs, task):
 
 
 @register_api(_prefix('task'), methods=['POST'])
-def vulcan_task_result(ibs, task):
+def scout_task_result(ibs, task):
     r"""
     Retrieve the result of a completed asynchronous Task
     ---

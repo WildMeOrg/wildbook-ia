@@ -145,8 +145,8 @@ def login(refer=None, *args, **kwargs):
         ),
         'kitware': ('Kitware', ['jon.crall']),
         'ctrl-h': ('CTRL-H', ['jon.hannis', 'melinda.hannis']),
-        'vulcan': (
-            'Vulcan',
+        'scout': (
+            'Scout',
             [
                 'michael.elizarov',
                 'sam.mckennoch',
@@ -1911,7 +1911,7 @@ def view_tiles(**kwargs):
         gid_list = ibs.get_valid_gids(is_tile=True)
         filtered = False
 
-    assert False not in ibs.get_vulcan_image_tile_flags(gid_list)
+    assert False not in ibs.get_tile_flags(gid_list)
 
     # Page
     gid_list = sorted(gid_list)

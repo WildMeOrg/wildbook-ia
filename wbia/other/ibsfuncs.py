@@ -10007,7 +10007,7 @@ def check_tile_consistency(ibs, gid_list=None, **kwargs):
     level_error_set = set()
     for tile_gid in all_tile_gid_set:
         try:
-            ibs.get_vulcan_image_tile_level(tile_gid)
+            ibs.get_tile_level(tile_gid)
         except RuntimeError:
             level_error_set.add(tile_gid)
 

@@ -22,7 +22,7 @@ PYTORCH = True
 
 
 # Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__, '[vulcanfuncs]')
+(print, rrr, profile) = ut.inject2(__name__, '[scoutfuncs]')
 
 
 # Must import class before injection
@@ -35,7 +35,7 @@ register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 # @register_ibs_method
-# def vulcan_subsample_imageset(ibs, ratio=10, target_species='elephant_savanna'):
+# def scout_subsample_imageset(ibs, ratio=10, target_species='elephant_savanna'):
 #     gid_all_list = ibs.get_valid_gids(is_tile=None)
 
 #     imageset_text_list = [
@@ -81,8 +81,8 @@ register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 @register_ibs_method
-def vulcan_print_database_stats(ibs, target_species='elephant_savanna'):
-    tid_list = ibs.vulcan_get_valid_tile_rowids()
+def scout_print_database_stats(ibs, target_species='elephant_savanna'):
+    tid_list = ibs.scout_get_valid_tile_rowids()
     aids_list = ibs.get_image_aids(tid_list)
 
     tile_has_annots = 0
@@ -94,7 +94,7 @@ def vulcan_print_database_stats(ibs, target_species='elephant_savanna'):
             if len(aid_list) > 0:
                 tile_has_elephs += 1
 
-    gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tid_list)
+    gid_list = ibs.get_tile_ancestor_gids(tid_list)
     gid_list = list(set(gid_list))
     aids_list = ibs.get_image_aids(gid_list)
 
@@ -165,11 +165,11 @@ def vulcan_print_database_stats(ibs, target_species='elephant_savanna'):
 
 
 # def __export_test_images(ibs, **kwargs):
-#     all_tid_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+#     all_tid_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
 #     test_tid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
 #     test_tid_set = all_tid_set & test_tid_set
 #     test_tid_list = list(test_tid_set)
-#     test_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tid_list)
+#     test_gid_list = ibs.get_tile_ancestor_gids(test_tid_list)
 #     test_gid_set = list(set(test_gid_list))
 #     image_path_list = ibs.get_image_paths(test_gid_set)
 
@@ -192,13 +192,13 @@ def export_dataset(ibs, **kwargs):
 
 @register_ibs_method
 def recompute_tiles(ibs, gid_list):
-    tid_list = ibs.vulcan_get_valid_tile_rowids(gid_list=gid_list)
+    tid_list = ibs.scout_get_valid_tile_rowids(gid_list=gid_list)
     ibs.delete_images(tid_list, trash_images=False)
     ibs.depc_image.delete_property_all('tiles', gid_list)
 
 
 @register_ibs_method
-def vulcan_get_valid_tile_rowids(
+def scout_get_valid_tile_rowids(
     ibs,
     imageset_text_list=None,
     return_gids=False,
@@ -286,17 +286,17 @@ def vulcan_get_valid_tile_rowids(
 
 
 @register_ibs_method
-def vulcan_visualize_tiles(ibs, target_species='elephant_savanna', margin=32, **kwargs):
+def scout_visualize_tiles(ibs, target_species='elephant_savanna', margin=32, **kwargs):
     RANDOM_VISUALIZATION_OFFSET = 5
     font = cv2.FONT_HERSHEY_SIMPLEX
     scale = 0.5
 
-    value_list = ibs.vulcan_get_valid_tile_rowids(return_configs=True, **kwargs)
+    value_list = ibs.scout_get_valid_tile_rowids(return_configs=True, **kwargs)
     tile_list = ut.take_column(value_list, 0)
     config_list = ut.take_column(value_list, 1)
 
-    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
-    values = ibs.vulcan_tile_positive_cumulative_area(
+    ancestor_gid_list = ibs.get_tile_ancestor_gids(tile_list)
+    values = ibs.scout_tile_positive_cumulative_area(
         tile_list, target_species=target_species, margin=margin
     )
     cumulative_area_list, total_area_list, flag_list = values
@@ -337,7 +337,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna', margin=32, **
         for values in values_list:
             cumulative_area, total_area, tile, flag, config = values
             config = str(config)
-            border = ibs.get_vulcan_image_tile_border_flag(tile)
+            border = ibs.get_tile_border_flag(tile)
             if border:
                 config = 'border'
             if flag:
@@ -489,7 +489,7 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna', margin=32, **
             tile_list = ut.take_column(value_list_, 0)
             flag_list = ut.take_column(value_list_, 1)
 
-            bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
+            bbox_list = ibs.get_tile_bboxes(tile_list)
             for bbox, flag in zip(bbox_list, flag_list):
                 xtl, ytl, w, h = bbox
                 xtl += int(
@@ -552,13 +552,13 @@ def vulcan_visualize_tiles(ibs, target_species='elephant_savanna', margin=32, **
             total_positive_tiles,
             num_missed,
         )
-        canvas_filename = 'vulcan-tile-gid-%s-num-patches-%d-num-missed-%d.png' % args
+        canvas_filename = 'scout-tile-gid-%s-num-patches-%d-num-missed-%d.png' % args
         canvas_filepath = join(canvas_path, canvas_filename)
         cv2.imwrite(canvas_filepath, canvas)
 
 
 @register_ibs_method
-def vulcan_tile_positive_cumulative_area(
+def scout_tile_positive_cumulative_area(
     ibs,
     tile_list,
     target_species='elephant_savanna',
@@ -566,8 +566,8 @@ def vulcan_tile_positive_cumulative_area(
     margin=32,
     margin_discount=0.5,
 ):
-    tile_bbox_list = ibs.get_vulcan_image_tile_bboxes(tile_list)
-    aids_list = ibs.get_vulcan_image_tile_aids(tile_list)
+    tile_bbox_list = ibs.get_tile_bboxes(tile_list)
+    aids_list = ibs.get_tile_aids(tile_list)
     species_set_list = list(map(set, map(ibs.get_annot_species_texts, aids_list)))
 
     cumulative_area_list = []
@@ -605,9 +605,9 @@ def vulcan_tile_positive_cumulative_area(
 
 
 @register_ibs_method
-def vulcan_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
-    tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
-    values = ibs.vulcan_tile_positive_cumulative_area(tile_list, **kwargs)
+def scout_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
+    tile_list = ibs.scout_get_valid_tile_rowids(**kwargs)
+    values = ibs.scout_tile_positive_cumulative_area(tile_list, **kwargs)
     cumulative_area_list, total_area_list, flag_list = values
 
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
@@ -623,13 +623,13 @@ def vulcan_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
     gids = [gid for gid, flag in zip(tile_list, flag_list) if flag == 1]
     logger.info(len(gids))
     ibs.set_image_imgsetids(gids, [pid] * len(gids))
-    pgidsi = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gids)))
+    pgidsi = list(set(ibs.get_tile_ancestor_gids(gids)))
     ibs.set_image_imgsetids(pgidsi, [pidi] * len(pgidsi))
 
     gids = [gid for gid, flag in zip(tile_list, flag_list) if flag == 0]
     logger.info(len(gids))
     ibs.set_image_imgsetids(gids, [nid] * len(gids))
-    ngidsi = list(set(ibs.get_vulcan_image_tile_ancestor_gids(gids)))
+    ngidsi = list(set(ibs.get_tile_ancestor_gids(gids)))
     ngidsi = list(set(ngidsi) - set(pgidsi))
     ibs.set_image_imgsetids(ngidsi, [nidi] * len(ngidsi))
 
@@ -649,7 +649,7 @@ def vulcan_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
         ibs.get_valid_gids(is_tile=False)
     )
 
-    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(tile_list)
+    ancestor_gid_list = ibs.get_tile_ancestor_gids(tile_list)
 
     tile_train_list = []
     tile_test_list = []
@@ -674,7 +674,7 @@ def vulcan_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
 
 
 @register_ibs_method
-def vulcan_compute_visual_clusters(
+def scout_compute_visual_clusters(
     ibs,
     num_clusters=80,
     n_neighbors=10,
@@ -699,7 +699,7 @@ def vulcan_compute_visual_clusters(
         raise ex
 
     if all_tile_list is None:
-        all_tile_list = ibs.vulcan_get_valid_tile_rowids(**kwargs)
+        all_tile_list = ibs.scout_get_valid_tile_rowids(**kwargs)
         if max_images is not None:
             all_tile_list = all_tile_list[:max_images]
 
@@ -707,7 +707,7 @@ def vulcan_compute_visual_clusters(
     hashstr = ut.hash_data(all_tile_list)
     hashstr = hashstr[:16]
     cache_path = ibs.cachedir
-    cluster_cache_path = join(cache_path, 'vulcan', 'clusters')
+    cluster_cache_path = join(cache_path, 'scout', 'clusters')
     ut.ensuredir(cluster_cache_path)
 
     umap_cache_filename = 'umap.{}.{}.pkl'.format(
@@ -933,13 +933,13 @@ def vulcan_compute_visual_clusters(
 
 
 @register_ibs_method
-def vulcan_visualize_visual_clusters(
+def scout_visualize_visual_clusters(
     ibs, num_clusters=80, n_neighbors=10, examples=50, reclassify_outliers=True, **kwargs
 ):
     """
     for n_neighbors in range(5, 61, 5):
         for num_clusters in range(10, 51, 10):
-            ibs.vulcan_visualize_visual_clusters(num_clusters, n_neighbors)
+            ibs.scout_visualize_visual_clusters(num_clusters, n_neighbors)
     """
     import random
 
@@ -952,7 +952,7 @@ def vulcan_visualize_visual_clusters(
     scale = 2.5
     thickness = 5
 
-    values = ibs.vulcan_compute_visual_clusters(
+    values = ibs.scout_compute_visual_clusters(
         num_clusters=num_clusters,
         n_neighbors=n_neighbors,
         reclassify_outliers=reclassify_outliers,
@@ -1076,7 +1076,7 @@ def vulcan_visualize_visual_clusters(
     )
 
     canvas = np.vstack(canvas_list)
-    canvas_filename = 'vulcan-wic-clusters-%s-%s-%s-outliers-%s-examples.png' % args
+    canvas_filename = 'scout-wic-clusters-%s-%s-%s-outliers-%s-examples.png' % args
     canvas_filepath = abspath(expanduser(join('~', 'Desktop', canvas_filename)))
     cv2.imwrite(canvas_filepath, canvas)
 
@@ -1151,13 +1151,13 @@ def vulcan_visualize_visual_clusters(
     axes.set_xlim([0, int(maxx * 1.1)])
     axes.set_ylim([-1, len(cluster_list)])
 
-    fig_filename = 'vulcan-wic-clusters-%s-%s-%s-outliers-%s-plot.png' % args
+    fig_filename = 'scout-wic-clusters-%s-%s-%s-outliers-%s-plot.png' % args
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
 
 @register_ibs_method
-def vulcan_wic_train(
+def scout_wic_train(
     ibs,
     ensembles=5,
     rounds=10,
@@ -1176,16 +1176,16 @@ def vulcan_wic_train(
         >>> import wbia
         >>> ibs = wbia.opendb('testdb1')
         >>> restart_config_dict = {
-        >>>     'vulcan-d3e8bf43-boost0': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.0.zip',
-        >>>     'vulcan-d3e8bf43-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.1.zip',
-        >>>     'vulcan-d3e8bf43-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.2.zip',
-        >>>     'vulcan-d3e8bf43-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.3.zip',
-        >>>     'vulcan-d3e8bf43-boost4': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.4.zip',
-        >>>     'vulcan-d3e8bf43-boost5': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.5.zip',
-        >>>     'vulcan-d3e8bf43-boost6': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.6.zip',
-        >>>     'vulcan-d3e8bf43-boost7': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.7.zip',
+        >>>     'scout-d3e8bf43-boost0': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.0.zip',
+        >>>     'scout-d3e8bf43-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.1.zip',
+        >>>     'scout-d3e8bf43-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.2.zip',
+        >>>     'scout-d3e8bf43-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.3.zip',
+        >>>     'scout-d3e8bf43-boost4': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.4.zip',
+        >>>     'scout-d3e8bf43-boost5': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.5.zip',
+        >>>     'scout-d3e8bf43-boost6': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.6.zip',
+        >>>     'scout-d3e8bf43-boost7': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.7.zip',
         >>> }
-        >>> ibs.vulcan_wic_train(restart_config_dict=restart_config_dict)
+        >>> ibs.scout_wic_train(restart_config_dict=restart_config_dict)
     """
     import random
 
@@ -1226,7 +1226,7 @@ def vulcan_wic_train(
             )
 
         restart_round_num = latest_round
-        ibs.vulcan_wic_validate(config_list)
+        ibs.scout_wic_validate(config_list)
 
     # Start training
     if hashstr is None:
@@ -1234,10 +1234,10 @@ def vulcan_wic_train(
     logger.info('Using hashstr={!r}'.format(hashstr))
 
     gid_all_list = ibs.get_valid_gids(is_tile=None)
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
 
     if use_clusters:
-        values = ibs.vulcan_compute_visual_clusters(num_clusters, n_neighbors, **kwargs)
+        values = ibs.scout_compute_visual_clusters(num_clusters, n_neighbors, **kwargs)
         _, assignment_dict = values
 
         cluster_dict = {}
@@ -1280,7 +1280,7 @@ def vulcan_wic_train(
             round_confidence_list = [-1.0] * len(test_tile_list)
         else:
             assert latest_model_tag is not None
-            round_confidence_list = ibs.vulcan_wic_test(
+            round_confidence_list = ibs.scout_wic_test(
                 test_tile_list, model_tag=latest_model_tag
             )
 
@@ -1334,7 +1334,7 @@ def vulcan_wic_train(
                     latest_model_tag,
                     ensemble_num,
                 )
-                ensemble_confidence_list = ibs.vulcan_wic_test(
+                ensemble_confidence_list = ibs.scout_wic_test(
                     test_tile_list, model_tag=ensemble_latest_model_tag
                 )
 
@@ -1478,7 +1478,7 @@ def vulcan_wic_train(
             )
             weights_path_list.append(weights_path)
 
-        latest_model_tag, _ = ibs.vulcan_wic_deploy(weights_path_list, hashstr, round_num)
+        latest_model_tag, _ = ibs.scout_wic_deploy(weights_path_list, hashstr, round_num)
         config_list.append(
             {
                 'label': 'WIC %s Round %d'
@@ -1490,7 +1490,7 @@ def vulcan_wic_train(
                 'classifier_weight_filepath': latest_model_tag,
             },
         )
-        ibs.vulcan_wic_validate(config_list)
+        ibs.scout_wic_validate(config_list)
 
     models = densenet.ARCHIVE_URL_DICT
     logger.info(ut.repr3(models))
@@ -1498,12 +1498,12 @@ def vulcan_wic_train(
 
 
 @register_ibs_method
-def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=True):
+def scout_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=True):
     args = (
         hashstr,
         round_num,
     )
-    output_name = 'classifier2.vulcan.%s.%d' % args
+    output_name = 'classifier2.scout.%s.%d' % args
     ensemble_path = join(ibs.get_cachedir(), 'training', output_name)
     ut.ensuredir(ensemble_path)
 
@@ -1524,7 +1524,7 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tr
     output_path = '/data/public/models/{}.zip'.format(output_name)
     ut.copy(archive_path, output_path)
 
-    model_key = 'vulcan-{}-boost{}'.format(
+    model_key = 'scout-{}-boost{}'.format(
         hashstr,
         round_num,
     )
@@ -1537,7 +1537,7 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tr
 
 
 @register_ibs_method
-def vulcan_wic_test(
+def scout_wic_test(
     ibs, test_tile_list, classifier_algo='densenet', model_tag=None, testing=False
 ):
     config = {
@@ -1569,7 +1569,7 @@ def vulcan_wic_test(
 
 
 @register_ibs_method
-def vulcan_wic_validate(
+def scout_wic_validate(
     ibs,
     config_list,
     offset_black=0,
@@ -1584,164 +1584,164 @@ def vulcan_wic_validate(
     """
     Ignore:
         >>> config_list = [
-        >>>     {'label': 'WIC d3e8bf43 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0'},
-        >>>     {'label': 'WIC d3e8bf43 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost1'},
-        >>>     {'label': 'WIC d3e8bf43 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2'},
-        >>>     {'label': 'WIC d3e8bf43 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost3'},
-        >>>     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
-        >>>     {'label': 'WIC d3e8bf43 R5', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost5'},
-        >>>     {'label': 'WIC d3e8bf43 R6', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
-        >>>     {'label': 'WIC d3e8bf43 R7', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost7'},
+        >>>     {'label': 'WIC d3e8bf43 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost0'},
+        >>>     {'label': 'WIC d3e8bf43 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost1'},
+        >>>     {'label': 'WIC d3e8bf43 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost2'},
+        >>>     {'label': 'WIC d3e8bf43 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost3'},
+        >>>     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost4'},
+        >>>     {'label': 'WIC d3e8bf43 R5', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost5'},
+        >>>     {'label': 'WIC d3e8bf43 R6', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost6'},
+        >>>     {'label': 'WIC d3e8bf43 R7', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost7'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list)
-        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True)
+        >>> ibs.scout_wic_validate(config_list)
+        >>> ibs.scout_wic_validate(config_list, fn_recovery=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC d3e8bf43 R4',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
-        >>>     {'label': 'WIC d3e8bf43 R4:0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4:0'},
-        >>>     {'label': 'WIC d3e8bf43 R4:1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4:1'},
-        >>>     {'label': 'WIC d3e8bf43 R4:2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4:2'},
-        >>>     {'label': 'WIC d3e8bf43 R4:3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4:3'},
-        >>>     {'label': 'WIC d3e8bf43 R4:4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4:4'},
+        >>>     {'label': 'WIC d3e8bf43 R4',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost4'},
+        >>>     {'label': 'WIC d3e8bf43 R4:0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost4:0'},
+        >>>     {'label': 'WIC d3e8bf43 R4:1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost4:1'},
+        >>>     {'label': 'WIC d3e8bf43 R4:2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost4:2'},
+        >>>     {'label': 'WIC d3e8bf43 R4:3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost4:3'},
+        >>>     {'label': 'WIC d3e8bf43 R4:4', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost4:4'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None])
+        >>> ibs.scout_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None])
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC R4',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
-        >>>     {'label': 'LOC V0',            'classifier_algo': 'lightnet',           'classifier_weight_filepath': 'vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC PR  R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.708,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC ROC R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.271,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.238,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6,0.034,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 90% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.706,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 95% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.209,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 98% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0,0.026,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC R4',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost4'},
+        >>>     {'label': 'LOC V0',            'classifier_algo': 'lightnet',           'classifier_weight_filepath': 'scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC PR  R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost4,0.708,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC ROC R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost0,0.271,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost4,0.238,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost6,0.034,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 90% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost0,0.706,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 95% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost0,0.209,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 98% R0+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost0,0.026,scout_v0,0.50'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None])
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None])
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC+R R6',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6'},
-        >>>     {'label': 'LOC+R V0',            'classifier_algo': 'lightnet',           'classifier_weight_filepath': 'vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+R+LOC PR  R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6,0.607,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+R+LOC ROC R2+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2,0.027,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+R+LOC 80% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.645,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+R+LOC 85% R2+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+R+LOC 90% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.193,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+R+LOC 95% R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost6,0.025,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+R+LOC 98% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4,0.005,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+R R6',            'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-d3e8bf43-boost6'},
+        >>>     {'label': 'LOC+R V0',            'classifier_algo': 'lightnet',           'classifier_weight_filepath': 'scout_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC PR  R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost6,0.607,scout_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC ROC R2+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost2,0.027,scout_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 80% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost4,0.645,scout_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 85% R2+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost2,0.347,scout_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 90% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost4,0.193,scout_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 95% R6+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost6,0.025,scout_v0,0.50'},
+        >>>     {'label': 'WIC+R+LOC 98% R4+V0', 'classifier_algo': 'densenet+lightnet',  'classifier_weight_filepath': 'scout-d3e8bf43-boost4,0.005,scout_v0,0.50'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, fn_recovery=True, target_recall_list=[None])
+        >>> ibs.scout_wic_validate(config_list, fn_recovery=True, target_recall_list=[None])
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-d3e8bf43-boost6'},
-        >>>     {'label': 'LOC V0',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'lightnet;vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC PR  R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.708,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC ROC R0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost0,0.271,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.238,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost6,0.034,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 90% R0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost0,0.706,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 95% R0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost0,0.209,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 98% R0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost0,0.026,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-d3e8bf43-boost6'},
+        >>>     {'label': 'LOC V0',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'lightnet;scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC PR  R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost4,0.708,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC ROC R0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost0,0.271,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost4,0.238,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost6,0.034,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 90% R0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost0,0.706,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 95% R0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost0,0.209,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 98% R0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost0,0.026,scout_v0,0.50'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-d3e8bf43-boost6'},
-        >>>     {'label': 'LOC V0',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'lightnet;vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC PR  R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost6,0.607,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC ROC R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.027,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.645,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 90% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.193,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 95% R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost6,0.025,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 98% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost4,0.005,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC R6',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-d3e8bf43-boost6'},
+        >>>     {'label': 'LOC V0',            'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'lightnet;scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC PR  R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost6,0.607,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC ROC R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2,0.027,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 80% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost4,0.645,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2,0.347,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 90% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost4,0.193,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 95% R6+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost6,0.025,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 98% R4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost4,0.005,scout_v0,0.50'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC+LOC 85% R2+V0',   'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:0,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:1+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:1,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:2,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:3+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:3,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:4,0.347,vulcan_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2+V0',   'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2,0.347,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:0+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2:0,0.347,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:1+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2:1,0.347,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:2+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2:2,0.347,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:3+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2:3,0.347,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:4+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2:4,0.347,scout_v0,0.50'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1)
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1, quick=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, offset_black=1, quick=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC+LOC 85% R2+V0',   'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'WIC+LOC 85% R2:3+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;vulcan-d3e8bf43-boost2:3,0.347,vulcan_v0,0.50'},
-        >>>     {'label': 'Vulcan DetectNet',    'classifier_algo': 'vulcan_detectnet',  'classifier_weight_filepath': 'annotations_vulcan_model.json'},
+        >>>     {'label': 'WIC+LOC 85% R2+V0',   'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2,0.347,scout_v0,0.50'},
+        >>>     {'label': 'WIC+LOC 85% R2:3+V0', 'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet+lightnet;scout-d3e8bf43-boost2:3,0.347,scout_v0,0.50'},
+        >>>     {'label': 'Scout DetectNet',    'classifier_algo': 'scout_detectnet',  'classifier_weight_filepath': 'annotations_scout_model.json'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
         >>>
         >>> # config_list = [
-        >>> #     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'vulcan-d3e8bf43-boost4'},
+        >>> #     {'label': 'WIC d3e8bf43 R4', 'classifier_algo': 'densenet+neighbors',     'classifier_weight_filepath': 'scout-d3e8bf43-boost4'},
         >>> # ]
-        >>> # ibs.vulcan_wic_validate(config_list)
+        >>> # ibs.scout_wic_validate(config_list)
         >>>
         >>>
         >>> ###############################################################################################################################################################################
         >>>
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC 5fbfff26 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost0'},
-        >>>     {'label': 'WIC 5fbfff26 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost1'},
-        >>>     {'label': 'WIC 5fbfff26 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost2'},
-        >>>     {'label': 'WIC 5fbfff26 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3'},
+        >>>     {'label': 'WIC 5fbfff26 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-5fbfff26-boost0'},
+        >>>     {'label': 'WIC 5fbfff26 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-5fbfff26-boost1'},
+        >>>     {'label': 'WIC 5fbfff26 R2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-5fbfff26-boost2'},
+        >>>     {'label': 'WIC 5fbfff26 R3', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-5fbfff26-boost3'},
         >>> ]
-        >>> # ibs.vulcan_wic_validate(config_list)
-        >>> # ibs.vulcan_wic_validate(config_list, target_recall_list=[None], fn_recovery=True)
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], fn_recovery=True, quick=True)
+        >>> # ibs.scout_wic_validate(config_list)
+        >>> # ibs.scout_wic_validate(config_list, target_recall_list=[None], fn_recovery=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], fn_recovery=True, quick=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC 5fbfff26 R3',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3'},
-        >>>     {'label': 'WIC 5fbfff26 R3:0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3:0'},
-        >>>     {'label': 'WIC 5fbfff26 R3:1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3:1'},
-        >>>     {'label': 'WIC 5fbfff26 R3:2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-5fbfff26-boost3:2'},
+        >>>     {'label': 'WIC 5fbfff26 R3',   'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-5fbfff26-boost3'},
+        >>>     {'label': 'WIC 5fbfff26 R3:0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-5fbfff26-boost3:0'},
+        >>>     {'label': 'WIC 5fbfff26 R3:1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-5fbfff26-boost3:1'},
+        >>>     {'label': 'WIC 5fbfff26 R3:2', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'scout-5fbfff26-boost3:2'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None])
-        >>> ibs.vulcan_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None], fn_recovery=True)
+        >>> ibs.scout_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None])
+        >>> ibs.scout_wic_validate(config_list, offset_black=1, desired_index=0, target_recall_list=[None], fn_recovery=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC 5fbfff26 R0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0'},
-        >>>     {'label': 'WIC 5fbfff26 R1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1'},
-        >>>     {'label': 'WIC 5fbfff26 R2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2'},
-        >>>     {'label': 'WIC 5fbfff26 R3',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3'},
+        >>>     {'label': 'WIC 5fbfff26 R0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost0'},
+        >>>     {'label': 'WIC 5fbfff26 R1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost1'},
+        >>>     {'label': 'WIC 5fbfff26 R2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost2'},
+        >>>     {'label': 'WIC 5fbfff26 R3',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost3'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC 5fbfff26 R0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0'},
-        >>>     {'label': 'WIC 5fbfff26 R0:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0:0'},
-        >>>     {'label': 'WIC 5fbfff26 R0:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0:1'},
-        >>>     {'label': 'WIC 5fbfff26 R0:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost0:2'},
-        >>>     {'label': 'WIC 5fbfff26 R1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1'},
-        >>>     {'label': 'WIC 5fbfff26 R1:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1:0'},
-        >>>     {'label': 'WIC 5fbfff26 R1:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1:1'},
-        >>>     {'label': 'WIC 5fbfff26 R1:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost1:2'},
-        >>>     {'label': 'WIC 5fbfff26 R2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2'},
-        >>>     {'label': 'WIC 5fbfff26 R2:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2:0'},
-        >>>     {'label': 'WIC 5fbfff26 R2:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2:1'},
-        >>>     {'label': 'WIC 5fbfff26 R2:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost2:2'},
-        >>>     {'label': 'WIC 5fbfff26 R3',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3'},
-        >>>     {'label': 'WIC 5fbfff26 R3:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3:0'},
-        >>>     {'label': 'WIC 5fbfff26 R3:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3:1'},
-        >>>     {'label': 'WIC 5fbfff26 R3:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3:2'},
+        >>>     {'label': 'WIC 5fbfff26 R0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost0'},
+        >>>     {'label': 'WIC 5fbfff26 R0:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost0:0'},
+        >>>     {'label': 'WIC 5fbfff26 R0:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost0:1'},
+        >>>     {'label': 'WIC 5fbfff26 R0:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost0:2'},
+        >>>     {'label': 'WIC 5fbfff26 R1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost1'},
+        >>>     {'label': 'WIC 5fbfff26 R1:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost1:0'},
+        >>>     {'label': 'WIC 5fbfff26 R1:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost1:1'},
+        >>>     {'label': 'WIC 5fbfff26 R1:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost1:2'},
+        >>>     {'label': 'WIC 5fbfff26 R2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost2'},
+        >>>     {'label': 'WIC 5fbfff26 R2:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost2:0'},
+        >>>     {'label': 'WIC 5fbfff26 R2:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost2:1'},
+        >>>     {'label': 'WIC 5fbfff26 R2:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost2:2'},
+        >>>     {'label': 'WIC 5fbfff26 R3',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost3'},
+        >>>     {'label': 'WIC 5fbfff26 R3:0',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost3:0'},
+        >>>     {'label': 'WIC 5fbfff26 R3:1',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost3:1'},
+        >>>     {'label': 'WIC 5fbfff26 R3:2',    'classifier_algo': 'tile_aggregation',  'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost3:2'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
         >>>
         >>> config_list = [
-        >>>     {'label': 'WIC 5fbfff26 R3',     'classifier_algo': 'tile_aggregation',       'classifier_weight_filepath': 'densenet;vulcan-5fbfff26-boost3'},
-        >>>     {'label': 'Vulcan DetectNet',    'classifier_algo': 'vulcan_detectnet_csv',   'classifier_weight_filepath': 'WIC_detectnet_output.csv'},
-        >>>     {'label': 'Vulcan Faster R-CNN', 'classifier_algo': 'vulcan_faster_rcnn_csv', 'classifier_weight_filepath': 'WIC_fasterRCNN_output.csv'},
+        >>>     {'label': 'WIC 5fbfff26 R3',     'classifier_algo': 'tile_aggregation',       'classifier_weight_filepath': 'densenet;scout-5fbfff26-boost3'},
+        >>>     {'label': 'Scout DetectNet',    'classifier_algo': 'scout_detectnet_csv',   'classifier_weight_filepath': 'WIC_detectnet_output.csv'},
+        >>>     {'label': 'Scout Faster R-CNN', 'classifier_algo': 'scout_faster_rcnn_csv', 'classifier_weight_filepath': 'WIC_fasterRCNN_output.csv'},
         >>> ]
-        >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
+        >>> ibs.scout_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
     """
 
     def _filter_fn_func(ibs, version, values, gid_aids_mapping):
@@ -1778,7 +1778,7 @@ def vulcan_wic_validate(
                 classifier_algo = '{}_quick'.format(classifier_algo)
                 config_list[index]['classifier_algo'] = classifier_algo
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
@@ -1788,7 +1788,7 @@ def vulcan_wic_validate(
     pid, nid = ibs.get_imageset_imgsetids_from_text(['POSITIVE', 'NEGATIVE'])
 
     if use_ancestors:
-        ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
+        ancestor_gid_list = ibs.get_tile_ancestor_gids(test_tile_list)
         test_tile_list = list(set(ancestor_gid_list))
         pid, nid = ibs.get_imageset_imgsetids_from_text(
             ['POSITIVE_IMAGE', 'NEGATIVE_IMAGE']
@@ -1813,7 +1813,7 @@ def vulcan_wic_validate(
 
 
 @register_ibs_method
-def vulcan_wic_visualize_errors_location(
+def scout_wic_visualize_errors_location(
     ibs, target_species='elephant_savanna', thresh=0.024, **kwargs
 ):
     def _render(gid_list, flag_list, invert=False):
@@ -1843,14 +1843,14 @@ def vulcan_wic_visualize_errors_location(
 
     canvas_path = abspath(expanduser(join('~', 'Desktop')))
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
     test_gid_set = all_tile_set & test_gid_set
     test_gid_list = list(test_gid_set)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(
+    values = ibs.scout_tile_positive_cumulative_area(
         test_gid_list, target_species=target_species
     )
     cumulative_area_list, total_area_list, flag_list = values
@@ -1859,11 +1859,11 @@ def vulcan_wic_visualize_errors_location(
         set(test_gid_list) - set(gt_positive_test_gid_list)
     )
 
-    model_tag = 'vulcan-d3e8bf43-boost4'
-    gt_positive_confidence_list = ibs.vulcan_wic_test(
+    model_tag = 'scout-d3e8bf43-boost4'
+    gt_positive_confidence_list = ibs.scout_wic_test(
         gt_positive_test_gid_list, model_tag=model_tag
     )
-    gt_negative_confidence_list = ibs.vulcan_wic_test(
+    gt_negative_confidence_list = ibs.scout_wic_test(
         gt_negative_test_gid_list, model_tag=model_tag
     )
     gt_positive_flag_list = [
@@ -1929,7 +1929,7 @@ def vulcan_wic_visualize_errors_location(
 
 
 @register_ibs_method
-def vulcan_wic_visualize_errors_annots(
+def scout_wic_visualize_errors_annots(
     ibs,
     target_species='elephant_savanna',
     min_cumulative_percentage=0.025,
@@ -1943,14 +1943,14 @@ def vulcan_wic_visualize_errors_annots(
 
     fig_ = plt.figure(figsize=(12, 20), dpi=400)  # NOQA
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
     test_gid_set = all_tile_set & test_gid_set
     test_gid_list = list(test_gid_set)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(
+    values = ibs.scout_tile_positive_cumulative_area(
         test_gid_list,
         target_species=target_species,
         min_cumulative_percentage=min_cumulative_percentage,
@@ -1961,8 +1961,8 @@ def vulcan_wic_visualize_errors_annots(
         for cumulative_area, total_area in zip(cumulative_area_list, total_area_list)
     ]
 
-    model_tag = 'vulcan-d3e8bf43-boost4'
-    confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
+    model_tag = 'scout-d3e8bf43-boost4'
+    confidence_list = ibs.scout_wic_test(test_gid_list, model_tag=model_tag)
 
     color_list = pt.distinct_colors(4, randomize=False)
 
@@ -2145,16 +2145,16 @@ def vulcan_wic_visualize_errors_annots(
     plt.xticks(index_list, tick_list)
 
     if errors_only:
-        fig_filename = 'vulcan-wic-errors-annots-plot-errors.png'
+        fig_filename = 'scout-wic-errors-annots-plot-errors.png'
     else:
-        fig_filename = 'vulcan-wic-errors-annots-plot.png'
+        fig_filename = 'scout-wic-errors-annots-plot.png'
 
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
 
 @register_ibs_method
-def vulcan_wic_visualize_errors_clusters(
+def scout_wic_visualize_errors_clusters(
     ibs, target_species='elephant_savanna', thresh=0.024, errors_only=False, **kwargs
 ):
     import matplotlib.pyplot as plt
@@ -2163,22 +2163,22 @@ def vulcan_wic_visualize_errors_clusters(
 
     fig_ = plt.figure(figsize=(40, 12), dpi=400)  # NOQA
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
     test_gid_set = all_tile_set & test_gid_set
     test_gid_list = list(test_gid_set)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(
+    values = ibs.scout_tile_positive_cumulative_area(
         test_gid_list, target_species=target_species
     )
     cumulative_area_list, total_area_list, flag_list = values
 
-    model_tag = 'vulcan-d3e8bf43-boost4'
-    confidence_list = ibs.vulcan_wic_test(test_gid_list, model_tag=model_tag)
+    model_tag = 'scout-d3e8bf43-boost4'
+    confidence_list = ibs.scout_wic_test(test_gid_list, model_tag=model_tag)
 
-    values = ibs.vulcan_compute_visual_clusters(80, 10, **kwargs)
+    values = ibs.scout_compute_visual_clusters(80, 10, **kwargs)
     hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits = values
 
     color_list = pt.distinct_colors(4, randomize=False)
@@ -2249,15 +2249,15 @@ def vulcan_wic_visualize_errors_clusters(
     plt.xticks(index_list, tick_list)
 
     if errors_only:
-        fig_filename = 'vulcan-wic-errors-clusters-plot-errors.png'
+        fig_filename = 'scout-wic-errors-clusters-plot-errors.png'
     else:
-        fig_filename = 'vulcan-wic-errors-clusters-plot.png'
+        fig_filename = 'scout-wic-errors-clusters-plot.png'
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
 
 @register_ibs_method
-def vulcan_background_train(ibs, target_species='elephant_savanna'):
+def scout_background_train(ibs, target_species='elephant_savanna'):
     import numpy as np
     from wbia_cnn.ingest_wbia import get_background_training_patches2
     from wbia_cnn.models.background import train_background
@@ -2266,7 +2266,7 @@ def vulcan_background_train(ibs, target_species='elephant_savanna'):
 
     (pid,) = ibs.get_imageset_imgsetids_from_text(['POSITIVE'])
     train_tile_set = set(ibs.get_imageset_gids(pid))
-    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(train_tile_set)
+    ancestor_gid_list = ibs.get_tile_ancestor_gids(train_tile_set)
     train_gid_set = list(set(ancestor_gid_list))
 
     aid_list = ut.flatten(ibs.get_image_aids(train_gid_set))
@@ -2293,7 +2293,7 @@ def vulcan_background_train(ibs, target_species='elephant_savanna'):
         supercharge_negative_multiplier=10.0,
     )
 
-    # rm -rf /data/wbia/ELPH_Vulcan/_ibsdb/_wbia_cache/training/background/
+    # rm -rf /data/wbia/ELPH_Scout/_ibsdb/_wbia_cache/training/background/
 
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     model_path = train_background(output_path, X_file, y_file)
@@ -2306,14 +2306,14 @@ def vulcan_background_train(ibs, target_species='elephant_savanna'):
 
 
 @register_ibs_method
-def vulcan_background_deploy(ibs, model_path):
-    ut.copy(model_path, '/data/public/models/background.vulcan.pkl')
+def scout_background_deploy(ibs, model_path):
+    ut.copy(model_path, '/data/public/models/background.scout.v0.pkl')
     return model_path
 
 
 @register_ibs_method
-def vulcan_background_compute(
-    ibs, tile_rowid_list, smooth_thresh=20, smooth_ksize=20, model_tag='vulcan'
+def scout_background_compute(
+    ibs, tile_rowid_list, smooth_thresh=20, smooth_ksize=20, model_tag='scout'
 ):
     """Computes tile probability masks."""
     from wbia.core_annots import postprocess_mask
@@ -2357,12 +2357,12 @@ def vulcan_background_compute(
 
 
 @register_ibs_method
-def vulcan_background_validate(ibs, output_path=None, model_tag='vulcan', **kwargs):
+def scout_background_validate(ibs, output_path=None, model_tag='scout', **kwargs):
     if output_path is None:
         output_path = join(ibs.get_cachedir(), 'tilemasks_combined')
         ut.ensuredir(output_path)
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
@@ -2385,7 +2385,7 @@ def vulcan_background_validate(ibs, output_path=None, model_tag='vulcan', **kwar
     flag_list = [test_label == 'positive' for test_label in test_label_list]
     test_tile_list = ut.compress(test_tile_list, flag_list)
 
-    masks = ibs.vulcan_background_compute(test_tile_list, model_tag=model_tag)
+    masks = ibs.scout_background_compute(test_tile_list, model_tag=model_tag)
     masks = list(masks)
 
     images = ibs.get_images(test_tile_list)
@@ -2405,12 +2405,12 @@ def vulcan_background_validate(ibs, output_path=None, model_tag='vulcan', **kwar
 
 
 @register_ibs_method
-def vulcan_localizer_train(
+def scout_localizer_train(
     ibs, target_species='elephant_savanna', ratio=2.0, config=None, **kwargs
 ):
     """
-    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.5675}
-    ibs.vulcan_localizer_train(config=config)
+    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.5675}
+    ibs.scout_localizer_train(config=config)
 
     ###
 
@@ -2419,9 +2419,9 @@ def vulcan_localizer_train(
     ratio=2.0
     kwargs = {}
 
-    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.5675}
+    config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.5675}
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
     train_gid_set = all_tile_set & train_gid_set
 
@@ -2440,7 +2440,7 @@ def vulcan_localizer_train(
 
 
     """
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     train_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET'))
     )
@@ -2453,9 +2453,9 @@ def vulcan_localizer_train(
     negative_gid_set = negative_gid_set & train_gid_set
     negative_gid_list = list(negative_gid_set)
 
-    # model_tag = 'vulcan-d3e8bf43-boost4'
-    model_tag = 'vulcan-5fbfff26-boost3'
-    confidence_list = ibs.vulcan_wic_test(negative_gid_list, model_tag=model_tag)
+    # model_tag = 'scout-d3e8bf43-boost4'
+    model_tag = 'scout-5fbfff26-boost3'
+    confidence_list = ibs.scout_wic_test(negative_gid_list, model_tag=model_tag)
     zipped = sorted(list(zip(confidence_list, negative_gid_list)), reverse=True)
 
     num_positive = len(positive_gid_set)
@@ -2510,7 +2510,7 @@ def vulcan_localizer_train(
     return model_weight_filepath, model_config_filepath
 
 
-def _vulcan_localizer_ignore_filter_func(
+def _scout_localizer_ignore_filter_func(
     ibs, annot, margin, min_bbox_coverage, *args, **kwargs
 ):
     from wbia.other.detectfuncs import general_intersection_over_union
@@ -2547,7 +2547,7 @@ def _vulcan_localizer_ignore_filter_func(
 
 
 @register_ibs_method
-def vulcan_localizer_validate(
+def scout_localizer_validate(
     ibs,
     target_species='elephant_savanna',
     thresh=0.024,
@@ -2559,64 +2559,64 @@ def vulcan_localizer_validate(
     species_set = {target_species}
     template_v0 = (
         [
-            # {'label': 'Elephant V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': 'Elephant V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': 'Elephant V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
             #############################################
-            # {'label': 'Elephant V1 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': 'Elephant V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': 'Elephant V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
             #############################################
-            # {'label': 'd3e8bf43 V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v0', 'weight_filepath' : 'vulcan_5fbfff26_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
-            # ibs.vulcan_localizer_validate(offset_color=1)
+            # {'label': 'd3e8bf43 V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            # ibs.scout_localizer_validate(offset_color=1)
             #############################################
-            # {'label': 'd3e8bf43 V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_5fbfff26_v1', 'weight_filepath' : 'vulcan_5fbfff26_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
-            # ibs.vulcan_localizer_validate(offset_color=1)
+            # {'label': 'd3e8bf43 V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v1', 'weight_filepath' : 'scout_5fbfff26_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            # ibs.scout_localizer_validate(offset_color=1)
             #############################################
             {
                 'label': 'd3e8bf43 V0 NMS 60%',
                 'grid': False,
                 'algo': 'lightnet',
-                'config_filepath': 'vulcan_v0',
-                'weight_filepath': 'vulcan_v0',
+                'config_filepath': 'scout_v0',
+                'weight_filepath': 'scout_v0',
                 'nms': True,
                 'nms_thresh': 0.60,
                 'species_set': species_set,
@@ -2625,8 +2625,8 @@ def vulcan_localizer_validate(
                 'label': 'd3e8bf43 V1 NMS 60%',
                 'grid': False,
                 'algo': 'lightnet',
-                'config_filepath': 'vulcan_v1',
-                'weight_filepath': 'vulcan_v1',
+                'config_filepath': 'scout_v1',
+                'weight_filepath': 'scout_v1',
                 'nms': True,
                 'nms_thresh': 0.60,
                 'species_set': species_set,
@@ -2635,8 +2635,8 @@ def vulcan_localizer_validate(
                 'label': '5fbfff26 V0 NMS 50%',
                 'grid': False,
                 'algo': 'lightnet',
-                'config_filepath': 'vulcan_5fbfff26_v0',
-                'weight_filepath': 'vulcan_5fbfff26_v0',
+                'config_filepath': 'scout_5fbfff26_v0',
+                'weight_filepath': 'scout_5fbfff26_v0',
                 'nms': True,
                 'nms_thresh': 0.50,
                 'species_set': species_set,
@@ -2645,8 +2645,8 @@ def vulcan_localizer_validate(
                 'label': '5fbfff26 V1 NMS 50%',
                 'grid': False,
                 'algo': 'lightnet',
-                'config_filepath': 'vulcan_5fbfff26_v1',
-                'weight_filepath': 'vulcan_5fbfff26_v1',
+                'config_filepath': 'scout_5fbfff26_v1',
+                'weight_filepath': 'scout_5fbfff26_v1',
                 'nms': True,
                 'nms_thresh': 0.50,
                 'species_set': species_set,
@@ -2655,28 +2655,28 @@ def vulcan_localizer_validate(
         {},
     )
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
     test_gid_set = all_tile_set & test_gid_set
     all_test_gid_list = list(test_gid_set)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(
+    values = ibs.scout_tile_positive_cumulative_area(
         all_test_gid_list, target_species=target_species
     )
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
 
     ignore_filter_func_ = partial(
-        _vulcan_localizer_ignore_filter_func,
+        _scout_localizer_ignore_filter_func,
         margin=margin,
         min_bbox_coverage=min_bbox_coverage,
     )
 
     # All Positive Tiles (All)
     config_dict = {
-        'vulcan-gt-positive-all-v0-v1': template_v0,
+        'scout-gt-positive-all-v0-v1': template_v0,
     }
     ibs.localizer_precision_recall(
         config_dict=config_dict,
@@ -2687,7 +2687,7 @@ def vulcan_localizer_validate(
 
     # All Positive Tiles (Margin)
     config_dict = {
-        'vulcan-gt-positive-margin-{}-v0-v1'.format(margin): template_v0,
+        'scout-gt-positive-margin-{}-v0-v1'.format(margin): template_v0,
     }
     ibs.localizer_precision_recall(
         config_dict=config_dict,
@@ -2699,7 +2699,7 @@ def vulcan_localizer_validate(
 
 
 @register_ibs_method
-def vulcan_localizer_image_validate(
+def scout_localizer_image_validate(
     ibs, target_species='elephant_savanna', quick=False, offset_color=0, **kwargs
 ):
 
@@ -2708,175 +2708,175 @@ def vulcan_localizer_image_validate(
     species_set = {target_species}
     template_v0 = (
         [
-            # {'label': '5fbfff26 R3+V0 NMS 0%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 10%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 20%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 30%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 40%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 50%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 NMS 100%', 'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 0%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 10%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 20%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 30%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 40%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 50%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 60%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 NMS 100%', 'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
             ########################################################################################################
-            # {'label': '5fbfff26 R3+V0 703 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 750 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.750,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 750 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.750,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 750 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.750,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 650 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.650,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 650 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.650,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 650 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.650,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 600 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.600,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 600 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.600,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 600 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.600,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 550 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.550,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 550 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.550,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 550 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.550,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 500 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.500,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 500 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.500,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 500 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.500,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 450 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.450,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 450 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.450,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 450 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.450,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 400 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 400 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 400 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate(offset_color=1)
+            # {'label': '5fbfff26 R3+V0 703 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 750 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.750,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 750 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.750,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 750 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.750,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 650 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.650,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 650 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.650,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 650 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.650,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 600 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.600,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 600 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.600,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 600 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.600,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 550 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.550,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 550 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.550,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 550 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.550,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 500 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.500,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 500 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.500,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 500 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.500,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 450 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.450,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 450 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.450,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 450 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.450,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 400 NMS 70%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 400 NMS 80%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 400 NMS 90%',  'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate(offset_color=1)
             ########################################################################################################
-            # {'label': '5fbfff26 R3+V0 703+0%   NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+20%  NMS 20%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+40%  NMS 20%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+60%  NMS 20%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+80%  NMS 20%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+20%  NMS 40%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+40%  NMS 40%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+60%  NMS 40%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+80%  NMS 40%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+20%  NMS 60%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+40%  NMS 60%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+60%  NMS 60%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+80%  NMS 60%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+20%  NMS 80%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+40%  NMS 80%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+60%  NMS 80%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+80%  NMS 80%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+20%  NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+40%  NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+60%  NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+80%  NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate(offset_color=1)
+            # {'label': '5fbfff26 R3+V0 703+0%   NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+20%  NMS 20%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+40%  NMS 20%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+60%  NMS 20%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+80%  NMS 20%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+20%  NMS 40%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+40%  NMS 40%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+60%  NMS 40%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+80%  NMS 40%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+20%  NMS 60%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+40%  NMS 60%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+60%  NMS 60%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+80%  NMS 60%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+20%  NMS 80%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+40%  NMS 80%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+60%  NMS 80%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+80%  NMS 80%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+20%  NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.2', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+40%  NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+60%  NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.6', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+80%  NMS 90%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.8', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate(offset_color=1)
             ########################################################################################################
-            # {'label': '5fbfff26 R3+V0 703+0%  NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 400+40% NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
-            # {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate()
+            # {'label': '5fbfff26 R3+V0 703+0%  NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 400+40% NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': 'Scout DetectNet',                'grid' : False, 'algo': 'scout_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            # {'label': 'Scout Faster R-CNN',             'grid' : False, 'algo': 'scout_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate()
             ########################################################################################################
-            # {'label': '5fbfff26 R3+V0 796+0% NMS 90%',   'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 400+40% NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
-            # {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate(quick=True)
+            # {'label': '5fbfff26 R3+V0 796+0% NMS 90%',   'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 400+40% NMS 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': 'Scout DetectNet',                'grid' : False, 'algo': 'scout_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            # {'label': 'Scout Faster R-CNN',             'grid' : False, 'algo': 'scout_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate(quick=True)
             ########################################################################################################
-            # {'label': '5fbfff26 R3+V0 703+0%  Var1    NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+0%  Var2-32 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+0%  Var3-32 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+0%  Var4-32 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+0%  Var2-64 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+0%  Var3-64 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbfff26 R3+V0 703+0%  Var4-64 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.703,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate()
+            # {'label': '5fbfff26 R3+V0 703+0%  Var1    NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+0%  Var2-32 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+0%  Var3-32 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+0%  Var4-32 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+0%  Var2-64 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+0%  Var3-64 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbfff26 R3+V0 703+0%  Var4-64 NMS 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate()
             ########################################################################################################
-            # {'label': '5fbf R3+V0 400+40% V1    80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V2-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V4-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V2-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V3-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V4-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate()
+            # {'label': '5fbf R3+V0 400+40% V1    80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V2-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V4-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V2-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V3-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V4-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate()
             ########################################################################################################
-            # {'label': '5fbf R3+V0 796+0% Var1    90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 796+0% Var2-32 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 796+0% Var3-32 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 796+0% Var4-32 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 796+0% Var2-64 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 796+0% Var3-64 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 796+0% Var4-64 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.796,vulcan_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate(quick=True)
+            # {'label': '5fbf R3+V0 796+0% Var1    90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.796,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 796+0% Var2-32 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.796,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 796+0% Var3-32 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.796,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 796+0% Var4-32 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.796,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 796+0% Var2-64 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.796,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 796+0% Var3-64 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.796,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 796+0% Var4-64 90%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.796,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate(quick=True)
             ########################################################################################################
-            # {'label': '5fbf R3+V0 400+40% V1    80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V2-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V4-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V2-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V3-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3+V0 400+40% V4-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate(quick=True)
+            # {'label': '5fbf R3+V0 400+40% V1    80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant1',    'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V2-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V4-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V2-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant2-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V3-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3+V0 400+40% V4-64 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant4-64', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate(quick=True)
             ########################################################################################################
-            # {'label': '5fbf R3  +V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3:0+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:0,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3:1+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': '5fbf R3:2+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:2,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate(quick=True, offset_color=1)
+            # {'label': '5fbf R3  +V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3:0+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3:0,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3:1+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3:1,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': '5fbf R3:2+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3:2,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate(quick=True, offset_color=1)
             ########################################################################################################
-            # {'label': '5fbf R3:1+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # {'label': 'Vulcan DetectNet',                'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
-            # {'label': 'Vulcan Faster R-CNN',             'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate(quick=True)
+            # {'label': '5fbf R3:1+V0 400+40% V3-32 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3:1,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # {'label': 'Scout DetectNet',                'grid' : False, 'algo': 'scout_detectnet_json',   'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            # {'label': 'Scout Faster R-CNN',             'grid' : False, 'algo': 'scout_faster_rcnn_json', 'config_filepath' : 'variant1', 'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate(quick=True)
             ########################################################################################################
-            # {'label': '5fbf R3+V0 400+40% V3-32 80%',     'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-            # # {'label': '5fbf R3+V0 400+40% V3-32S 80%',     'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
-            # {'label': 'Vulcan Faster R-CNN',               'grid' : False, 'algo': 'vulcan_faster_rcnn_json', 'config_filepath' : 'variant1',    'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
-            # {'label': 'Vulcan DetectNet',                  'grid' : False, 'algo': 'vulcan_detectnet_json',   'config_filepath' : 'variant1',    'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
-            # ibs.vulcan_localizer_image_validate()
+            # {'label': '5fbf R3+V0 400+40% V3-32 80%',     'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+            # # {'label': '5fbf R3+V0 400+40% V3-32S 80%',     'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
+            # {'label': 'Scout Faster R-CNN',               'grid' : False, 'algo': 'scout_faster_rcnn_json', 'config_filepath' : 'variant1',    'weight_filepath' : 'annotations_faster_rcnn_COCO.json', 'nms': False, 'species_set' : species_set},
+            # {'label': 'Scout DetectNet',                  'grid' : False, 'algo': 'scout_detectnet_json',   'config_filepath' : 'variant1',    'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
+            # ibs.scout_localizer_image_validate()
             ########################################################################################################
             {
                 'label': '5fbf R3:1+V0 400+40% V3-32  80%',
                 'grid': False,
                 'algo': algo,
                 'config_filepath': 'variant3-32',
-                'weight_filepath': 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4',
+                'weight_filepath': 'densenet+lightnet;scout-5fbfff26-boost3:1,0.400,scout_5fbfff26_v0,0.4',
                 'nms': True,
                 'nms_thresh': 0.80,
                 'species_set': species_set,
             },
-            # {'label': '5fbf R3:1+V0 400+40% V3-32S 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
+            # {'label': '5fbf R3:1+V0 400+40% V3-32S 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3:1,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
             {
-                'label': 'Vulcan Faster R-CNN',
+                'label': 'Scout Faster R-CNN',
                 'grid': False,
-                'algo': 'vulcan_faster_rcnn_json',
+                'algo': 'scout_faster_rcnn_json',
                 'config_filepath': 'variant1',
                 'weight_filepath': 'annotations_faster_rcnn_COCO.json',
                 'nms': False,
                 'species_set': species_set,
             },
             {
-                'label': 'Vulcan DetectNet',
+                'label': 'Scout DetectNet',
                 'grid': False,
-                'algo': 'vulcan_detectnet_json',
+                'algo': 'scout_detectnet_json',
                 'config_filepath': 'variant1',
                 'weight_filepath': 'annotations_detectnet_COCO.json',
                 'nms': False,
                 'species_set': species_set,
             },
-            # ibs.vulcan_localizer_image_validate(quick=True)
+            # ibs.scout_localizer_image_validate(quick=True)
         ],
         {},
     )
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
     test_gid_set = all_tile_set & test_gid_set
     test_tile_list = list(test_gid_set)
 
-    ancestor_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(test_tile_list)
+    ancestor_gid_list = ibs.get_tile_ancestor_gids(test_tile_list)
     test_gid_list = list(set(ancestor_gid_list))
 
-    key = 'vulcan-localizer-image-{}-comparison-final'.format(algo)
+    key = 'scout-localizer-image-{}-comparison-final'.format(algo)
     config_dict = {
         key: template_v0,
     }
@@ -2890,7 +2890,7 @@ def vulcan_localizer_image_validate(
     )
 
     if False:
-        detection_config = ibs.vulcan_detect_config(quick=False)
+        detection_config = ibs.scout_detect_config(quick=False)
         test_gid_list = [
             1,
             2,
@@ -2918,54 +2918,54 @@ def vulcan_localizer_image_validate(
 
 
 # @register_ibs_method
-# def vulcan_localizer_validate(ibs, target_species='elephant_savanna',
+# def scout_localizer_validate(ibs, target_species='elephant_savanna',
 #                               thresh=0.024, margin=32, min_bbox_coverage=0.5, **kwargs):
 #     species_set = set([target_species])
 #     template_v0 = (
 #         [
-#             {'label': 'Elephant V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-#             {'label': 'Elephant V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+#             {'label': 'Elephant V0 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
 #         ],
 #         {},
 #     )
 #     template_v1 = (
 #         [
-#             {'label': 'Elephant V1 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
-#             {'label': 'Elephant V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v1', 'weight_filepath' : 'vulcan_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 0%',   'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 10%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.10, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 20%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.20, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 30%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.30, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 40%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.40, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 50%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.50, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 60%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.60, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 70%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.70, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 80%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 90%',  'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 0.90, 'species_set' : species_set},
+#             {'label': 'Elephant V1 NMS 100%', 'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v1', 'weight_filepath' : 'scout_v1', 'nms': True, 'nms_thresh': 1.00, 'species_set' : species_set},
 #         ],
 #         {},
 #     )
 
-#     all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+#     all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
 #     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
 #     test_gid_set = all_tile_set & test_gid_set
 #     all_test_gid_list = list(test_gid_set)
 
-#     values = ibs.vulcan_tile_positive_cumulative_area(all_test_gid_list, target_species=target_species)
+#     values = ibs.scout_tile_positive_cumulative_area(all_test_gid_list, target_species=target_species)
 #     cumulative_area_list, total_area_list, flag_list = values
 #     gt_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, flag_list))
 #     # gt_negative_test_gid_list = sorted(set(all_test_gid_list) - set(gt_positive_test_gid_list))
 
-#     model_tag = 'vulcan-d3e8bf43-boost4'
-#     all_test_confidence_list = ibs.vulcan_wic_test(all_test_gid_list, model_tag=model_tag)
+#     model_tag = 'scout-d3e8bf43-boost4'
+#     all_test_confidence_list = ibs.scout_wic_test(all_test_gid_list, model_tag=model_tag)
 #     all_test_flag_list = [
 #         all_test_confidence >= thresh
 #         for all_test_confidence in all_test_confidence_list
@@ -2973,73 +2973,73 @@ def vulcan_localizer_image_validate(
 #     wic_positive_test_gid_list = sorted(ut.compress(all_test_gid_list, all_test_flag_list))
 #     # wic_negative_test_gid_list = sorted(set(all_test_gid_list) - set(wic_positive_test_gid_list))
 
-#     config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'vulcan_v0', 'weight_filepath' : 'vulcan_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.4425}
+#     config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_v0', 'weight_filepath' : 'scout_v0', 'nms': True, 'nms_thresh': 0.50, 'sensitivity': 0.4425}
 
 #     # Visualize
 #     ibs.visualize_predictions(config, gid_list=gt_positive_test_gid_list)
 #     ibs.visualize_ground_truth(config, gid_list=gt_positive_test_gid_list)
 
-#     ignore_filter_func_ = partial(_vulcan_localizer_ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
+#     ignore_filter_func_ = partial(_scout_localizer_ignore_filter_func, margin=margin, min_bbox_coverage=min_bbox_coverage)
 
 #     # All Positive Tiles (All)
 #     config_dict = {
-#         'vulcan-gt-positive-all-v0': template_v0,
-#         'vulcan-gt-positive-all-v1': template_v1,
+#         'scout-gt-positive-all-v0': template_v0,
+#         'scout-gt-positive-all-v1': template_v1,
 #     }
 #     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True)
 
 #     # All Positive Tiles (Margin)
 #     config_dict = {
-#         'vulcan-gt-positive-margin-%s-v0' % (margin, ): template_v0,
-#         'vulcan-gt-positive-margin-%s-v1' % (margin, ): template_v1,
+#         'scout-gt-positive-margin-%s-v0' % (margin, ): template_v0,
+#         'scout-gt-positive-margin-%s-v1' % (margin, ): template_v1,
 #     }
 #     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_)
 
 #     # All WIC-Passing Tiles (All)
 #     config_dict = {
-#         'vulcan-wic-passing-all-v0': template_v0,
-#         'vulcan-wic-passing-all-v1': template_v1,
+#         'scout-wic-passing-all-v0': template_v0,
+#         'scout-wic-passing-all-v1': template_v1,
 #     }
 #     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list, overwrite_config_keys=True)
 
 #     # All WIC-Passing Tiles (Margin)
 #     config_dict = {
-#         'vulcan-wic-passing-margin-%s-v0' % (margin, ): template_v0,
-#         'vulcan-wic-passing-margin-%s-v1' % (margin, ): template_v1,
+#         'scout-wic-passing-margin-%s-v0' % (margin, ): template_v0,
+#         'scout-wic-passing-margin-%s-v1' % (margin, ): template_v1,
 #     }
 #     ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_positive_test_gid_list, overwrite_config_keys=True, ignore_filter_func=ignore_filter_func_)
 
 #     # # All Negative Tiles
-#     # config_dict = {'vulcan-gt-negative': template}
+#     # config_dict = {'scout-gt-negative': template}
 #     # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=gt_negative_test_gid_list, overwrite_config_keys=True)
 
 #     # # All WIC-Failed Tiles
-#     # config_dict = {'vulcan-wic-failing': template}
+#     # config_dict = {'scout-wic-failing': template}
 #     # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=wic_negative_test_gid_list, overwrite_config_keys=True)
 
 #     # # All Test Tiles
-#     # config_dict = {'vulcan-all': template}
+#     # config_dict = {'scout-all': template}
 #     # ibs.localizer_precision_recall(config_dict=config_dict, test_gid_list=all_test_gid_list, overwrite_config_keys=True)
 
 
 @register_ibs_method
-def vulcan_verify_negative_gt_suggestsions(
+def scout_verify_negative_gt_suggestsions(
     ibs, min_confidence=0.5, max_examples=None, use_wic=True, use_loc=False, **kwargs
 ):
     from wbia.other.detectfuncs import localizer_parse_pred
 
-    tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     tile_gid_list = list(tile_set)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(tile_gid_list)
+    values = ibs.scout_tile_positive_cumulative_area(tile_gid_list)
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_gid_list = sorted(ut.compress(tile_gid_list, flag_list))
     gt_negative_gid_list = sorted(set(tile_gid_list) - set(gt_positive_gid_list))
 
     # WIC
     if use_wic:
-        model_tag = 'vulcan-5fbfff26-boost3'
-        confidence_list = ibs.vulcan_wic_test(gt_negative_gid_list, model_tag=model_tag)
+        model_tag = 'scout-5fbfff26-boost3'
+        confidence_list = ibs.scout_wic_test(gt_negative_gid_list, model_tag=model_tag)
 
         zipped = sorted(list(zip(confidence_list, gt_negative_gid_list)), reverse=True)
         if max_examples is None:
@@ -3069,8 +3069,8 @@ def vulcan_verify_negative_gt_suggestsions(
         config = {
             'grid': False,
             'algo': 'lightnet',
-            'config_filepath': 'vulcan_v0',
-            'weight_filepath': 'vulcan_v0',
+            'config_filepath': 'scout_v0',
+            'weight_filepath': 'scout_v0',
             'nms': True,
             'nms_thresh': 0.5,
             'sensitivity': 0.4425,
@@ -3104,7 +3104,7 @@ def vulcan_verify_negative_gt_suggestsions(
     logger.info('Suggested LOC Verify: %d' % (len(loc_verify_set),))
     verify_list = list(wic_verify_set | loc_verify_set)
 
-    verify_gid_list = ibs.get_vulcan_image_tile_ancestor_gids(verify_list)
+    verify_gid_list = ibs.get_tile_ancestor_gids(verify_list)
     verify_gid_set = list(set(verify_gid_list))
     logger.info(
         'Suggested TOTAL Verify: %d from %d unique images'
@@ -3119,7 +3119,7 @@ def vulcan_verify_negative_gt_suggestsions(
     ut.ensuredir(output_path)
     ibs.visualize_ground_truth(config, gid_list=verify_list, output_path=output_path)
 
-    bbox_list = ibs.get_vulcan_image_tile_bboxes(verify_list)
+    bbox_list = ibs.get_tile_bboxes(verify_list)
     zipped = sorted(zip(verify_list, verify_gid_list, bbox_list))
 
     verify_filepath = join(output_path, 'verify.csv')
@@ -3148,7 +3148,7 @@ def vulcan_verify_negative_gt_suggestsions(
 
 
 @register_ibs_method
-def vulcan_localizer_visualize_errors_annots(
+def scout_localizer_visualize_errors_annots(
     ibs,
     target_species='elephant_savanna',
     min_cumulative_percentage=0.025,
@@ -3167,14 +3167,14 @@ def vulcan_localizer_visualize_errors_annots(
 
     fig_ = plt.figure(figsize=(12, 20), dpi=400)  # NOQA
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
     test_gid_set = all_tile_set & test_gid_set
     test_gid_list = list(test_gid_set)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(
+    values = ibs.scout_tile_positive_cumulative_area(
         test_gid_list,
         target_species=target_species,
         min_cumulative_percentage=min_cumulative_percentage,
@@ -3188,8 +3188,8 @@ def vulcan_localizer_visualize_errors_annots(
     config = {
         'grid': False,
         'algo': 'lightnet',
-        'config_filepath': 'vulcan_v0',
-        'weight_filepath': 'vulcan_v0',
+        'config_filepath': 'scout_v0',
+        'weight_filepath': 'scout_v0',
         'nms': True,
         'nms_thresh': 0.5,
         'sensitivity': sensitivity,
@@ -3360,16 +3360,16 @@ def vulcan_localizer_visualize_errors_annots(
     plt.xticks(index_list, tick_list)
 
     if errors_only:
-        fig_filename = 'vulcan-loc-errors-annots-plot-errors.png'
+        fig_filename = 'scout-loc-errors-annots-plot-errors.png'
     else:
-        fig_filename = 'vulcan-loc-errors-annots-plot.png'
+        fig_filename = 'scout-loc-errors-annots-plot.png'
 
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
 
 @register_ibs_method
-def vulcan_localizer_visualize_errors_clusters(
+def scout_localizer_visualize_errors_clusters(
     ibs,
     target_species='elephant_savanna',
     sensitivity=0.4425,
@@ -3388,14 +3388,14 @@ def vulcan_localizer_visualize_errors_clusters(
 
     fig_ = plt.figure(figsize=(40, 12), dpi=400)  # NOQA
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
     test_gid_set = all_tile_set & test_gid_set
     test_gid_list = list(test_gid_set)
 
-    values = ibs.vulcan_tile_positive_cumulative_area(
+    values = ibs.scout_tile_positive_cumulative_area(
         test_gid_list, target_species=target_species
     )
     cumulative_area_list, total_area_list, flag_list = values
@@ -3403,8 +3403,8 @@ def vulcan_localizer_visualize_errors_clusters(
     config = {
         'grid': False,
         'algo': 'lightnet',
-        'config_filepath': 'vulcan_v0',
-        'weight_filepath': 'vulcan_v0',
+        'config_filepath': 'scout_v0',
+        'weight_filepath': 'scout_v0',
         'nms': True,
         'nms_thresh': 0.5,
         'sensitivity': sensitivity,
@@ -3441,7 +3441,7 @@ def vulcan_localizer_visualize_errors_clusters(
     )
     conf_list, tp_list, fp_list, total, match_dict = values
 
-    values = ibs.vulcan_compute_visual_clusters(80, 10, **kwargs)
+    values = ibs.scout_compute_visual_clusters(80, 10, **kwargs)
     hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits = values
 
     color_list = pt.distinct_colors(4, randomize=False)
@@ -3506,14 +3506,14 @@ def vulcan_localizer_visualize_errors_clusters(
     plt.xticks(index_list, tick_list)
 
     if errors_only:
-        fig_filename = 'vulcan-loc-errors-clusters-plot-errors.png'
+        fig_filename = 'scout-loc-errors-clusters-plot-errors.png'
     else:
-        fig_filename = 'vulcan-loc-errors-clusters-plot.png'
+        fig_filename = 'scout-loc-errors-clusters-plot.png'
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
 
-def _vulcan_compute_annotation_clusters_metric_func(value1, value2):
+def _scout_compute_annotation_clusters_metric_func(value1, value2):
     cx1, cy1, radius1 = value1
     cx2, cy2, radius2 = value2
     dist = np.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)
@@ -3522,7 +3522,7 @@ def _vulcan_compute_annotation_clusters_metric_func(value1, value2):
 
 
 @register_ibs_method
-def _vulcan_compute_annotation_clusters(ibs, bbox_list, distance=128):
+def _scout_compute_annotation_clusters(ibs, bbox_list, distance=128):
     import numpy as np
     from scipy.cluster.hierarchy import fclusterdata
 
@@ -3552,7 +3552,7 @@ def _vulcan_compute_annotation_clusters(ibs, bbox_list, distance=128):
             value_list,
             t=distance,
             criterion='distance',
-            metric=_vulcan_compute_annotation_clusters_metric_func,
+            metric=_scout_compute_annotation_clusters_metric_func,
         )
     else:
         prediction_list = [1]
@@ -3561,7 +3561,7 @@ def _vulcan_compute_annotation_clusters(ibs, bbox_list, distance=128):
 
 
 @register_ibs_method
-def vulcan_visualize_annotation_clusters(
+def scout_visualize_annotation_clusters(
     ibs, assignment_image_dict, tag, output_path=None, **kwargs
 ):
     import cv2
@@ -3607,20 +3607,18 @@ def vulcan_visualize_annotation_clusters(
 
 
 @register_ibs_method
-def vulcan_compute_gt_annotation_clusters(
+def scout_compute_gt_annotation_clusters(
     ibs, target_species='elephant_savanna', use_ancestors=True, **kwargs
 ):
 
-    all_tile_set = set(ibs.vulcan_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     all_tile_list = list(all_tile_set)
-    values = ibs.vulcan_tile_positive_cumulative_area(all_tile_list)
+    values = ibs.scout_tile_positive_cumulative_area(all_tile_list)
     cumulative_area_list, total_area_list, flag_list = values
     gt_positive_gid_list = sorted(ut.compress(all_tile_list, flag_list))
 
     if use_ancestors:
-        gt_positive_gid_list_ = ibs.get_vulcan_image_tile_ancestor_gids(
-            gt_positive_gid_list
-        )
+        gt_positive_gid_list_ = ibs.get_tile_ancestor_gids(gt_positive_gid_list)
         gt_positive_gid_list = list(set(gt_positive_gid_list_))
 
     assignment_image_dict = {}
@@ -3630,7 +3628,7 @@ def vulcan_compute_gt_annotation_clusters(
         aid_list = ibs.filter_annotation_set(aid_list, species=target_species)
         bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=gid)
 
-        prediction_list, value_list = ibs._vulcan_compute_annotation_clusters(
+        prediction_list, value_list = ibs._scout_compute_annotation_clusters(
             bbox_list, **kwargs
         )
         assignment_annot_dict = dict(zip(aid_list, prediction_list))
@@ -3644,17 +3642,17 @@ def vulcan_compute_gt_annotation_clusters(
 
 
 @register_ibs_method
-def vulcan_visualize_gt_annotation_clusters(ibs, use_ancestors=True, **kwargs):
+def scout_visualize_gt_annotation_clusters(ibs, use_ancestors=True, **kwargs):
     logger.info('Computing Assignments')
     tag = 'images_gt' if use_ancestors else 'tiles_gt'
-    assignment_image_dict = ibs.vulcan_compute_gt_annotation_clusters(
+    assignment_image_dict = ibs.scout_compute_gt_annotation_clusters(
         ibs, use_ancestors=use_ancestors, **kwargs
     )
-    ibs.vulcan_visualize_annotation_clusters(assignment_image_dict, tag, **kwargs)
+    ibs.scout_visualize_annotation_clusters(assignment_image_dict, tag, **kwargs)
 
 
 @register_ibs_method
-def vulcan_compute_pred_annotation_clusters(
+def scout_compute_pred_annotation_clusters(
     ibs, target_species='elephant_savanna', use_ancestors=True, quick=True, **kwargs
 ):
     assert use_ancestors is True, 'Tile cluster predictions are not supported yet'
@@ -3667,7 +3665,7 @@ def vulcan_compute_pred_annotation_clusters(
     )
     pred_gid_list = list(gt_positive_gid_set & gt_test_gid_set)
 
-    result_list = ibs.vulcan_detect(
+    result_list = ibs.scout_detect(
         pred_gid_list, quick=quick, return_clustering_plot_values=True, **kwargs
     )
 
@@ -3688,20 +3686,20 @@ def vulcan_compute_pred_annotation_clusters(
 
 
 @register_ibs_method
-def vulcan_visualize_pred_annotation_clusters(
+def scout_visualize_pred_annotation_clusters(
     ibs, use_ancestors=True, quick=True, **kwargs
 ):
     logger.info('Computing Assignments')
     tag = 'images_pred_quick_%s' if use_ancestors else 'tiles_pred_quick_%s'
     tag = tag % (quick,)
-    assignment_image_dict = ibs.vulcan_compute_pred_annotation_clusters(
+    assignment_image_dict = ibs.scout_compute_pred_annotation_clusters(
         ibs, use_ancestors=use_ancestors, quick=quick, **kwargs
     )
-    ibs.vulcan_visualize_annotation_clusters(assignment_image_dict, tag, **kwargs)
+    ibs.scout_visualize_annotation_clusters(assignment_image_dict, tag, **kwargs)
 
 
 @register_ibs_method
-def vulcan_visualize_annotation_clusters_distribution(
+def scout_visualize_annotation_clusters_distribution(
     ibs, target_species='elephant_savanna', min_cumulative_percentage=0.025, **kwargs
 ):
     import matplotlib.pyplot as plt
@@ -3710,10 +3708,10 @@ def vulcan_visualize_annotation_clusters_distribution(
 
     fig_ = plt.figure(figsize=(12, 20), dpi=400)  # NOQA
 
-    assignment_image_dict = ibs.vulcan_compute_annotation_clusters(ibs, **kwargs)
+    assignment_image_dict = ibs.scout_compute_annotation_clusters(ibs, **kwargs)
     test_gid_list = sorted(assignment_image_dict.keys())
 
-    values = ibs.vulcan_tile_positive_cumulative_area(
+    values = ibs.scout_tile_positive_cumulative_area(
         test_gid_list,
         target_species=target_species,
         min_cumulative_percentage=min_cumulative_percentage,
@@ -3859,7 +3857,7 @@ def vulcan_visualize_annotation_clusters_distribution(
 
     plt.xticks(index_list, tick_list)
 
-    fig_filename = 'vulcan-annot-clusters-annots-plot.png'
+    fig_filename = 'scout-annot-clusters-annots-plot.png'
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
@@ -3876,7 +3874,7 @@ def vulcan_visualize_annotation_clusters_distribution(
 #     gid_list_ = gid_list[:50]
 
 #     ibs_src = ibs
-#     ibs_dst = wbia.opendb(dbdir='/data/wbia/TEST_Vulcan/')
+#     ibs_dst = wbia.opendb(dbdir='/data/wbia/TEST_Scout/')
 #     rowid_subsets = {
 #         const.IMAGE_TABLE: gid_list_
 #     }
@@ -3884,7 +3882,7 @@ def vulcan_visualize_annotation_clusters_distribution(
 
 
 @register_ibs_method
-def vulcan_localizer_count_residuals_exploration(
+def scout_localizer_count_residuals_exploration(
     ibs, target_species='elephant_savanna', **kwargs
 ):
     from wbia.other.detectfuncs import (
@@ -3931,13 +3929,13 @@ def vulcan_localizer_count_residuals_exploration(
             ]
         ):
             for wic_model in [
-                'vulcan-5fbfff26-boost0',
-                'vulcan-5fbfff26-boost1',
-                'vulcan-5fbfff26-boost2',
-                'vulcan-5fbfff26-boost3',
+                'scout-5fbfff26-boost0',
+                'scout-5fbfff26-boost1',
+                'scout-5fbfff26-boost2',
+                'scout-5fbfff26-boost3',
             ]:
                 for wic_sensitivity in [0.1, 0.3, 0.5, 0.7, 0.9]:
-                    for loc_model in ['vulcan_5fbfff26_v0']:
+                    for loc_model in ['scout_5fbfff26_v0']:
                         for loc_nms in [0.1, 0.3, 0.5, 0.7, 0.9]:
                             for agg_nms in [0.1, 0.3, 0.5, 0.7, 0.9]:
                                 for agg_sensitivity in [0.1, 0.3, 0.5, 0.7, 0.9]:
@@ -4014,7 +4012,7 @@ def vulcan_localizer_count_residuals_exploration(
 
 
 @register_ibs_method
-def vulcan_localizer_visualize_annotation_clusters_residuals(
+def scout_localizer_visualize_annotation_clusters_residuals(
     ibs, quick=False, target_species='elephant_savanna', distance=128, **kwargs
 ):
     import matplotlib.pyplot as plt
@@ -4032,7 +4030,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(
     test_gid_set = set(gid_list) & test_gid_set
     test_gid_list = list(test_gid_set)
 
-    detection_config = ibs.vulcan_detect_config(quick=quick)
+    detection_config = ibs.scout_detect_config(quick=quick)
 
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
     logger.info('\tGather Ground-Truth')
@@ -4201,10 +4199,10 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(
             )
             for pred in pred_list
         ]
-        gt_prediction_list, gt_value_list = _vulcan_compute_annotation_clusters(
+        gt_prediction_list, gt_value_list = _scout_compute_annotation_clusters(
             ibs, gt_bbox_list, distance=distance
         )
-        pred_prediction_list, pred_value_list = _vulcan_compute_annotation_clusters(
+        pred_prediction_list, pred_value_list = _scout_compute_annotation_clusters(
             ibs, pred_bbox_list, distance=distance
         )
         bias = len(set(pred_prediction_list)) - len(set(gt_prediction_list))
@@ -4326,10 +4324,10 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(
             )
             for pred in pred_list
         ]
-        gt_prediction_list, gt_value_list = _vulcan_compute_annotation_clusters(
+        gt_prediction_list, gt_value_list = _scout_compute_annotation_clusters(
             ibs, gt_bbox_list, distance=distance
         )
-        pred_prediction_list, pred_value_list = _vulcan_compute_annotation_clusters(
+        pred_prediction_list, pred_value_list = _scout_compute_annotation_clusters(
             ibs, pred_bbox_list, distance=distance
         )
 
@@ -4340,7 +4338,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(
             for gt_index, (gt_prediction, gt_value) in enumerate(
                 zip(gt_prediction_list, gt_value_list)
             ):
-                dist = _vulcan_compute_annotation_clusters_metric_func(
+                dist = _scout_compute_annotation_clusters_metric_func(
                     pred_value, gt_value
                 )
                 if dist <= distance:
@@ -4537,7 +4535,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(
     plt.title('Detection Accuracy by Cluster Size')
     plt.xticks(index_list, label_list)
 
-    fig_filename = 'vulcan-errors-residuals-plot-quick-{}.png'.format(quick)
+    fig_filename = 'scout-errors-residuals-plot-quick-{}.png'.format(quick)
     fig_filepath = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_filepath, bbox_inches='tight')
 
@@ -4545,7 +4543,7 @@ def vulcan_localizer_visualize_annotation_clusters_residuals(
 
 
 @register_ibs_method
-def vulcan_localizer_test(
+def scout_localizer_test(
     ibs,
     test_tile_list,
     algo='lightnet',
@@ -4583,12 +4581,12 @@ def vulcan_localizer_test(
 
 
 @register_ibs_method
-def vulcan_detect_config(ibs, quick=True):
+def scout_detect_config(ibs, quick=True):
     if quick:
         detection_config = {
             'algo': 'tile_aggregation_quick',
             'config_filepath': 'variant3-32',
-            'weight_filepath': 'densenet+lightnet;vulcan-5fbfff26-boost3:1,0.400,vulcan_5fbfff26_v0,0.4',
+            'weight_filepath': 'densenet+lightnet;scout-5fbfff26-boost3:1,0.400,scout_5fbfff26_v0,0.4',
             'nms_thresh': 0.8,
             'sensitivity': 0.4215,
         }
@@ -4596,7 +4594,7 @@ def vulcan_detect_config(ibs, quick=True):
         detection_config = {
             'algo': 'tile_aggregation',
             'config_filepath': 'variant3-32',
-            'weight_filepath': 'densenet+lightnet;vulcan-5fbfff26-boost3,0.400,vulcan_5fbfff26_v0,0.4',
+            'weight_filepath': 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4',
             'nms_thresh': 0.8,
             'sensitivity': 0.5077,
         }
@@ -4604,7 +4602,7 @@ def vulcan_detect_config(ibs, quick=True):
 
 
 @register_ibs_method
-def vulcan_detect(
+def scout_detect(
     ibs,
     gid_list,
     quick=True,
@@ -4615,7 +4613,7 @@ def vulcan_detect(
     **kwargs
 ):
     if detection_config is None:
-        detection_config = ibs.vulcan_detect_config(quick=quick)
+        detection_config = ibs.scout_detect_config(quick=quick)
 
     detections_list = ibs.depc_image.get_property(
         'localizations',
@@ -4629,7 +4627,7 @@ def vulcan_detect(
         result_list = []
         for detections in detections_list:
             score, bboxes, thetas, confs, classes = detections
-            clusters, values = ibs._vulcan_compute_annotation_clusters(bboxes, **kwargs)
+            clusters, values = ibs._scout_compute_annotation_clusters(bboxes, **kwargs)
             if return_clustering_plot_values:
                 result = (bboxes, classes, confs, clusters, values)
             else:
@@ -4648,7 +4646,7 @@ def vulcan_detect(
 
 
 @register_ibs_method
-def _vulcan_localizer_visualize_tp_fp_canvas(
+def _scout_localizer_visualize_tp_fp_canvas(
     ibs, value_list, line_length=10, target_size=150
 ):
     from wbia.web import appfuncs as appf
@@ -4713,7 +4711,7 @@ def _vulcan_localizer_visualize_tp_fp_canvas(
 
 
 @register_ibs_method
-def vulcan_localizer_visualize_tp_fp_examples(
+def scout_localizer_visualize_tp_fp_examples(
     ibs, target_species='elephant_savanna', quick=True, **kwargs
 ):
     from wbia.other.detectfuncs import (
@@ -4724,7 +4722,7 @@ def vulcan_localizer_visualize_tp_fp_examples(
 
     canvas_path = abspath(expanduser(join('~', 'Desktop')))
 
-    detection_config = ibs.vulcan_detect_config(quick=quick)
+    detection_config = ibs.scout_detect_config(quick=quick)
 
     gt_positive_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('POSITIVE_IMAGE'))
@@ -4804,13 +4802,13 @@ def vulcan_localizer_visualize_tp_fp_examples(
     fp_det_list = sorted(fp_det_list, reverse=True)
     fp_det_list = ut.take_column(fp_det_list, 1)
 
-    fn_canvas = ibs._vulcan_localizer_visualize_tp_fp_canvas(fn_det_list, **kwargs)
-    fp_canvas = ibs._vulcan_localizer_visualize_tp_fp_canvas(fp_det_list, **kwargs)
+    fn_canvas = ibs._scout_localizer_visualize_tp_fp_canvas(fn_det_list, **kwargs)
+    fp_canvas = ibs._scout_localizer_visualize_tp_fp_canvas(fp_det_list, **kwargs)
 
-    canvas_filename = 'vulcan-detection-errors-fn.png'
+    canvas_filename = 'scout-detection-errors-fn.png'
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, fn_canvas)
 
-    canvas_filename = 'vulcan-detection-errors-fp.png'
+    canvas_filename = 'scout-detection-errors-fp.png'
     canvas_filepath = join(canvas_path, canvas_filename)
     cv2.imwrite(canvas_filepath, fp_canvas)
