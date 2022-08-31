@@ -1793,7 +1793,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         #     else:
         #         return None
         # flags = [_check(u, v) for (u, v) in edges]
-        return np.array(flags, dtype=np.bool)
+        return np.array(flags, dtype=bool)
         # return samples.infr.is_same(samples.aid_pairs)
 
     @ut.memoize
@@ -1806,7 +1806,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
             None if d is None else d.get('tags') for d in map(infr.get_edge_data, edges)
         ]
         flags = [None if t is None else 'photobomb' in t for t in tags]
-        return np.array(flags, dtype=np.bool)
+        return np.array(flags, dtype=bool)
         # return samples.infr.is_photobomb(samples.aid_pairs)
 
     @ut.memoize
@@ -1836,7 +1836,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         need_edges = edges[guess_flags]
         need_flags = infr.wbia_guess_if_comparable(need_edges)
         flags[guess_flags] = need_flags
-        return np.array(flags, dtype=np.bool)
+        return np.array(flags, dtype=bool)
         # return samples.infr.is_comparable(samples.aid_pairs, allow_guess=True)
 
     @profile

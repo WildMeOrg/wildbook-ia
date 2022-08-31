@@ -625,7 +625,7 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
 
     nrows, ncols = idx_to_wxs.shape
     if len(idx_to_wxs.mask.shape) == 0:
-        valid_mask = np.ones((nrows, ncols), dtype=np.bool)
+        valid_mask = np.ones((nrows, ncols), dtype=bool)
     else:
         valid_mask = ~idx_to_maws.mask
         # idx_to_nAssign = (valid_mask).sum(axis=1)

@@ -1122,7 +1122,7 @@ class _AnnotMatchConvenienceGetter(object):
             'dnid': cm.dnid_list,
             'score': cm.annot_score_list,
             'rank': cm.annot_score_list.argsort()[::-1].argsort(),
-            'truth': (cm.dnid_list == cm.qnid).astype(np.int),
+            'truth': (cm.dnid_list == cm.qnid).astype(np.int64),
         }
         annot_df = pd.DataFrame(data)
         annot_df.sort_values(by='rank', inplace=True)
@@ -1136,7 +1136,7 @@ class _AnnotMatchConvenienceGetter(object):
             'dnid': cm.unique_nids,
             'score': cm.name_score_list,
             'rank': cm.name_score_list.argsort()[::-1].argsort(),
-            'truth': (cm.unique_nids == cm.qnid).astype(np.int),
+            'truth': (cm.unique_nids == cm.qnid).astype(np.int64),
         }
         name_df = pd.DataFrame(data)
         name_df.sort_values(by='rank', inplace=True)

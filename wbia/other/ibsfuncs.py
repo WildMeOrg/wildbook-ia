@@ -888,7 +888,7 @@ def check_annot_overlap(ibs, gid_list=None, PIXELS=100.0, IOU=0.1):
         ]
         if len(aids) > 2:
             overlap = general_overlap(bbox_dict_list, bbox_dict_list)
-            triangle = np.tri(overlap.shape[0]).astype(np.bool)
+            triangle = np.tri(overlap.shape[0]).astype(bool)
             indices = np.where(triangle)
             overlap[indices] = 0.0
             overlap_flag = overlap >= IOU

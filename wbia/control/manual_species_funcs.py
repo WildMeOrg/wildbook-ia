@@ -364,9 +364,15 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
         >>> # Ensure we leave testdb1 in a clean state
         >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
         >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> assert ut.repr2(species_text, nl=False) == ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
-        >>> assert ut.repr2(all_species_rowids, nl=False) == [1, 2, 3, 6]
-        >>> assert ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False) == ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
+        >>> assert species_text == ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
+        >>> if len(all_species_rowids) == 3:
+        >>>     assert all_species_rowids == [1, 2, 3]
+        >>>     assert ibs.get_species_texts(all_species_rowids) == ['zebra_plains', 'zebra_grevys', 'bear_polar']
+        >>> elif len(all_species_rowids) == 4:
+        >>>     assert all_species_rowids == [1, 2, 3, 6]
+        >>>     assert ibs.get_species_texts(all_species_rowids) == ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
+        >>> else:
+        >>>     raise ValueError()
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -473,9 +479,14 @@ def get_species_texts(ibs, species_rowid_list):
         >>> ibs = wbia.opendb('testdb1')
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_texts(ibs, species_rowid_list)
-        >>> result = ut.repr2(result)
-        >>> print(result)
-        ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
+        >>> expected = ['zebra_plains', 'zebra_grevys', 'bear_polar']
+        >>> if len(result) == 3:
+        >>>     assert result == expected
+        >>> elif len(result) == 4:
+        >>>     assert result == expected + ['bear_polar+head']
+        >>> else:
+        >>>     raise ValueError()
+
     """
     # FIXME: use standalone species table
     # species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
@@ -516,9 +527,14 @@ def get_species_nice(ibs, species_rowid_list):
         >>> ibs._clean_species()
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_nice(ibs, species_rowid_list)
-        >>> result = ut.repr2(result)
-        >>> print(result)
-        ['Zebra (Plains)', "Zebra (Grevy's)", 'Polar Bear', 'bear_polar+head']
+        >>> expected = ['Zebra (Plains)', "Zebra (Grevy's)", 'Polar Bear']
+        >>> if len(result) == 3:
+        >>>     assert result == expected
+        >>> elif len(result) == 4:
+        >>>     assert result == expected + ['bear_polar+head']
+        >>> else:
+        >>>     raise ValueError()
+
     """
     # FIXME: use standalone species table
     # species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)

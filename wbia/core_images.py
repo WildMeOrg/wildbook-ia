@@ -2937,14 +2937,14 @@ def compute_tiles(depc, gid_list, config=None):
         >>> defaultdb = 'testdb1'
         >>> ibs = wbia.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
-        >>> gid_list = ibs.get_valid_gids()[0:5]
-        >>> result = depc.get_property('tiles', gid_list, 'num')
+        >>> gid_list = sorted(ibs.get_valid_gids())[0:5]
+        >>> config = {'tile_width': 128, 'tile_height': 128}
+        >>> result = depc.get_property('tiles', gid_list, 'num', config=config)
         >>> nums = list(map(len, ibs.get_vulcan_image_tile_children_gids(gid_list)))
         >>> nums_ = list(map(len, ibs.get_vulcan_image_tile_descendants_gids(gid_list)))
         >>> assert result == nums
         >>> assert result == nums_
-        >>> print(result)
-        [285, 99, 285, 9, 35]
+        >>> assert result == [204, 136, 221, 221, 221]
     """
     from os.path import abspath, join, relpath
 

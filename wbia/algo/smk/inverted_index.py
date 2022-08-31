@@ -727,7 +727,7 @@ def residual_worker(argtup):
         agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.int8)
     else:
         agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.float)
-    agg_flags = np.empty((len(wx_list), 1), dtype=np.bool)
+    agg_flags = np.empty((len(wx_list), 1), dtype=bool)
 
     # for idx, wx in enumerate(wx_list):
     for idx in range(len(wx_list)):

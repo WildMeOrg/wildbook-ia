@@ -1594,7 +1594,7 @@ class TestResult(ut.NiceRepr):
         ibs = testres.ibs
 
         # Initialize isvalid flags to all true
-        # np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
+        # np.ones(prop2_mat['is_success'].shape, dtype=bool)
         participates = prop2_mat['participates']
         is_valid = participates.copy()
 

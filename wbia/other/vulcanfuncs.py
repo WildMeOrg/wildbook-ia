@@ -1171,19 +1171,21 @@ def vulcan_wic_train(
     **kwargs
 ):
     """
-    Example:
-         >>> restart_config_dict = {
-         >>>     'vulcan-d3e8bf43-boost0': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.0.zip',
-         >>>     'vulcan-d3e8bf43-boost1': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.1.zip',
-         >>>     'vulcan-d3e8bf43-boost2': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.2.zip',
-         >>>     'vulcan-d3e8bf43-boost3': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.3.zip',
-         >>>     'vulcan-d3e8bf43-boost4': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.4.zip',
-         >>>     'vulcan-d3e8bf43-boost5': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.5.zip',
-         >>>     'vulcan-d3e8bf43-boost6': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.6.zip',
-         >>>     'vulcan-d3e8bf43-boost7': 'https://kaiju.dyn.wildme.io/public/models/classifier2.vulcan.d3e8bf43.7.zip',
-         >>> }
-         >>> ibs.vulcan_wic_train(restart_config_dict=restart_config_dict)
-         >>>
+    Ignore:
+        >>> from wbia.control.manual_annot_funcs import *  # NOQA
+        >>> import wbia
+        >>> ibs = wbia.opendb('testdb1')
+        >>> restart_config_dict = {
+        >>>     'vulcan-d3e8bf43-boost0': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.0.zip',
+        >>>     'vulcan-d3e8bf43-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.1.zip',
+        >>>     'vulcan-d3e8bf43-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.2.zip',
+        >>>     'vulcan-d3e8bf43-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.3.zip',
+        >>>     'vulcan-d3e8bf43-boost4': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.4.zip',
+        >>>     'vulcan-d3e8bf43-boost5': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.5.zip',
+        >>>     'vulcan-d3e8bf43-boost6': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.6.zip',
+        >>>     'vulcan-d3e8bf43-boost7': 'https://wildbookiarepository.azureedge.net/models/classifier2.vulcan.d3e8bf43.7.zip',
+        >>> }
+        >>> ibs.vulcan_wic_train(restart_config_dict=restart_config_dict)
     """
     import random
 
@@ -1528,7 +1530,7 @@ def vulcan_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tr
     )
     densenet.ARCHIVE_URL_DICT[
         model_key
-    ] = 'https://kaiju.dyn.wildme.io/public/models/{}.zip'.format(output_name)
+    ] = 'https://wildbookiarepository.azureedge.net/models/{}.zip'.format(output_name)
     logger.info(ut.repr3(densenet.ARCHIVE_URL_DICT))
 
     return model_key, output_name
@@ -1580,7 +1582,7 @@ def vulcan_wic_validate(
     **kwargs
 ):
     """
-    Example:
+    Ignore:
         >>> config_list = [
         >>>     {'label': 'WIC d3e8bf43 R0', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost0'},
         >>>     {'label': 'WIC d3e8bf43 R1', 'classifier_algo': 'densenet',           'classifier_weight_filepath': 'vulcan-d3e8bf43-boost1'},
@@ -1740,8 +1742,6 @@ def vulcan_wic_validate(
         >>>     {'label': 'Vulcan Faster R-CNN', 'classifier_algo': 'vulcan_faster_rcnn_csv', 'classifier_weight_filepath': 'WIC_fasterRCNN_output.csv'},
         >>> ]
         >>> ibs.vulcan_wic_validate(config_list, target_recall_list=[None], use_ancestors=True, quick=True)
-
-
     """
 
     def _filter_fn_func(ibs, version, values, gid_aids_mapping):

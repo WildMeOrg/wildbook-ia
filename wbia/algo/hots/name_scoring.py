@@ -275,9 +275,8 @@ def get_namescore_nonvoting_feature_flags(
     ]
 
     # Go back to being grouped only in name space
-    # dtype = np.bool
     name_grouped_isvalid_flat_list = [
-        vt.invert_apply_grouping2(fid_grouped_isvalid_list, fid_groupxs, dtype=np.bool)
+        vt.invert_apply_grouping2(fid_grouped_isvalid_list, fid_groupxs, dtype=bool)
         for fid_grouped_isvalid_list, fid_groupxs in zip(
             name_grouped_fid_grouped_isvalid_list, name_group_fx1_groupxs_list
         )

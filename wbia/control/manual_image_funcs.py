@@ -104,8 +104,9 @@ def _get_all_image_rowids(ibs):
         >>> from wbia.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> all_image_rowids = ibs._get_all_image_rowids()
-        >>> result = str(all_image_rowids)
-        >>> print(result)
+        >>> tile_image_rowids = ibs.get_valid_gids(is_tile=True)
+        >>> result = sorted(set(all_image_rowids) - set(tile_image_rowids))
+        >>> print(str(result))
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     """
     all_image_rowids = ibs.db.get_all_rowids(const.IMAGE_TABLE)

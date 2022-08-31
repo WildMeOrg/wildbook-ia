@@ -1162,8 +1162,11 @@ class _TableGeneralHelper(ub.NiceRepr):
 
     @property
     def children(self):
-        graph = self.depc.explicit_graph
-        children_tablenames = list(nx.neighbors(graph, self.tablename))
+        try:
+            graph = self.depc.explicit_graph
+            children_tablenames = list(nx.neighbors(graph, self.tablename))
+        except nx.exception.NetworkXError:
+            children_tablenames = []
         return children_tablenames
 
     @property

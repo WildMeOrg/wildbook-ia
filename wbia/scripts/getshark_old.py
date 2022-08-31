@@ -334,7 +334,7 @@ def get_injured_sharks():
         fig.clf()
         mat = df.values.astype(np.int32)
         mat[np.diag_indices(len(mat))] = 0
-        vmax = mat[(1 - np.eye(len(mat))).astype(np.bool)].max()
+        vmax = mat[(1 - np.eye(len(mat))).astype(bool)].max()
         import matplotlib.colors
 
         norm = matplotlib.colors.Normalize(vmin=0, vmax=vmax, clip=True)

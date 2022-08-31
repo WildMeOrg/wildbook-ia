@@ -2736,10 +2736,7 @@ class SQLDatabaseController(object):
             >>> tablename = 'keypoint'
             >>> db = depc[tablename].db
             >>> column_list, column_names = db.get_table_column_data(tablename)
-            >>> column_list
-            [[], [], [], [], []]
-            >>> column_names
-            ['keypoint_rowid', 'chip_rowid', 'config_rowid', 'kpts', 'num']
+            >>> assert column_names == ['keypoint_rowid', 'chip_rowid', 'config_rowid', 'kpts', 'num']
         """
         if columns is None:
             all_column_names = self.get_column_names(tablename)
