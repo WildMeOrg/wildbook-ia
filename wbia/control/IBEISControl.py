@@ -700,7 +700,7 @@ class IBEISController(BASE_CLASS):
     def _init_sqldbcore(self, request_dbversion=None):
         """Initializes the *main* database object"""
         # FIXME (12-Jan-12021) Disabled automatic schema upgrade
-        DB_VERSION_EXPECTED = '2.0.0'
+        DB_VERSION_EXPECTED = '4.1.0'
 
         if self.is_using_postgres_db:
             uri = self._base_uri

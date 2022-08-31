@@ -547,7 +547,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
             #     for nid in nid_list_
             # ]
 
-            temp = np.zeros((len(valid_nids),), dtype=np.bool)
+            temp = np.zeros((len(valid_nids),), dtype=bool)
             aids_dict = {}
             nid_list_unique = np.unique(nid_list_)
             for nid in nid_list_unique:

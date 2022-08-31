@@ -34,11 +34,14 @@ Needed Tables:
 """
 import logging
 import sys
+from os.path import exists, join, split
 
 import cv2
 import numpy as np
+import tqdm
 import utool as ut
 import vtool as vt
+from six.moves import zip
 
 import wbia.constants as const
 from wbia import dtool
@@ -250,7 +253,24 @@ def draw_web_src(gpath, orient):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm', 'densenet']),
+        ut.ParamInfo(
+            'classifier_algo',
+            'cnn',
+            valid_values=[
+                'cnn',
+                'svm',
+                'densenet',
+                'densenet+neighbors',
+                'lightnet',
+                'densenet+lightnet',
+                'densenet+lightnet!',
+                'tile_aggregation',
+                'tile_aggregation_quick',
+                'scout_detectnet',
+                'scout_detectnet_csv',
+                'scout_faster_rcnn_csv',
+            ],
+        ),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [ThumbnailConfig]
@@ -330,6 +350,249 @@ def compute_classifications(depc, gid_list, config=None):
             'thumbnails', gid_list, 'img', config=config_, read_extern=False, ensure=True
         )
         result_list = densenet.test(thumbpath_list, ibs=ibs, gid_list=gid_list, **config)
+    elif config['classifier_algo'] in ['tile_aggregation', 'tile_aggregation_quick']:
+        classifier_weight_filepath = config['classifier_weight_filepath']
+        classifier_weight_filepath = classifier_weight_filepath.strip().split(';')
+
+        assert len(classifier_weight_filepath) == 2
+        classifier_algo_, model_tag_ = classifier_weight_filepath
+
+        include_grid2 = config['classifier_algo'] in ['tile_aggregation']
+        tid_list = ibs.scout_get_valid_tile_rowids(
+            gid_list=gid_list, include_grid2=include_grid2
+        )
+        ancestor_gid_list = ibs.get_tile_ancestor_gids(tid_list)
+        confidence_list = ibs.scout_wic_test(
+            tid_list, classifier_algo=classifier_algo_, model_tag=model_tag_
+        )
+
+        gid_dict = {}
+        for ancestor_gid, tid, confidence in zip(
+            ancestor_gid_list, tid_list, confidence_list
+        ):
+            if ancestor_gid not in gid_dict:
+                gid_dict[ancestor_gid] = []
+            gid_dict[ancestor_gid].append(confidence)
+
+        result_list = []
+        for gid in tqdm.tqdm(gid_list):
+            gid_confidence_list = gid_dict.get(gid, None)
+            assert gid_confidence_list is not None
+            best_score = np.max(gid_confidence_list)
+
+            if best_score >= 0.5:
+                best_key = 'positive'
+            else:
+                best_key = 'negative'
+                best_score = 1.0 - best_score
+
+            result = (
+                best_score,
+                best_key,
+            )
+            result_list.append(result)
+    elif config['classifier_algo'] in ['densenet+neighbors']:
+        raise NotImplementedError
+        # ut.embed()
+        # classifier_weight_filepath = config['classifier_weight_filepath']
+
+        # all_bbox_list = ibs.get_image_bboxes(gid_list)
+        # wic_confidence_list = ibs.scout_wic_test(gid_list, classifier_algo='densenet',
+        #                                           model_tag=classifier_weight_filepath)
+        #
+        # ancestor_gid_list = list(set(ibs.get_tile_ancestor_gids(gid_list)))
+        # all_tile_list = list(set(ibs.scout_get_valid_tile_rowids(gid_list=ancestor_gid_list)))
+        # all_bbox_list = ibs.get_image_bboxes(all_tile_list)
+        # all_confidence_list = ibs.scout_wic_test(all_tile_list, classifier_algo='densenet',
+        #                                           model_tag=classifier_weight_filepath)
+        #
+        # TODO: USE THRESHOLDED AVERAGE, NOT MAX
+        # result_list = []
+        # for gid, wic_confidence in zip(gid_list, wic_confidence_list):
+        #     best_score = wic_confidence
+        #     for aid in aid_list:
+        #         wic_confidence_ = aid_conf_dict.get(aid, None)
+        #         assert wic_confidence_ is not None
+        #         best_score = max(best_score, wic_confidence_)
+        #
+        #     if wic_confidence < 0.5:
+        #         best_key = 'negative'
+        #         best_score = 1.0 - best_score
+        #     else:
+        #         best_key = 'positive'
+        #     if best_score > wic_confidence:
+        #         recovered += 1
+        #     result = (best_score, best_key, )
+        #     result_list.append(result)
+    elif config['classifier_algo'] in ['scout_detectnet']:
+        import json
+
+        json_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
+        assert exists(json_filepath)
+        with open(json_filepath, 'r') as json_file:
+            values = json.load(json_file)
+        annotations = values.get('annotations', {})
+
+        gpath_list = ibs.get_image_paths(gid_list)
+        gname_list = [split(gpath)[1] for gpath in gpath_list]
+
+        result_list = []
+        for gname in gname_list:
+            annotation = annotations.get(gname, None)
+            assert annotation is not None
+
+            best_score = 1.0
+            if len(annotation) == 0:
+                best_key = 'negative'
+            else:
+                best_key = 'positive'
+            result = (
+                best_score,
+                best_key,
+            )
+            result_list.append(result)
+    elif config['classifier_algo'] in ['scout_detectnet_csv', 'scout_faster_rcnn_csv']:
+        uuid_str_list = list(map(str, ibs.get_image_uuids(gid_list)))
+
+        manifest_filepath = join(ibs.dbdir, 'WIC_manifest_output.csv')
+        csv_filepath = join(ibs.dbdir, config['classifier_weight_filepath'])
+
+        assert exists(manifest_filepath)
+        assert exists(csv_filepath)
+
+        manifest_dict = {}
+        with open(manifest_filepath, 'r') as manifest_file:
+            manifest_file.readline()  # Discard column header row
+            manifest_line_list = manifest_file.readlines()
+            for manifest_line in manifest_line_list:
+                manifest = manifest_line.strip().split(',')
+                assert len(manifest) == 2
+                manifest_filename, manifest_uuid = manifest
+                manifest_dict[manifest_filename] = manifest_uuid
+
+        csv_dict = {}
+        with open(csv_filepath, 'r') as csv_file:
+            csv_file.readline()  # Discard column header row
+            csv_line_list = csv_file.readlines()
+            for csv_line in csv_line_list:
+                csv = csv_line.strip().split(',')
+                assert len(csv) == 2
+                csv_filename, csv_score = csv
+                csv_uuid = manifest_dict.get(csv_filename, None)
+                assert (
+                    csv_uuid is not None
+                ), 'Test image {!r} is not in the manifest'.format(
+                    csv,
+                )
+                csv_dict[csv_uuid] = csv_score
+
+        result_list = []
+        for uuid_str in uuid_str_list:
+            best_score = csv_dict.get(uuid_str, None)
+            assert best_score is not None
+
+            if config['classifier_algo'] in ['scout_detectnet_csv']:
+                assert best_score in ['yes', 'no']
+                best_key = 'positive' if best_score == 'yes' else 'negative'
+                best_score = 1.0
+            elif config['classifier_algo'] in ['scout_faster_rcnn_csv']:
+                best_score = float(best_score)
+                if best_score >= 0.5:
+                    best_key = 'positive'
+                else:
+                    best_key = 'negative'
+                    best_score = 1.0 - best_score
+            else:
+                raise ValueError
+
+            result = (
+                best_score,
+                best_key,
+            )
+            result_list.append(result)
+    elif config['classifier_algo'] in [
+        'lightnet',
+        'densenet+lightnet',
+        'densenet+lightnet!',
+    ]:
+        min_area = 10
+
+        classifier_weight_filepath = config['classifier_weight_filepath']
+        classifier_weight_filepath = classifier_weight_filepath.strip().split(',')
+
+        if config['classifier_algo'] in ['lightnet']:
+            assert len(classifier_weight_filepath) == 2
+            weight_filepath, nms_thresh = classifier_weight_filepath
+            wic_thresh = 0.0
+            nms_thresh = float(nms_thresh)
+            wic_confidence_list = [np.inf] * len(gid_list)
+            wic_filter = False
+        elif config['classifier_algo'] in ['densenet+lightnet', 'densenet+lightnet!']:
+            assert len(classifier_weight_filepath) == 4
+            (
+                wic_model_tag,
+                wic_thresh,
+                weight_filepath,
+                nms_thresh,
+            ) = classifier_weight_filepath
+            wic_thresh = float(wic_thresh)
+            nms_thresh = float(nms_thresh)
+            wic_confidence_list = ibs.scout_wic_test(
+                gid_list, classifier_algo='densenet', model_tag=wic_model_tag
+            )
+            wic_filter = config['classifier_algo'] in ['densenet+lightnet']
+        else:
+            raise ValueError
+
+        flag_list = [
+            wic_confidence >= wic_thresh for wic_confidence in wic_confidence_list
+        ]
+        if wic_filter:
+            gid_list_ = ut.compress(gid_list, flag_list)
+        else:
+            gid_list_ = gid_list[:]
+        config = {
+            'grid': False,
+            'algo': 'lightnet',
+            'config_filepath': weight_filepath,
+            'weight_filepath': weight_filepath,
+            'nms': True,
+            'nms_thresh': nms_thresh,
+            'sensitivity': 0.0,
+        }
+        prediction_list = depc.get_property(
+            'localizations', gid_list_, None, config=config
+        )
+        prediction_dict = dict(zip(gid_list_, prediction_list))
+
+        result_list = []
+        for gid, wic_confidence, flag in zip(gid_list, wic_confidence_list, flag_list):
+            if not flag:
+                best_key = 'negative'
+                best_score = 1.0 - wic_confidence
+            else:
+                prediction = prediction_dict.get(gid, None)
+                assert prediction is not None
+
+                best_score = 0.0
+                if prediction is not None:
+                    score, bboxes, thetas, confs, classes = prediction
+                    for bbox, conf in zip(bboxes, confs):
+                        xtl, ytl, w, h = bbox
+                        area = w * h
+                        if area >= min_area:
+                            best_score = max(best_score, conf)
+
+                if best_score >= 0.5:
+                    best_key = 'positive'
+                else:
+                    best_key = 'negative'
+                    best_score = 1.0 - best_score
+            result = (
+                best_score,
+                best_key,
+            )
+            result_list.append(result)
     else:
         raise ValueError(
             'specified classifier algo is not supported in config = {!r}'.format(config)
@@ -620,6 +883,10 @@ class LocalizerOriginalConfig(dtool.Config):
                 'selective-search',
                 'selective-search-rcnn',
                 '_COMBINED',
+                'tile_aggregation',
+                'tile_aggregation_quick',
+                'scout_detectnet_json',
+                'scout_faster_rcnn_json',
             ],
         ),
         ut.ParamInfo('species', None),
@@ -899,16 +1166,270 @@ def compute_localizations_original(depc, gid_list, config=None):
             {'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal'},  # YOLO1
             {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'},  # YOLO2
             {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal'},  # FRCNN1
-            {
-                'algo': 'faster-rcnn',
-                'config_filepath': 'pretrained-vgg-pascal',
-            },  # FRCNN2
+            {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal'},  # FRCNN2
             {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal'},  # SSD1
             {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal'},  # SSD1
             {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus'},  # SSD
             {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus'},  # SSD4
         ]
         detect_gen = _combined(gid_list, config_dict_list)
+    elif config['algo'] in ['tile_aggregation', 'tile_aggregation_quick']:
+        from wbia.other.detectfuncs import general_intersection_over_union
+
+        include_grid2 = config['algo'] in ['tile_aggregation']
+        tid_list = ibs.scout_get_valid_tile_rowids(
+            gid_list=gid_list, include_grid2=include_grid2
+        )
+
+        ancestor_gid_list = ibs.get_tile_ancestor_gids(tid_list)
+        bbox_list = ibs.get_tile_bboxes(tid_list)
+        size_list = ibs.get_image_sizes(tid_list)
+
+        config_filepath = config['config_filepath']
+        assert config_filepath in [
+            'variant1',
+            'variant2',
+            'variant2-32',
+            'variant2-64',
+            'variant3-32',
+            'variant3-64',
+            'variant4-32',
+            'variant4-64',
+        ]
+
+        weight_filepath = config['weight_filepath']
+        weight_filepath = weight_filepath.strip().split(';')
+
+        assert len(weight_filepath) == 2
+        algo_, model_tag_ = weight_filepath
+
+        if algo_ in ['densenet+lightnet']:
+            model_tag_ = model_tag_.strip().split(',')
+
+            assert len(model_tag_) == 4
+            wic_model_tag, wic_thresh, weight_filepath, nms_thresh = model_tag_
+            wic_thresh = float(wic_thresh)
+            nms_thresh = float(nms_thresh)
+            wic_confidence_list = ibs.scout_wic_test(
+                tid_list, classifier_algo='densenet', model_tag=wic_model_tag
+            )
+
+            flag_list = [
+                wic_confidence >= wic_thresh for wic_confidence in wic_confidence_list
+            ]
+            tid_list_ = ut.compress(tid_list, flag_list)
+            logger.info(
+                '%d tiles passed WIC filter out of %d'
+                % (
+                    len(tid_list_),
+                    len(tid_list),
+                )
+            )
+
+            loc_config = {
+                'grid': False,
+                'algo': 'lightnet',
+                'config_filepath': weight_filepath,
+                'weight_filepath': weight_filepath,
+                'nms': True,
+                'nms_thresh': nms_thresh,
+                'sensitivity': 0.0,
+            }
+            prediction_list = depc.get_property(
+                'localizations', tid_list_, None, config=loc_config
+            )
+            prediction_dict = dict(zip(tid_list_, prediction_list))
+        else:
+            raise ValueError('Only "densenet+lightnet" is implemented')
+
+        gid_dict = {}
+        zipped = list(zip(ancestor_gid_list, tid_list, size_list, bbox_list))
+        for ancestor_gid, tid, tile_size, tile_bbox in tqdm.tqdm(zipped):
+            prediction = prediction_dict.get(tid, None)
+
+            if prediction is None:
+                continue
+
+            score, bboxes, thetas, confs, classes = prediction
+            tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
+
+            if ancestor_gid not in gid_dict:
+                gid_dict[ancestor_gid] = {
+                    'score': [],
+                    'bboxes': [],
+                    'thetas': [],
+                    'confs': [],
+                    'classes': [],
+                }
+
+            bboxes_ = []
+            confs_ = []
+            for detect_bbox, detect_conf in zip(bboxes, confs):
+                detect_xtl, detect_ytl, detect_w, detect_h = detect_bbox
+                detect_xbr = detect_xtl + detect_w
+                detect_ybr = detect_ytl + detect_h
+                detect_annot = {
+                    'xtl': detect_xtl / tile_w,
+                    'ytl': detect_ytl / tile_h,
+                    'xbr': detect_xbr / tile_w,
+                    'ybr': detect_ybr / tile_h,
+                    'width': detect_w / tile_w,
+                    'height': detect_h / tile_h,
+                }
+
+                multiplier = None
+                if config_filepath in ['variant1']:
+                    multiplier = 1.0
+                elif config_filepath in [
+                    'variant2',
+                    'variant2-32',
+                    'variant2-64',
+                    'variant3-32',
+                    'variant3-64',
+                    'variant4-32',
+                    'variant4-64',
+                ]:
+                    margin = (
+                        32.0
+                        if config_filepath
+                        in ['variant-2', 'variant2-32', 'variant3-32', 'variant4-32']
+                        else 64.0
+                    )
+                    tile_w, tile_h = tile_size
+                    margin_percent_w = margin / tile_w
+                    margin_percent_h = margin / tile_h
+                    xtl = margin_percent_w
+                    ytl = margin_percent_h
+                    xbr = 1.0 - margin_percent_w
+                    ybr = 1.0 - margin_percent_h
+                    width = xbr - xtl
+                    height = ybr - ytl
+                    center = {
+                        'xtl': xtl,
+                        'ytl': ytl,
+                        'xbr': xbr,
+                        'ybr': ybr,
+                        'width': width,
+                        'height': height,
+                    }
+                    intersection, union = general_intersection_over_union(
+                        detect_annot, center, return_components=True
+                    )
+                    area = detect_annot['width'] * detect_annot['height']
+                    overlap = 0.0 if area <= 0 else intersection / area
+                    assert 0.0 <= overlap and overlap <= 1.0
+
+                    if config_filepath in ['variant2', 'variant2-32', 'variant2-64']:
+                        multiplier = overlap
+                    elif config_filepath in ['variant3-32', 'variant3-64']:
+                        multiplier = np.sqrt(overlap)
+                    elif config_filepath in ['variant4-32', 'variant4-64']:
+                        multiplier = overlap ** overlap
+                    else:
+                        raise ValueError
+                else:
+                    raise ValueError
+                assert multiplier is not None
+
+                bbox_ = (
+                    tile_xtl + detect_xtl,
+                    tile_ytl + detect_ytl,
+                    detect_w,
+                    detect_h,
+                )
+                bboxes_.append(bbox_)
+                confs_.append(detect_conf * multiplier)
+            thetas_ = list(thetas)
+            classes_ = list(classes)
+
+            gid_dict[ancestor_gid]['score'] += [score]
+            gid_dict[ancestor_gid]['bboxes'] += bboxes_
+            gid_dict[ancestor_gid]['thetas'] += thetas_
+            gid_dict[ancestor_gid]['confs'] += confs_
+            gid_dict[ancestor_gid]['classes'] += classes_
+
+        detect_gen = []
+        for gid in tqdm.tqdm(gid_list):
+            if gid in gid_dict:
+                score = gid_dict[gid]['score']
+                score = sum(score) / len(score) if len(score) > 0 else 0.0
+                bboxes = np.array(gid_dict[gid]['bboxes'])
+                thetas = np.array(gid_dict[gid]['thetas'])
+                confs = np.array(gid_dict[gid]['confs'])
+                classes = np.array(gid_dict[gid]['classes'])
+            else:
+                score = 0.0
+                bboxes = np.array([])
+                thetas = np.array([])
+                confs = np.array([])
+                classes = np.array([])
+
+            detect = (score, bboxes, thetas, confs, classes)
+            detect_gen.append(detect)
+    elif config['algo'] in ['scout_detectnet_json', 'scout_faster_rcnn_json']:
+        import json
+
+        uuid_str_list = list(map(str, ibs.get_image_uuids(gid_list)))
+
+        manifest_filepath = join(ibs.dbdir, 'WIC_manifest_output.csv')
+        assert config['config_filepath'] in ['variant1']
+        json_filepath = join(ibs.dbdir, config['weight_filepath'])
+
+        assert exists(manifest_filepath)
+        assert exists(json_filepath)
+
+        manifest_dict = {}
+        with open(manifest_filepath, 'r') as manifest_file:
+            manifest_file.readline()  # Discard column header row
+            manifest_line_list = manifest_file.readlines()
+            for manifest_line in manifest_line_list:
+                manifest = manifest_line.strip().split(',')
+                assert len(manifest) == 2
+                manifest_filename, manifest_uuid = manifest
+                manifest_dict[manifest_filename] = manifest_uuid
+
+        with open(json_filepath, 'r') as json_file:
+            json_values = json.load(json_file)
+
+        images = json_values.get('images', None)
+        annotations = json_values.get('annotations', None)
+
+        assert images is not None
+        assert annotations is not None
+
+        image_dict = {}
+        annotation_dict = {}
+        for image in images:
+            assert 'file_name' in image and 'id' in image, 'Incorrect COCO format'
+            image_filename = image['file_name']
+            image_id = image['id']
+            image_uuid = manifest_dict.get(image_filename, None)
+            assert image_uuid is not None
+            image_dict[image_id] = image_uuid
+            annotation_dict[image_uuid] = []
+
+        for annotation in annotations:
+            assert 'image_id' in annotation and 'bbox' in annotation
+            image_id = annotation['image_id']
+            image_uuid = image_dict[image_id]
+            assert image_uuid is not None
+            annotation_bbox = annotation['bbox']
+            assert image_uuid in annotation_dict
+            annotation_dict[image_uuid].append(annotation_bbox)
+
+        detect_gen = []
+        for uuid_str in tqdm.tqdm(uuid_str_list):
+            assert uuid_str in annotation_dict
+            bbox_list = annotation_dict[uuid_str]
+
+            score = 0.0
+            bboxes = np.array(bbox_list)
+            thetas = np.array([0.0] * len(bbox_list))
+            confs = np.array([1.0] * len(bbox_list))
+            classes = np.array(['elephant_savanna'] * len(bbox_list))
+
+            detect = (score, bboxes, thetas, confs, classes)
+            detect_gen.append(detect)
     else:
         raise ValueError(
             'specified detection algo is not supported in config = {!r}'.format(config)
@@ -934,6 +1455,9 @@ class LocalizerConfig(dtool.Config):
         ut.ParamInfo('invalid', True),
         ut.ParamInfo('invalid_margin', 0.25),
         ut.ParamInfo('boundary', True),
+        ut.ParamInfo(
+            'squared', False, hideif=False
+        ),  # True will convert the bounding box into a square using the existing center as a reference point and the radius as half the length of the longest side (width or height).
     ]
 
 
@@ -988,8 +1512,9 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
     ibs = depc.controller
 
-    zipped = zip(depc.get_native('localizations_original', loc_orig_id_list, None))
-    for loc_orig_id, detect in zip(loc_orig_id_list, zipped):
+    zipped = list(zip(depc.get_native('localizations_original', loc_orig_id_list, None)))
+    zipped2 = list(zip(loc_orig_id_list, zipped))
+    for loc_orig_id, detect in tqdm.tqdm(zipped2):
         score, bboxes, thetas, confs, classes = detect[0]
 
         # Apply Threshold
@@ -1019,7 +1544,11 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 if VERBOSE:
                     logger.info(
                         'Filtered with sensitivity = %0.02f (%d -> %d)'
-                        % (config['sensitivity'], count_old, count_new)
+                        % (
+                            config['sensitivity'],
+                            count_old,
+                            count_new,
+                        )
                     )
 
         # Apply NMS
@@ -1073,7 +1602,11 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
                 count_new = len(bboxes)
                 if VERBOSE:
                     logger.info(
-                        'Filtered invalid images (%d -> %d)' % (count_old, count_new)
+                        'Filtered invalid images (%d -> %d)'
+                        % (
+                            count_old,
+                            count_new,
+                        )
                     )
 
         if config['boundary']:
@@ -1093,6 +1626,22 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
 
                 width = xbr - xtl
                 height = ybr - ytl
+
+                bboxes[index][0] = xtl
+                bboxes[index][1] = ytl
+                bboxes[index][2] = width
+                bboxes[index][3] = height
+
+        if config['squared']:
+            for index, (xtl, ytl, width, height) in enumerate(bboxes):
+                cx = xtl + width // 2
+                cy = ytl + height // 2
+                radius = max(width, height) // 2
+
+                xtl = cx - radius
+                ytl = cy - radius
+                width = 2 * radius
+                height = 2 * radius
 
                 bboxes[index][0] = xtl
                 bboxes[index][1] = ytl
@@ -2343,6 +2892,282 @@ def compute_detections(depc, gid_list, config=None):
         # cv2.imshow('', image)
         # cv2.waitKey(0)
         yield tuple(result)
+
+
+class TileConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('tile_width', 512),
+        ut.ParamInfo('tile_height', 512),
+        ut.ParamInfo('tile_overlap', 64),
+        ut.ParamInfo('tile_offset', 0, hideif=0),
+        ut.ParamInfo('allow_borders', True),
+        ut.ParamInfo('keep_extern', True),
+        ut.ParamInfo('force_serial', False, hideif=False),
+    ]
+
+
+@register_preproc(
+    tablename='tiles',
+    parents=['images'],
+    colnames=['paths', 'gids', 'num'],
+    coltypes=[list, list, int],
+    configclass=TileConfig,
+    fname='tilecache',
+    rm_extern_on_delete=True,
+    chunksize=64,
+)
+def compute_tiles(depc, gid_list, config=None):
+    r"""Compute the tile for a given input image.
+
+    Args:
+        depc (wbia.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (list, list, int): tup
+
+    CommandLine:
+        wbia --tf compute_tiles --db PZ_MTEST
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from wbia.core_images import *  # NOQA
+        >>> import wbia
+        >>> defaultdb = 'testdb1'
+        >>> ibs = wbia.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = sorted(ibs.get_valid_gids())[0:5]
+        >>> config = {'tile_width': 128, 'tile_height': 128}
+        >>> result = depc.get_property('tiles', gid_list, 'num', config=config)
+        >>> nums = list(map(len, ibs.get_tile_children_gids(gid_list)))
+        >>> nums_ = list(map(len, ibs.get_tile_descendants_gids(gid_list)))
+        >>> assert result == nums
+        >>> assert result == nums_
+        >>> assert result == [204, 136, 221, 221, 221]
+    """
+    from os.path import abspath, join, relpath
+
+    ibs = depc.controller
+
+    tile_width = config['tile_width']
+    tile_height = config['tile_height']
+    tile_overlap = config['tile_overlap']
+    tile_offset = config['tile_offset']
+    allow_borders = config['allow_borders']
+    keep_extern = config['keep_extern']
+
+    if allow_borders:
+        assert tile_offset == 0, 'Cannot use an offset with borders turned on'
+
+    config_dict = dict(config)
+    config_hashid = config.get_hashid()
+
+    gpath_list = ibs.get_image_paths(gid_list)
+    orient_list = ibs.get_image_orientation(gid_list)
+
+    tile_size = (tile_width, tile_height)
+    tile_size_list = [tile_size] * len(gid_list)
+    tile_overlap_list = [tile_overlap] * len(gid_list)
+    tile_offset_list = [tile_offset] * len(gid_list)
+
+    tile_output_path = abspath(join(depc.cache_dpath, 'extern_tiles'))
+    ut.ensuredir(tile_output_path)
+
+    fmt_str = join(tile_output_path, 'tiles_gid_%d_w_%d_h_%d_ol_%d_os_%d_%s')
+    output_path_list = [
+        fmt_str
+        % (
+            gid,
+            tile_width,
+            tile_height,
+            tile_overlap,
+            tile_offset,
+            config_hashid,
+        )
+        for gid in gid_list
+    ]
+    allow_border_list = [allow_borders] * len(gid_list)
+
+    for output_path in output_path_list:
+        ut.ensuredir(output_path)
+
+    # Execute all tasks in parallel
+    args_list = list(
+        zip(
+            gid_list,
+            gpath_list,
+            orient_list,
+            tile_size_list,
+            tile_overlap_list,
+            tile_offset_list,
+            output_path_list,
+            allow_border_list,
+        )
+    )
+
+    genkw = {
+        'ordered': True,
+        'chunksize': 256,
+        'progkw': {'freq': 50},
+        # 'adjust': True,
+        'futures_threaded': True,
+        'force_serial': ibs.force_serial or config['force_serial'],
+    }
+    gen = ut.generate2(compute_tile_helper, args_list, nTasks=len(args_list), **genkw)
+    for val in gen:
+        parent_gid, output_path, tile_filepath_list, bbox_list, border_list = val
+
+        if keep_extern:
+            gids = ibs.add_images(
+                tile_filepath_list,
+                auto_localize=False,
+                ensure_loadable=False,
+                ensure_exif=False,
+            )
+        else:
+            gids = ibs.add_images(tile_filepath_list)
+
+        if ut.duplicates_exist(gids):
+            flag_list = []
+            seen_set = set()
+            for gid in gids:
+                if gid is None:
+                    flag = False
+                else:
+                    flag = gid not in seen_set
+                    seen_set.add(gid)
+                flag_list.append(flag)
+            gids = ut.compress(gids, flag_list)
+            bbox_list = ut.compress(bbox_list, flag_list)
+            border_list = ut.compress(border_list, flag_list)
+
+        num = len(gids)
+        parent_gids = [parent_gid] * num
+        config_dict_list = [config_dict] * num
+        config_hashid_list = [config_hashid] * num
+
+        ibs.set_tile_source(
+            gids,
+            parent_gids,
+            bbox_list,
+            border_list,
+            config_dict_list,
+            config_hashid_list,
+        )
+
+        if keep_extern:
+            tile_relative_filepath_list_ = [
+                relpath(tile_filepath, start=depc.cache_dpath)
+                for tile_filepath in tile_filepath_list
+            ]
+        else:
+            ut.delete(output_path)
+            tile_relative_filepath_list_ = [None] * len(tile_filepath_list)
+
+        yield tile_relative_filepath_list_, gids, num
+
+
+def compute_tile_helper(gid, gpath, orient, size, overlap, offset, opath, borders):
+    from os.path import join
+
+    ext = '.jpg'
+    w, h = size
+    ol = overlap
+    os = offset
+
+    image = vt.imread(gpath, orient=orient)
+    h_, w_ = image.shape[:2]
+
+    y_ = int(np.floor((h_ - ol) / (h - ol)))
+    x_ = int(np.floor((w_ - ol) / (w - ol)))
+    iy = (h * y_) - (ol * (y_ - 1))
+    ix = (w * x_) - (ol * (x_ - 1))
+    oy = int(np.floor((h_ - iy) * 0.5))
+    ox = int(np.floor((w_ - ix) * 0.5))
+
+    miny = 0
+    minx = 0
+    maxy = h_ - h
+    maxx = w_ - w
+
+    ys = list(range(oy, h_ - h + 1, h - ol))
+    yb = [False] * len(ys)
+    xs = list(range(ox, w_ - w + 1, w - ol))
+    xb = [False] * len(xs)
+
+    if borders and oy > 0:
+        ys = [miny] + ys + [maxy]
+        yb = [True] + yb + [True]
+
+    if borders and ox > 0:
+        xs = [minx] + xs + [maxx]
+        xb = [True] + xb + [True]
+
+    tile_filepath_list = []
+    bbox_list = []
+    border_list = []
+
+    for y0, yb_ in zip(ys, yb):
+        y0 += os
+        y1 = y0 + h
+        for x0, xb_ in zip(xs, xb):
+            x0 += os
+            x1 = x0 + w
+
+            # Sanity, mostly to check for offset
+            valid = True
+            try:
+                assert x1 - x0 == w, '%d, %d' % (
+                    x1 - x0,
+                    w,
+                )
+                assert y1 - y0 == h, '%d, %d' % (
+                    y1 - y0,
+                    h,
+                )
+                assert 0 <= x0 and x0 <= w_, '%d, %d' % (
+                    x0,
+                    w_,
+                )
+                assert 0 <= x1 and x1 <= w_, '%d, %d' % (
+                    x1,
+                    w_,
+                )
+                assert 0 <= y0 and y0 <= h_, '%d, %d' % (
+                    y0,
+                    h_,
+                )
+                assert 0 <= y1 and y1 <= h_, '%d, %d' % (
+                    y1,
+                    h_,
+                )
+            except AssertionError:
+                valid = False
+
+            if valid:
+                bbox = (x0, y0, w, h)
+                border = yb_ or xb_
+
+                args = (
+                    gid,
+                    x0,
+                    y0,
+                    w,
+                    h,
+                    ext,
+                )
+                tile_filename = 'tile_gid_%d_xtl_%d_ytl_%d_w_%d_h_%d%s' % args
+                file_filepath = join(opath, tile_filename)
+
+                tile = image[y0:y1, x0:x1]
+                vt.imwrite(file_filepath, tile)
+
+                tile_filepath_list.append(file_filepath)
+                bbox_list.append(bbox)
+                border_list.append(border)
+
+    return gid, opath, tile_filepath_list, bbox_list, border_list
 
 
 class CameraTrapEXIFConfig(dtool.Config):

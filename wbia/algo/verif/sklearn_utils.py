@@ -633,7 +633,7 @@ def predict_with_thresh(
         pred_enc = pd.Series(pred_enc, index=df_index)
         # pred = pred_enc.apply(lambda x: target_names[x])
     if return_flags:
-        flags = np.ones(len(probs), dtype=np.bool)
+        flags = np.ones(len(probs), dtype=bool)
         if not force:
             flags[no_predict] = False
         if not multi:

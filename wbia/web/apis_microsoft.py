@@ -703,10 +703,6 @@ def microsoft_detect_model(ibs, *args, **kwargs):
           type: object
     """
     hidden_models = [
-        'hendrik_elephant',
-        'hendrik_elephant_ears',
-        'hendrik_elephant_ears_left',
-        'hendrik_dorsal',
         'candidacy',
         None,
     ]

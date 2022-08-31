@@ -92,6 +92,18 @@ ARCHIVE_URL_DICT = {
     'seals_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.seals.v0.zip',
     'lions_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.lions.v0.zip',
     'spotted_eagle_ray_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.spotted_eagle_ray.v0.zip',
+    'scout-d3e8bf43-boost0': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.0.zip',
+    'scout-d3e8bf43-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.1.zip',
+    'scout-d3e8bf43-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.2.zip',
+    'scout-d3e8bf43-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.3.zip',
+    'scout-d3e8bf43-boost4': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.4.zip',
+    'scout-d3e8bf43-boost5': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.5.zip',
+    'scout-d3e8bf43-boost6': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.6.zip',
+    'scout-d3e8bf43-boost7': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.7.zip',
+    'scout-5fbfff26-boost0': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.0.zip',
+    'scout-5fbfff26-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.1.zip',
+    'scout-5fbfff26-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.2.zip',
+    'scout-5fbfff26-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.3.zip',
 }
 
 

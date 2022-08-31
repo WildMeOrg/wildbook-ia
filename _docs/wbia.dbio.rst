@@ -60,6 +60,13 @@ wbia.dbio.ingest\_my\_hotspotter\_dbs module
     :undoc-members:
     :show-inheritance:
 
+wbia.dbio.ingest\_scout module
+-------------------------------
+
+.. automodule:: wbia.dbio.ingest_scout
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------

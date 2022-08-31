@@ -11,7 +11,7 @@ TODO: need to split up into sub modules:
 """
 import logging
 import random
-from os.path import abspath, exists, expanduser, join
+from os.path import abspath, basename, exists, expanduser, join
 
 import cv2
 import numpy as np
@@ -32,6 +32,8 @@ from wbia.other.detectfuncs import (
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectcore]')
 logger = logging.getLogger('wbia')
 
+register_api = controller_inject.get_wbia_flask_api(__name__)
+
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -46,6 +48,147 @@ def nms(dets, scores, thresh, use_cpu=True):
 
 
 @register_ibs_method
+@register_api('/api/export/scout/', methods=['POST'])
+def export_to_scout(
+    ibs,
+    species_list=None,
+    species_mapping=None,
+    purge=True,
+    use_existing_train_test=True,
+    gid_list=None,
+    use_original_uris=False,
+    **kwargs,
+):
+    """Create Scout format for database data"""
+    import json
+
+    export_path = join(ibs.get_cachedir(), 'ScoutExport')
+
+    if purge:
+        ut.delete(export_path)
+    ut.ensuredir(export_path)
+
+    # Get all gids and process them
+    if gid_list is None:
+        gid_list = sorted(ibs.get_valid_gids(is_tile=False))
+
+    if species_list is None:
+        aids_list = ibs.get_image_aids(gid_list)
+        aid_list = list(set(ut.flatten(aids_list)))
+        species_list = list(set(ibs.get_annot_species_texts(aid_list)))
+
+    if species_mapping is None:
+        from wbia.dbio.ingest_scout import SPECIES_MAPPING
+
+        species_mapping = {}
+        for key in SPECIES_MAPPING:
+            value = SPECIES_MAPPING[key]
+            assert value not in species_mapping
+            species_mapping[value] = key
+
+    species_list = [species_mapping.get(species, species) for species in species_list]
+
+    if not use_existing_train_test:
+        ibs.imageset_train_test_split(**kwargs)
+
+    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs))
+
+    imageset_texts_list = ibs.get_image_imagesettext(gid_list)
+    imageset_dict = {}
+    for gid, imageset_text_list in zip(gid_list, imageset_texts_list):
+        for imageset_text in imageset_text_list:
+            if imageset_text.startswith('*') or imageset_text in [
+                'TRAIN_SET',
+                'TEST_SET',
+            ]:
+                continue
+            if imageset_text not in imageset_dict:
+                imageset_dict[imageset_text] = []
+            imageset_dict[imageset_text].append(gid)
+
+    imageset_text_list = sorted(imageset_dict.keys())
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
+    imageset_metadata_list = ibs.get_imageset_metadata(imageset_rowid_list)
+    zipped = zip(imageset_rowid_list, imageset_text_list, imageset_metadata_list)
+    for imageset_rowid, imageset_text, imageset_metadata in zipped:
+
+        imageset_path = join(export_path, imageset_text)
+        ut.ensuredir(imageset_path)
+
+        gid_list_ = sorted(imageset_dict[imageset_text])
+        image_filepath_list = ibs.get_image_paths(gid_list_)
+
+        if use_original_uris:
+            image_filepath_list_ = ibs.get_image_uris_original(gid_list_)
+        else:
+            image_filepath_list_ = image_filepath_list
+
+        image_filename_list = [
+            basename(image_filepath) for image_filepath in image_filepath_list_
+        ]
+        output_filepath_list = [
+            join(imageset_path, image_filename) for image_filename in image_filename_list
+        ]
+        for image_filepath, output_filepath in zip(
+            image_filepath_list, output_filepath_list
+        ):
+            ut.copy(image_filepath, output_filepath)
+
+        data_dict = {
+            'config': imageset_metadata.get('config', {}),
+            'metadata': imageset_metadata.get('metadata', {}),
+            'annotations': {},
+            'ignoreFilenameList': [],
+            'trainSet': [],
+            'testSet': [],
+        }
+
+        aids_list = ibs.get_image_aids(gid_list_)
+        for gid, aid_list, image_filename in zip(
+            gid_list_, aids_list, image_filename_list
+        ):
+            bbox_list = ibs.get_annot_bboxes(aid_list)
+            species_list_ = ibs.get_annot_species_texts(aid_list)
+            annotations = []
+            for aid, bbox, species in zip(aid_list, bbox_list, species_list_):
+                species = species_mapping.get(species, species)
+                if species not in species_list:
+                    continue
+                xtl, ytl, w, h = bbox
+                x0 = xtl
+                y0 = ytl
+                x1 = xtl + w
+                y1 = ytl + h
+                rectangle = ','.join(map(str, (x0, y0, x1, y1)))
+                annotation = {
+                    'user': None,
+                    'type': species,
+                    'rectangle': rectangle,
+                    'updated': None,
+                }
+                annotations.append(annotation)
+            data_dict['annotations'][image_filename] = annotations
+            if gid in train_gid_set:
+                data_dict['trainSet'].append(image_filename)
+            if gid in test_gid_set:
+                data_dict['testSet'].append(image_filename)
+
+        data_dict['trainSet'].sort()
+        data_dict['testSet'].sort()
+
+        json_filepath = join(imageset_path, 'annotations.json')
+        with open(json_filepath, 'w') as json_file:
+            json.dump(
+                data_dict, json_file, sort_keys=True, indent=4, separators=(',', ': ')
+            )
+
+    logger.info('...completed')
+    return export_path
+
+
+@register_ibs_method
+@register_api('/api/export/pascal/', methods=['POST'])
 def export_to_pascal(ibs, *args, **kwargs):
     """Alias for export_to_xml"""
     return ibs.export_to_xml(*args, **kwargs)
@@ -166,7 +309,7 @@ def export_to_xml(
 
     # Get all gids and process them
     if gid_list is None:
-        gid_list = sorted(ibs.get_valid_gids())
+        gid_list = sorted(ibs.get_valid_gids(is_tile=False))
 
     sets_dict = {
         'test': [],
@@ -185,6 +328,8 @@ def export_to_xml(
 
     logger.info('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
+        is_tile = ibs.get_tile_flags(gid)
+
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
@@ -217,7 +362,10 @@ def export_to_xml(
             annotation = PascalVOC_Markup_Annotation(
                 dst_img, folder, out_img, source=image_uri, **information
             )
-            bbox_list = ibs.get_annot_bboxes(aid_list)
+            reference_tile_gid = gid if is_tile else None
+            bbox_list = ibs.get_annot_bboxes(
+                aid_list, reference_tile_gid=reference_tile_gid
+            )
             theta_list = ibs.get_annot_thetas(aid_list)
             species_name_list = ibs.get_annot_species_texts(aid_list)
             viewpoint_list = ibs.get_annot_viewpoints(aid_list)
@@ -329,6 +477,7 @@ def export_to_xml(
 
 
 @register_ibs_method
+@register_api('/api/export/coco/', methods=['POST'])
 def export_to_coco(
     ibs,
     species_list,
@@ -359,6 +508,8 @@ def export_to_coco(
         species_list = sorted(set(species_mapping.values()))
 
     logger.info('Using species_list = {!r}'.format(species_list))
+
+    scout_prefix = '/data/raw/processed/'
 
     current_year = int(date.today().year)
     datadir = abspath(join(ibs.get_cachedir(), 'coco'))
@@ -578,7 +729,7 @@ def export_to_coco(
             {
                 'license': 3,
                 'file_name': image_filename,
-                # 'file_name'     : basename(ibs.get_image_uris_original(gid)),
+                # 'file_name': basename(ibs.get_image_uris_original(gid)),
                 'photographer': ibs.get_image_notes(gid),
                 'coco_url': None,
                 'height': height,
@@ -589,6 +740,9 @@ def export_to_coco(
                 'flickr_url': None,
                 'id': image_index,
                 'uuid': str(ibs.get_image_uuids(gid)),
+                'scout_image_path': str(
+                    ibs.get_image_uris_original(gid).replace(scout_prefix, '')
+                ),
             }
         )
 
@@ -793,16 +947,30 @@ def export_to_coco(
 
 @register_ibs_method
 def imageset_train_test_split(
-    ibs, train_split=0.8, is_tile=False, gid_list=None, **kwargs
+    ibs,
+    train_split=0.8,
+    is_tile=False,
+    gid_list=None,
+    keep_existing=True,
+    recovery=False,
+    **kwargs,
 ):
     from random import shuffle
 
     if gid_list is None:
         gid_list = ibs.get_valid_gids(is_tile=is_tile)
 
+    train_imgsetid = ibs.add_imagesets('TRAIN_SET')
+    test_imgsetid = ibs.add_imagesets('TEST_SET')
+    existing_train_gid_set = set(ibs.get_imageset_gids(train_imgsetid))
+    existing_test_gid_set = set(ibs.get_imageset_gids(test_imgsetid))
+
     aids_list = ibs.get_image_aids(gid_list)
     distro_dict = {}
     for gid, aid_list in zip(gid_list, aids_list):
+        if keep_existing:
+            if gid in existing_train_gid_set or gid in existing_test_gid_set:
+                continue
         total = len(aid_list)
         if total not in distro_dict:
             distro_dict[total] = []
@@ -837,6 +1005,48 @@ def imageset_train_test_split(
         global_train_list.extend(train_list)
         global_test_list.extend(test_list)
 
+    if recovery:
+        ibs.unrelate_images_and_imagesets(gid_list, [train_imgsetid] * len(gid_list))
+        ibs.unrelate_images_and_imagesets(gid_list, [test_imgsetid] * len(gid_list))
+    elif not keep_existing:
+        all_gid_list = ibs.get_valid_gids(is_tile=None)
+        ibs.unrelate_images_and_imagesets(
+            all_gid_list, [train_imgsetid] * len(all_gid_list)
+        )
+        ibs.unrelate_images_and_imagesets(
+            all_gid_list, [test_imgsetid] * len(all_gid_list)
+        )
+
+    ibs.set_image_imgsetids(global_train_list, [train_imgsetid] * len(global_train_list))
+    ibs.set_image_imgsetids(global_test_list, [test_imgsetid] * len(global_test_list))
+
+    # Verify
+    existing_train_gid_set_ = set(ibs.get_imageset_gids(train_imgsetid))
+    existing_test_gid_set_ = set(ibs.get_imageset_gids(test_imgsetid))
+    shared_gid_list = list(existing_train_gid_set_ & existing_test_gid_set_)
+    try:
+        assert len(shared_gid_list) == 0
+    except AssertionError:
+        assert not recovery
+        ibs.imageset_train_test_split(
+            train_split=train_split,
+            is_tile=is_tile,
+            gid_list=shared_gid_list,
+            keep_existing=False,
+            recovery=True,
+            **kwargs,
+        )
+        existing_train_gid_set_ = set(ibs.get_imageset_gids(train_imgsetid))
+        existing_test_gid_set_ = set(ibs.get_imageset_gids(test_imgsetid))
+        shared_gid_list = list(existing_train_gid_set_ & existing_test_gid_set_)
+        assert len(shared_gid_list) == 0
+
+    imageset_rowids_list = ibs.get_image_imgsetids(gid_list)
+    for gid, imageset_rowid_list in zip(gid_list, imageset_rowids_list):
+        assert (
+            train_imgsetid in imageset_rowid_list or test_imgsetid in imageset_rowid_list
+        )
+
     args = (
         len(global_train_list),
         len(global_test_list),
@@ -844,18 +1054,6 @@ def imageset_train_test_split(
         len(global_train_list) / len(gid_list),
         train_split,
     )
-
-    train_imgsetid = ibs.add_imagesets('TRAIN_SET')
-    test_imgsetid = ibs.add_imagesets('TEST_SET')
-
-    temp_list = ibs.get_imageset_gids(train_imgsetid)
-    ibs.unrelate_images_and_imagesets(temp_list, [train_imgsetid] * len(temp_list))
-    temp_list = ibs.get_imageset_gids(test_imgsetid)
-    ibs.unrelate_images_and_imagesets(temp_list, [test_imgsetid] * len(temp_list))
-
-    ibs.set_image_imgsetids(global_train_list, [train_imgsetid] * len(global_train_list))
-    ibs.set_image_imgsetids(global_test_list, [test_imgsetid] * len(global_test_list))
-
     logger.info('Complete... %d train + %d test = %d (%0.04f %0.04f)' % args)
 
 

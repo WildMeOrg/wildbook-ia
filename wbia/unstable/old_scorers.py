@@ -476,7 +476,7 @@ def show_annot_weights(qreq_, aid, config={}):
 # TODO: qreq_
 
 
-def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float):
+def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float64):
     import vtool as vt
 
     from wbia.algo.hots import hstypes

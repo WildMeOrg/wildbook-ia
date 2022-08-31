@@ -548,7 +548,7 @@ def check_can_match(qaid, hit_daids, qreq_):
     can_match_samename = qreq_.qparams.can_match_samename
     can_match_sameimg = qreq_.qparams.can_match_sameimg
     can_match_self = False
-    valid_flags = np.ones(len(hit_daids), dtype=np.bool)
+    valid_flags = np.ones(len(hit_daids), dtype=bool)
     # Check that the two annots meet the conditions
     if not can_match_self:
         valid_flags[hit_daids == qaid] = False

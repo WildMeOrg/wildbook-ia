@@ -6,7 +6,7 @@ from oauthlib.oauth2 import TokenExpiredError
 from wbia.utils import call_houston
 
 
-def test_call_houston(request):
+def disabled_test_call_houston(request):
     client_patch = mock.patch('wbia.utils.BackendApplicationClient')
     BackendApplicationClient = client_patch.start()
     request.addfinalizer(client_patch.stop)

@@ -994,7 +994,7 @@ def make_agg_vecs(X, words, fx_to_vecs):
     dtype = np.int8 if X.int_rvec else np.float32
     dim = fx_to_vecs.shape[1]
     X.agg_rvecs = np.empty((len(X.wx_list), dim), dtype=dtype)
-    X.agg_flags = np.empty((len(X.wx_list), 1), dtype=np.bool)
+    X.agg_flags = np.empty((len(X.wx_list), 1), dtype=bool)
     for idx in range(len(X.wx_list)):
         word = word_list[idx]
         fxs = X.fxs_list[idx]
@@ -1042,7 +1042,7 @@ def make_temporary_annot(aid, vocab, wx_to_weight, ibs, config):
     fxs_list = ut.take(wx_to_fxs, wx_list)
     maws_list = ut.take(wx_to_maws, wx_list)
     agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.float)
-    agg_flags = np.empty((len(wx_list), 1), dtype=np.bool)
+    agg_flags = np.empty((len(wx_list), 1), dtype=bool)
     for idx in range(len(wx_list)):
         word = word_list[idx]
         fxs = fxs_list[idx]

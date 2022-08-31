@@ -525,7 +525,7 @@ def filterflags_general_tags(
     default_func = {'and': np.ones, 'or': np.zeros}[logic]
 
     tags_list_ = [fix_tags(tags_) for tags_ in tags_list]
-    flags = default_func(len(tags_list_), dtype=np.bool)
+    flags = default_func(len(tags_list_), dtype=bool)
 
     if min_num is not None:
         flags_ = [len(tags_) >= min_num for tags_ in tags_list_]

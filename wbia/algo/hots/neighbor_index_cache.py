@@ -620,7 +620,7 @@ def group_daids_by_cached_nnindexer(
         python -m wbia.algo.hots.neighbor_index_cache --test-group_daids_by_cached_nnindexer
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from wbia.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import wbia
         >>> from wbia import constants as const

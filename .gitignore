@@ -37,6 +37,7 @@ tmp.txt
 vsone.*.cPkl
 vsone.*.json
 wbia/dtool/DEPCACHE*/
+test_sql_*/
 
 # Translations
 *.mo

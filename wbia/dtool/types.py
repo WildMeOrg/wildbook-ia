@@ -6,6 +6,7 @@ import uuid
 import numpy as np
 import sqlalchemy
 import utool as ut
+from sqlalchemy.exc import StatementError
 from sqlalchemy.sql import text
 from sqlalchemy.types import Integer as SAInteger
 from sqlalchemy.types import TypeDecorator, UserDefinedType
@@ -175,7 +176,10 @@ class UUID(UserDefinedType):
             if value is None:
                 return value
             if not isinstance(value, uuid.UUID):
-                value = uuid.UUID(value)
+                try:
+                    value = uuid.UUID(value)
+                except (AttributeError, StatementError):
+                    return value
 
             if dialect.name == 'sqlite':
                 return value.bytes_le
