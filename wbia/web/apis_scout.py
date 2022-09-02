@@ -101,7 +101,7 @@ def _ensure_sequence_exist(ibs, sequence):
     return sequence_rowid
 
 
-@register_route(_prefix('swagger'), methods=['GET'])
+@register_route(_prefix('swagger'), methods=['GET'], __route_prefix_check__=False)
 def scout_core_specification_swagger(*args, **kwargs):
     r"""
     Returns the API specification in the Swagger 2.0 (OpenAPI) JSON format.
