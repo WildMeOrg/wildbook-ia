@@ -113,14 +113,15 @@ MICROSOFT_API_ENABLED = ut.get_argflag('--web') and ut.get_argflag(
 MICROSOFT_API_PREFIX = '/v0.1/wildbook/'
 MICROSOFT_API_DEBUG = True
 
-SCOUT_API_ENABLED = ut.get_argflag('--web') and ut.get_argflag(
-    '--scout'
-)  # True == Scout Deployment (i.e., only allow SCOUT_API_PREFIX prefix below)
-SCOUT_API_PREFIX = '/v0.1/scout/'
+# SCOUT_API_ENABLED = ut.get_argflag('--web') and ut.get_argflag(
+#     '--scout'
+# )  # True == Scout Deployment (i.e., only allow SCOUT_API_PREFIX prefix below)
+SCOUT_API_ENABLED = True
+SCOUT_API_PREFIX = '/api/scout/'
 SCOUT_API_DEBUG = True
 
-if MICROSOFT_API_ENABLED or SCOUT_API_ENABLED:
-    WEB_DEBUG_INCLUDE_TRACE = MICROSOFT_API_DEBUG or SCOUT_API_DEBUG
+# if MICROSOFT_API_ENABLED or SCOUT_API_ENABLED:
+#     WEB_DEBUG_INCLUDE_TRACE = MICROSOFT_API_DEBUG or SCOUT_API_DEBUG
 
 
 STRICT_VERSION_API = (
@@ -404,16 +405,16 @@ def translate_wbia_webreturn(
                 rawreturn, dict
             ), 'Microsoft APIs must return a Python dictionary'
         template = rawreturn
-    elif SCOUT_API_ENABLED and not __skip_scout_validation__:
-        if rawreturn is not None:
-            try:
-                assert isinstance(
-                    rawreturn, dict
-                ), 'Scout APIs must return a Python dictionary'
-            except Exception:
-                print(ut.repr3(rawreturn))
-                raise
-        template = rawreturn
+    # elif SCOUT_API_ENABLED and not __skip_scout_validation__:
+    #     if rawreturn is not None:
+    #         try:
+    #             assert isinstance(
+    #                 rawreturn, dict
+    #             ), 'Scout APIs must return a Python dictionary'
+    #         except Exception:
+    #             print(ut.repr3(rawreturn))
+    #             raise
+    #     template = rawreturn
     else:
         if code is None:
             code = ''
@@ -600,7 +601,7 @@ def translate_wbia_webcall(func, *args, **kwargs):
         except WebException:
             raise
         except Exception as ex2:  # NOQA
-            if MICROSOFT_API_ENABLED or SCOUT_API_ENABLED:
+            if MICROSOFT_API_ENABLED:  # or SCOUT_API_ENABLED:
                 if isinstance(ex2, TypeError) and 'required positional' in str(ex2):
                     parameter = str(ex2).split(':')[1].strip().strip("'")
                     raise WebMissingInput('Missing required parameter', parameter)
@@ -874,13 +875,13 @@ def get_wbia_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=False):
                 else:
                     logger.info('Registering API rule={!r}'.format(rule_))
 
-            if SCOUT_API_ENABLED and __api_scout_check__:
-                if not rule.startswith(SCOUT_API_PREFIX):
-                    # msg = 'API rule=%r is does not adhere to the Scout format, ignoring.' % (rule_, )
-                    # warnings.warn(msg)
-                    return ut.identity
-                else:
-                    print('Registering API rule={!r}'.format(rule_))
+            # if SCOUT_API_ENABLED and __api_scout_check__:
+            #     if not rule.startswith(SCOUT_API_PREFIX):
+            #         # msg = 'API rule=%r is does not adhere to the Scout format, ignoring.' % (rule_, )
+            #         # warnings.warn(msg)
+            #         return ut.identity
+            #     else:
+            #         print('Registering API rule={!r}'.format(rule_))
 
             try:
                 if not MICROSOFT_API_ENABLED:
@@ -1172,14 +1173,14 @@ def get_wbia_flask_route(__name__):
                 else:
                     logger.info('Registering Route rule={!r}'.format(rule))
 
-            if SCOUT_API_ENABLED and __route_scout_check__:
-                __route_authenticate__ = False
-                if not rule.startswith(SCOUT_API_PREFIX):
-                    # msg = 'Route rule=%r not allowed with the Microsoft format, ignoring.' % (rule, )
-                    # warnings.warn(msg)
-                    return ut.identity
-                else:
-                    print('Registering Route rule={!r}'.format(rule))
+            # if SCOUT_API_ENABLED and __route_scout_check__:
+            #     __route_authenticate__ = False
+            #     if not rule.startswith(SCOUT_API_PREFIX):
+            #         # msg = 'Route rule=%r not allowed with the Microsoft format, ignoring.' % (rule, )
+            #         # warnings.warn(msg)
+            #         return ut.identity
+            #     else:
+            #         print('Registering Route rule={!r}'.format(rule))
 
             if __route_prefix_check__:
                 assert not rule.startswith(

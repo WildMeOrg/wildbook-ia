@@ -14,6 +14,7 @@ from wbia.web import (
     apis_engine,
     apis_json,
     apis_query,
+    apis_scout,
     apis_sync,
     app,
     appfuncs,
@@ -27,5 +28,5 @@ from wbia.web import (
 
 if controller_inject.MICROSOFT_API_ENABLED:
     from wbia.web import apis_microsoft
-if controller_inject.SCOUT_API_ENABLED:
-    from wbia.web import apis_scout
+# if controller_inject.SCOUT_API_ENABLED:
+#     from wbia.web import apis_scout
