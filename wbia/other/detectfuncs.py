@@ -425,11 +425,12 @@ def general_intersection_over_union(bbox1, bbox2, return_components=False):
     intersection_h = intersection_ybr - intersection_ytl
 
     if intersection_w <= 0 or intersection_h <= 0:
-        return 0.0
+        intersection = 0.0
+    else:
+        intersection_w = max(0.0, intersection_xbr - intersection_xtl)
+        intersection_h = max(0.0, intersection_ybr - intersection_ytl)
+        intersection = intersection_w * intersection_h
 
-    intersection_w = max(0.0, intersection_xbr - intersection_xtl)
-    intersection_h = max(0.0, intersection_ybr - intersection_ytl)
-    intersection = intersection_w * intersection_h
     union = (
         (bbox1['width'] * bbox1['height'])
         + (bbox2['width'] * bbox2['height'])

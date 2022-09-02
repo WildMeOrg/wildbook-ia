@@ -675,7 +675,11 @@ def scout_pipeline_batch(
     args = (images,)
     if asynchronous:
         taskid = ibs.job_manager.jobiface.queue_job(
-            'scout_pipeline', callback_url, callback_method, *args, **kwargs
+            action='scout_pipeline',
+            callback_url=callback_url,
+            callback_method=callback_method,
+            args=args,
+            kwargs=kwargs,
         )
         response = _task(ibs, taskid)
     else:
@@ -971,7 +975,11 @@ def scout_count_sequence(
     args = (sequence_list,)
     if asynchronous:
         taskid = ibs.job_manager.jobiface.queue_job(
-            'scout_count_pipeline', callback_url, callback_method, *args, **kwargs
+            action='scout_count_pipeline',
+            callback_url=callback_url,
+            callback_method=callback_method,
+            args=args,
+            kwargs=kwargs,
         )
         response = _task(ibs, taskid)
     else:

@@ -99,6 +99,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'wbia.web.apis_engine',
     'wbia.web.apis_query',
     'wbia.web.apis_sync',
+    'wbia.web.apis_scout',
     'wbia.web.apis',
     'wbia.core_images',
     'wbia.core_annots',
