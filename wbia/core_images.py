@@ -2896,9 +2896,9 @@ def compute_detections(depc, gid_list, config=None):
 
 class TileConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('tile_width', 512),
-        ut.ParamInfo('tile_height', 512),
-        ut.ParamInfo('tile_overlap', 64),
+        ut.ParamInfo('tile_width', 256),
+        ut.ParamInfo('tile_height', 256),
+        ut.ParamInfo('tile_overlap', 32),
         ut.ParamInfo('tile_offset', 0, hideif=0),
         ut.ParamInfo('allow_borders', True),
         ut.ParamInfo('keep_extern', True),

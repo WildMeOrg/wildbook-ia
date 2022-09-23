@@ -1196,6 +1196,8 @@ def scout_wic_train(
     """
     import random
 
+    ut.embed()
+
     latest_model_tag = None
     config_list = []
     restart_round_num = 0
