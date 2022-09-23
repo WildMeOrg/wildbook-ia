@@ -22,6 +22,7 @@ import os
 from os.path import exists, isabs, join
 
 import numpy as np
+import tqdm
 import utool as ut
 import vtool as vt
 
@@ -2709,8 +2710,8 @@ def delete_images(ibs, gid_list, trash_images=True):
         ut.copy_list(
             gpath_list, gpath_list2, ioerr_ok=True, oserror_ok=True, lbl='Trashing Images'
         )
-    for gpath in gpath_list:
-        ut.delete(gpath)
+    for gpath in tqdm.tqdm(gpath_list, desc='Deleting Images'):
+        ut.delete(gpath, verbose=False)
         # raise NotImplementedError('must trash images for now')
     # ut.view_directory(trash_dir)
 
@@ -3093,10 +3094,14 @@ def get_tile_parent_gids(ibs, gid_list):
 @register_api('/api/tile/ancestor/rowid/', methods=['GET'])
 def get_tile_ancestor_gids(ibs, gid_list):
     parent_gid_list = ibs.get_tile_parent_gids(gid_list)
+    grandparent_gid_list = ibs.get_tile_parent_gids(parent_gid_list)
 
+    zipped = list(zip(gid_list, parent_gid_list, grandparent_gid_list))
     ancestor_gid_list = [
-        gid if parent_gid is None else ibs.get_tile_ancestor_gids(parent_gid)
-        for gid, parent_gid in zip(gid_list, parent_gid_list)
+        parent_gid
+        if grandparent_gid is None
+        else ibs.get_tile_ancestor_gids(grandparent_gid)
+        for gid, parent_gid, grandparent_gid in tqdm.tqdm(zipped)
     ]
 
     return ancestor_gid_list
@@ -3288,14 +3293,14 @@ def get_tile_aids(ibs, gid_list, is_staged=False):
     from shapely.geometry import Polygon
 
     flag_list = ibs.get_tile_flags(gid_list)
-    assert False not in flag_list
+    assert False not in set(flag_list)
 
     # These most likely have shared ancestors, so build a
     # dict of their Polygons for quicker lookup
     ancestor_gid_list = ibs.get_tile_ancestor_gids(gid_list)
 
     ancestor_gid_dict = {}
-    for ancestor_gid in set(ancestor_gid_list):
+    for ancestor_gid in tqdm.tqdm(set(ancestor_gid_list)):
         ancestor_aid_list = ibs.get_image_aids(ancestor_gid, check_tiles=False)
         ancestor_vert_list = ibs.get_annot_rotated_verts(ancestor_aid_list)
         ancestor_poly_list = [
@@ -3307,11 +3312,11 @@ def get_tile_aids(ibs, gid_list, is_staged=False):
         }
 
     tile_vert_list = ibs.get_tile_verts(gid_list)
-    tile_poly_list = [Polygon(tile_vert) for tile_vert in tile_vert_list]
+    tile_poly_list = [Polygon(tile_vert) for tile_vert in tqdm.tqdm(tile_vert_list)]
 
     aids_list = []
-    zipped = zip(gid_list, ancestor_gid_list, tile_poly_list)
-    for gid, ancestor_gid, tile_poly in zipped:
+    zipped = list(zip(gid_list, ancestor_gid_list, tile_poly_list))
+    for gid, ancestor_gid, tile_poly in tqdm.tqdm(zipped):
         aid_list = ancestor_gid_dict[ancestor_gid]['aids']
         poly_list = ancestor_gid_dict[ancestor_gid]['polys']
 

@@ -241,44 +241,48 @@ def scout_get_valid_tile_rowids(
     if limit is not None:
         gid_list = gid_list[:limit]
 
-    tile_size = 256
-    tile_overlap = 64
-    config1 = {
-        'tile_width': tile_size,
-        'tile_height': tile_size,
-        'tile_overlap': tile_overlap,
-    }
-    tiles1_list = ibs.compute_tiles(gid_list=gid_list, **config1)
-    tile1_list = ut.flatten(tiles1_list)
-    config1_list = [1] * len(tile1_list)
-
-    if include_grid2:
-        tile_offset = (tile_size - tile_overlap) // 2
-        config2 = {
+    if True:
+        tile_list = ibs.get_tile_descendants_gids(gid_list)
+        config_list = [1] * len(tile_list)
+    else:
+        tile_size = 256
+        tile_overlap = 64
+        config1 = {
             'tile_width': tile_size,
             'tile_height': tile_size,
             'tile_overlap': tile_overlap,
-            'tile_offset': tile_offset,
-            'allow_borders': False,
         }
-        tiles2_list = ibs.compute_tiles(gid_list=gid_list, **config2)
-        tile2_list = ut.flatten(tiles2_list)
-        config2_list = [2] * len(tile2_list)
-    else:
-        tile2_list = []
-        config2_list = []
+        tiles1_list = ibs.compute_tiles(gid_list=gid_list, **config1)
+        tile1_list = ut.flatten(tiles1_list)
+        config1_list = [1] * len(tile1_list)
 
-    tile_list_ = tile1_list + tile2_list
-    config_list_ = config1_list + config2_list
-    tile_list = []
-    config_list = []
+        if include_grid2:
+            tile_offset = (tile_size - tile_overlap) // 2
+            config2 = {
+                'tile_width': tile_size,
+                'tile_height': tile_size,
+                'tile_overlap': tile_overlap,
+                'tile_offset': tile_offset,
+                'allow_borders': False,
+            }
+            tiles2_list = ibs.compute_tiles(gid_list=gid_list, **config2)
+            tile2_list = ut.flatten(tiles2_list)
+            config2_list = [2] * len(tile2_list)
+        else:
+            tile2_list = []
+            config2_list = []
 
-    seen_set = set()
-    for tile, config in sorted(zip(tile_list_, config_list_)):
-        if tile not in seen_set:
-            tile_list.append(tile)
-            config_list.append(config)
-        seen_set.add(tile)
+        tile_list_ = tile1_list + tile2_list
+        config_list_ = config1_list + config2_list
+        tile_list = []
+        config_list = []
+
+        seen_set = set()
+        for tile, config in sorted(zip(tile_list_, config_list_)):
+            if tile not in seen_set:
+                tile_list.append(tile)
+                config_list.append(config)
+            seen_set.add(tile)
 
     if return_configs:
         value_list = list(zip(tile_list, config_list))
@@ -679,8 +683,8 @@ def scout_imageset_train_test_split(ibs, recompute_split=False, **kwargs):
 @register_ibs_method
 def scout_compute_visual_clusters(
     ibs,
-    num_clusters=80,
-    n_neighbors=10,
+    num_clusters=256,
+    n_neighbors=32,
     max_images=None,
     min_pca_variance=0.9,
     cleanup_memory=True,
@@ -937,7 +941,7 @@ def scout_compute_visual_clusters(
 
 @register_ibs_method
 def scout_visualize_visual_clusters(
-    ibs, num_clusters=80, n_neighbors=10, examples=50, reclassify_outliers=True, **kwargs
+    ibs, num_clusters=256, n_neighbors=32, examples=50, reclassify_outliers=True, **kwargs
 ):
     """
     for n_neighbors in range(5, 61, 5):
@@ -1162,14 +1166,14 @@ def scout_visualize_visual_clusters(
 @register_ibs_method
 def scout_wic_train(
     ibs,
-    ensembles=5,
-    rounds=10,
-    boost_confidence_thresh=0.2,
-    boost_round_ratio=2,
-    num_clusters=80,
-    n_neighbors=10,
-    use_clusters=False,
-    hashstr=None,
+    ensembles=3,
+    rounds=5,
+    boost_confidence_thresh=0.5,
+    boost_round_ratio=1,
+    num_clusters=256,
+    n_neighbors=32,
+    use_clusters=True,
+    hashstr='mvp',
     restart_config_dict=None,
     **kwargs
 ):
@@ -1179,14 +1183,14 @@ def scout_wic_train(
         >>> import wbia
         >>> ibs = wbia.opendb('testdb1')
         >>> restart_config_dict = {
-        >>>     'scout-d3e8bf43-boost0': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.0.zip',
-        >>>     'scout-d3e8bf43-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.1.zip',
-        >>>     'scout-d3e8bf43-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.2.zip',
-        >>>     'scout-d3e8bf43-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.3.zip',
-        >>>     'scout-d3e8bf43-boost4': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.4.zip',
-        >>>     'scout-d3e8bf43-boost5': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.5.zip',
-        >>>     'scout-d3e8bf43-boost6': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.6.zip',
-        >>>     'scout-d3e8bf43-boost7': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.7.zip',
+        >>>     'scout-d3e8bf43-boost0': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.0.zip',
+        >>>     'scout-d3e8bf43-boost1': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.1.zip',
+        >>>     'scout-d3e8bf43-boost2': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.2.zip',
+        >>>     'scout-d3e8bf43-boost3': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.3.zip',
+        >>>     'scout-d3e8bf43-boost4': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.4.zip',
+        >>>     'scout-d3e8bf43-boost5': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.5.zip',
+        >>>     'scout-d3e8bf43-boost6': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.6.zip',
+        >>>     'scout-d3e8bf43-boost7': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.7.zip',
         >>> }
         >>> ibs.scout_wic_train(restart_config_dict=restart_config_dict)
     """
@@ -1473,11 +1477,12 @@ def scout_wic_train(
             weights_path = densenet.train(
                 extracted_path,
                 output_path,
+                blur=False,
                 flip=True,
-                rotate=20,
-                shear=20,
+                rotate=10,
+                shear=10,
                 class_weights=class_weights,
-                sample_multiplier=1.0,
+                sample_multiplier=2.0,
             )
             weights_path_list.append(weights_path)
 
@@ -1533,7 +1538,7 @@ def scout_wic_deploy(ibs, weights_path_list, hashstr, round_num=0, temporary=Tru
     )
     densenet.ARCHIVE_URL_DICT[
         model_key
-    ] = 'https://wildbookiarepository.azureedge.net/models/{}.zip'.format(output_name)
+    ] = 'https://cthulhu.dyn.wildme.io/public/models/{}.zip'.format(output_name)
     logger.info(ut.repr3(densenet.ARCHIVE_URL_DICT))
 
     return model_key, output_name
@@ -2179,7 +2184,7 @@ def scout_wic_visualize_errors_clusters(
     model_tag = 'scout-d3e8bf43-boost4'
     confidence_list = ibs.scout_wic_test(test_gid_list, model_tag=model_tag)
 
-    values = ibs.scout_compute_visual_clusters(80, 10, **kwargs)
+    values = ibs.scout_compute_visual_clusters(**kwargs)
     hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits = values
 
     color_list = pt.distinct_colors(4, randomize=False)
@@ -3455,7 +3460,7 @@ def scout_localizer_visualize_errors_clusters(
     )
     conf_list, tp_list, fp_list, total, match_dict = values
 
-    values = ibs.scout_compute_visual_clusters(80, 10, **kwargs)
+    values = ibs.scout_compute_visual_clusters(**kwargs)
     hashstr, assignment_dict, cluster_dict, cluster_center_dict, limits = values
 
     color_list = pt.distinct_colors(4, randomize=False)
