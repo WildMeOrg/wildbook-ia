@@ -208,7 +208,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
         self.samples = list(zip(*args))
 
         if self.targets:
-            self.classes = sorted(set(ut.take_column(self.targets, 1)))
+            self.classes = sorted(set(ut.take_column(self.samples, 1)))
             self.class_to_idx = {self.classes[i]: i for i in range(len(self.classes))}
         else:
             self.classes, self.class_to_idx = None, None
@@ -516,7 +516,7 @@ def train(
     logger.info('Initializing Model...')
 
     # Initialize the model for this run
-    model = torchvision.models.densenet201(pretrained=True)
+    model = torchvision.models.resnet50(pretrained=True)
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Linear(num_ftrs, num_classes)
 
@@ -604,7 +604,7 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
     num_classes = len(classes)
 
     # Initialize the model for this run
-    model = torchvision.models.densenet201()
+    model = torchvision.models.resnet50()
     num_ftrs = model.classifier.in_features
     model.classifier = nn.Linear(num_ftrs, num_classes)
 
@@ -880,7 +880,7 @@ def features(filepath_list, batch_size=512, multi=PARALLEL, **kwargs):
     )
 
     # Initialize the model for this run
-    model = torchvision.models.densenet201(pretrained=True)
+    model = torchvision.models.resnet50(pretrained=True)
 
     # Send the model to GPU
     model = model.to(device)

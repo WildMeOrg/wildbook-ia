@@ -35,7 +35,7 @@ register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 # @register_ibs_method
-# def scout_subsample_imageset(ibs, ratio=10, target_species='elephant_savanna'):
+# def scout_subsample_imageset(ibs, ratio=10, target_species=None):
 #     gid_all_list = ibs.get_valid_gids(is_tile=None)
 
 #     imageset_text_list = [
@@ -81,7 +81,7 @@ register_api = controller_inject.get_wbia_flask_api(__name__)
 
 
 @register_ibs_method
-def scout_print_database_stats(ibs, target_species='elephant_savanna'):
+def scout_print_database_stats(ibs, target_species=None):
     tid_list = ibs.scout_get_valid_tile_rowids()
     aids_list = ibs.get_image_aids(tid_list)
 
@@ -185,8 +185,11 @@ def scout_print_database_stats(ibs, target_species='elephant_savanna'):
 @register_ibs_method
 def export_dataset(ibs, **kwargs):
     gid_list = ibs.get_valid_gids(is_tile=False)
+    species_list = sorted(
+        set(ibs.get_annot_species(ut.flatten(ibs.get_image_aids(gid_list))))
+    )
     ibs.export_to_coco(
-        ['elephant_savanna'], target_size=None, gid_list=gid_list, require_named=False
+        species_list, target_size=None, gid_list=gid_list, require_named=False
     )
 
 
@@ -205,7 +208,7 @@ def scout_get_valid_tile_rowids(
     return_configs=False,
     limit=None,
     gid_list=None,
-    include_grid2=True,
+    include_grid2=False,
     **kwargs
 ):
     if gid_list is None:
@@ -286,7 +289,7 @@ def scout_get_valid_tile_rowids(
 
 
 @register_ibs_method
-def scout_visualize_tiles(ibs, target_species='elephant_savanna', margin=32, **kwargs):
+def scout_visualize_tiles(ibs, target_species=None, margin=32, **kwargs):
     RANDOM_VISUALIZATION_OFFSET = 5
     font = cv2.FONT_HERSHEY_SIMPLEX
     scale = 0.5
@@ -561,7 +564,7 @@ def scout_visualize_tiles(ibs, target_species='elephant_savanna', margin=32, **k
 def scout_tile_positive_cumulative_area(
     ibs,
     tile_list,
-    target_species='elephant_savanna',
+    target_species=None,
     min_cumulative_percentage=0.025,
     margin=32,
     margin_discount=0.5,
@@ -577,7 +580,7 @@ def scout_tile_positive_cumulative_area(
     ):
         tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
         canvas = np.zeros((tile_h, tile_w), dtype=np.float32)
-        if target_species in species_set:
+        if target_species is None or target_species in species_set:
             bbox_list = ibs.get_annot_bboxes(aid_list, reference_tile_gid=tile_id)
             for bbox in bbox_list:
                 xtl, ytl, w, h = bbox
@@ -1813,9 +1816,7 @@ def scout_wic_validate(
 
 
 @register_ibs_method
-def scout_wic_visualize_errors_location(
-    ibs, target_species='elephant_savanna', thresh=0.024, **kwargs
-):
+def scout_wic_visualize_errors_location(ibs, target_species=None, thresh=0.024, **kwargs):
     def _render(gid_list, flag_list, invert=False):
         if invert:
             flag_list = [not flag for flag in flag_list]
@@ -1931,7 +1932,7 @@ def scout_wic_visualize_errors_location(
 @register_ibs_method
 def scout_wic_visualize_errors_annots(
     ibs,
-    target_species='elephant_savanna',
+    target_species=None,
     min_cumulative_percentage=0.025,
     thresh=0.024,
     errors_only=False,
@@ -2155,7 +2156,7 @@ def scout_wic_visualize_errors_annots(
 
 @register_ibs_method
 def scout_wic_visualize_errors_clusters(
-    ibs, target_species='elephant_savanna', thresh=0.024, errors_only=False, **kwargs
+    ibs, target_species=None, thresh=0.024, errors_only=False, **kwargs
 ):
     import matplotlib.pyplot as plt
 
@@ -2405,9 +2406,7 @@ def scout_background_validate(ibs, output_path=None, model_tag='scout', **kwargs
 
 
 @register_ibs_method
-def scout_localizer_train(
-    ibs, target_species='elephant_savanna', ratio=2.0, config=None, **kwargs
-):
+def scout_localizer_train(ibs, target_species=None, ratio=2.0, config=None, **kwargs):
     """
     config = {'grid' : False, 'algo': 'lightnet', 'config_filepath' : 'scout_5fbfff26_v0', 'weight_filepath' : 'scout_5fbfff26_v0', 'nms': True, 'nms_thresh': 0.40, 'sensitivity': 0.5675}
     ibs.scout_localizer_train(config=config)
@@ -2501,7 +2500,10 @@ def scout_localizer_train(
     )
     tid_list = sorted(list(positive_gid_set | negative_gid_set))
 
-    species_list = [target_species]
+    if target_species is None:
+        species_list = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
+    else:
+        species_list = [target_species]
     values = ibs.localizer_lightnet_train(
         species_list, gid_list=tid_list, cuda_device='0,1', target_size=256, **kwargs
     )
@@ -2549,13 +2551,16 @@ def _scout_localizer_ignore_filter_func(
 @register_ibs_method
 def scout_localizer_validate(
     ibs,
-    target_species='elephant_savanna',
+    target_species=None,
     thresh=0.024,
     margin=32,
     min_bbox_coverage=0.5,
     offset_color=0,
     **kwargs
 ):
+    if target_species is None:
+        target_species = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
+
     species_set = {target_species}
     template_v0 = (
         [
@@ -2700,10 +2705,13 @@ def scout_localizer_validate(
 
 @register_ibs_method
 def scout_localizer_image_validate(
-    ibs, target_species='elephant_savanna', quick=False, offset_color=0, **kwargs
+    ibs, target_species=None, quick=False, offset_color=0, **kwargs
 ):
 
     algo = 'tile_aggregation_quick' if quick else 'tile_aggregation'
+
+    if target_species is None:
+        target_species = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
 
     species_set = {target_species}
     template_v0 = (
@@ -3150,7 +3158,7 @@ def scout_verify_negative_gt_suggestsions(
 @register_ibs_method
 def scout_localizer_visualize_errors_annots(
     ibs,
-    target_species='elephant_savanna',
+    target_species=None,
     min_cumulative_percentage=0.025,
     sensitivity=0.4425,
     errors_only=False,
@@ -3164,6 +3172,9 @@ def scout_localizer_visualize_errors_annots(
         localizer_parse_pred,
         localizer_tp_fp,
     )
+
+    if target_species is None:
+        target_species = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
 
     fig_ = plt.figure(figsize=(12, 20), dpi=400)  # NOQA
 
@@ -3211,7 +3222,7 @@ def scout_localizer_visualize_errors_annots(
         for image_uuid in dict_:
             temp = []
             for val in dict_[image_uuid]:
-                if val.get('class', None) != target_species:
+                if not val.get('class', None) in target_species:
                     continue
                 temp.append(val)
             dict_[image_uuid] = temp
@@ -3371,7 +3382,7 @@ def scout_localizer_visualize_errors_annots(
 @register_ibs_method
 def scout_localizer_visualize_errors_clusters(
     ibs,
-    target_species='elephant_savanna',
+    target_species=None,
     sensitivity=0.4425,
     thresh=0.024,
     errors_only=False,
@@ -3385,6 +3396,9 @@ def scout_localizer_visualize_errors_clusters(
         localizer_parse_pred,
         localizer_tp_fp,
     )
+
+    if target_species is None:
+        target_species = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
 
     fig_ = plt.figure(figsize=(40, 12), dpi=400)  # NOQA
 
@@ -3426,7 +3440,7 @@ def scout_localizer_visualize_errors_clusters(
         for image_uuid in dict_:
             temp = []
             for val in dict_[image_uuid]:
-                if val.get('class', None) != target_species:
+                if not val.get('class', None) in target_species:
                     continue
                 temp.append(val)
             dict_[image_uuid] = temp
@@ -3608,7 +3622,7 @@ def scout_visualize_annotation_clusters(
 
 @register_ibs_method
 def scout_compute_gt_annotation_clusters(
-    ibs, target_species='elephant_savanna', use_ancestors=True, **kwargs
+    ibs, target_species=None, use_ancestors=True, **kwargs
 ):
 
     all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
@@ -3653,7 +3667,7 @@ def scout_visualize_gt_annotation_clusters(ibs, use_ancestors=True, **kwargs):
 
 @register_ibs_method
 def scout_compute_pred_annotation_clusters(
-    ibs, target_species='elephant_savanna', use_ancestors=True, quick=True, **kwargs
+    ibs, target_species=None, use_ancestors=True, quick=True, **kwargs
 ):
     assert use_ancestors is True, 'Tile cluster predictions are not supported yet'
 
@@ -3700,7 +3714,7 @@ def scout_visualize_pred_annotation_clusters(
 
 @register_ibs_method
 def scout_visualize_annotation_clusters_distribution(
-    ibs, target_species='elephant_savanna', min_cumulative_percentage=0.025, **kwargs
+    ibs, target_species=None, min_cumulative_percentage=0.025, **kwargs
 ):
     import matplotlib.pyplot as plt
 
@@ -3882,14 +3896,15 @@ def scout_visualize_annotation_clusters_distribution(
 
 
 @register_ibs_method
-def scout_localizer_count_residuals_exploration(
-    ibs, target_species='elephant_savanna', **kwargs
-):
+def scout_localizer_count_residuals_exploration(ibs, target_species=None, **kwargs):
     from wbia.other.detectfuncs import (
         general_parse_gt,
         localizer_parse_pred,
         localizer_tp_fp,
     )
+
+    if target_species is None:
+        target_species = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
 
     gid_list = ibs.get_valid_gids()
     test_gid_set = set(
@@ -3911,7 +3926,7 @@ def scout_localizer_count_residuals_exploration(
         for image_uuid in dict_:
             temp = []
             for val in dict_[image_uuid]:
-                if val.get('class', None) != target_species:
+                if not val.get('class', None) in target_species:
                     continue
                 temp.append(val)
             dict_[image_uuid] = temp
@@ -3973,7 +3988,7 @@ def scout_localizer_count_residuals_exploration(
             for image_uuid in dict_:
                 temp = []
                 for val in dict_[image_uuid]:
-                    if val.get('class', None) != target_species:
+                    if not val.get('class', None) in target_species:
                         continue
                     temp.append(val)
                 dict_[image_uuid] = temp
@@ -4013,7 +4028,7 @@ def scout_localizer_count_residuals_exploration(
 
 @register_ibs_method
 def scout_localizer_visualize_annotation_clusters_residuals(
-    ibs, quick=False, target_species='elephant_savanna', distance=128, **kwargs
+    ibs, quick=False, target_species=None, distance=128, **kwargs
 ):
     import matplotlib.pyplot as plt
 
@@ -4022,6 +4037,9 @@ def scout_localizer_visualize_annotation_clusters_residuals(
         localizer_parse_pred,
         localizer_tp_fp,
     )
+
+    if target_species is None:
+        target_species = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
 
     gid_list = ibs.get_valid_gids()
     test_gid_set = set(
@@ -4048,7 +4066,7 @@ def scout_localizer_visualize_annotation_clusters_residuals(
         for image_uuid in dict_:
             temp = []
             for val in dict_[image_uuid]:
-                if val.get('class', None) != target_species:
+                if not val.get('class', None) in target_species:
                     continue
                 temp.append(val)
             dict_[image_uuid] = temp
@@ -4712,13 +4730,16 @@ def _scout_localizer_visualize_tp_fp_canvas(
 
 @register_ibs_method
 def scout_localizer_visualize_tp_fp_examples(
-    ibs, target_species='elephant_savanna', quick=True, **kwargs
+    ibs, target_species=None, quick=True, **kwargs
 ):
     from wbia.other.detectfuncs import (
         general_parse_gt,
         localizer_parse_pred,
         localizer_tp_fp,
     )
+
+    if target_species is None:
+        target_species = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
 
     canvas_path = abspath(expanduser(join('~', 'Desktop')))
 
@@ -4748,7 +4769,7 @@ def scout_localizer_visualize_tp_fp_examples(
         for image_uuid in dict_:
             temp = []
             for val in dict_[image_uuid]:
-                if val.get('class', None) != target_species:
+                if not val.get('class', None) in target_species:
                     continue
                 temp.append(val)
             dict_[image_uuid] = temp

@@ -6,10 +6,13 @@ import uuid
 
 import numpy as np
 import utool as ut
-from flask import current_app, jsonify
-from flask_swagger import swagger
+from flask import current_app
 
 from wbia.control import controller_inject
+
+# from flask import current_app, jsonify
+# from flask_swagger import swagger
+
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(
     __name__
@@ -101,78 +104,78 @@ def _ensure_sequence_exist(ibs, sequence):
     return sequence_rowid
 
 
-@register_route(_prefix('swagger'), methods=['GET'], __route_prefix_check__=False)
-def scout_core_specification_swagger(*args, **kwargs):
-    r"""
-    Returns the API specification in the Swagger 2.0 (OpenAPI) JSON format.
+# @register_route(_prefix('swagger'), methods=['GET'], __route_prefix_check__=False)
+# def scout_core_specification_swagger(*args, **kwargs):
+#     r"""
+#     Returns the API specification in the Swagger 2.0 (OpenAPI) JSON format.
 
-    The Swagger API specification (https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) provides a standardized method to export REST API documentation and examples.  Our documentation is built on-demand with the help of the Python package flask-swagger (https://github.com/gangverk/flask-swagger).
+#     The Swagger API specification (https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md) provides a standardized method to export REST API documentation and examples.  Our documentation is built on-demand with the help of the Python package flask-swagger (https://github.com/gangverk/flask-swagger).
 
-    The API specification includes GET, POST, PUT, and DELETE methods and Model definitions.
-    ---
-    definitions:
-    - schema:
-        id: Image
-        description: An Image is a semantic construct that represents an uploaded image.  Images can be uploaded for later processing or be used immediately for inference with the pipeline.
-        required:
-          - uuid
-        properties:
-          uuid:
-            description: a deterministically-derived UUID based on the image pixels, which can be used to identify duplicate Images.
-            type: string
-            format: uuid
-    - schema:
-        id: Sequence
-        description: A Sequence is a semantic construct that represents an ordered list of images, where the images are assumed to be in order spatially and temporally
-        required:
-          - name
-          - uuid
-        properties:
-          name:
-            description: a text name to easily refer to the sequence of images (e.g. "Location Samburu, Survey 3, Sequence 10, Camera Left")
-            type: string
-          uuid:
-            description: a random UUID to identify the sequence
-            type: string
-            format: uuid
-    - schema:
-        id: Task
-        description: A Task is a semantic construct that represents a background task in an asynchronous call.  A Task has an optional callback on completion or the status (and result) can be checked via the API
-        required:
-          - uuid
-        properties:
-          uuid:
-            description: a random UUID to identify a given asynchronous call, used to check status and results of a background task
-            type: string
-            format: uuid
-    produces:
-    - application/json
-    responses:
-        200:
-          description: Returns the Swagger 2.0 JSON format
-    """
-    swag = swagger(current_app)
-    swag['info']['title'] = 'Wild Me - Scout MWS Project, Phase 1'
-    swag['info'][
-        'description'
-    ] = 'Documentation for all REST API endpoints provided by Wild Me for the Scout collaboration'
-    swag['info']['version'] = 'v0.1'
-    swag['info']['contact'] = {
-        'name': 'Wild Me',
-        'url': 'http://wildme.org',
-        'email': 'dev@wildme.org',
-    }
-    swag['info']['license'] = {
-        'name': 'Apache 2.0',
-        'url': 'http://www.apache.org/licenses/LICENSE-2.0.html',
-    }
-    swag['host'] = 'kaiju.dyn.wildme.io:5000'
-    swag['schemes'] = [
-        'http',
-    ]
+#     The API specification includes GET, POST, PUT, and DELETE methods and Model definitions.
+#     ---
+#     definitions:
+#     - schema:
+#         id: Image
+#         description: An Image is a semantic construct that represents an uploaded image.  Images can be uploaded for later processing or be used immediately for inference with the pipeline.
+#         required:
+#           - uuid
+#         properties:
+#           uuid:
+#             description: a deterministically-derived UUID based on the image pixels, which can be used to identify duplicate Images.
+#             type: str
+#             format: uuid
+#     - schema:
+#         id: Sequence
+#         description: A Sequence is a semantic construct that represents an ordered list of images, where the images are assumed to be in order spatially and temporally
+#         required:
+#           - name
+#           - uuid
+#         properties:
+#           name:
+#             description: a text name to easily refer to the sequence of images (e.g. "Location Samburu, Survey 3, Sequence 10, Camera Left")
+#             type: str
+#           uuid:
+#             description: a random UUID to identify the sequence
+#             type: str
+#             format: uuid
+#     - schema:
+#         id: Task
+#         description: A Task is a semantic construct that represents a background task in an asynchronous call.  A Task has an optional callback on completion or the status (and result) can be checked via the API
+#         required:
+#           - uuid
+#         properties:
+#           uuid:
+#             description: a random UUID to identify a given asynchronous call, used to check status and results of a background task
+#             type: str
+#             format: uuid
+#     produces:
+#     - application/json
+#     responses:
+#         200:
+#           description: Returns the Swagger 2.0 JSON format
+#     """
+#     swag = swagger(current_app)
+#     swag['info']['title'] = 'Wild Me - Scout MWS Project, Phase 1'
+#     swag['info'][
+#         'description'
+#     ] = 'Documentation for all REST API endpoints provided by Wild Me for the Scout collaboration'
+#     swag['info']['version'] = 'v0.1'
+#     swag['info']['contact'] = {
+#         'name': 'Wild Me',
+#         'url': 'http://wildme.org',
+#         'email': 'dev@wildme.org',
+#     }
+#     swag['info']['license'] = {
+#         'name': 'Apache 2.0',
+#         'url': 'http://www.apache.org/licenses/LICENSE-2.0.html',
+#     }
+#     swag['host'] = 'kaiju.dyn.wildme.io:5000'
+#     swag['schemes'] = [
+#         'http',
+#     ]
 
-    response = jsonify(swag)
-    return response
+#     response = jsonify(swag)
+#     return response
 
 
 @register_api(_prefix('status'), methods=['GET'], __api_plural_check__=False)
@@ -255,7 +258,7 @@ def scout_image_upload(ibs, precompute=False, return_times=False, *args, **kwarg
 
     with ut.Timer('Tiling') as time_tile:
         # Pre-compute tiles
-        ibs.scout_get_valid_tile_rowids(gid_list=[gid], include_grid2=True)
+        ibs.scout_get_valid_tile_rowids(gid_list=[gid], include_grid2=False)
 
     if return_times:
         return image, time_upload, time_tile
@@ -426,7 +429,7 @@ def scout_pipeline(
 
     try:
         with ut.Timer('Config') as time_config:
-            include_grid2 = not quick
+            include_grid2 = False  # not quick
 
             detection_config = ibs.scout_detect_config(quick=quick)
             detection_agg_weight = detection_config['weight_filepath']
