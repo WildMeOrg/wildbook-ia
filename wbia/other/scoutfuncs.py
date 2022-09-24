@@ -1179,7 +1179,7 @@ def scout_wic_train(
     boost_round_ratio=1,
     num_clusters=256,
     n_neighbors=32,
-    use_clusters=True,
+    use_clusters=False,
     hashstr='mvp',
     restart_config_dict=None,
     **kwargs
@@ -1202,8 +1202,6 @@ def scout_wic_train(
         >>> ibs.scout_wic_train(restart_config_dict=restart_config_dict)
     """
     import random
-
-    ut.embed()
 
     latest_model_tag = None
     config_list = []
@@ -1332,16 +1330,22 @@ def scout_wic_train(
                     num_cluster_neg = len(cluster_tile_list)
                     cluster_num_negative = min(num_cluster_examples, num_cluster_neg)
 
-                    for cluster_index, cluster_tile in enumerate(cluster_tile_list):
-                        if cluster_index < cluster_num_negative:
+                    counter = 0
+                    for cluster_tile in cluster_tile_list:
+                        if (
+                            cluster_tile in negative_gid_set
+                            and counter < cluster_num_negative
+                        ):
                             cluster_confidence = boost_confidence_thresh + random.uniform(
                                 0.0, 0.001
                             )
+                            counter += 1
                         else:
                             cluster_confidence = -1.0
                         assert cluster_tile not in ensemble_confidence_dict
                         ensemble_confidence_dict[cluster_tile] = cluster_confidence
 
+                globals().update(locals())
                 ensemble_confidence_list = [
                     ensemble_confidence_dict[test_tile] for test_tile in test_tile_list
                 ]
@@ -1354,6 +1358,7 @@ def scout_wic_train(
                     test_tile_list, model_tag=ensemble_latest_model_tag
                 )
 
+            globals().update(locals())
             flag_list = [
                 confidence >= boost_confidence_thresh
                 for confidence in ensemble_confidence_list
@@ -1491,7 +1496,7 @@ def scout_wic_train(
                 rotate=10,
                 shear=10,
                 class_weights=class_weights,
-                sample_multiplier=2.0,
+                sample_multiplier=1.0,
             )
             weights_path_list.append(weights_path)
 

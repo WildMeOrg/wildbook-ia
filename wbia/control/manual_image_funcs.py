@@ -3140,17 +3140,26 @@ def get_tile_children_gids(ibs, gid_list):
 )
 def get_tile_descendants_gids(ibs, gid_list):
     children_gids_list = ibs.get_tile_children_gids(gid_list)
+    children_gid_list = ut.flatten(children_gids_list)
+    grandchildren_gid_list = ibs.get_tile_children_gids(children_gid_list)
+    grandchildren_gid_dict = dict(zip(children_gid_list, grandchildren_gid_list))
 
     descendants_cache = {}
 
     descendants_gids_list = []
-    for index, children_gid_list in enumerate(children_gids_list):
+    for children_gid_list in tqdm.tqdm(children_gids_list):
         descendants_gid_list = children_gid_list
-        for children_gid in children_gid_list:
+        grandchildren_gid_list = ut.take(grandchildren_gid_dict, children_gid_list)
+        for children_gid, grandchildren_gid in zip(
+            children_gid_list, grandchildren_gid_list
+        ):
             if children_gid in descendants_cache:
                 descendants_gid_list_ = descendants_cache[children_gid]
             else:
-                descendants_gid_list_ = ibs.get_tile_descendants_gids(children_gid)
+                if len(grandchildren_gid) == 0:
+                    descendants_gid_list_ = []
+                else:
+                    descendants_gid_list_ = ibs.get_tile_descendants_gids(children_gid)
                 descendants_cache[children_gid] = descendants_gid_list_
             descendants_gid_list += descendants_gid_list_
 

@@ -468,7 +468,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
 def train(
     data_path,
     output_path,
-    batch_size=48,
+    batch_size=128,
     class_weights={},
     multi=PARALLEL,
     sample_multiplier=4.0,
@@ -476,7 +476,7 @@ def train(
     **kwargs,
 ):
     # Detect if we have a GPU available
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
 
     phases = ['train', 'val']
@@ -485,6 +485,7 @@ def train(
 
     # Create training and validation datasets
     transforms = _init_transforms(**kwargs)
+    globals().update(locals())
     datasets = {
         phase: torchvision.datasets.ImageFolder(
             os.path.join(data_path, phase), transforms[phase]
@@ -492,6 +493,7 @@ def train(
         for phase in phases
     }
 
+    globals().update(locals())
     # Create training and validation dataloaders
     dataloaders = {
         phase: torch.utils.data.DataLoader(
@@ -500,7 +502,7 @@ def train(
                 datasets[phase], phase, multiplier=sample_multiplier
             ),
             batch_size=batch_size,
-            num_workers=batch_size // 8,
+            num_workers=16,
             pin_memory=using_gpu,
         )
         for phase in phases
@@ -516,9 +518,13 @@ def train(
     logger.info('Initializing Model...')
 
     # Initialize the model for this run
-    model = torchvision.models.resnet50(pretrained=True)
-    num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, num_classes)
+    model = torchvision.models.resnet50(
+        weights=torchvision.models.ResNet50_Weights.DEFAULT
+    )
+    # num_ftrs = model.classifier.in_features
+    # model.classifier = nn.Linear(num_ftrs, num_classes)
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, num_classes)
 
     # Send the model to GPU
     model = model.to(device)
@@ -530,8 +536,8 @@ def train(
 
     logger.info('Print Examples of Training Augmentation...')
 
-    for phase in phases:
-        visualize_augmentations(datasets[phase], AUGMENTATION[phase], phase, **kwargs)
+    # for phase in phases:
+    #     visualize_augmentations(datasets[phase], AUGMENTATION[phase], phase, **kwargs)
 
     logger.info('Initializing Optimizer...')
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import tqdm
 import utool as ut
 
 # Inject utool functions
@@ -61,7 +62,7 @@ def get_cnn_classifier_cameratrap_binary_training_images_pytorch(
     candidate_gid_set = positive_gid_set | negative_gid_set
     candidate_gid_set = train_gid_set & candidate_gid_set
 
-    for gid in candidate_gid_set:
+    for gid in tqdm.tqdm(candidate_gid_set):
         # args = (gid, )
         # logger.info('Processing GID: %r' % args)
 
