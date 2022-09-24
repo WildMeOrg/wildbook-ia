@@ -242,7 +242,7 @@ def scout_get_valid_tile_rowids(
         gid_list = gid_list[:limit]
 
     if True:
-        tile_list = ibs.get_tile_descendants_gids(gid_list)
+        tile_list = ibs.get_valid_gids(is_tile=True)
         config_list = [1] * len(tile_list)
     else:
         tile_size = 256
@@ -575,13 +575,20 @@ def scout_tile_positive_cumulative_area(
 ):
     tile_bbox_list = ibs.get_tile_bboxes(tile_list)
     aids_list = ibs.get_tile_aids(tile_list)
-    species_set_list = list(map(set, map(ibs.get_annot_species_texts, aids_list)))
+    species_aid_list = list(set(ut.flatten(aids_list)))
+    species_text_list = ibs.get_annot_species_texts(species_aid_list)
+    species_dict = dict(zip(species_aid_list, species_text_list))
+
+    species_set_list = []
+    for aid_list in aids_list:
+        species_set = set(ut.take(species_dict, aid_list))
+        species_set_list.append(species_set)
+
+    zipped = list(zip(tile_list, tile_bbox_list, aids_list, species_set_list))
 
     cumulative_area_list = []
     total_area_list = []
-    for tile_id, tile_bbox, aid_list, species_set in zip(
-        tile_list, tile_bbox_list, aids_list, species_set_list
-    ):
+    for tile_id, tile_bbox, aid_list, species_set in tqdm.tqdm(zipped):
         tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
         canvas = np.zeros((tile_h, tile_w), dtype=np.float32)
         if target_species is None or target_species in species_set:
