@@ -1173,9 +1173,10 @@ def scout_visualize_visual_clusters(
 @register_ibs_method
 def scout_wic_train(
     ibs,
-    ensembles=3,
+    ensembles=1,
     rounds=5,
-    boost_confidence_thresh=0.5,
+    boost_confidence_thresh_min=0.1,
+    boost_confidence_thresh_max=0.8,
     boost_round_ratio=1,
     num_clusters=256,
     n_neighbors=32,
@@ -1198,6 +1199,13 @@ def scout_wic_train(
         >>>     'scout-d3e8bf43-boost5': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.5.zip',
         >>>     'scout-d3e8bf43-boost6': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.6.zip',
         >>>     'scout-d3e8bf43-boost7': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.d3e8bf43.7.zip',
+        >>> }
+        >>> ibs.scout_wic_train(restart_config_dict=restart_config_dict)
+
+    Ignore:
+        >>> restart_config_dict = {
+        >>>     'scout-mvp-boost0': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.mvp.0.zip',
+        >>>     'scout-mvp-boost1': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.mvp.1.zip',
         >>> }
         >>> ibs.scout_wic_train(restart_config_dict=restart_config_dict)
     """
@@ -1229,7 +1237,7 @@ def scout_wic_train(
             latest_model_tag = restart_config_key
             config_list.append(
                 {
-                    'label': 'WIC %s rRound %d'
+                    'label': 'WIC %s Round %d'
                     % (
                         hashstr,
                         round_,
@@ -1298,8 +1306,20 @@ def scout_wic_train(
                 test_tile_list, model_tag=latest_model_tag
             )
 
+        temp = np.array(round_confidence_list)
+        for i in range(0, 11):
+            thresh1 = 0.1 * i
+            thresh2 = thresh1 + 0.1
+            temp1 = thresh1 <= temp
+            temp2 = temp <= thresh2
+            print(thresh1, thresh2)
+            print(sum(val1 and val2 for val1, val2 in zip(temp1, temp2)))
+
+        globals().update(locals())
         flag_list = [
-            confidence >= boost_confidence_thresh for confidence in round_confidence_list
+            boost_confidence_thresh_min <= confidence
+            and confidence <= boost_confidence_thresh_max
+            for confidence in round_confidence_list
         ]
         round_hard_neg_test_tile_list = ut.compress(test_tile_list, flag_list)
         round_hard_neg_confidence_list = ut.compress(round_confidence_list, flag_list)
@@ -1336,8 +1356,8 @@ def scout_wic_train(
                             cluster_tile in negative_gid_set
                             and counter < cluster_num_negative
                         ):
-                            cluster_confidence = boost_confidence_thresh + random.uniform(
-                                0.0, 0.001
+                            cluster_confidence = (
+                                boost_confidence_thresh_min + random.uniform(0.0, 0.001)
                             )
                             counter += 1
                         else:
@@ -1360,7 +1380,8 @@ def scout_wic_train(
 
             globals().update(locals())
             flag_list = [
-                confidence >= boost_confidence_thresh
+                boost_confidence_thresh_min <= confidence
+                and confidence <= boost_confidence_thresh_max
                 for confidence in ensemble_confidence_list
             ]
             ensemble_hard_neg_test_tile_list = ut.compress(test_tile_list, flag_list)
@@ -1368,20 +1389,20 @@ def scout_wic_train(
                 ensemble_confidence_list, flag_list
             )
 
-            message = 'Found %d ENSEMBLE hard negatives for round %d (boost_confidence_thresh=%0.02f)'
+            message = 'Found %d ENSEMBLE hard negatives for round %d (boost_confidence_thresh_min=%0.02f)'
             args = (
                 len(round_hard_neg_test_tile_list),
                 round_num,
-                boost_confidence_thresh,
+                boost_confidence_thresh_min,
             )
             logger.info(message % args)
 
-            message = 'Found %d MODEL hard negatives for round %d model %d (boost_confidence_thresh=%0.02f)'
+            message = 'Found %d MODEL hard negatives for round %d model %d (boost_confidence_thresh_min=%0.02f)'
             args = (
                 len(ensemble_hard_neg_test_tile_list),
                 round_num,
                 ensemble_num,
-                boost_confidence_thresh,
+                boost_confidence_thresh_min,
             )
             logger.info(message % args)
 
@@ -1442,7 +1463,17 @@ def scout_wic_train(
                 previous_ensemble_test_tile_list = ibs.get_imageset_gids(
                     previous_boost_id
                 )
-                last_ensemble_test_tile_list = previous_ensemble_test_tile_list[:]
+                previous_ensemble_confidence_list = ibs.scout_wic_test(
+                    previous_ensemble_test_tile_list, model_tag=ensemble_latest_model_tag
+                )
+                previous_flag_list = [
+                    previous_ensemble_confidence <= 0.8
+                    for previous_ensemble_confidence in previous_ensemble_confidence_list
+                ]
+
+                last_ensemble_test_tile_list = ut.compress(
+                    previous_ensemble_test_tile_list, previous_flag_list
+                )
                 logger.info(
                     '\tFound %d images' % (len(previous_ensemble_test_tile_list),)
                 )

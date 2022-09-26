@@ -476,7 +476,7 @@ def train(
     **kwargs,
 ):
     # Detect if we have a GPU available
-    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:3' if torch.cuda.is_available() else 'cpu')
     using_gpu = str(device) != 'cpu'
 
     phases = ['train', 'val']
@@ -502,7 +502,7 @@ def train(
                 datasets[phase], phase, multiplier=sample_multiplier
             ),
             batch_size=batch_size,
-            num_workers=16,
+            num_workers=40,
             pin_memory=using_gpu,
         )
         for phase in phases
@@ -521,8 +521,6 @@ def train(
     model = torchvision.models.resnet50(
         weights=torchvision.models.ResNet50_Weights.DEFAULT
     )
-    # num_ftrs = model.classifier.in_features
-    # model.classifier = nn.Linear(num_ftrs, num_classes)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, num_classes)
 
@@ -549,7 +547,8 @@ def train(
             # logger.info('\t', name)
 
     # Observe that all parameters are being optimized
-    optimizer = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
+    # optimizer = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(params_to_update)
 
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, 'min', factor=0.5, patience=10, min_lr=1e-6
@@ -611,8 +610,8 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
 
     # Initialize the model for this run
     model = torchvision.models.resnet50()
-    num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, num_classes)
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, num_classes)
 
     # Convert any weights to non-parallel version
     from collections import OrderedDict
@@ -626,7 +625,7 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
     model.load_state_dict(new_state)
 
     # Add softmax
-    model.classifier = nn.Sequential(model.classifier, nn.LogSoftmax(), nn.Softmax())
+    model.fc = nn.Sequential(model.fc, nn.LogSoftmax(), nn.Softmax())
 
     # Make parallel at end
     if multi:
