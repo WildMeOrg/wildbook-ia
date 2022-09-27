@@ -104,6 +104,9 @@ ARCHIVE_URL_DICT = {
     'scout-5fbfff26-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.1.zip',
     'scout-5fbfff26-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.2.zip',
     'scout-5fbfff26-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.3.zip',
+    'scout-mvp-boost0': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.mvp.0.zip',
+    'scout-mvp-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.mvp.1.zip',
+    'scout-mvp-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.mvp.2.zip',
 }
 
 

@@ -1888,6 +1888,115 @@ def scout_wic_validate(
         target_recall_list = [None, 0.8, 0.85, 0.9, 0.95, 0.98]
 
     filter_fn_func = _filter_fn_func if fn_recovery else None
+
+    if False:
+        pid_tids = ibs.get_imageset_gids(pid)
+        pid_tids = list(set(pid_tids) & set(test_tile_list))
+        assert set(ibs.get_tile_flags(pid_tids)) == {True}
+        model_tag = 'scout-mvp-boost2'
+        confidences = ibs.scout_wic_test(pid_tids, model_tag=model_tag)
+        pid_confidences = np.array(confidences)
+
+        nid_tids = ibs.get_imageset_gids(nid)
+        nid_tids = list(set(nid_tids) & set(test_tile_list))
+        assert set(ibs.get_tile_flags(nid_tids)) == {True}
+        model_tag = 'scout-mvp-boost2'
+        confidences = ibs.scout_wic_test(nid_tids, model_tag=model_tag)
+        nid_confidences = np.array(confidences)
+
+        pid_conf = np.mean(pid_confidences)
+        nid_conf = np.mean(nid_confidences)
+        pid_thresh = pid_conf - 2.0 * np.std(pid_confidences)
+        nid_thresh = nid_conf + 2.0 * np.std(nid_confidences)
+
+        globals().update(locals())
+        pid_flags = [pid_confidence < pid_thresh for pid_confidence in pid_confidences]
+        nid_flags = [nid_confidence > nid_thresh for nid_confidence in nid_confidences]
+
+        pid_tids = ut.compress(pid_tids, pid_flags)
+        nid_tids = ut.compress(nid_tids, nid_flags)
+
+        # Clean positives, but check for area coverage is still less than 5%
+        values = ibs.scout_tile_positive_cumulative_area(pid_tids, target_species=None)
+        cumulative_area_list, total_area_list, flag_list = values
+        assert set(flag_list) == {True}
+        coverage = [
+            cumulative_area_ / total_area_
+            for cumulative_area_, total_area_ in zip(
+                cumulative_area_list, total_area_list
+            )
+        ]
+        confidences = ibs.scout_wic_test(pid_tids, model_tag=model_tag)
+        globals().update(locals())
+        flags = [
+            cov <= 0.05
+            and conf <= nid_conf  # double the normal positive threshold of 2.5%
+            for cov, conf in zip(coverage, confidences)
+        ]
+        negative_pid_tids = ut.compress(pid_tids, flags)
+
+        # Clean negatives, take any negative with a positive area or a conf > positive mean
+        values = ibs.scout_tile_positive_cumulative_area(nid_tids, target_species=None)
+        cumulative_area_list, total_area_list, flag_list = values
+        assert set(flag_list) == {False}
+        coverage = [
+            cumulative_area_ / total_area_
+            for cumulative_area_, total_area_ in zip(
+                cumulative_area_list, total_area_list
+            )
+        ]
+        confidences = ibs.scout_wic_test(nid_tids, model_tag=model_tag)
+        globals().update(locals())
+        flags = [
+            cov > 0.0 or conf >= pid_conf for cov, conf in zip(coverage, confidences)
+        ]
+        positive_nid_tids = ut.compress(nid_tids, flags)
+
+        # get new imagesets
+        pid_clean_imageset_text = 'POSITIVE-GT-CLEANED-{}'.format(model_tag)
+        (pid_clean,) = ibs.get_imageset_imgsetids_from_text([pid_clean_imageset_text])
+        nid_clean_imageset_text = 'NEGATIVE-GT-CLEANED-{}'.format(model_tag)
+        (nid_clean,) = ibs.get_imageset_imgsetids_from_text([nid_clean_imageset_text])
+
+        # Unassign to new imagesets
+        gid_all_list = ibs.get_valid_gids(is_tile=None)
+        ibs.unrelate_images_and_imagesets(gid_all_list, [pid_clean] * len(gid_all_list))
+        ibs.unrelate_images_and_imagesets(gid_all_list, [nid_clean] * len(gid_all_list))
+
+        # Assign to new imagesets
+        pid_tids = ibs.get_imageset_gids(pid)
+        nid_tids = ibs.get_imageset_gids(nid)
+
+        pid_tids = set(pid_tids)
+        nid_tids = set(nid_tids)
+        negative_pid_tids = set(negative_pid_tids)
+        positive_nid_tids = set(positive_nid_tids)
+
+        assert set(pid_tids) & set(negative_pid_tids) == set(negative_pid_tids)
+        assert set(nid_tids) & set(positive_nid_tids) == set(positive_nid_tids)
+        assert len(set(pid_tids) & set(positive_nid_tids)) == 0
+        assert len(set(nid_tids) & set(negative_pid_tids)) == 0
+        assert len(set(negative_pid_tids) & set(positive_nid_tids)) == 0
+
+        pid_tids = pid_tids - negative_pid_tids - positive_nid_tids
+        nid_tids = nid_tids - positive_nid_tids - negative_pid_tids
+
+        pid_tids = pid_tids | positive_nid_tids
+        nid_tids = nid_tids | negative_pid_tids
+
+        assert len(set(pid_tids) & set(negative_pid_tids)) == 0
+        assert len(set(nid_tids) & set(positive_nid_tids)) == 0
+        assert set(pid_tids) & set(positive_nid_tids) == set(positive_nid_tids)
+        assert set(nid_tids) & set(negative_pid_tids) == set(negative_pid_tids)
+        assert set(test_tile_list) & set(positive_nid_tids) == set(positive_nid_tids)
+        assert set(test_tile_list) & set(negative_pid_tids) == set(negative_pid_tids)
+
+        ibs.set_image_imgsetids(pid_tids, [pid_clean] * len(pid_tids))
+        ibs.set_image_imgsetids(nid_tids, [nid_clean] * len(nid_tids))
+
+        pid = pid_clean
+        nid = nid_clean
+
     for target_recall in target_recall_list:
         ibs.classifier_cameratrap_precision_recall_algo_display(
             pid,
@@ -2539,15 +2648,22 @@ def scout_localizer_train(ibs, target_species=None, ratio=2.0, config=None, **kw
     negative_gid_set = negative_gid_set & train_gid_set
     negative_gid_list = list(negative_gid_set)
 
-    # model_tag = 'scout-d3e8bf43-boost4'
-    model_tag = 'scout-5fbfff26-boost3'
-    confidence_list = ibs.scout_wic_test(negative_gid_list, model_tag=model_tag)
-    zipped = sorted(list(zip(confidence_list, negative_gid_list)), reverse=True)
+    if True:
+        model_tag = 'scout-mvp-boost2'
+        confidence_list = ibs.scout_wic_test(negative_gid_list, model_tag=model_tag)
+        flags = [confidence >= 0.07 for confidence in confidence_list]
+        negative_gid_set = set(ut.compress(negative_gid_list, flags))
+    else:
+        # model_tag = 'scout-d3e8bf43-boost4'
+        # model_tag = 'scout-5fbfff26-boost3'
+        model_tag = 'scout-mvp-boost2'
+        confidence_list = ibs.scout_wic_test(negative_gid_list, model_tag=model_tag)
+        zipped = sorted(list(zip(confidence_list, negative_gid_list)), reverse=True)
 
-    num_positive = len(positive_gid_set)
-    num_negative = min(len(negative_gid_set), int(ratio * num_positive))
-    zipped = zipped[:num_negative]
-    negative_gid_set = set(ut.take_column(zipped, 1))
+        num_positive = len(positive_gid_set)
+        num_negative = min(len(negative_gid_set), int(ratio * num_positive))
+        zipped = zipped[:num_negative]
+        negative_gid_set = set(ut.take_column(zipped, 1))
 
     if config is not None:
         from wbia.other.detectfuncs import localizer_parse_pred
@@ -2589,10 +2705,28 @@ def scout_localizer_train(ibs, target_species=None, ratio=2.0, config=None, **kw
 
     if target_species is None:
         species_list = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
+        species_mapping = {
+            'dead_animalwhite_bones': 'white_bones',
+            'deadbones': 'white_bones',
+            'elecarcass_old': 'white_bones',
+            'gazelle_gr': 'gazelle_grants',
+            'gazelle_th': 'gazelle_thomsons',
+        }
+        species_list = sorted(set(species_list + list(species_mapping.values())))
     else:
         species_list = [target_species]
+        species_mapping = {}
+
     values = ibs.localizer_lightnet_train(
-        species_list, gid_list=tid_list, cuda_device='0,1', target_size=256, **kwargs
+        species_list,
+        species_mapping=species_mapping,
+        gid_list=tid_list,
+        cuda_device='0,1,2,3',
+        target_size=256,
+        allow_empty_images=True,
+        min_annot_size=3,
+        cache_species_str='mvp',
+        **kwargs
     )
     model_weight_filepath, model_config_filepath = values
 
