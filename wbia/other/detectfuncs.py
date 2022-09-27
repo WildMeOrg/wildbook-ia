@@ -281,7 +281,6 @@ def general_area_best_conf(
         ap = np.trapz(y_list, x=x_list)
 
     tup1 = general_identify_operating_point(conf_list, x_list, y_list, target=target)
-    best_conf_list, best_x_list, best_y_list, best_length = tup1
 
     tup2 = None
     if target_recall is not None:
@@ -293,6 +292,7 @@ def general_area_best_conf(
     if force_target_recall and tup2 is not None:
         tup1 = tup2
 
+    best_conf_list, best_x_list, best_y_list, best_length = tup1
     if len(best_conf_list) > 1:
         logger.info(
             'WARNING: Multiple best operating points found {!r}'.format(best_conf_list)
@@ -312,6 +312,12 @@ def general_area_best_conf(
 
     if plot_point:
         plt.plot(best_x_list, best_y_list, color=color, marker=marker)
+
+        # if tup2 is not None:
+        #     best_conf_list, best_x_list, best_y_list, best_length = tup2
+        #     color = 'xkcd:gold'
+        #     marker = 'D'
+        #     plt.plot(best_x_list, best_y_list, color=color, marker=marker)
 
     return ap, best_conf, tup1, tup2
 

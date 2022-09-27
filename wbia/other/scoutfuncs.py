@@ -1206,6 +1206,7 @@ def scout_wic_train(
         >>> restart_config_dict = {
         >>>     'scout-mvp-boost0': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.mvp.0.zip',
         >>>     'scout-mvp-boost1': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.mvp.1.zip',
+        >>>     'scout-mvp-boost2': 'https://cthulhu.dyn.wildme.io/public/models/classifier2.scout.mvp.2.zip',
         >>> }
         >>> ibs.scout_wic_train(restart_config_dict=restart_config_dict)
     """
@@ -1248,7 +1249,7 @@ def scout_wic_train(
             )
 
         restart_round_num = latest_round
-        ibs.scout_wic_validate(config_list)
+        ibs.scout_wic_validate(config_list, target_recall_list=[0.95])
 
     # Start training
     if hashstr is None:
@@ -1315,6 +1316,41 @@ def scout_wic_train(
             print(thresh1, thresh2)
             print(sum(val1 and val2 for val1, val2 in zip(temp1, temp2)))
 
+        boost_confidence_thresh_min = np.mean(round_confidence_list)
+        boost_confidence_thresh_max = boost_confidence_thresh_min + np.std(
+            round_confidence_list
+        )
+
+        temp = np.array(round_confidence_list)
+        for i in range(0, 11):
+            thresh1 = 0.1 * i
+            thresh2 = thresh1 + 0.1
+            temp1 = thresh1 <= temp
+            temp2 = temp <= thresh2
+            print(thresh1, thresh2)
+            print(sum(val1 and val2 for val1, val2 in zip(temp1, temp2)))
+
+        thresh1 = 0
+        thresh2 = boost_confidence_thresh_min
+        temp1 = thresh1 <= temp
+        temp2 = temp <= thresh2
+        print(thresh1, thresh2)
+        print(sum(val1 and val2 for val1, val2 in zip(temp1, temp2)))
+
+        thresh1 = boost_confidence_thresh_min
+        thresh2 = boost_confidence_thresh_max
+        temp1 = thresh1 <= temp
+        temp2 = temp <= thresh2
+        print(thresh1, thresh2)
+        print(sum(val1 and val2 for val1, val2 in zip(temp1, temp2)))
+
+        thresh1 = boost_confidence_thresh_max
+        thresh2 = 1.0
+        temp1 = thresh1 <= temp
+        temp2 = temp <= thresh2
+        print(thresh1, thresh2)
+        print(sum(val1 and val2 for val1, val2 in zip(temp1, temp2)))
+
         globals().update(locals())
         flag_list = [
             boost_confidence_thresh_min <= confidence
@@ -1378,10 +1414,14 @@ def scout_wic_train(
                     test_tile_list, model_tag=ensemble_latest_model_tag
                 )
 
+            ensemble_boost_confidence_thresh_min = np.mean(ensemble_confidence_list)
+            ensemble_boost_confidence_thresh_max = boost_confidence_thresh_min + np.std(
+                ensemble_confidence_list
+            )
             globals().update(locals())
             flag_list = [
-                boost_confidence_thresh_min <= confidence
-                and confidence <= boost_confidence_thresh_max
+                ensemble_boost_confidence_thresh_min <= confidence
+                and confidence <= ensemble_boost_confidence_thresh_max
                 for confidence in ensemble_confidence_list
             ]
             ensemble_hard_neg_test_tile_list = ut.compress(test_tile_list, flag_list)
@@ -1432,18 +1472,18 @@ def scout_wic_train(
             ensemble_test_confidence_list = ut.take_column(ensemble_test_tuple_list, 0)
             ensemble_test_tile_list = ut.take_column(ensemble_test_tuple_list, 1)
             args = (
+                len(ensemble_test_confidence_list),
                 np.min(ensemble_test_confidence_list),
                 np.max(ensemble_test_confidence_list),
                 np.mean(ensemble_test_confidence_list),
                 np.std(ensemble_test_confidence_list),
             )
             logger.info(
-                'Mined negatives with confidences in range [%0.04f, %0.04f] (avg %0.04f +/- %0.04f)'
+                'Mined %d negatives with confidences in range [%0.04f, %0.04f] (avg %0.04f +/- %0.04f)'
                 % args
             )
 
             # Add previous negative boosting rounds
-            last_ensemble_test_tile_list = []
             for previous_round_num in range(0, round_num):
                 previous_boost_imageset_text = 'NEGATIVE-BOOST-%s-%d-%d' % (
                     hashstr,
@@ -1466,14 +1506,17 @@ def scout_wic_train(
                 previous_ensemble_confidence_list = ibs.scout_wic_test(
                     previous_ensemble_test_tile_list, model_tag=ensemble_latest_model_tag
                 )
+
+                globals().update(locals())
                 previous_flag_list = [
-                    previous_ensemble_confidence <= 0.8
-                    for previous_ensemble_confidence in previous_ensemble_confidence_list
+                    0 <= confidence and confidence <= ensemble_boost_confidence_thresh_max
+                    for confidence in previous_ensemble_confidence_list
                 ]
 
-                last_ensemble_test_tile_list = ut.compress(
+                previous_ensemble_test_tile_list = ut.compress(
                     previous_ensemble_test_tile_list, previous_flag_list
                 )
+
                 logger.info(
                     '\tFound %d images' % (len(previous_ensemble_test_tile_list),)
                 )
@@ -1481,17 +1524,11 @@ def scout_wic_train(
 
             ensemble_test_tile_list = list(set(ensemble_test_tile_list))
 
-            num_new = len(
-                list(set(ensemble_test_tile_list) - set(last_ensemble_test_tile_list))
-            )
-            message = (
-                'Found %d TOTAL hard negatives for round %d model %d (%d new this round)'
-            )
+            message = 'Found %d TOTAL hard negatives for round %d model %d'
             args = (
                 len(ensemble_test_tile_list),
                 round_num,
                 ensemble_num,
-                num_new,
             )
             logger.info(message % args)
 
