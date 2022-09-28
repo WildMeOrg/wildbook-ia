@@ -507,7 +507,6 @@ def general_get_imageset_gids(ibs, imageset_text, unique=True, **kwargs):
 
 def general_parse_gt_annots(
     ibs,
-    gid,
     aid_list,
     include_parts=True,
     restrict_to_boundary=True,
@@ -537,7 +536,7 @@ def general_parse_gt_annots(
         # Rotate and transform vertices
         xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
         trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-        new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+        new_verts = np.round(trans_pts).astype(np.int64).T.tolist()
         x_points = [pt[0] for pt in new_verts]
         y_points = [pt[1] for pt in new_verts]
         xtl = int(min(x_points))
@@ -591,7 +590,7 @@ def general_parse_gt_annots(
                 # Rotate and transform vertices
                 xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
                 trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-                new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+                new_verts = np.round(trans_pts).astype(np.int64).T.tolist()
                 x_points = [pt[0] for pt in new_verts]
                 y_points = [pt[1] for pt in new_verts]
                 xtl = int(min(x_points))
@@ -649,16 +648,17 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
 
     uuid_list = ibs.get_image_uuids(test_gid_list)
     gid_list = ibs.get_image_gids_from_uuid(uuid_list)
+    aids_list = ibs.get_image_aids(gid_list)
 
     species_set = set()
     gt_dict = {}
-    for gid, uuid in zip(gid_list, uuid_list):
+    zipped = list(zip(gid_list, aids_list, uuid_list))
+    for gid, aid_list, uuid in tqdm.tqdm(zipped):
         cache_tag = '{}_{}'.format(
             uuid,
             kwargs_cfgstr,
         )
         if cache_tag not in GLOBAL_GT_CACHE_DICT:
-            aid_list = ibs.get_image_aids(gid)
             gt_list, species_set = general_parse_gt_annots(ibs, aid_list, **kwargs)
             species_set = species_set | species_set
             GLOBAL_GT_CACHE_DICT[cache_tag] = gt_list
