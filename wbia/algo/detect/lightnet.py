@@ -101,6 +101,7 @@ CONFIG_URL_DICT = {
     'scout_d3e8bf43_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.scout.d3e8bf43.v1.py',
     'scout_5fbfff26_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.scout.5fbfff26.v0.py',
     'scout_5fbfff26_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.scout.5fbfff26.v1.py',
+    'scout_mvp_boost0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.scout.mvp.0.py',
     None: 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py',
     'training_kit': 'https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip',
 }
