@@ -508,13 +508,15 @@ def general_get_imageset_gids(ibs, imageset_text, unique=True, **kwargs):
 def general_parse_gt_annots(
     ibs,
     aid_list,
+    gid_list=None,
     include_parts=True,
     restrict_to_boundary=True,
     species_mapping={},
     gt_species_mapping={},
     **kwargs,
 ):
-    gid_list = ibs.get_annot_gids(aid_list)
+    if gid_list is None:
+        gid_list = ibs.get_annot_gids(aid_list)
 
     species_mapping_ = species_mapping.copy()
     species_mapping_.update(gt_species_mapping)
@@ -646,6 +648,8 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
+    ut.embed()
+
     uuid_list = ibs.get_image_uuids(test_gid_list)
     gid_list = ibs.get_image_gids_from_uuid(uuid_list)
     aids_list = ibs.get_image_aids(gid_list)
@@ -659,7 +663,10 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
             kwargs_cfgstr,
         )
         if cache_tag not in GLOBAL_GT_CACHE_DICT:
-            gt_list, species_set = general_parse_gt_annots(ibs, aid_list, **kwargs)
+            reference_tile_gid_list = [gid] * len(aid_list)
+            gt_list, species_set = general_parse_gt_annots(
+                ibs, aid_list, gid_list=reference_tile_gid_list, **kwargs
+            )
             species_set = species_set | species_set
             GLOBAL_GT_CACHE_DICT[cache_tag] = gt_list
 

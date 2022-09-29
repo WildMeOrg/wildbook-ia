@@ -2883,16 +2883,16 @@ def scout_localizer_validate(
                 'nms_thresh': 0.00,
                 'species_set': species_set,
             },
-            {
-                'label': 'MVP NMS 10%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 0.10,
-                'species_set': species_set,
-            },
+            # {
+            #     'label': 'MVP NMS 10%',
+            #     'grid': False,
+            #     'algo': 'lightnet',
+            #     'config_filepath': 'scout_mvp_boost0',
+            #     'weight_filepath': 'scout_mvp_boost0',
+            #     'nms': True,
+            #     'nms_thresh': 0.10,
+            #     'species_set': species_set,
+            # },
             {
                 'label': 'MVP NMS 20%',
                 'grid': False,
@@ -2903,16 +2903,16 @@ def scout_localizer_validate(
                 'nms_thresh': 0.20,
                 'species_set': species_set,
             },
-            {
-                'label': 'MVP NMS 30%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 0.30,
-                'species_set': species_set,
-            },
+            # {
+            #     'label': 'MVP NMS 30%',
+            #     'grid': False,
+            #     'algo': 'lightnet',
+            #     'config_filepath': 'scout_mvp_boost0',
+            #     'weight_filepath': 'scout_mvp_boost0',
+            #     'nms': True,
+            #     'nms_thresh': 0.30,
+            #     'species_set': species_set,
+            # },
             {
                 'label': 'MVP NMS 40%',
                 'grid': False,
@@ -2923,16 +2923,16 @@ def scout_localizer_validate(
                 'nms_thresh': 0.40,
                 'species_set': species_set,
             },
-            {
-                'label': 'MVP NMS 50%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 0.50,
-                'species_set': species_set,
-            },
+            # {
+            #     'label': 'MVP NMS 50%',
+            #     'grid': False,
+            #     'algo': 'lightnet',
+            #     'config_filepath': 'scout_mvp_boost0',
+            #     'weight_filepath': 'scout_mvp_boost0',
+            #     'nms': True,
+            #     'nms_thresh': 0.50,
+            #     'species_set': species_set,
+            # },
             {
                 'label': 'MVP NMS 60%',
                 'grid': False,
@@ -2943,16 +2943,16 @@ def scout_localizer_validate(
                 'nms_thresh': 0.60,
                 'species_set': species_set,
             },
-            {
-                'label': 'MVP NMS 70%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 0.70,
-                'species_set': species_set,
-            },
+            # {
+            #     'label': 'MVP NMS 70%',
+            #     'grid': False,
+            #     'algo': 'lightnet',
+            #     'config_filepath': 'scout_mvp_boost0',
+            #     'weight_filepath': 'scout_mvp_boost0',
+            #     'nms': True,
+            #     'nms_thresh': 0.70,
+            #     'species_set': species_set,
+            # },
             {
                 'label': 'MVP NMS 80%',
                 'grid': False,
@@ -2963,16 +2963,16 @@ def scout_localizer_validate(
                 'nms_thresh': 0.80,
                 'species_set': species_set,
             },
-            {
-                'label': 'MVP NMS 90%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 0.90,
-                'species_set': species_set,
-            },
+            # {
+            #     'label': 'MVP NMS 90%',
+            #     'grid': False,
+            #     'algo': 'lightnet',
+            #     'config_filepath': 'scout_mvp_boost0',
+            #     'weight_filepath': 'scout_mvp_boost0',
+            #     'nms': True,
+            #     'nms_thresh': 0.90,
+            #     'species_set': species_set,
+            # },
             {
                 'label': 'MVP NMS 100%',
                 'grid': False,
@@ -2985,7 +2985,7 @@ def scout_localizer_validate(
             },
             #############################################
         ],
-        {},
+        {'plot_iou_recall': False, 'min_overlap': 0.20},
     )
 
     all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
@@ -2998,7 +2998,7 @@ def scout_localizer_validate(
     if True:
         model_tag = 'scout-mvp-boost2'
         # confidence_list = ibs.scout_wic_test(all_test_gid_list, model_tag=model_tag)
-        confidence_list = [1.0] * len(all_test_gid_list)
+        confidence_list = [0.0] * len(all_test_gid_list)
         aids_list = ibs.get_image_aids(all_test_gid_list)
         globals().update(locals())
         flags = [
@@ -3018,6 +3018,11 @@ def scout_localizer_validate(
         margin=margin,
         min_bbox_coverage=min_bbox_coverage,
     )
+
+    random.shuffle(gt_positive_test_gid_list)
+    index = int(len(gt_positive_test_gid_list) * 0.1)
+    gt_positive_test_gid_list = gt_positive_test_gid_list[:index]
+    gt_positive_test_gid_list = sorted(gt_positive_test_gid_list)
 
     # All Positive Tiles (All)
     config_dict = {
