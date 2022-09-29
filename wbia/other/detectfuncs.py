@@ -648,8 +648,6 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
-    ut.embed()
-
     uuid_list = ibs.get_image_uuids(test_gid_list)
     gid_list = ibs.get_image_gids_from_uuid(uuid_list)
     aids_list = ibs.get_image_aids(gid_list)
@@ -927,8 +925,8 @@ def localizer_assign(gt_list, pred, min_overlap):
     best_overlap = min_overlap
     best_index = None
     for index, gt in enumerate(gt_list):
-        if gt['class'] != pred['class']:
-            continue
+        # if gt['class'] != pred['class']:
+        #     continue
 
         overlap = general_intersection_over_union(gt, pred)
         if overlap < best_overlap:
