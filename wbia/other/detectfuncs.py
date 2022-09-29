@@ -892,12 +892,17 @@ def localizer_precision_recall_algo(
             (pred_dict, 'Predictions'),
         ]
         for dict_, dict_tag in dict_list:
-            for image_uuid in tqdm.tqdm(list(dict_.keys())):
+            image_uuids = list(dict_.keys())
+            image_gids = ibs.get_image_gids_from_uuid(image_uuids)
+            image_sizes = ibs.get_image_sizes(image_gids)
+
+            zipped = list(zip(image_uuids, image_sizes))
+            for image_uuid, image_size in tqdm.tqdm(zipped):
                 temp = []
                 for val in dict_[image_uuid]:
                     if val.get('class', None) not in species_set_:
                         continue
-                    if ignore_filter_func(ibs, val):
+                    if ignore_filter_func(ibs, val, image_size):
                         continue
                     temp.append(val)
                 dict_[image_uuid] = temp
@@ -1081,12 +1086,17 @@ def localizer_iou_recall_algo(
             (pred_dict, 'Predictions'),
         ]
         for dict_, dict_tag in dict_list:
-            for image_uuid in dict_:
+            image_uuids = list(dict_.keys())
+            image_gids = ibs.get_image_gids_from_uuid(image_uuids)
+            image_sizes = ibs.get_image_sizes(image_gids)
+
+            zipped = list(zip(image_uuids, image_sizes))
+            for image_uuid, image_size in tqdm.tqdm(zipped):
                 temp = []
                 for val in dict_[image_uuid]:
                     if val.get('class', None) not in species_set_:
                         continue
-                    if ignore_filter_func(ibs, val):
+                    if ignore_filter_func(ibs, val, image_size):
                         continue
                     temp.append(val)
                 dict_[image_uuid] = temp
@@ -1187,12 +1197,17 @@ def localizer_confusion_matrix_algo_plot(
             (pred_dict, 'Predictions'),
         ]
         for dict_, dict_tag in dict_list:
-            for image_uuid in dict_:
+            image_uuids = list(dict_.keys())
+            image_gids = ibs.get_image_gids_from_uuid(image_uuids)
+            image_sizes = ibs.get_image_sizes(image_gids)
+
+            zipped = list(zip(image_uuids, image_sizes))
+            for image_uuid, image_size in tqdm.tqdm(zipped):
                 temp = []
                 for val in dict_[image_uuid]:
                     if val.get('class', None) not in species_set_:
                         continue
-                    if ignore_filter_func(ibs, val):
+                    if ignore_filter_func(ibs, val, image_size):
                         continue
                     temp.append(val)
                 dict_[image_uuid] = temp

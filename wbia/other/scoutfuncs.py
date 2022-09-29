@@ -2734,14 +2734,16 @@ def scout_localizer_train(ibs, target_species=None, ratio=2.0, config=None, **kw
 
 
 def _scout_localizer_ignore_filter_func(
-    ibs, annot, margin, min_bbox_coverage, *args, **kwargs
+    ibs, annot, image_size, margin, min_bbox_coverage, *args, **kwargs
 ):
     from wbia.other.detectfuncs import general_intersection_over_union
 
     margin = float(margin)
     gid = annot.get('gid', None)
+    if image_size is None:
+        image_size = ibs.get_image_sizes(gid)
     assert gid is not None
-    w, h = ibs.get_image_sizes(gid)
+    w, h = image_size
     margin_percent_w = margin / w
     margin_percent_h = margin / h
     xtl = margin_percent_w
