@@ -208,7 +208,7 @@ def scout_get_valid_tile_rowids(
     return_configs=False,
     limit=None,
     gid_list=None,
-    include_grid2=False,
+    include_grid2=True,
     **kwargs
 ):
     if gid_list is None:
@@ -241,8 +241,9 @@ def scout_get_valid_tile_rowids(
     if limit is not None:
         gid_list = gid_list[:limit]
 
-    if True:
-        tile_list = ibs.get_valid_gids(is_tile=True)
+    if False:
+        tile_list = ut.load_cPkl('/data/db/tiles.sample.10.pkl')
+        # tile_list = ibs.get_valid_gids(is_tile=True)
         config_list = [1] * len(tile_list)
     else:
         tile_size = 256
@@ -3004,92 +3005,42 @@ def scout_localizer_validate(
             'giant_forest_hog',
             'giraffe',
             'goat',
-            'hartebeest',
-            'hippo',
-            'impala',
-            'kob',
-            'kudu',
-            'motorcycle',
-            'oribi',
-            'oryx',
-            'ostrich',
-            'roof_grass',
-            'roof_mabati',
-            'sheep',
-            # 'test',
-            'topi',
-            'vehicle',
-            'warthog',
-            'waterbuck',
-            'white_bones',
-            'wildebeest',
-            'zebra',
+            # 'hartebeest',
+            # 'hippo',
+            # 'impala',
+            # 'kob',
+            # 'kudu',
+            # 'motorcycle',
+            # 'oribi',
+            # 'oryx',
+            # 'ostrich',
+            # 'roof_grass',
+            # 'roof_mabati',
+            # 'sheep',
+            # # 'test',
+            # 'topi',
+            # 'vehicle',
+            # 'warthog',
+            # 'waterbuck',
+            # 'white_bones',
+            # 'wildebeest',
+            # 'zebra',
         ]
 
     globals().update(locals())
     configs = (
         [
             {
-                'label': 'MVP NMS 0%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 0.00,
-                'species_set': target_species,
-            },
-            {
-                'label': 'MVP NMS 20%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 0.20,
-                'species_set': target_species,
-            },
-            {
-                'label': 'MVP NMS 40%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 0.40,
-                'species_set': target_species,
-            },
-            {
-                'label': 'MVP NMS 60%',
+                'label': '{}'.format(species),
                 'grid': False,
                 'algo': 'lightnet',
                 'config_filepath': 'scout_mvp_boost0',
                 'weight_filepath': 'scout_mvp_boost0',
                 'nms': True,
                 'nms_thresh': 0.60,
-                'species_set': target_species,
-            },
-            {
-                'label': 'MVP NMS 80%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 0.80,
-                'species_set': target_species,
-            },
-            {
-                'label': 'MVP NMS 100%',
-                'grid': False,
-                'algo': 'lightnet',
-                'config_filepath': 'scout_mvp_boost0',
-                'weight_filepath': 'scout_mvp_boost0',
-                'nms': True,
-                'nms_thresh': 1.00,
-                'species_set': target_species,
-            },
-            #############################################
+                'species_set': [species],
+            }
+            for species in target_species
         ],
         {'plot_iou_recall': False, 'min_overlap': 0.20},
     )
@@ -3133,7 +3084,7 @@ def scout_localizer_validate(
 
     # All Positive Tiles (All)
     config_dict = {
-        'scout-gt-positive-all-v0-v1-any-match': configs,
+        'scout-gt-positive-all-v0-v1-any-match-species-seed-1': configs,
     }
     ibs.localizer_precision_recall(
         config_dict=config_dict,
@@ -3144,7 +3095,7 @@ def scout_localizer_validate(
 
     # All Positive Tiles (Margin)
     config_dict = {
-        'scout-gt-positive-margin-{}-v0-v1-any-match'.format(margin): configs,
+        'scout-gt-positive-margin-{}-v0-v1-any-match-species'.format(margin): configs,
     }
     ibs.localizer_precision_recall(
         config_dict=config_dict,
@@ -3165,7 +3116,7 @@ def scout_localizer_image_validate(
     if target_species is None:
         target_species = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
 
-    species_set = {target_species}
+    species_set = set(target_species)
     template_v0 = (
         [
             # {'label': '5fbfff26 R3+V0 NMS 0%',   'grid' : False, 'algo': algo, 'config_filepath' : 'variant1', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3,0.703,scout_5fbfff26_v0,0.0', 'nms': True, 'nms_thresh': 0.00, 'species_set' : species_set},
@@ -3292,38 +3243,49 @@ def scout_localizer_image_validate(
             # {'label': 'Scout DetectNet',                  'grid' : False, 'algo': 'scout_detectnet_json',   'config_filepath' : 'variant1',    'weight_filepath' : 'annotations_detectnet_COCO.json',   'nms': False, 'species_set' : species_set},
             # ibs.scout_localizer_image_validate()
             ########################################################################################################
+            # {
+            #     'label': '5fbf R3:1+V0 400+40% V3-32  80%',
+            #     'grid': False,
+            #     'algo': algo,
+            #     'config_filepath': 'variant3-32',
+            #     'weight_filepath': 'densenet+lightnet;scout-5fbfff26-boost3:1,0.400,scout_5fbfff26_v0,0.4',
+            #     'nms': True,
+            #     'nms_thresh': 0.80,
+            #     'species_set': species_set,
+            # },
+            # # {'label': '5fbf R3:1+V0 400+40% V3-32S 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3:1,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
+            # {
+            #     'label': 'Scout Faster R-CNN',
+            #     'grid': False,
+            #     'algo': 'scout_faster_rcnn_json',
+            #     'config_filepath': 'variant1',
+            #     'weight_filepath': 'annotations_faster_rcnn_COCO.json',
+            #     'nms': False,
+            #     'species_set': species_set,
+            # },
+            # {
+            #     'label': 'Scout DetectNet',
+            #     'grid': False,
+            #     'algo': 'scout_detectnet_json',
+            #     'config_filepath': 'variant1',
+            #     'weight_filepath': 'annotations_detectnet_COCO.json',
+            #     'nms': False,
+            #     'species_set': species_set,
+            # },
+            # ibs.scout_localizer_image_validate(quick=True)
+            ########################################################################################################
             {
-                'label': '5fbf R3:1+V0 400+40% V3-32  80%',
+                'label': 'MVP NMS 60%',
                 'grid': False,
                 'algo': algo,
                 'config_filepath': 'variant3-32',
-                'weight_filepath': 'densenet+lightnet;scout-5fbfff26-boost3:1,0.400,scout_5fbfff26_v0,0.4',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
                 'nms': True,
-                'nms_thresh': 0.80,
+                'nms_thresh': 0.60,
                 'species_set': species_set,
             },
-            # {'label': '5fbf R3:1+V0 400+40% V3-32S 80%',  'grid' : False, 'algo': algo,                      'config_filepath' : 'variant3-32', 'weight_filepath' : 'densenet+lightnet;scout-5fbfff26-boost3:1,0.400,scout_5fbfff26_v0,0.4', 'nms': True, 'nms_thresh': 0.80, 'species_set' : species_set, 'squared': True},
-            {
-                'label': 'Scout Faster R-CNN',
-                'grid': False,
-                'algo': 'scout_faster_rcnn_json',
-                'config_filepath': 'variant1',
-                'weight_filepath': 'annotations_faster_rcnn_COCO.json',
-                'nms': False,
-                'species_set': species_set,
-            },
-            {
-                'label': 'Scout DetectNet',
-                'grid': False,
-                'algo': 'scout_detectnet_json',
-                'config_filepath': 'variant1',
-                'weight_filepath': 'annotations_detectnet_COCO.json',
-                'nms': False,
-                'species_set': species_set,
-            },
-            # ibs.scout_localizer_image_validate(quick=True)
         ],
-        {},
+        {'plot_iou_recall': False, 'min_overlap': 0.20},
     )
 
     all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))

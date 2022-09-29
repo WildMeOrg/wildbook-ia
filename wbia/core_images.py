@@ -357,7 +357,7 @@ def compute_classifications(depc, gid_list, config=None):
         assert len(classifier_weight_filepath) == 2
         classifier_algo_, model_tag_ = classifier_weight_filepath
 
-        include_grid2 = False  # config['classifier_algo'] in ['tile_aggregation']
+        include_grid2 = config['classifier_algo'] in ['tile_aggregation']
         tid_list = ibs.scout_get_valid_tile_rowids(
             gid_list=gid_list, include_grid2=include_grid2
         )
@@ -1176,7 +1176,7 @@ def compute_localizations_original(depc, gid_list, config=None):
     elif config['algo'] in ['tile_aggregation', 'tile_aggregation_quick']:
         from wbia.other.detectfuncs import general_intersection_over_union
 
-        include_grid2 = False  # config['algo'] in ['tile_aggregation']
+        include_grid2 = config['algo'] in ['tile_aggregation']
         tid_list = ibs.scout_get_valid_tile_rowids(
             gid_list=gid_list, include_grid2=include_grid2
         )

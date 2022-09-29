@@ -258,7 +258,7 @@ def scout_image_upload(ibs, precompute=False, return_times=False, *args, **kwarg
 
     with ut.Timer('Tiling') as time_tile:
         # Pre-compute tiles
-        ibs.scout_get_valid_tile_rowids(gid_list=[gid], include_grid2=False)
+        ibs.scout_get_valid_tile_rowids(gid_list=[gid], include_grid2=True)
 
     if return_times:
         return image, time_upload, time_tile
@@ -429,7 +429,7 @@ def scout_pipeline(
 
     try:
         with ut.Timer('Config') as time_config:
-            include_grid2 = False  # not quick
+            include_grid2 = True  # not quick
 
             detection_config = ibs.scout_detect_config(quick=quick)
             detection_agg_weight = detection_config['weight_filepath']
