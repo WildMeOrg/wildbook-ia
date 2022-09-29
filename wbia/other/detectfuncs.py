@@ -903,7 +903,7 @@ def localizer_precision_recall_algo(
                     if val.get('class', None) not in species_set_:
                         continue
                     if ignore_filter_func(ibs, val, image_size):
-                        continue
+                        val['ignore'] = True
                     temp.append(val)
                 dict_[image_uuid] = temp
 
@@ -996,7 +996,8 @@ def localizer_tp_fp(
         for gt in gt_dict[image_uuid]:
             species = gt['class']
             interest = gt['interest']
-            if species in interest_species_set and not interest:
+            ignore = gt.get('ignore', False)
+            if (species in interest_species_set and not interest) or ignore:
                 gt_list_.append(gt)
             else:
                 gt_list.append(gt)
@@ -1097,7 +1098,7 @@ def localizer_iou_recall_algo(
                     if val.get('class', None) not in species_set_:
                         continue
                     if ignore_filter_func(ibs, val, image_size):
-                        continue
+                        val['ignore'] = True
                     temp.append(val)
                 dict_[image_uuid] = temp
 
@@ -1208,7 +1209,7 @@ def localizer_confusion_matrix_algo_plot(
                     if val.get('class', None) not in species_set_:
                         continue
                     if ignore_filter_func(ibs, val, image_size):
-                        continue
+                        val['ignore'] = True
                     temp.append(val)
                 dict_[image_uuid] = temp
 

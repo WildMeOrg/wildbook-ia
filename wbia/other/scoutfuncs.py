@@ -3016,6 +3016,7 @@ def scout_localizer_validate(
             'roof_grass',
             'roof_mabati',
             'sheep',
+            # 'test',
             'topi',
             'vehicle',
             'warthog',
@@ -3124,13 +3125,11 @@ def scout_localizer_validate(
         min_bbox_coverage=min_bbox_coverage,
     )
 
-    random.seed(1)
-    random.shuffle(gt_positive_test_gid_list)
-    index = int(len(gt_positive_test_gid_list) * 0.1)
-    gt_positive_test_gid_list = gt_positive_test_gid_list[:index]
-    gt_positive_test_gid_list = sorted(gt_positive_test_gid_list)
-
-    ut.embed()
+    # random.seed(1)
+    # random.shuffle(gt_positive_test_gid_list)
+    # index = int(len(gt_positive_test_gid_list) * 0.1)
+    # gt_positive_test_gid_list = gt_positive_test_gid_list[:index]
+    # gt_positive_test_gid_list = sorted(gt_positive_test_gid_list)
 
     # All Positive Tiles (All)
     config_dict = {
