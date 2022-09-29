@@ -892,7 +892,7 @@ def localizer_precision_recall_algo(
             (pred_dict, 'Predictions'),
         ]
         for dict_, dict_tag in dict_list:
-            for image_uuid in dict_:
+            for image_uuid in tqdm.tqdm(list(dict_.keys())):
                 temp = []
                 for val in dict_[image_uuid]:
                     if val.get('class', None) not in species_set_:

@@ -2738,8 +2738,6 @@ def _scout_localizer_ignore_filter_func(
 ):
     from wbia.other.detectfuncs import general_intersection_over_union
 
-    ut.embed()
-
     margin = float(margin)
     gid = annot.get('gid', None)
     assert gid is not None
@@ -3134,7 +3132,7 @@ def scout_localizer_validate(
 
     # All Positive Tiles (All)
     config_dict = {
-        'scout-gt-positive-all-v0-v1': configs,
+        'scout-gt-positive-all-v0-v1-any-match': configs,
     }
     ibs.localizer_precision_recall(
         config_dict=config_dict,
@@ -3145,7 +3143,7 @@ def scout_localizer_validate(
 
     # All Positive Tiles (Margin)
     config_dict = {
-        'scout-gt-positive-margin-{}-v0-v1'.format(margin): configs,
+        'scout-gt-positive-margin-{}-v0-v1-any-match'.format(margin): configs,
     }
     ibs.localizer_precision_recall(
         config_dict=config_dict,
