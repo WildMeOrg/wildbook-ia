@@ -2986,45 +2986,45 @@ def scout_localizer_validate(
     if target_species is None:
         target_species = sorted(set(ibs.get_annot_species(ibs.get_valid_aids())))
         target_species = [
-            'buffalo',
-            'camel',
-            'canoe',
-            'car',
-            'cow',
-            'crocodile',
-            'dead_animalwhite_bones',
-            'deadbones',
-            'eland',
-            'elecarcass_old',
-            'elephant',
-            'gazelle_gr',
-            'gazelle_grants',
-            'gazelle_th',
-            'gazelle_thomsons',
-            'gerenuk',
-            'giant_forest_hog',
-            'giraffe',
-            'goat',
-            # 'hartebeest',
-            # 'hippo',
-            # 'impala',
-            # 'kob',
-            # 'kudu',
-            # 'motorcycle',
-            # 'oribi',
-            # 'oryx',
-            # 'ostrich',
-            # 'roof_grass',
-            # 'roof_mabati',
-            # 'sheep',
-            # # 'test',
-            # 'topi',
-            # 'vehicle',
-            # 'warthog',
-            # 'waterbuck',
-            # 'white_bones',
-            # 'wildebeest',
-            # 'zebra',
+            # 'buffalo',
+            # 'camel',
+            # 'canoe',
+            # 'car',
+            # 'cow',
+            # 'crocodile',
+            # 'dead_animalwhite_bones',
+            # 'deadbones',
+            # 'eland',
+            # 'elecarcass_old',
+            # 'elephant',
+            # 'gazelle_gr',
+            # 'gazelle_grants',
+            # 'gazelle_th',
+            # 'gazelle_thomsons',
+            # 'gerenuk',
+            # 'giant_forest_hog',
+            # 'giraffe',
+            # 'goat',
+            'hartebeest',
+            'hippo',
+            'impala',
+            'kob',
+            'kudu',
+            'motorcycle',
+            'oribi',
+            'oryx',
+            'ostrich',
+            'roof_grass',
+            'roof_mabati',
+            'sheep',
+            # 'test',
+            'topi',
+            'vehicle',
+            'warthog',
+            'waterbuck',
+            'white_bones',
+            'wildebeest',
+            'zebra',
         ]
 
     globals().update(locals())
@@ -3045,7 +3045,8 @@ def scout_localizer_validate(
         {'plot_iou_recall': False, 'min_overlap': 0.20},
     )
 
-    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
+    all_tile_set = set(ut.load_cPkl('/data/db/tiles.sample.10.pkl'))
+    # all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
@@ -3110,7 +3111,6 @@ def scout_localizer_validate(
 def scout_localizer_image_validate(
     ibs, target_species=None, quick=False, offset_color=0, **kwargs
 ):
-
     algo = 'tile_aggregation_quick' if quick else 'tile_aggregation'
 
     if target_species is None:
@@ -3275,7 +3275,67 @@ def scout_localizer_image_validate(
             # ibs.scout_localizer_image_validate(quick=True)
             ########################################################################################################
             {
-                'label': 'MVP NMS 60%',
+                'label': 'MVP:2:0 7|60 NMS 0%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 0.00,
+                'species_set': species_set,
+            },
+            {
+                'label': 'MVP:2:0 7|60 10%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 0.10,
+                'species_set': species_set,
+            },
+            {
+                'label': 'MVP:2:0 7|60 20%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 0.20,
+                'species_set': species_set,
+            },
+            {
+                'label': 'MVP:2:0 7|60 30%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 0.30,
+                'species_set': species_set,
+            },
+            {
+                'label': 'MVP:2:0 7|60 40%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 0.40,
+                'species_set': species_set,
+            },
+            {
+                'label': 'MVP:2:0 7|60 50%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 0.50,
+                'species_set': species_set,
+            },
+            {
+                'label': 'MVP:2:0 7|60 60%',
                 'grid': False,
                 'algo': algo,
                 'config_filepath': 'variant3-32',
@@ -3284,19 +3344,64 @@ def scout_localizer_image_validate(
                 'nms_thresh': 0.60,
                 'species_set': species_set,
             },
+            {
+                'label': 'MVP:2:0 7|60 70%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 0.70,
+                'species_set': species_set,
+            },
+            {
+                'label': 'MVP:2:0 7|60 80%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 0.80,
+                'species_set': species_set,
+            },
+            {
+                'label': 'MVP:2:0 7|60 90%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 0.90,
+                'species_set': species_set,
+            },
+            {
+                'label': 'MVP:2:0 7|60 100%',
+                'grid': False,
+                'algo': algo,
+                'config_filepath': 'variant3-32',
+                'weight_filepath': 'densenet+lightnet;scout-mvp-boost2,0.07,scout_mvp_boost0,0.6',
+                'nms': True,
+                'nms_thresh': 1.00,
+                'species_set': species_set,
+            },
         ],
         {'plot_iou_recall': False, 'min_overlap': 0.20},
     )
 
-    all_tile_set = set(ibs.scout_get_valid_tile_rowids(**kwargs))
     test_gid_set = set(
         ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
     )
-    test_gid_set = all_tile_set & test_gid_set
-    test_tile_list = list(test_gid_set)
+    test_gid_list = list(test_gid_set)
+    flags = ibs.get_tile_flags(test_gid_list)
+    test_tile_list = ut.compress(test_gid_list, flags)
 
     ancestor_gid_list = ibs.get_tile_ancestor_gids(test_tile_list)
     test_gid_list = list(set(ancestor_gid_list))
+
+    test_gid_list = test_gid_list[:100]
+
+    # ibs.depc_image.delete_property_all('tiles', test_gid_list)
+    # ibs.scout_get_valid_tile_rowids(gid_list=test_gid_list)
 
     key = 'scout-localizer-image-{}-comparison-final'.format(algo)
     config_dict = {
@@ -3308,7 +3413,7 @@ def scout_localizer_image_validate(
         overwrite_config_keys=True,
         offset_color=offset_color,
         min_overlap=0.2,
-        target_recall=0.9,
+        target_recall=0.8,
     )
 
     if False:
