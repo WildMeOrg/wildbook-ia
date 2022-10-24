@@ -399,7 +399,7 @@ def get_part_missing_uuid(ibs, uuid_list):
 @ut.accepts_numpy
 @accessor_decors.getter_1toM
 @register_api('/api/part/bbox/', methods=['GET'])
-def get_part_bboxes(ibs, part_rowid_list):
+def get_part_bboxes(ibs, part_rowid_list, reference_tile_gid=None):
     r"""
     Returns:
         bbox_list (list):  part bounding boxes in image space
@@ -415,6 +415,16 @@ def get_part_bboxes(ibs, part_rowid_list):
         'part_height',
     )
     bbox_list = ibs.db.get(const.PART_TABLE, colnames, part_rowid_list)
+
+    if reference_tile_gid is not None:
+        is_tile = ibs.get_tile_flags(reference_tile_gid)
+        if is_tile:
+            tile_bbox = ibs.get_tile_bboxes(reference_tile_gid)
+            tile_xtl, tile_ytl, tile_w, tile_h = tile_bbox
+            bbox_list = [
+                (xtl - tile_xtl, ytl - tile_ytl, w, h) for xtl, ytl, w, h in bbox_list
+            ]
+
     return bbox_list
 
 
