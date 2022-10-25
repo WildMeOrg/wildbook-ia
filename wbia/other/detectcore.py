@@ -480,7 +480,7 @@ def export_to_xml(
 @register_api('/api/export/coco/', methods=['POST'])
 def export_to_coco(
     ibs,
-    species_list,
+    species_list=None,
     species_mapping={},
     viewpoint_mapping={},
     target_size=2400,
@@ -509,7 +509,7 @@ def export_to_coco(
 
     logger.info('Using species_list = {!r}'.format(species_list))
 
-    scout_prefix = '/data/raw/processed/'
+    # scout_prefix = '/data/raw/processed/'
 
     current_year = int(date.today().year)
     datadir = abspath(join(ibs.get_cachedir(), 'coco'))
@@ -740,9 +740,9 @@ def export_to_coco(
                 'flickr_url': None,
                 'id': image_index,
                 'uuid': str(ibs.get_image_uuids(gid)),
-                'scout_image_path': str(
-                    ibs.get_image_uris_original(gid).replace(scout_prefix, '')
-                ),
+                # 'scout_image_path': str(
+                #     ibs.get_image_uris_original(gid).replace(scout_prefix, '')
+                # ),
             }
         )
 
@@ -800,8 +800,8 @@ def export_to_coco(
 
             viewpoint = viewpoint_mapping.get(species_name, {}).get(viewpoint, viewpoint)
 
-            # if viewpoint is None:
-            #     continue
+            if viewpoint is None:
+                continue
 
             individuals = ibs.get_name_aids(ibs.get_annot_nids(aid))
 
