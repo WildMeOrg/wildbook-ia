@@ -197,7 +197,8 @@ RUN set -ex \
      torchaudio \
      --extra-index-url https://download.pytorch.org/whl/nightly/cu113 \
  && /virtualenv/env3/bin/pip install \
-     MarkupSafe==2.0.1
+     MarkupSafe==2.0.1 \
+     Flask==2.1.0
 
 # Wildbook IA problematic dependencies
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \

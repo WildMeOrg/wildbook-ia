@@ -68,9 +68,6 @@ RUN set -ex \
         python3-pyqt5 \
         # Install dependencies for pgloader
         libssl-dev \
-        # Install dependencies for NVTOP
-        libncurses5-dev \
-        libncursesw5-dev \
         # Install handy developer tools
         coreutils \
         curl \
@@ -80,6 +77,7 @@ RUN set -ex \
         htop \
         locate \
         netcat \
+        nvtop \
         pgloader \
         postgresql \
         rsync \
@@ -138,19 +136,6 @@ RUN set -ex \
 
 RUN apt-get remove -y \
         python3-setuptools
-
-# Install NVTOP
-RUN set -ex \
- && . /virtualenv/env3/bin/activate \
- && git clone https://github.com/Syllo/nvtop.git /tmp/nvtop \
- && cd /tmp/nvtop/ \
- && mkdir -p /tmp/nvtop/build \
- && cd /tmp/nvtop/build \
- && cmake .. \
- && make -j4 \
- && make install \
- && cd .. \
- && rm -rf /tmp/nvtop
 
  # Install wait-for
 RUN set -ex \
