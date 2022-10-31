@@ -348,42 +348,7 @@ def sync_get_training_data(ibs, species_name, force_update=False, **kwargs):
 
     aid_list = ibs._sync_get_training_aids(species_name, **kwargs)
     ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
-    local_aids = []
-
-    # avoid re-downloading annots based on UUID
-    if not force_update:
-        local_ann_uuids = set(ibs.get_valid_annot_uuids())
-        remote_ann_uuids = set(ann_uuids)
-        dupe_uuids = local_ann_uuids & remote_ann_uuids  # & is set-union
-        new_uuids = remote_ann_uuids - dupe_uuids
-        local_aids = ibs.get_annot_aids_from_uuid(dupe_uuids)
-        aid_list = ibs._sync_get_aids_for_uuids(new_uuids)
-        ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
-
-    # get needed info
-    viewpoints = ibs._sync_get_annot_endpoint('/api/annot/viewpoint/', aid_list)
-    bboxes = ibs._sync_get_annot_endpoint('/api/annot/bbox/', aid_list)
-    thetas = ibs._sync_get_annot_endpoint('/api/annot/theta/', aid_list)
-    name_texts = ibs._sync_get_annot_endpoint('/api/annot/name/text/', aid_list)
-    name_uuids = ibs._sync_get_annot_endpoint('/api/annot/name/uuid/', aid_list)
-    images = ibs._sync_get_annot_endpoint('/api/annot/image/rowid/', aid_list)
-    gpaths = [
-        ibs._construct_route_url_ibs('/api/image/src/%s.jpg' % gid) for gid in images
-    ]
-    specieses = [species_name] * len(aid_list)
-
-    gid_list = ibs.add_images(gpaths)
-    nid_list = ibs.add_names(name_texts, name_uuids)
-
-    local_aids += ibs.add_annots(
-        gid_list,
-        bbox_list=bboxes,
-        theta_list=thetas,
-        species_list=specieses,
-        nid_list=nid_list,
-        annot_uuid_list=ann_uuids,
-        viewpoint_list=viewpoints,
-    )
+    local_aids = ibs.sync_get_training_data_uuid_list(ann_uuids, force_update)
 
     return local_aids
 
@@ -395,28 +360,77 @@ def sync_get_training_data_uuid_list(ibs, auuid_list, force_update=False, **kwar
     ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
     local_aids = []
 
+    # filter out aids/auuiuds that don't exist on the server
+    none_aids = len([aid for aid in aid_list if aid is None])
+    aid_list = [aid for aid in aid_list if aid is not None]
+    if none_aids > 0:
+        print(f"WARNING: {none_aids} auuids were not found on the remote server.")
+        if len(aid_list) == 0:
+            return aid_list
+        print(f"...continuing with the {len(aid_list)} aids that were found.")
+
     # avoid re-downloading annots based on UUID
     if not force_update:
         local_ann_uuids = set(ibs.get_valid_annot_uuids())
         remote_ann_uuids = set(ann_uuids)
         dupe_uuids = local_ann_uuids & remote_ann_uuids  # & is set-union
-        new_uuids = remote_ann_uuids - dupe_uuids
-        local_aids = ibs.get_annot_aids_from_uuid(dupe_uuids)
-        aid_list = ibs._sync_get_aids_for_uuids(new_uuids)
-        ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
+        if len(dupe_uuids) > 0:
+            print(f'FOUND {len(dupe_uuids)} DUPLICATES, not syncing those')
+            new_uuids = remote_ann_uuids - dupe_uuids
+            local_aids = ibs.get_annot_aids_from_uuid(dupe_uuids)
+            aid_list = ibs._sync_get_aids_for_uuids(new_uuids)
+            ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
 
+    images = ibs._sync_get_annot_endpoint('/api/annot/image/rowid/', aid_list)
     # get needed info
+    gpaths = [ibs._construct_route_url_ibs('/api/image/src/%s/' % gid) for gid in images]
+
+    from math import ceil
+    chunk_size = 10
+    n_chunks = ceil(len(gpaths) / chunk_size)
+    gid_list = []
+    bad_paths = []
+    for i in range(n_chunks):
+        start_i = chunk_size * i
+        end_i = min(len(gpaths), chunk_size * (i+1))
+        paths = gpaths[start_i:end_i]
+        this_chunk_size = len(paths)
+        try:
+            gid_list += ibs.add_images(paths)
+            bad_paths += [None] * this_chunk_size
+        except:
+            gid_list += [None] * this_chunk_size
+            bad_paths += gpaths[start_i:end_i]
+
+    # check gids
+    good_gids = [gid is not None for gid in gid_list]
+    aid_list = ut.compress(aid_list, good_gids)
+    gid_list = ut.compress(gid_list, good_gids)
+
+    # check auuids
+    ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
+    good_auuids = [u is not None for u in ann_uuids]
+    aid_list = ut.compress(aid_list, good_auuids)
+    gid_list = ut.compress(gid_list, good_auuids)
+
+    # check bboxes
+    bboxes = ibs._sync_get_annot_endpoint('/api/annot/bbox/', aid_list)
+    good_bboxes = [b is not None for b in bboxes]
+    aid_list = ut.compress(aid_list, good_bboxes)
+    gid_list = ut.compress(gid_list, good_bboxes)
+
+    # sync the good ones
+    ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
+    bboxes = ibs._sync_get_annot_endpoint('/api/annot/bbox/', aid_list)
     viewpoints = ibs._sync_get_annot_endpoint('/api/annot/viewpoint/', aid_list)
     bboxes = ibs._sync_get_annot_endpoint('/api/annot/bbox/', aid_list)
     thetas = ibs._sync_get_annot_endpoint('/api/annot/theta/', aid_list)
     name_texts = ibs._sync_get_annot_endpoint('/api/annot/name/text/', aid_list)
     name_uuids = ibs._sync_get_annot_endpoint('/api/annot/name/uuid/', aid_list)
     images = ibs._sync_get_annot_endpoint('/api/annot/image/rowid/', aid_list)
-    gpaths = [ibs._construct_route_url_ibs('/api/image/src/%s/' % gid) for gid in images]
     specieses = ibs._sync_get_annot_endpoint('/api/annot/species/', aid_list)
-
-    gid_list = ibs.add_images(gpaths)
     nid_list = ibs.add_names(name_texts, name_uuids)
+    ann_uuids = ibs._sync_get_annot_endpoint('/api/annot/uuid/', aid_list)
 
     local_aids += ibs.add_annots(
         gid_list,
@@ -427,7 +441,6 @@ def sync_get_training_data_uuid_list(ibs, auuid_list, force_update=False, **kwar
         annot_uuid_list=ann_uuids,
         viewpoint_list=viewpoints,
     )
-
     return local_aids
 
 
