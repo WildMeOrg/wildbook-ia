@@ -192,7 +192,7 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip install --upgrade \
      opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip install --upgrade --pre \
-     torch \
+     torch==1.12.1 \
      torchvision \
      torchaudio \
      --extra-index-url https://download.pytorch.org/whl/nightly/cu113 \
