@@ -592,7 +592,6 @@ def general_parse_gt_annots(
                 xbr = int(max(x_points))
                 ytl = int(min(y_points))
                 ybr = int(max(y_points))
-                # bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
 
                 xtl = xtl / width
                 ytl = ytl / height
