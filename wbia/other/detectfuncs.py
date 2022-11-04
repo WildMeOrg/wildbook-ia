@@ -539,7 +539,6 @@ def general_parse_gt_annots(
         xbr = int(max(x_points))
         ytl = int(min(y_points))
         ybr = int(max(y_points))
-        # bbox = (xtl, ytl, xbr - xtl, ybr - ytl)
 
         xtl = xtl / width
         ytl = ytl / height
@@ -557,12 +556,12 @@ def general_parse_gt_annots(
         temp = {
             'gid': gid,
             'aid': aid,
-            'xtl': bbox[0] / width,
-            'ytl': bbox[1] / height,
-            'xbr': (bbox[0] + bbox[2]) / width,
-            'ybr': (bbox[1] + bbox[3]) / height,
-            'width': bbox[2] / width,
-            'height': bbox[3] / height,
+            'xtl': xtl,
+            'ytl': ytl,
+            'xbr': xbr,
+            'ybr': ybr,
+            'width': xbr - xtl,
+            'height': ybr - ytl,
             'class': species_mapping_.get(species, species),
             'viewpoint': viewpoint,
             'interest': interest,
