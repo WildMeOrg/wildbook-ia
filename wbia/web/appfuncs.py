@@ -232,7 +232,7 @@ def send_csv_file(string, filename):
     return response
 
 
-def get_review_image_args(is_reviewed_func):
+def get_review_image_args(is_reviewed_func, is_tile=None):
     """
     Helper to return gids in an imageset or a group review
     """
@@ -245,7 +245,7 @@ def get_review_image_args(is_reviewed_func):
     imgsetid = _ensureid(imgsetid)
 
     logger.info('NOT GROUP_REVIEW')
-    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid, is_tile=is_tile)
     reviewed_list = is_reviewed_func(ibs, gid_list)
 
     try:
