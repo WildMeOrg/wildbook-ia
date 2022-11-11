@@ -15,7 +15,8 @@ try:
 
     assert docker.from_env() is not None
 except Exception:
-    logger.warning('Local docker client is not available')
+    pass
+    # logger.warning('Local docker client is not available')
 
 
 _, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)

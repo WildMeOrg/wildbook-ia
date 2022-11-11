@@ -719,7 +719,7 @@ class SQLDatabaseController(object):
         # Start Exclusive transaction, lock out all other writers from making database changes
         with self.connect() as conn:
             conn.execute('BEGIN EXCLUSIVE')
-            ut.copy(path, backup_filepath)
+            ut.copy(path, backup_filepath, verbose=False)
 
     def optimize(self):
         if self._engine.dialect.name != 'sqlite':
