@@ -1544,6 +1544,12 @@ def submit_identification(**kwargs):
 def submit_identification_v2(graph_uuid, **kwargs):
     ibs = current_app.ibs
 
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
+
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
@@ -1585,6 +1591,12 @@ def submit_identification_v2(graph_uuid, **kwargs):
 @register_route('/submit/identification/v2/kaia/', methods=['POST'])
 def submit_identification_v2_kaia(graph_uuid, **kwargs):
     ibs = current_app.ibs
+
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
 
     # Process form data
     annot_uuid_1, annot_uuid_2 = ibs.process_graph_match_html_v2(graph_uuid, **kwargs)

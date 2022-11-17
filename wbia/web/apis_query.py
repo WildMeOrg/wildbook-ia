@@ -7,6 +7,7 @@ SeeAlso:
 """
 import logging
 import traceback
+import uuid
 from datetime import datetime
 from os.path import abspath, dirname, exists, join
 
@@ -1502,6 +1503,12 @@ def query_chips(
 
 @register_ibs_method
 def get_graph_client_query_chips_graph_v2(ibs, graph_uuid):
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
+
     graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
     # We could be redirecting to a newer graph_client
     graph_uuid_chain = [graph_uuid]
@@ -1714,6 +1721,12 @@ def review_graph_match_config_v2(
 
     from wbia.algo.verif import pairfeat
 
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
+
     EDGES_KEY = '_EDGES_'
     EDGES_MAX = 10
 
@@ -1922,6 +1935,12 @@ def view_graphs_status(ibs):
 @register_ibs_method
 @register_api('/api/review/query/graph/v2/', methods=['POST'])
 def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
+
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     response_tuple = process_graph_match_html(ibs, **kwargs)
     (
@@ -2008,6 +2027,12 @@ def process_graph_match_html_v2(ibs, graph_uuid, **kwargs):
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['GET'])
 def sync_query_chips_graph_v2(ibs, graph_uuid):
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
+
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     ret_dict = graph_client.sync(ibs)
     return ret_dict
@@ -2016,6 +2041,12 @@ def sync_query_chips_graph_v2(ibs, graph_uuid):
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['PUT'])
 def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
+
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
@@ -2057,6 +2088,12 @@ def add_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
 
 @register_ibs_method
 def remove_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
+
     graph_client, _ = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
@@ -2087,6 +2124,12 @@ def remove_annots_query_chips_graph_v2(ibs, graph_uuid, annot_uuid_list):
 @register_ibs_method
 @register_api('/api/query/graph/v2/', methods=['DELETE'])
 def delete_query_chips_graph_v2(ibs, graph_uuid):
+    if isinstance(graph_uuid, str):
+        try:
+            graph_uuid = uuid.UUID(graph_uuid)
+        except Exception:
+            pass
+
     values = ibs.get_graph_client_query_chips_graph_v2(graph_uuid)
     graph_client, graph_uuid_chain = values
     del graph_client

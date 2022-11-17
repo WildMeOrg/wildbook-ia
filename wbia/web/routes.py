@@ -2458,7 +2458,9 @@ def review_detection(
     display_instructions = (
         False  # request.cookies.get('ia-detection_instructions_seen', 1) == 1
     )
-    display_new_features = request.cookies.get('ia-detection_new_features_seen', 1) == 1
+    display_new_features = (
+        False  # request.cookies.get('ia-detection_new_features_seen', 1) == 1
+    )
     display_species_examples = (
         False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
     )
