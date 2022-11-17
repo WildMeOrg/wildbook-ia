@@ -1688,7 +1688,8 @@ def view_graphs(sync=False, **kwargs):
         graph_client = current_app.GRAPH_CLIENT_DICT.get(graph_uuid, None)
         if graph_client is None:
             continue
-        graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(graph_uuid))
+        # graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(graph_uuid))
+        graph_uuid_str = 'graph_uuid={}'.format(graph_uuid)
         graph_uuid_str = graph_uuid_str.replace(': ', ':')
         graph_status, graph_exception = graph_client.refresh_status()
         actor_status = graph_client.actor_status
@@ -5331,7 +5332,8 @@ def review_identification_graph(
             else:
                 base = url_for('review_identification_graph')
             sep = '&' if '?' in base else '?'
-            url = '{}{}graph_uuid={}'.format(base, sep, ut.to_json(graph_uuid))
+            # url = '{}{}graph_uuid={}'.format(base, sep, ut.to_json(graph_uuid))
+            url = '{}{}graph_uuid={}'.format(base, sep, graph_uuid)
             if hardcase:
                 url += '&hardcase=True'
             url = url.replace(': ', ':')
@@ -5350,7 +5352,8 @@ def review_identification_graph(
     except controller_inject.WebUnavailableUUIDException as ex:
         finished = 'unavailable'
         refer_query_uuid = ex.query_uuid
-        refer_graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(refer_query_uuid))
+        # refer_graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(refer_query_uuid))
+        refer_graph_uuid_str = 'graph_uuid={}'.format(refer_query_uuid)
         refer_graph_uuid_str = refer_graph_uuid_str.replace(': ', ':')
     except controller_inject.WebReviewFinishedException:
         finished = True
@@ -5479,7 +5482,8 @@ def review_identification_graph(
         alert = False
         timedelta_str = None
 
-    graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(graph_uuid))
+    # graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(graph_uuid))
+    graph_uuid_str = 'graph_uuid={}'.format(graph_uuid)
     graph_uuid_str = graph_uuid_str.replace(': ', ':')
     if kaia:
         base = url_for('submit_identification_v2_kaia')
@@ -5487,7 +5491,8 @@ def review_identification_graph(
         base = url_for('submit_identification_v2')
     callback_url = '{}?{}'.format(base, graph_uuid_str)
 
-    hogwild_graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(hogwild_graph_uuid))
+    # hogwild_graph_uuid_str = 'graph_uuid={}'.format(ut.to_json(hogwild_graph_uuid))
+    hogwild_graph_uuid_str = 'graph_uuid={}'.format(hogwild_graph_uuid)
     hogwild_graph_uuid_str = hogwild_graph_uuid_str.replace(': ', ':')
 
     confidence_dict = const.CONFIDENCE.NICE_TO_CODE

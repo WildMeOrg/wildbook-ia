@@ -1571,7 +1571,8 @@ def submit_identification_v2(graph_uuid, **kwargs):
         args = (
             base,
             sep,
-            ut.to_json(graph_uuid),
+            # ut.to_json(graph_uuid),
+            graph_uuid,
             previous,
             hogwild,
             hogwild_species,
@@ -1734,7 +1735,8 @@ def submit_identification_v2_kaia(graph_uuid, **kwargs):
         args = (
             base,
             sep,
-            ut.to_json(graph_uuid),
+            # ut.to_json(graph_uuid),
+            graph_uuid,
             previous,
             hogwild,
             hogwild_species,
