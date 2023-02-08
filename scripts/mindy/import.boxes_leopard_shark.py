@@ -95,12 +95,14 @@ assert len(add_thetas) == len(add_gids)
 assert len(add_species) == len(add_gids)
 assert len(add_label) == len(add_gids)
 
+
 def remove_nones(list1, list2):
     """*summary: Takes two lists and removes values that are nones based on list1
     """
     list_a = [val for val in list1 if val is not None]
     list_b = [val for i, val in enumerate(list2) if list1[i] is not None]
     return list_a, list_b
+
 
 add_orient_without_nones, add_gids_without_nones = remove_nones(add_orients, add_gids)
 
@@ -114,7 +116,7 @@ _, matching_add_species = remove_nones(add_gids, add_species)
 
 add_aids = ibs.add_annots(
     matching_add_gids,
-    bbox_list= matching_bbox_list,
+    bbox_list=matching_bbox_list,
     theta_list=matching_theta_list,
     viewpoint_list=matching_viewpoints,
 )
