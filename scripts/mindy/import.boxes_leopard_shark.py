@@ -37,22 +37,37 @@ add_label = []
 add_species = []
 viewpoints = []
 
-for image in images:
-    filename = image.get('@name')
-    if "right" in filename.lower():
+
+def get_viewpoints(filename: str) -> str:
+    """processing viewpoints for the data.
+
+    Args:
+        filename (str): the name of the file
+
+    Returns:
+        str: a string of the different viewpoints (left, right, None)
+    """
+    filename = filename.lower()
+    if "right" in filename:
         viewpoint = "right"
-    elif "extractr" in filename.lower():
+    elif "extractr" in filename:
         viewpoint = "right"
-    elif "extract" in filename.lower():
+    elif "extract" in filename:
         viewpoint = "left"
-    elif "left" in filename.lower():
+    elif "left" in filename:
         viewpoint = "left"
-    elif "lhs" in filename.lower():
+    elif "lhs" in filename:
         viewpoint = "left"
-    elif "rhs" in filename.lower():
+    elif "rhs" in filename:
         viewpoint = "right"
     else:
         viewpoint = "None"
+    return viewpoint
+
+
+for image in images:
+    filename = image.get('@name')
+    viewpoint = get_viewpoints(filename)
     bbox = image.get('box')
     if type(bbox) == list:
         bbox = dict(bbox[0])
@@ -96,23 +111,29 @@ assert len(add_species) == len(add_gids)
 assert len(add_label) == len(add_gids)
 
 
-def remove_nones(list1, list2):
-    """*summary: Takes two lists and removes values that are nones based on list1
+def removing_nones(list1, list2):
+    """Removes Nones from list1 and uses the index of the None to remove the corresponding value in the second list.
+    Args:
+        list1 (list): first or reference list
+        list2 (list): second list
+
+    Returns:
+        _type_: a list with Nones and corresponding values in second list returned.
     """
     list_a = [val for val in list1 if val is not None]
     list_b = [val for i, val in enumerate(list2) if list1[i] is not None]
     return list_a, list_b
 
 
-add_orient_without_nones, add_gids_without_nones = remove_nones(add_orients, add_gids)
+add_orient_without_nones, add_gids_without_nones = removing_nones(add_orients, add_gids)
 
 ibs.set_image_orientation(add_gids_without_nones, add_orient_without_nones)
 
 
-matching_add_gids, matching_bbox_list = remove_nones(add_gids, add_bboxes)
-_, matching_theta_list = remove_nones(add_gids, add_thetas)
-_, matching_viewpoints = remove_nones(add_gids, viewpoints)
-_, matching_add_species = remove_nones(add_gids, add_species)
+matching_add_gids, matching_bbox_list = removing_nones(add_gids, add_bboxes)
+_, matching_theta_list = removing_nones(add_gids, add_thetas)
+_, matching_viewpoints = removing_nones(add_gids, viewpoints)
+_, matching_add_species = removing_nones(add_gids, add_species)
 
 add_aids = ibs.add_annots(
     matching_add_gids,
