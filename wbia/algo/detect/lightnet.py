@@ -105,6 +105,8 @@ CONFIG_URL_DICT = {
     'seals_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.seals.v1.py',
     None: 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py',
     'training_kit': 'https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip',
+    'tigershark_v0': 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.tigershark.v0.py',
+
 }
 
 
