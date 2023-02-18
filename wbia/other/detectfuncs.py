@@ -979,7 +979,6 @@ def localizer_tp_fp(
         gt_list = []
         gt_list_ = []
         pred_list = pred_dict[image_uuid]
-        print('pred_list:', pred_list) 
         for gt in gt_dict[image_uuid]:
             species = gt['class']
             interest = gt['interest']
@@ -990,9 +989,7 @@ def localizer_tp_fp(
 
         total_ = len(gt_list)
         total += total_
-        print('gt_list:',gt_list)
-        print('gt_list_:',gt_list_)
-        print('min_overlap:', min_overlap)
+
         # Match predictions
         match_list_ = localizer_assignments(pred_list, gt_list, gt_list_, min_overlap)
         match_dict[image_uuid] = (
@@ -1075,9 +1072,6 @@ def localizer_iou_recall_algo(
             (pred_dict, 'Predictions'),
         ]
 
-        #print("debug:gt_dict:", gt_dict)
-        #print("debug:pred_dict:",pred_dict)
-
         for dict_, dict_tag in dict_list:
             for image_uuid in dict_:
                 temp = []
@@ -1100,10 +1094,6 @@ def localizer_iou_recall_algo(
             test_uuid_list, gt_dict, pred_dict, min_overlap=iou, **kwargs
         )
         conf_list, tp_list, fp_list, total = values
-
-       #print('conf_list:', conf_list)
-       #print('tp_list:', tp_list)
-       #print('fp_list:', fp_list)
 
         conf_list_ = []
         pr_list = []
