@@ -122,7 +122,7 @@ def _parse_weights_from_cfg(url):
 import pdb
 def _parse_class_list(config_filepath):
     # Load classes from file into the class list
-    pdb.set_trace()
+    #pdb.set_trace()
     params = ln.engine.HyperParameters.from_file(config_filepath)
     class_list = params.class_label_map
     return class_list
