@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import utool as ut
 import vtool as vt
+import pdb
 from tqdm import tqdm
 
 (print, rrr, profile) = ut.inject2(__name__, '[lightnet]')
@@ -287,6 +288,7 @@ def detect(
     # Get correct weight if specified with shorthand
     config_url = None
     if config_filepath in CONFIG_URL_DICT:
+        pdb.set_trace()
         config_url = CONFIG_URL_DICT[config_filepath]
         config_filepath = ut.grab_file_url(
             config_url, appname='lightnet', check_hash=True
