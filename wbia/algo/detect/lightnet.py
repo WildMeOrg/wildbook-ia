@@ -103,6 +103,7 @@ CONFIG_URL_DICT = {
     'scout_5fbfff26_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.scout.5fbfff26.v1.py',
     'whale_fin_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_fin.v0.py',
     'seals_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.seals.v1.py',
+    'leopard_shark_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.leopard_shark.v0.py',
     None: 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py',
     'training_kit': 'https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip',
 }

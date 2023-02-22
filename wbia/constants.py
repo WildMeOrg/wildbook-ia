@@ -444,6 +444,7 @@ SPECIES_WITH_DETECTORS = (
     'panthera_pardus_fusca',
     'indian_leopard',
     'leopard_indian',
+    'leopard_shark',
     'lion',
     'lion+head',
     'lioness',
