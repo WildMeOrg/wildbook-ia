@@ -70,8 +70,8 @@ simplejson
 sip
 six
 sphinx
-sqlalchemy
-SQLAlchemy-Utils
+sqlalchemy==1.4.14
+SQLAlchemy-Utils==0.38.3
 tensorboard_logger
 Theano
 torch
