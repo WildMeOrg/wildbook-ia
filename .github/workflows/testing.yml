@@ -34,7 +34,7 @@ jobs:
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 2
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: [ubuntu-20.04-4core]
@@ -90,7 +90,7 @@ jobs:
     name: Test on ${{ matrix.os }} (PostGRES)
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 2
+      max-parallel: 1
       fail-fast: false
       matrix:
         os: [ubuntu-20.04-4core]
