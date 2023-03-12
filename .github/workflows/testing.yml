@@ -8,7 +8,7 @@ on: push
 jobs:
   lint:
     name: Lint code
-    runs-on: ubuntu-20.04-4core
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -34,10 +34,10 @@ jobs:
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 1
+      max-parallel: 2
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04-4core]
+        os: [ubuntu-latest]
         # os: [ubuntu-latest, macos-latest]
         python-version: [3.7, 3.8, 3.9]
 
@@ -90,10 +90,10 @@ jobs:
     name: Test on ${{ matrix.os }} (PostGRES)
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 1
+      max-parallel: 2
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04-4core]
+        os: [ubuntu-latest]
         python-version: [3.7, 3.8, 3.9]
 
     services:
