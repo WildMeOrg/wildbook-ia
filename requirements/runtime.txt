@@ -11,7 +11,7 @@ dateutils==0.6.12
 delorean==1.0.0
 deprecated==1.2.13
 descartes==1.1.0
-docker=6.0.0
+docker==6.0.0
 # Flask==1.1.4
 Flask-Caching==2.0.1
 Flask-CAS==1.0.2
