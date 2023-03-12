@@ -8,7 +8,7 @@ on: push
 jobs:
   lint:
     name: Lint code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
@@ -37,7 +37,7 @@ jobs:
       max-parallel: 2
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-20.04]
         # os: [ubuntu-latest, macos-latest]
         python-version: [3.7, 3.8, 3.9]
 
@@ -93,7 +93,7 @@ jobs:
       max-parallel: 2
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-20.04]
         python-version: [3.7, 3.8, 3.9]
 
     services:
