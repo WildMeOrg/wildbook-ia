@@ -74,18 +74,18 @@ sqlalchemy==1.4.14
 SQLAlchemy-Utils==0.38.3
 tensorboard_logger==0.1.0
 Theano==1.0.5
-torch==1.12.1
-torchvision==0.13.1
+torch==1.13.1
+torchvision==0.14.1
 tornado==6.2
 tqdm==4.64.0
 ubelt==1.2.1
 visdom==0.1.8.9
 wbia-lightnet
 wbia-pydarknet
-wbia-pyflann
-wbia-pyhesaff
-wbia-utool
-wbia-vtool
+wbia-pyflann==4.0.4
+wbia-pyhesaff==4.0.0
+wbia-utool==4.0.4
+wbia-vtool==4.0.2
 # webargs==5.5.3
 # werkzeug==0.15.6
 
