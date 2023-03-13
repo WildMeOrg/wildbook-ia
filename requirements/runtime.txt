@@ -80,11 +80,11 @@ tornado==6.2
 tqdm==4.64.0
 ubelt==1.2.1
 visdom==0.1.8.9
-wbia-lightnet==3.0.1
-wbia-pydarknet==4.0.1.dev4
-wbia-pyflann==4.0.5.dev10
-wbia-pyhesaff==4.0.1.dev11
-wbia-utool==4.0.5.dev3
-wbia-vtool==4.0.3.dev14
+wbia-lightnet
+wbia-pydarknet
+wbia-pyflann
+wbia-pyhesaff
+wbia-utool
+wbia-vtool
 # webargs==5.5.3
 # werkzeug==0.15.6
