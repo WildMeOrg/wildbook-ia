@@ -24,6 +24,8 @@ then
         postgresql12-server \
         postgresql12 \
         qt5-qtbase-devel \
+        qt5-qmake \
+        qt5-default \
         coreutils
 else
     apt-get install -y \
