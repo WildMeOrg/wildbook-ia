@@ -120,7 +120,7 @@ def _download_training_kit():
 def _parse_weights_from_cfg(url):
     return url.replace('.py', '.weights')
 
-import pdb
+
 def _parse_class_list(config_filepath):
     # Load classes from file into the class list
     params = ln.engine.HyperParameters.from_file(config_filepath)
