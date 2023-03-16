@@ -979,7 +979,6 @@ def localizer_tp_fp(
         gt_list = []
         gt_list_ = []
         pred_list = pred_dict[image_uuid]
-
         for gt in gt_dict[image_uuid]:
             species = gt['class']
             interest = gt['interest']
@@ -1072,6 +1071,7 @@ def localizer_iou_recall_algo(
             (gt_dict, 'Ground-Truth'),
             (pred_dict, 'Predictions'),
         ]
+
         for dict_, dict_tag in dict_list:
             for image_uuid in dict_:
                 temp = []

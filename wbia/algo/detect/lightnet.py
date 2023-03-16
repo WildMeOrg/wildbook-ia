@@ -7,7 +7,6 @@ import cv2
 import numpy as np
 import utool as ut
 import vtool as vt
-import pdb
 from tqdm import tqdm
 
 (print, rrr, profile) = ut.inject2(__name__, '[lightnet]')
@@ -107,6 +106,7 @@ CONFIG_URL_DICT = {
     None: 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.candidacy.py',
     'training_kit': 'https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip',
     'leopard_shark_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.leopard_shark.v0.py',
+    'tigershark_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.tigershark.v0.py',
 
 }
 
@@ -123,7 +123,6 @@ def _parse_weights_from_cfg(url):
 import pdb
 def _parse_class_list(config_filepath):
     # Load classes from file into the class list
-    #pdb.set_trace()
     params = ln.engine.HyperParameters.from_file(config_filepath)
     class_list = params.class_label_map
     return class_list
@@ -288,7 +287,6 @@ def detect(
     # Get correct weight if specified with shorthand
     config_url = None
     if config_filepath in CONFIG_URL_DICT:
-        #pdb.set_trace()
         config_url = CONFIG_URL_DICT[config_filepath]
         config_filepath = ut.grab_file_url(
             config_url, appname='lightnet', check_hash=False
