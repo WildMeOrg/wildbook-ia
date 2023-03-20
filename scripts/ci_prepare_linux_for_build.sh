@@ -41,6 +41,7 @@ else
         qtbase5-dev \
         qtchooser \
         qtbase5-dev-tools\
+        qt5-default \
         coreutils
 fi
 
