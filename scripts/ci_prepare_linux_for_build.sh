@@ -40,8 +40,9 @@ else
         qt5-qmake \
         qtbase5-dev \
         qtchooser \
-        qtbase5-dev-tools\
-        qt5-default \
+        qtbase5-dev-tools \
+        qttools5-dev-tools \
+        qtchooser \
         coreutils
 fi
 
