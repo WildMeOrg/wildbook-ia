@@ -3,7 +3,7 @@ name: Build and upload Docker
 on:
   push:
     branches:
-      - tsubramanian-version-fix
+      - main
     tags:
       - v*
   schedule:
