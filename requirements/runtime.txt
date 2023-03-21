@@ -83,10 +83,10 @@ visdom==0.1.8.9
 PyQt5==5.15.9
 wbia-lightnet
 wbia-pydarknet
-wbia-pyflann==4.0.4
-wbia-utool==4.0.4
-wbia-vtool==4.0.2
-wbia-pyhesaff==4.0.0
+wbia-pyflann
+wbia-utool
+wbia-vtool
+wbia-pyhesaff
 # webargs==5.5.3
 # werkzeug==0.15.6
 
