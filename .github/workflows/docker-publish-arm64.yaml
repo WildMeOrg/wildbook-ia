@@ -9,7 +9,8 @@ jobs:
   devops:
     name: Docker image build
     runs-on: ubuntu-latest
-
+    permissions:
+      packages: write
     strategy:
       matrix:
         images:
