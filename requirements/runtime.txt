@@ -28,7 +28,7 @@ gdm==0.2.1
 geopandas==0.10.2
 gitpython==3.1.27
 imgaug==0.4.0
-ipython==7.34.0
+ipython==8.10.0
 jupyter==1.0.0
 keras==2.2.5
 line-profiler==3.5.1
