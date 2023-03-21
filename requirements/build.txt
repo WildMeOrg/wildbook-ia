@@ -1,6 +1,6 @@
-cmake
-ninja
-scikit-build
-setuptools
-setuptools_scm[toml]
-wheel
+cmake==3.25.2
+ninja==1.11.1
+scikit-build==0.16.7
+setuptools==67.6.0
+setuptools_scm[toml]==7.1.0
+wheel==0.38.4
