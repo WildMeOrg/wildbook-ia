@@ -37,7 +37,7 @@ jobs:
       max-parallel: 2
       fail-fast: false
       matrix:
-        os: [ubuntu-latest-8-cores]
+        os: [ubuntu-latest]
         # os: [ubuntu-latest, macos-latest]
         python-version: [3.7, 3.8, 3.9]
 
@@ -93,7 +93,7 @@ jobs:
       max-parallel: 2
       fail-fast: false
       matrix:
-        os: [ubuntu-latest-8-cores]
+        os: [ubuntu-latest]
         python-version: [3.7, 3.8, 3.9]
 
     services:
