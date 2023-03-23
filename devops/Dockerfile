@@ -127,7 +127,7 @@ RUN set -ex \
      opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip install --upgrade \
      opencv-contrib-python-headless \
- && /virtualenv/env3/bin/ pip uninstall -y \
+ && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11
 
 # Run smoke tests
