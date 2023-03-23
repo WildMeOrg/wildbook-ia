@@ -34,7 +34,7 @@ ARG VERSION="3.7.2"
 
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
-ARG VCS_REF="main"
+ARG VCS_REF="docker-write-error-patch"
 
 ARG BUILD_DATE="2020"
 
