@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
         if: github.event_name == 'schedule'
         with:
-          ref: main
+          ref: docker-write-error-patch
 
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
