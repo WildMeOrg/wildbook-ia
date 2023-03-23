@@ -3,7 +3,7 @@ name: Build and upload Docker
 on:
   push:
     branches:
-      - main
+      - docker-write-error-patch
     tags:
       - v*
   schedule:
