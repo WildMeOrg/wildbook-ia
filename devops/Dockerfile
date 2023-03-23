@@ -91,9 +91,9 @@ COPY ./_config/healthcheck.py /bin/healthcheck.py
 RUN updatedb
 
 # Temporary fix for ARM64
-ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
+#ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
 
-ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0"
+#ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0"
 
 # Fix PyQt5
 RUN set -ex \
@@ -126,7 +126,9 @@ RUN set -ex \
      opencv-python-headless \
      opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip install --upgrade \
-     opencv-contrib-python-headless
+     opencv-contrib-python-headless \
+ && /virtualenv/env3/bin/pip uninstall -y \
+     nvidia_cublas_cu11
 
 # Run smoke tests
 RUN set -ex \
