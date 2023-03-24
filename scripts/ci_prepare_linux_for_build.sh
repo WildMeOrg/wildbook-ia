@@ -46,6 +46,7 @@ else
         coreutils
 fi
 
-pip install --global-option=build_ext --global-option="-I/usr/include/graphviz/" --global-option="-L/usr/lib/graphviz/" pygraphviz
+#pip install --global-option=build_ext --global-option="-I/usr/include/graphviz/" --global-option="-L/usr/lib/graphviz/" pygraphviz
+pip install pygraphviz
 pip uninstall -y pyqt5
 pip install --upgrade pyqt5
