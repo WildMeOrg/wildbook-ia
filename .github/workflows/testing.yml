@@ -70,7 +70,7 @@ jobs:
           pip install -e .[tests,problematic]
           mkdir -p /tmp/work
           export PYTHONFAULTHANDLER=1
-          # python -X faulthandler -m wbia --set-workdir /tmp/work --preload-exit
+          python -X faulthandler -m wbia --set-workdir /tmp/work --preload-exit
 
       - name: gdb backtrace (if failed)
         if: failure()
