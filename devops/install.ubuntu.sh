@@ -78,8 +78,8 @@ pip install --upgrade \
     'cmake!=3.18.2' \
     ninja \
     scikit-build \
-    'setuptools>=59.5.0' \
-    'setuptools_scm[toml]>=6.3.2' \
+    'setuptools==59.5.0' \
+    'setuptools_scm[toml]==6.3.2' \
     cython \
     numpy \
     ipython
