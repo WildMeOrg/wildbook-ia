@@ -74,9 +74,9 @@ sqlalchemy==1.4.14
 SQLAlchemy-Utils==0.38.3
 tensorboard_logger==0.1.0
 Theano==1.0.5
-torch==1.12.1
-torchvision==0.13.1
-torchaudio==0.12.1
+torch==1.13.1
+torchvision==0.14.1
+torchaudio==0.13.1
 tornado==6.2
 tqdm==4.64.0
 ubelt==1.2.1
