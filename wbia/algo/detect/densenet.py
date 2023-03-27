@@ -106,7 +106,7 @@ ARCHIVE_URL_DICT = {
     'scout-5fbfff26-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.2.zip',
     'scout-5fbfff26-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.3.zip',
     'whale_fin_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_fin.v0.zip',
-    'leopard_shark_v0': 'https://cthulhu.dyn.wildme.io/public/models/labeler.leopard_shark.v1.zip',
+    'leopard_shark_v1': 'https://cthulhu.dyn.wildme.io/public/models/labeler.leopard_shark.v1.zip',
     'tigershark_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.tigershark.v0.zip',
 
 }
