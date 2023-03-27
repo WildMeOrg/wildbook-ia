@@ -789,7 +789,7 @@ def test(
 
     if classifier_weight_filepath in ARCHIVE_URL_DICT:
         archive_url = ARCHIVE_URL_DICT[classifier_weight_filepath]
-        archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=True)
+        archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=False)
     else:
         logger.info(
             'classifier_weight_filepath {!r} not recognized'.format(
