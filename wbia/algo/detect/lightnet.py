@@ -289,7 +289,7 @@ def detect(
     if config_filepath in CONFIG_URL_DICT:
         config_url = CONFIG_URL_DICT[config_filepath]
         config_filepath = ut.grab_file_url(
-            config_url, appname='lightnet', check_hash=True
+            config_url, appname='lightnet', check_hash=False
         )
 
     # Get correct weights if specified with shorthand
@@ -300,7 +300,7 @@ def detect(
             config_url_ = CONFIG_URL_DICT[weight_filepath]
         weight_url = _parse_weights_from_cfg(config_url_)
         weight_filepath = ut.grab_file_url(
-            weight_url, appname='lightnet', check_hash=True
+            weight_url, appname='lightnet', check_hash=False
         )
 
     assert exists(config_filepath)
