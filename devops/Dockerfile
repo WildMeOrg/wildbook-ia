@@ -34,9 +34,9 @@ ARG VERSION="3.7.2"
 
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
-ARG VCS_REF="main"
+ARG VCS_REF="cuda-version-fix"
 
-ARG BUILD_DATE="2020"
+ARG BUILD_DATE="2022"
 
 LABEL autoheal=true
 
