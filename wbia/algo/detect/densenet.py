@@ -472,6 +472,8 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
     plt.imsave(canvas_filepath, canvas)
 
 
+import pdb
+
 def train(
     data_path,
     output_path,
@@ -555,8 +557,9 @@ def train(
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, 'min', factor=0.5, patience=10, min_lr=1e-6
     )
-
+     
     # Get weights for the class
+    pdb.set_trace()
     class_index_list = list(dataloaders['train'].dataset.class_to_idx.items())
     index_class_list = [class_index[::-1] for class_index in class_index_list]
     weight = torch.tensor(
