@@ -8,7 +8,6 @@ FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.latest
 RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me" \
- && git config pull.rebase true \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
     'cd {} && cd .. && echo $(pwd) && git reset --hard origin/main && git pull' \
  && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
@@ -25,6 +24,7 @@ RUN set -ex \
  && git pull \
  && cd /wbia/wildbook-ia/ \
  && git reset --hard origin/main \
+ && git config pull.rebase true \
  && git pull
 
 ##########################################################################################
