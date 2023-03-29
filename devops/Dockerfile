@@ -36,7 +36,7 @@ ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
 ARG VCS_REF="main"
 
-ARG BUILD_DATE="2020"
+ARG BUILD_DATE="2023"
 
 LABEL autoheal=true
 
@@ -101,8 +101,10 @@ RUN set -ex \
  && apt-get remove -y \
      python3-pyqt5* \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+     qtbase5-dev \
+     qtchooser \
      qt5-qmake \
-     qt5-default \
+     qtbase5-dev-tools \
  && /virtualenv/env3/bin/pip uninstall -y \
      pyqt5 \
  && /virtualenv/env3/bin/pip install --upgrade \
