@@ -4,3 +4,4 @@ scikit-build==0.16.7
 setuptools==59.5.0
 setuptools_scm[toml]==6.3.2
 wheel==0.38.4
+pyhesaff
