@@ -109,6 +109,7 @@ ARCHIVE_URL_DICT = {
     'leopard_shark_v1': 'https://cthulhu.dyn.wildme.io/public/models/labeler.leopard_shark.v1.zip',
     'leopard_shark_v2': 'https://cthulhu.dyn.wildme.io/public/models/labeler.leopard_shark.v2.zip',
     'leopard_shark_v3': 'https://cthulhu.dyn.wildme.io/public/models/labeler.leopard_shark.v3.zip',
+    'leopard_shark_v4': 'https://cthulhu.dyn.wildme.io/public/models/labeler.leopard_shark.v4.zip',
     'tigershark_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.tigershark.v0.zip',
 
 }
