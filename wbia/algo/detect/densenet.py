@@ -565,6 +565,55 @@ def train(
     weight = torch.tensor(
         [class_weights.get(class_, 1.0) for index, class_ in sorted(index_class_list)]
     )
+    
+
+    from collections import Counter
+    counters = dict(Counter(dataloaders['train'].dataset.targets))
+    counters_sorted = dict(sorted(counters.items()))
+
+    # Defining the ratio of the class ratio
+    class_ratio = list(counters_sorted.values())
+
+    # Calculate the total number of samples in the dataset
+    total_samples = sum(class_ratio)
+
+    # Calculate the weight of each class as the inverse of its frequency
+    class_weights = [total_samples / (c * len(class_ratio)) for c in class_ratio]
+
+    class_weights = [sum(class_ratio) / (c * len(class_ratio)) for c in class_ratio]
+
+    # Convert the class weights to a PyTorch tensor
+    weight = torch.tensor(class_weights, dtype=torch.float)
+
+    
+
+    """"Testing the weighting function of the models 
+    weight = torch.tensor(
+        [class_weights.get(class_, 1.0) for index, class_ in sorted(index_class_list)]
+    )
+
+    
+    from collections import Counter
+    counters = dict(Counter(dataloaders['train'].dataset.targets))
+    counters_sorted = dict(sorted(counters.items()))
+
+    # Defining the ratio of the class ratio
+    class_ratio = list(counters_sorted.values())
+
+    # Calculate the total number of samples in the dataset
+    total_samples = sum(class_ratio)
+
+    # Calculate the weight of each class as the inverse of its frequency
+    class_weights = [total_samples / (c * len(class_ratio)) for c in class_ratio]
+
+    class_weights = [sum(class_ratio) / (c * len(class_ratio)) for c in class_ratio]
+
+    # Convert the class weights to a PyTorch tensor
+    class_weights = torch.tensor(class_weights, dtype=torch.float)
+
+    """
+
+
     weight = weight.to(device)
 
     # Setup the loss fxn
