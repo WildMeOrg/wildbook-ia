@@ -24,6 +24,7 @@ RUN set -ex \
  && git pull \
  && cd /wbia/wildbook-ia/ \
  && git reset --hard origin/main \
+ && git config pull.rebase true \
  && git pull
 
 ##########################################################################################
