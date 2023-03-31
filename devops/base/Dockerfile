@@ -119,6 +119,9 @@ RUN set -ex \
 RUN set -ex \
  && virtualenv --system-site-packages -p $(which python3.7) /virtualenv/env3
 
+  #setuptools \
+  #setuptools_scm[toml] \
+
 # Install PyPI packages
 RUN set -ex \
  && /virtualenv/env3/bin/pip install --upgrade \
@@ -128,8 +131,6 @@ RUN set -ex \
         cmake \
         ninja \
         scikit-build \
-        setuptools \
-        setuptools_scm[toml] \
         cython \
         # Install handy developer tools
         ipython
