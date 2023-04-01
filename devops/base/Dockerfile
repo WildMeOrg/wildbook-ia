@@ -132,6 +132,8 @@ RUN set -ex \
         ninja \
         scikit-build \
         cython \
+        setuptools \
+        setuptools_scm[toml] \
         # Install handy developer tools
         ipython
 
