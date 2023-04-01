@@ -4,10 +4,7 @@ on:
   push:
     branches:
       - Ubuntu2204torch131+cu117-upgrade
-    tags:
-      - v*
-  schedule:
-    - cron: '0 0 * * *' # Every day at midnight
+
 
 jobs:
   devops:
@@ -27,7 +24,7 @@ jobs:
           ref: Ubuntu2204torch131+cu117-upgrade
 
       - uses: actions/checkout@v2
-        if: github.event_name != 'push'
+        if: github.event_name != 'schedule'
 
       - uses: actions/setup-python@v2
         name: Install Python
