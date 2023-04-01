@@ -1,6 +1,7 @@
 cmake==3.25.2
 ninja==1.11.1
 scikit-build==0.16.7
+fairseq
 setuptools==59.5.0
 setuptools_scm[toml]==6.3.2
 wheel==0.38.4
