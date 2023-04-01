@@ -5,7 +5,7 @@ FROM ${WBIA_BASE_IMAGE} as org.wildme.wbia.provision
 # Wildbook IA version
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
-ARG VCS_REF="main"
+ARG VCS_REF="Ubuntu2204torch131+cu117-upgrade"
 
 # Clone WBIA repository
 RUN set -ex \
