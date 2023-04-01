@@ -22,12 +22,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'push'
         with:
           ref: Ubuntu2204torch131+cu117-upgrade
 
       - uses: actions/checkout@v2
-        if: github.event_name != 'schedule'
+        if: github.event_name != 'push'
 
       - uses: actions/setup-python@v2
         name: Install Python
