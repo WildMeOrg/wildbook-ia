@@ -2,6 +2,7 @@
 import datetime
 import distutils
 import logging
+import setuptools
 from os.path import exists, join, realpath, split, splitext
 
 import utool as ut
@@ -27,6 +28,7 @@ def compare_string_versions(a, b):
         >>> print(result)
         1, -1, 0
     """
+    print("setuptools version:", setuptools.__version__)
     va = distutils.version.LooseVersion(a)
     vb = distutils.version.LooseVersion(b)
     if va > vb:
