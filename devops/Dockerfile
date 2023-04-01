@@ -35,7 +35,7 @@ ARG VERSION="3.7.2"
 
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
-ARG VCS_REF="main"
+ARG VCS_REF="Ubuntu2204torch131+cu117-upgrade"
 
 ARG BUILD_DATE="2023"
 
