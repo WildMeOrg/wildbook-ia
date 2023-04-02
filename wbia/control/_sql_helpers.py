@@ -2,7 +2,7 @@
 import datetime
 import distutils
 import logging
-# import setuptools
+import setuptools
 from os.path import exists, join, realpath, split, splitext
 
 import utool as ut
@@ -13,7 +13,9 @@ logger = logging.getLogger('wbia')
 VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
-
+def version_check():
+    print("setuptools version:", setuptools.__version__)
+    
 def compare_string_versions(a, b):
     r"""
     Example:
@@ -28,7 +30,7 @@ def compare_string_versions(a, b):
         >>> print(result)
         1, -1, 0
     """
-    # print("setuptools version:", setuptools.__version__)
+    
     va = distutils.version.LooseVersion(a)
     vb = distutils.version.LooseVersion(b)
     if va > vb:
