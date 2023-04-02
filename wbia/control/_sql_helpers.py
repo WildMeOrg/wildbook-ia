@@ -16,8 +16,8 @@ NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
 def version_check():
     print("setuptools version:", setuptools.__version__)
-    
-    
+
+
 def compare_string_versions(a, b):
     r"""
     Example:
@@ -32,7 +32,7 @@ def compare_string_versions(a, b):
         >>> print(result)
         1, -1, 0
     """
-    
+ 
     va = distutils.version.LooseVersion(a)
     vb = distutils.version.LooseVersion(b)
     if va > vb:
