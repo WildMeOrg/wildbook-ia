@@ -32,7 +32,7 @@ def compare_string_versions(a, b):
         >>> print(result)
         1, -1, 0
     """
- 
+
     va = distutils.version.LooseVersion(a)
     vb = distutils.version.LooseVersion(b)
     if va > vb:
