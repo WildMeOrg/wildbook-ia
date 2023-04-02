@@ -14,10 +14,8 @@ VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--v
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
 
-
 def version_check():
     print("setuptools version:", setuptools.__version__)
-    
     
     
 def compare_string_versions(a, b):
