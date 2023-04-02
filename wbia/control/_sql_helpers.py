@@ -28,7 +28,7 @@ def compare_string_versions(a, b):
         >>> print(result)
         1, -1, 0
     """
-    print("setuptools version:", setuptools.__version__)
+    # print("setuptools version:", setuptools.__version__)
     va = distutils.version.LooseVersion(a)
     vb = distutils.version.LooseVersion(b)
     if va > vb:
