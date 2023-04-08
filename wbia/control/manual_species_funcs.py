@@ -205,7 +205,7 @@ def add_species(
         >>> # Ensure we leave testdb1 in a clean state
         >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
         >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> print(ut.repr2(species_text, nl=False))
+        >>> #print(ut.repr2(species_text, nl=False))
         >>> result =  ut.repr2(species_text, nl=False) + '\n'
         >>> result += ut.repr2(all_species_rowids, nl=False) + '\n'
         >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False) + '\n'
