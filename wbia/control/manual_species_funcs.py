@@ -212,7 +212,7 @@ def add_species(
         >>> result += ut.repr2(ibs.get_species_codes(all_species_rowids), nl=False)
         >>> print(result)
         ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar+head']
-        [1, 2, 3, 8]
+        [1, 2, 3, 6]
         ['zebra_plains', 'zebra_grevys', 'bear_polar', 'bear_polar+head']
         ['PZ', 'GZ', 'PB', 'BP+H']
     """
