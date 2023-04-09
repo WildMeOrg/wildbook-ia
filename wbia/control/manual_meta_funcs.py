@@ -330,6 +330,7 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
         >>> print("contributor_rowid_list2:::")        
         >>> print(contributor_rowid_list2)
         >>>#ut.assert_eq(contributor_rowid_list2[0], 1)
+        >>>ut.assert_eq(contributor_rowid_list2[0], contributor_rowid_list2[1])
     """
     # TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config
     if not ut.QUIET:
