@@ -327,8 +327,6 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
         >>> print(result)
         >>> contributor_rowid_list2 = ibs.get_image_contributor_rowid(gid_list)
         >>> assert ut.allsame(contributor_rowid_list2)
-        >>> print("contributor_rowid_list2:::")        
-        >>> print(contributor_rowid_list2)
         >>>#ut.assert_eq(contributor_rowid_list2[0], 1)
         >>>ut.assert_eq(contributor_rowid_list2[0], contributor_rowid_list2[1])
     """
