@@ -2,6 +2,7 @@
 import datetime
 import distutils
 import logging
+import setuptools
 from os.path import exists, join, realpath, split, splitext
 
 import utool as ut
@@ -12,6 +13,12 @@ logger = logging.getLogger('wbia')
 VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
+def version_check():
+    r"""
+    duct tape function to avoid the setup tools version issues
+    """
+    print("setuptools version:", setuptools.__version__)
+    
 
 def compare_string_versions(a, b):
     r"""
