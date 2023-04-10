@@ -20,7 +20,7 @@ def version_check():
     """
     print("setuptools version:", setuptools.__version__)
 
- 
+
 def compare_string_versions(a, b):
     r"""
     Example:
