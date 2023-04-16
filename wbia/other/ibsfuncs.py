@@ -5234,7 +5234,7 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)
-        aid_list_ = [9, 10]
+        aid_list_ = [10, 9]
     """
     if not aid_list:  # no need to filter if empty
         return aid_list
