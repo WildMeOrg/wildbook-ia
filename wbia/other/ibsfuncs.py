@@ -5231,7 +5231,8 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> species = const.TEST_SPECIES.ZEB_GREVY
-        >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species).sort()
+        >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
+        >>> aid_list_ = aid_list_.sort()
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)
         aid_list_ = [9, 10]
