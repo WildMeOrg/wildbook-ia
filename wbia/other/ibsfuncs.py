@@ -5231,10 +5231,10 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> species = const.TEST_SPECIES.ZEB_GREVY
-        >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
+        >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species).sort()
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)
-        aid_list_ = [10, 9]
+        aid_list_ = [9, 10]
     """
     if not aid_list:  # no need to filter if empty
         return aid_list
