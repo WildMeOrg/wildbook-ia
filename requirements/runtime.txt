@@ -34,7 +34,8 @@ keras==2.2.5
 line-profiler==3.5.1
 lockfile==0.12.2
 mako==1.2.2
-MarkupSafe==2.0.1
+itsdangerous>=0.24,<2.0
+markupsafe<2.0.0
 # marshmallow==2.21.0
 # marshmallow-sqlalchemy==0.12.1
 matplotlib==3.5.3
