@@ -1,5 +1,7 @@
 apispec>=0.20.0,<0.39
 Flask>=1.1,<2
+itsdangerous>=0.24,<2.0
+markupsafe<2.0.0
 flask-marshmallow>=0.7,<0.8
 Flask-SQLAlchemy>=2.4,<2.5.1
 marshmallow>=2.13.5,<3
