@@ -5230,8 +5230,14 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> from wbia import constants as const
         >>> ibs = wbia.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
+        >>> print("len aid_list:")
+        >>> print(len(aid_list))
         >>> species = const.TEST_SPECIES.ZEB_GREVY
         >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
+        >>> print("aid_list[:10]:>>")        
+        >>> print(aid_list[:10])
+        >>> print("aid_list_:>>")                
+        >>> print(aid_list_)
         >>> aid_list_.sort()
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)
