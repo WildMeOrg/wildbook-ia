@@ -5241,6 +5241,7 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> aid_list_.sort()
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)
+        >>> print("Printing this line to make the test fail:")        
         aid_list_ = [9, 10]
     """
     if not aid_list:  # no need to filter if empty
