@@ -133,6 +133,7 @@ if not ut.get_argflag('--no-pytorch'):
 
     try:
         import imgaug  # NOQA
+        import pdb
 
         class Augmentations(object):
             def __call__(self, img):
@@ -144,6 +145,8 @@ if not ut.get_argflag('--no-pytorch'):
                 from imgaug import augmenters as iaa
 
                 sequence = []
+
+                pdb.set_trace()
 
                 sequence += [
                     iaa.Scale((INPUT_SIZE, INPUT_SIZE)),
@@ -560,7 +563,7 @@ def train(
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, 'min', factor=0.5, patience=10, min_lr=1e-6
     )
-     
+
     # Get weights for the class
     #pdb.set_trace()
     class_index_list = list(dataloaders['train'].dataset.class_to_idx.items())
@@ -568,8 +571,8 @@ def train(
     weight = torch.tensor(
         [class_weights.get(class_, 1.0) for index, class_ in sorted(index_class_list)]
     )
-     
-    
+
+
     # incorporating weighting for the classes to resolve class imbalance
     from collections import Counter
     counters = dict(Counter(dataloaders['train'].dataset.targets))
