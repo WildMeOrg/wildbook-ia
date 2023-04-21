@@ -165,6 +165,11 @@ if ut.get_argflag('--pie-v2'):
         (('--no-pie-v2', '--nopiev2'), 'wbia_pie_v2._plugin'),
     ]
 
+if ut.get_argflag('--tbd'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-tbd', '--notbd'), 'wbia_tbd._plugin'),
+    ]
+
 
 if ut.get_argflag('--blend'):
     AUTOLOAD_PLUGIN_MODNAMES += [
@@ -207,7 +212,11 @@ for modname in ut.ProgIter(
             continue
     try:
         # ut.import_modname(modname)
-        ub.import_module_from_name(modname)
+        # NOTE hack
+        if modname == 'wbia_tbd._plugin':
+            ub.import_module_from_path('/wbia/wbia-plugin-tbd/wbia_tbd/__init__.py')
+        else:
+            ub.import_module_from_name(modname)
     except ImportError:
         if 'wbia_cnn' in modname:
             import warnings
