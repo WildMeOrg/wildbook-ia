@@ -212,7 +212,7 @@ for modname in ut.ProgIter(
             continue
     try:
         # ut.import_modname(modname)
-        ## NOTE hack
+        # NOTE hack
         if modname == 'wbia_tbd._plugin':
             ub.import_module_from_path('/wbia/wbia-plugin-tbd/wbia_tbd/__init__.py'
 )
