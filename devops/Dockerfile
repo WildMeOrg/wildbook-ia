@@ -24,7 +24,7 @@ RUN set -ex \
  && git pull \
  && cd /wbia/wildbook-ia/ \
  && git fetch \
- && git reset --hard origin/add-plugin-tbd  \
+ && git reset --hard origin/main  \
  && git config pull.rebase true \
  && git pull
 
@@ -36,7 +36,7 @@ ARG VERSION="3.7.2"
 
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
-ARG VCS_REF="add-plugin-tbd"
+ARG VCS_REF="main"
 
 ARG BUILD_DATE="2023"
 
