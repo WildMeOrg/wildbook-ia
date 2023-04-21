@@ -165,6 +165,11 @@ if ut.get_argflag('--pie-v2'):
         (('--no-pie-v2', '--nopiev2'), 'wbia_pie_v2._plugin'),
     ]
 
+if ut.get_argflag('--tbd'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-tbd', '--notbd'), 'wbia_tbd._plugin'),
+    ]
+
 
 if ut.get_argflag('--blend'):
     AUTOLOAD_PLUGIN_MODNAMES += [

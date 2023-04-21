@@ -51,6 +51,7 @@ def get_query_annot_pair_info(
             'kaggleseven',
             'pie',
             'pietwo',
+            'tbd'
         ]
     ) and getattr(qreq_, '_isnewreq', None):
         if (
@@ -99,6 +100,7 @@ def get_data_annot_pair_info(
             'kaggleseven',
             'pie',
             'pietwo',
+            'tbd'
         ]
     ) and getattr(qreq_, '_isnewreq', None):
         if (
