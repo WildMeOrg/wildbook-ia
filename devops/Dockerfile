@@ -134,14 +134,6 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11
 
-# RUN set -ex \
-#  && /virtualenv/env3/bin/pip install \
-#      timm==0.6.12 
-
-# RUN set -ex \
-#  && /virtualenv/env3/bin/pip install \
-#      albumentations==1.3.0
-
 # Run smoke tests
 RUN set -ex \
  && mkdir -p /data \
@@ -182,4 +174,4 @@ FROM org.wildme.wbia.install as org.wildme.wbia.depricated
 
 COPY ./_config/deprecated.sh /bin/deprecated
 
-#RUN if [ "$(uname -m)" != "aarch64" ] ; then deprecated ; fi
+RUN if [ "$(uname -m)" != "aarch64" ] ; then deprecated ; fi
