@@ -58,7 +58,7 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: wildmebot
+          username: wildmeorg
           password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
@@ -69,7 +69,7 @@ jobs:
           password: ${{ secrets.GHCR_PAT }}
 
       - name: Push to Docker Hub (ARM64)
-        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+        if: ${{ github.event_name == 'push'  }}
         run: |
           VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
           bash devops/publish.sh -t ${VERSION} ${PUBLISH_IMAGES}
@@ -79,7 +79,7 @@ jobs:
 
       # Push containers out to container registries
       - name: Push to GitHub Packages (ARM64)
-        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+        if: ${{ github.event_name == 'push' }}
         run: |
           VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
           bash devops/publish.sh -t ${VERSION} -r ghcr.io/wildmeorg/wildbook-ia ${PUBLISH_IMAGES}
