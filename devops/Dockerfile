@@ -102,6 +102,7 @@ RUN set -ex \
  && apt-get update \
  && apt-get remove -y \
      python3-pyqt5* \
+ && /virtualenv/env3/bin/pip install --upgrade pip \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
      qtbase5-dev \
      qtchooser \
