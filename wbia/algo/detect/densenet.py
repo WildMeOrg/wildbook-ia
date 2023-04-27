@@ -615,20 +615,20 @@ def train(
 
 
     # incorporating weighting for the classes to resolve class imbalance
-    #from collections import Counter
-    #counters = dict(Counter(dataloaders['train'].dataset.targets))
-    #counters_sorted = dict(sorted(counters.items()))
+    from collections import Counter
+    counters = dict(Counter(dataloaders['train'].dataset.targets))
+    counters_sorted = dict(sorted(counters.items()))
     # Defining the ratio of the class ratio
-    #class_ratio = list(counters_sorted.values())
+    class_ratio = list(counters_sorted.values())
 
     # Calculate the total number of samples in the dataset
-    #total_samples = sum(class_ratio)
+    total_samples = sum(class_ratio)
 
     # Calculate the weight of each class as the inverse of its frequency
-    #class_weights = [total_samples / (c * len(class_ratio)) for c in class_ratio]
+    class_weights = [total_samples / (c * len(class_ratio)) for c in class_ratio]
 
     # Convert the class weights to a PyTorch tensor
-    #weight = torch.tensor(class_weights, dtype=torch.float)
+    weight = torch.tensor(class_weights, dtype=torch.float)
 
 
 
