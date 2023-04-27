@@ -102,18 +102,18 @@ RUN set -ex \
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-deprecate-tpl-brambox \
- && pip install -e .'
+ && /virtualenv/env3/bin/pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-deprecate-tpl-lightnet \
  && /virtualenv/env3/bin/pip install -r develop.txt \
- && pip install -e .'
+ && /virtualenv/env3/bin/pip install -e .'
 
 # Wildbook IA
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && /bin/bash run_developer_setup.sh \
- && pip install -r requirements/postgres.txt'
+ && /virtualenv/env3/bin/pip install -r requirements/postgres.txt'
 
 # WBIA third-party plug-ins
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
@@ -126,7 +126,7 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-blend \
- && pip install -e .'
+ && /virtualenv/env3/bin/pip install -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-finfindr \
