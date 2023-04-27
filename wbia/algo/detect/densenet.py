@@ -290,6 +290,21 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
         self.min = min(self.counts.values())
         self.min = int(np.around(multiplier * self.min))
 
+
+        # adding weighted random sample
+        from torch.utils.data import WeightedRandomSampler
+        #Compute the class weights
+        class_counts = np.array([self.counts[cls] for cls in self.classes])
+        class_weights = 1.0 / class_counts.astype(float)
+
+        # Assign weights to each sample based on their class
+        sample_weights = np.array([class_weights[self.labels[i]] for i in range(len(self.labels))])
+
+        # Create a WeightedRandomSampler
+        self.weighted_sampler = WeightedRandomSampler(weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+
+
+
         if self.training:
             self.total = 0
             for cls in self.indices:
@@ -314,12 +329,20 @@ class StratifiedSampler(torch.utils.data.sampler.Sampler):
 
     def __iter__(self):
         if self.training:
-            ret_list = []
-            for cls in self.indices:
-                num_in_class = len(self.indices[cls])
-                num_samples = min(self.min, num_in_class)
-                ret_list += random.sample(self.indices[cls], num_samples)
-            random.shuffle(ret_list)
+            #ret_list = []
+            #for cls in self.indices:
+            #    num_in_class = len(self.indices[cls])
+            #    num_samples = min(self.min, num_in_class)
+
+
+
+
+            #    ret_list += random.sample(self.indices[cls], num_samples)
+            #random.shuffle(ret_list)
+
+            # # Use the WeightedRandomSampler for oversampling the minority class
+            return iter(self.weighted_sampler)
+
         else:
             ret_list = range(self.total)
         assert len(ret_list) == self.total
@@ -508,6 +531,21 @@ def train(
     }
 
     # Create training and validation dataloaders
+    dataloaders = {
+        phase: torch.utils.data.DataLoader(
+            datasets[phase],
+            sampler=StratifiedSampler(
+                datasets[phase], phase, multiplier=sample_multiplier
+            ),
+            batch_size=batch_size,
+            num_workers=batch_size // 8,
+            pin_memory=using_gpu,
+        )
+        for phase in phases
+    }
+
+    # implementing random sampler the model
+
     dataloaders = {
         phase: torch.utils.data.DataLoader(
             datasets[phase],
