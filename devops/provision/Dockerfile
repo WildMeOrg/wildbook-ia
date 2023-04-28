@@ -110,10 +110,35 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && /virtualenv/env3/bin/pip install -e .'
 
 # Wildbook IA
+# && /bin/bash run_developer_setup.sh \
+
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wildbook-ia \
- && /bin/bash run_developer_setup.sh \
- && /virtualenv/env3/bin/pip install -r requirements\postgres.txt'
+ && cd /wbia/wildbook-ia \'
+ &&  /bin/bash clean.sh'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wildbook-ia \'
+ &&  python setup.py clean'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wildbook-ia \'
+ && /virtualenv/env3/bin/pip install -r develop.txt'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wildbook-ia \'
+ && /virtualenv/env3/bin/pip install -r requirements.txt'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wildbook-ia \'
+ && python setup.py develop'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wildbook-ia \'
+ && /virtualenv/env3/bin/pip install -r requirements/postgres.txt'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wildbook-ia \'
+ && /virtualenv/env3/bin/pip install -r requirements/postgres.txt'
  
 # WBIA third-party plug-ins
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
