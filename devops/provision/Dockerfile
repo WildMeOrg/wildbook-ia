@@ -112,9 +112,9 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 # Wildbook IA
 # && /bin/bash run_developer_setup.sh \
 
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wildbook-ia \'
- &&  /bin/bash clean.sh'
+#RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+# && cd /wbia/wildbook-ia \'
+# &&  /bin/bash clean.sh'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \'
