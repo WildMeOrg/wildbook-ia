@@ -120,10 +120,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && python setup.py clean'
 
-
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
- && /virtualenv/env3/bin/pip install -r requirements.txt'
+ && ls -l \
+ && pip install -r requirements.txt'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
