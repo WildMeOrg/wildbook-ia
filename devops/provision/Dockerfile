@@ -120,9 +120,6 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && python setup.py clean'
 
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wildbook-ia \
- && /virtualenv/env3/bin/pip install -r develop.txt'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
@@ -132,6 +129,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && python setup.py develop'
 
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd cd /wbia/wildbook-ia \
+ && /virtualenv/env3/bin/pip install -e .'
+ 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && /virtualenv/env3/bin/pip install -r requirements/postgres.txt'
