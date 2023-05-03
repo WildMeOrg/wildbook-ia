@@ -23,7 +23,6 @@ while [ $# -ge 1 ]; do
             --cache-from=type=local,src=.buildx.cache,mode=max \
             --compress \
             --platform linux/arm64 \
-            --load \
             --push \
             base
         #docker push wildme/wbia-base:arm64
@@ -35,7 +34,6 @@ while [ $# -ge 1 ]; do
             --compress \
             --build-arg WBIA_BASE_IMAGE="wildme/wbia-base:arm64" \
             --platform linux/arm64 \
-            --load \
             --push \
             provision
         #docker push wildme/wbia-provision:arm64
@@ -49,7 +47,6 @@ while [ $# -ge 1 ]; do
             --build-arg WBIA_BASE_IMAGE="wildme/wbia-base:arm64" \
             --build-arg WBIA_PROVISION_IMAGE="wildme/wbia-provision:arm64" \
             --platform linux/arm64 \
-            --load \
             --push \
         #docker push wildme/wbia:arm64
         #docker push wildme/wildbook-ia:arm64
@@ -60,7 +57,6 @@ while [ $# -ge 1 ]; do
             --cache-to=type=local,dest=.buildx.cache,mode=max \
             --cache-from=type=local,src=.buildx.cache,mode=max \
             --platform linux/arm64 \
-            --load \
             --push \
             devops/develop
         cd devops/
