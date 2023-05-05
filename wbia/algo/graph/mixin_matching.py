@@ -220,7 +220,7 @@ class AnnotInfrMatching(object):
             return edges
         # </HACK>
         # <HACK FOR miew-id>
-        if cfgdict.get('pipeline_root', None) in ['MiewIds']:
+        if cfgdict.get('pipeline_root', None) in ['MiewId']:
             from wbia_miew_id._plugin import distance_to_score
 
             globals().update(locals())
