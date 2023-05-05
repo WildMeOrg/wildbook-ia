@@ -165,9 +165,9 @@ if ut.get_argflag('--pie-v2'):
         (('--no-pie-v2', '--nopiev2'), 'wbia_pie_v2._plugin'),
     ]
 
-if ut.get_argflag('--miew_id'):
+if ut.get_argflag('--miew-id'):
     AUTOLOAD_PLUGIN_MODNAMES += [
-        (('--no-miew_id', '--nomiew_id'), 'wbia_miew_id._plugin'),
+        (('--no-miew-id', '--nomiew-id'), 'wbia_miew_id._plugin'),
     ]
 
 
@@ -214,7 +214,7 @@ for modname in ut.ProgIter(
         # ut.import_modname(modname)
         # NOTE hack
         if modname == 'wbia_miew_id._plugin':
-            ub.import_module_from_path('/wbia/wbia-plugin-miew_id/wbia_miew_id/__init__.py')
+            ub.import_module_from_path('/wbia/wbia-plugin-miew-id/wbia_miew_id/__init__.py')
         else:
             ub.import_module_from_name(modname)
     except ImportError:
