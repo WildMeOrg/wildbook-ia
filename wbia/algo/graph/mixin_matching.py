@@ -219,9 +219,9 @@ class AnnotInfrMatching(object):
             edges = set(edges)
             return edges
         # </HACK>
-        # <HACK FOR TBD>
-        if cfgdict.get('pipeline_root', None) in ['Tbd']:
-            from wbia_tbd._plugin import distance_to_score
+        # <HACK FOR miew-id>
+        if cfgdict.get('pipeline_root', None) in ['MiewId']:
+            from wbia_miew_id._plugin import distance_to_score
 
             globals().update(locals())
 
@@ -229,13 +229,13 @@ class AnnotInfrMatching(object):
 
             for qaid in tqdm.tqdm(qaids):
                 daids_ = list(set(daids) - {qaid})
-                tbd_annot_distances = ibs.tbd_predict_light_distance(
+                miew_id_annot_distances = ibs.miew_id_predict_light_distance(
                     qaid,
                     daids_,
                 )
                 score_list = [
-                    distance_to_score(tbd_annot_distance, norm=500.0)
-                    for tbd_annot_distance in tbd_annot_distances
+                    distance_to_score(miew_id_annot_distance, norm=500.0)
+                    for miew_id_annot_distance in miew_id_annot_distances
                 ]
                 values = sorted(zip(score_list, daids_))[::-1]
                 keep = values[:ranks_top]
