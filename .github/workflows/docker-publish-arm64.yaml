@@ -3,9 +3,9 @@ name: Build and upload Docker (ARM64)
 on:
   push:
     branches:
-      - fix-ubuntu1804-pub-file-url
+      - xfix-ubuntu1804-pub-file-url
     tags:
-      - v*
+      - xv*
 
 jobs:
   devops:
