@@ -24,7 +24,7 @@ RUN set -ex \
  && git pull \
  && cd /wbia/wildbook-ia/ \
  && git fetch \
- && git reset --hard origin/main  \
+ && git reset --hard origin/add-gradcam  \
  && git config pull.rebase true \
  && git pull
 
