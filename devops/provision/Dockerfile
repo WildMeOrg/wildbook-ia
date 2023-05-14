@@ -5,7 +5,7 @@ FROM ${WBIA_BASE_IMAGE} as org.wildme.wbia.provision
 # Wildbook IA version
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
-ARG VCS_REF="add-gradcam"
+ARG VCS_REF="main"
 
 # Clone WBIA repository
 RUN set -ex \
@@ -40,7 +40,7 @@ RUN set -ex \
  && git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git \
- && git clone https://github.com/LashaO/wbia-plugin-miew-id.git
+ && git clone https://github.com/WildMeOrg/wbia-plugin-miew-id.git
 
 
 RUN set -ex \

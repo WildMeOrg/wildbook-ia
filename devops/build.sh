@@ -23,7 +23,6 @@ while [ $# -ge 1 ]; do
         docker build \
             --compress \
             -t wildme/wbia-provision:latest \
-            --no-cache \
             provision
     elif [ "$1" == "wbia" ] || [ "$1" == "wildbook-ia" ]; then
         docker build \
