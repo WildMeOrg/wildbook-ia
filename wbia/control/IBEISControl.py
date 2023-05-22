@@ -1213,9 +1213,9 @@ class IBEISController(BASE_CLASS):
             species = self.get_primary_database_species()
             # Use a url to get the icon
             url = {
-                self.const.TEST_SPECIES.GIR_MASAI: 'http://i.imgur.com/tGDVaKC.png',
-                self.const.TEST_SPECIES.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
-                self.const.TEST_SPECIES.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
+                self.const.TEST_SPECIES.GIR_MASAI: 'https://cthulhu.dyn.wildme.io/public/testimgs/tGDVaKC.png',
+                self.const.TEST_SPECIES.ZEB_PLAIN: 'https://cthulhu.dyn.wildme.io/public/testimgs/2Ge1PRg.png',
+                self.const.TEST_SPECIES.ZEB_GREVY: 'https://cthulhu.dyn.wildme.io/public/testimgs/PaUT45f.png',
             }.get(species, None)
             if url is not None:
                 icon = vt.imread(ut.grab_file_url(url), orient='auto')
