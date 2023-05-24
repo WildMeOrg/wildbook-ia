@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - main
-    tags:
-      - v*
-  schedule:
-    - cron: '0 0 * * *' # Every day at midnight
+ #   tags:
+ #     - v*
+ # schedule:
+ #   - cron: '0 0 * * *' # Every day at midnight
 
 jobs:
   devops:
