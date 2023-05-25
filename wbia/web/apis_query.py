@@ -213,6 +213,7 @@ def ensure_review_image(
     draw_matches=True,
     draw_heatmask=False,
     verbose=False,
+    image=None
 ):
     r""" "
     Create the review image for a pair of annotations
@@ -282,7 +283,9 @@ def ensure_review_image(
             'white_background': True,
         }
 
-        if hasattr(qreq_, 'render_single_result'):
+        if image is not None:
+            pass
+        elif hasattr(qreq_, 'render_single_result'):
             image = qreq_.render_single_result(cm, aid, **render_config)
         elif hasattr(cm, 'render_single_annotmatch'):
             image = cm.render_single_annotmatch(qreq_, aid, **render_config)
@@ -1071,8 +1074,71 @@ def query_chips_graph(
             daid_set = list(set(daid_set))
             logger.info('Visualizing %d annots: %r' % (len(daid_set), daid_set))
 
+            if proot.lower() == 'miewid':
+                batch_images = qreq_.render_batch_result(cm, daid_list_)
+
+                for daid, image in zip(daid_list_, batch_images):
+                    extern_flag = daid in daid_set
+
+                    if extern_flag:
+                        logger.info('Rendering match images to disk for daid=%d' % (daid,))
+                        duuid = ibs.get_annot_uuids(daid)
+
+                        args = (duuid,)
+                        dannot_cache_filepath = join(
+                            qannot_cache_filepath, 'dannot_uuid_%s' % args
+                        )
+                        ut.ensuredir(dannot_cache_filepath)
+
+                        cache_filepath_fmtstr = join(
+                            dannot_cache_filepath, 'version_%s_orient_%s.png'
+                        )
+
+                        try:
+                            _, filepath_heatmask = ensure_review_image(
+                                ibs,
+                                daid,
+                                cm,
+                                qreq_,
+                                view_orientation=view_orientation,
+                                draw_matches=False,
+                                draw_heatmask=True,
+                                image=image
+                            )
+
+                        except Exception as ex:
+                            filepath_heatmask = None
+                            extern_flag = 'error'
+                            ut.printex(ex, iswarning=True)
+                        log_render_status(
+                            ibs,
+                            ut.timestamp(),
+                            cm.qaid,
+                            daid,
+                            quuid,
+                            duuid,
+                            cm,
+                            qreq_,
+                            view_orientation,
+                            False,
+                            True,
+                            filepath_heatmask,
+                            extern_flag,
+                        )
+
+                        if filepath_heatmask is not None:
+                            args = (
+                                'heatmask',
+                                view_orientation,
+                            )
+                            cache_filepath = cache_filepath_fmtstr % args
+                            ut.symlink(filepath_heatmask, cache_filepath, overwrite=True)
+
             extern_flag_list = []
             for daid in daid_list_:
+                if proot.lower() == 'miewid':
+                    break
+                
                 extern_flag = daid in daid_set
 
                 if extern_flag:
