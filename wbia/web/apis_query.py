@@ -1138,7 +1138,6 @@ def query_chips_graph(
             for daid in daid_list_:
                 if proot.lower() == 'miewid':
                     break
-                
                 extern_flag = daid in daid_set
 
                 if extern_flag:
