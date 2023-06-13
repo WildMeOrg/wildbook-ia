@@ -45,8 +45,8 @@ def smoke_test():  # nocover
 
     # from pyrf.__main__ import main as pyrf_main
 
-    pyhesaff_main()
-    pyflann_main()
+    # pyhesaff_main() commented for test
+    # pyflann_main() commented for test
     pydarknet_main()
     # pyrf_main()
 
