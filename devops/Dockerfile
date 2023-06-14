@@ -109,7 +109,7 @@ RUN set -ex \
      qtbase5-dev-tools \
  && /virtualenv/env3/bin/pip uninstall -y \
      pyqt5 \
- && /virtualenv/env3/bin/pip install --upgrade \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
      pyqt5 \
  && apt-get clean \
  && apt-get autoclean \
@@ -129,7 +129,7 @@ RUN set -ex \
      opencv-contrib-python \
      opencv-python-headless \
      opencv-contrib-python-headless \
- && /virtualenv/env3/bin/pip install --upgrade \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
      opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11
