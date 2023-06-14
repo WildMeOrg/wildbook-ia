@@ -145,7 +145,7 @@ docker-compose -f ${COMPOSE_MIGRATE_YAML} up -d
 
 # HOTFIX FOR UBELT
 docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia bash -c \
-  '/virtualenv/env3/bin/pip install opencv-python'
+  '/virtualenv/env3/bin/pip install --no-cache-dir opencv-python'
 
 docker-compose -f ${COMPOSE_MIGRATE_YAML} exec wbia bash -c \
   '/virtualenv/env3/bin/wbia-migrate-sqlite-to-postgres -v --db-dir ${DB_DIR} --db-uri ${DB_URI}'
