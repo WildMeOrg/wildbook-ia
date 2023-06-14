@@ -8,10 +8,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && pip uninstall -y wildbook-ia \
  && cd /wbia/wildbook-ia \
  && /bin/bash run_developer_setup.sh \
- && pip install -r /wbia/wildbook-ia/requirements/tests.txt \
- && pip install -r /wbia/wildbook-ia/requirements/runtime.txt \
- && pip install -r /wbia/wildbook-ia/requirements/postgres.txt \
- && pip install -e .'
+ && pip install --no-cache-dir -r /wbia/wildbook-ia/requirements/tests.txt \
+ && pip install --no-cache-dir -r /wbia/wildbook-ia/requirements/runtime.txt \
+ && pip install --no-cache-dir -r /wbia/wildbook-ia/requirements/postgres.txt \
+ && pip install --no-cache-dir -e .'
 
 # Temporary fix for ARM64
 ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
