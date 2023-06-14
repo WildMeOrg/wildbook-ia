@@ -67,14 +67,14 @@ export OPENCV_VERSION=3.4.11
 #     vim \
 #     wget
 
-pip3 install virtualenv
+pip3 install --no-cache-dir virtualenv
 
 virtualenv -p $(which python3.7) ${VENV}
 
 source ${VENV}/bin/activate
 
-pip install --upgrade pip
-pip install --upgrade \
+pip install --no-cache-dir --upgrade pip
+pip install --no-cache-dir --upgrade \
     'cmake!=3.18.2' \
     ninja \
     scikit-build \
@@ -174,9 +174,9 @@ make install
 
 cd ..
 python setup.py build_ext -L ${VIRTUAL_ENV}/lib -I ${VIRTUAL_ENV}/include
-pip install -e .
+pip install --no-cache-dir -e .
 
-pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
+pip install --no-cache-dir pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
 
 cp -r ${VIRTUAL_ENV}/lib/python3.7/site-packages/cv2 /tmp/cv2
 
@@ -231,11 +231,11 @@ cd ${CODE}/wbia-tpl-pyrf
 ./run_developer_setup.sh
 
 cd ${CODE}/wbia-deprecate-tpl-brambox
-pip install -e .
+pip install --no-cache-dir -e .
 
 cd ${CODE}/wbia-deprecate-tpl-lightnet
-pip install -r develop.txt
-pip install -e .
+pip install --no-cache-dir -r develop.txt
+pip install --no-cache-dir -e .
 
 cd ${CODE}/wildbook-ia
 ./run_developer_setup.sh
@@ -247,27 +247,27 @@ cd ${CODE}/wbia-plugin-pie
 ./run_developer_setup.sh
 
 cd ${CODE}/wbia-plugin-blend
-pip install -e .
+pip install --no-cache-dir -e .
 
 cd ${CODE}/wbia-plugin-finfindr
-pip install -e .
+pip install --no-cache-dir -e .
 
 cd ${CODE}/wbia-plugin-deepsense
-pip install -e .
+pip install --no-cache-dir -e .
 
 cd ${CODE}/wbia-plugin-kaggle7
-pip install -e .
+pip install --no-cache-dir -e .
 
 cd ${CODE}/wbia-plugin-lca
-pip install -e .
+pip install --no-cache-dir -e .
 
 cd ${CODE}/wbia-plugin-flukematch
 ./unix_build.sh
-pip install -e .
+pip install --no-cache-dir -e .
 
 cd ${CODE}/wbia-plugin-curvrank
 ./unix_build.sh
-pip install -e .
+pip install --no-cache-dir -e .
 
 pip uninstall -y \
     opencv-python \
@@ -299,7 +299,7 @@ pip uninstall -y \
     tensorboard-plugin-wit \
     keras
 
-pip install \
+pip install --no-cache-dir \
     tensorflow-gpu==1.15.4 \
     keras==2.2.5
 
