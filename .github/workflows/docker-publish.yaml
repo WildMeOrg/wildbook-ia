@@ -34,6 +34,14 @@ jobs:
         with:
           python-version: 3.8
 
+      - name: free disk space
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker image ls -aq)
+          df -h
+        
       # Build images
       - name: Build images
         run: |
