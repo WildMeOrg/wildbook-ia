@@ -40,13 +40,13 @@ def smoke_test():  # nocover
     vtool_main()
 
     from pydarknet.__main__ import main as pydarknet_main
-    # from pyflann.__main__ import main as pyflann_main
-    # from pyhesaff.__main__ import main as pyhesaff_main
+    from pyflann.__main__ import main as pyflann_main
+    from pyhesaff.__main__ import main as pyhesaff_main
 
     # from pyrf.__main__ import main as pyrf_main
 
-    # pyhesaff_main() commented for test
-    # pyflann_main() commented for test
+    pyhesaff_main() commented for test
+    pyflann_main() commented for test
     pydarknet_main()
     # pyrf_main()
 
