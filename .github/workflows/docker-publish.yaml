@@ -33,7 +33,15 @@ jobs:
         name: Install Python
         with:
           python-version: 3.8
-
+          
+      - name: Free Disk space
+        run: |
+             sudo swapoff -a
+             sudo rm -f /swapfile
+             sudo apt clean
+             docker rmi $(docker image ls -aq)
+             df -h
+             
       # Build images
       - name: Build images
         run: |
