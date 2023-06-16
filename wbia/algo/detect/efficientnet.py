@@ -119,6 +119,7 @@ def _init_transforms(**kwargs):
 
     return TRANSFORMS
 
+
 class EfficientnetModel(nn.Module):
     def __init__(self, n_class, model_arch='tf_efficientnet_b4_ns', pretrained=False):
         super().__init__()
@@ -406,6 +407,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
         join('~', 'Desktop', 'efficientnet-augmentation-{}.png'.format(tag))
     )
     plt.imsave(canvas_filepath, canvas)
+
 
 def train(
     data_path,
