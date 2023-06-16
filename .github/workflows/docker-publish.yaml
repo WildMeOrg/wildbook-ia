@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: free disk space
+      - name: Free Disk space
         run: |
           sudo swapoff -a
           sudo rm -f /swapfile
