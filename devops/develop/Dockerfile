@@ -17,8 +17,8 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 ENV LD_PRELOAD "/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
 
 RUN set -ex \
- && /virtualenv/env3/bin/python -c "import wbia; from wbia.__main__ import smoke_test;" 
- # smoke_test()"
+
+ && /virtualenv/env3/bin/python -c "import wbia; from wbia.__main__ import smoke_test; smoke_test()"
 
 # Undo Fix
 ENV LD_PRELOAD ""

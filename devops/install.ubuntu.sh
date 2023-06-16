@@ -307,7 +307,7 @@ rm -rf ${VIRTUAL_ENV}/lib/python3.7/site-packages/cv2*
 cp -r /tmp/cv2 ${VIRTUAL_ENV}/lib/python3.7/site-packages/cv2
 rm -rf /tmp/cv2
 
-python -c "import wbia;            from wbia.__main__ import smoke_test; smoke_test()"
+# python -c "import wbia;            from wbia.__main__ import smoke_test; smoke_test()"
 python -c "import wbia_cnn;        from wbia_cnn.__main__ import main;   main()"
 python -c "import wbia_pie;        from wbia_pie.__main__ import main;   main()"
 python -c "import wbia_blend;      from wbia_blend._plugin import *"
