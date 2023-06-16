@@ -3,11 +3,11 @@ name: Build and upload Docker
 on:
   push:
     branches:
-      - Replace-imgur-urls
- #   tags:
- #     - v*
- # schedule:
- #   - cron: '0 0 * * *' # Every day at midnight
+      - main
+    tags:
+      - v*
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight
 
 jobs:
   devops:
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
         if: github.event_name == 'schedule'
         with:
-          ref: Replace-imgur-urls
+          ref: main
 
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
