@@ -1916,7 +1916,7 @@ class LabelerConfig(dtool.Config):
         ut.ParamInfo(
             'labeler_algo',
             'pipeline',
-            valid_values=['azure', 'cnn', 'pipeline', 'densenet'],
+            valid_values=['azure', 'cnn', 'pipeline', 'densenet', 'efficientnet'],
         ),
         ut.ParamInfo('labeler_weight_filepath', None),
         ut.ParamInfo('labeler_axis_aligned', False, hideif=False),
@@ -2007,6 +2007,24 @@ def compute_labels_annotations(depc, aid_list, config=None):
 
         logger.info('[ibs] detecting using Azure AI for Earth Species Classification API')
         result_gen = azure.label_aid_list(ibs, aid_list, **config)
+
+    elif config['labeler_algo'] in ['efficientnet']:
+        from wbia.algo.detect import efficientnet
+
+        config_ = {
+            'dim_size': (efficientnet.INPUT_SIZE, efficientnet.INPUT_SIZE),
+            'resize_dim': 'wh',
+            'axis_aligned': config['labeler_axis_aligned'],
+        }
+        chip_filepath_list = depc.get_property(
+            'chips', aid_list, 'img', config=config_, read_extern=False, ensure=True
+        )
+        config = dict(config)
+        config['classifier_weight_filepath'] = config['labeler_weight_filepath']
+        result_gen = efficientnet.test_dict(
+            chip_filepath_list, return_dict=True, **config
+        )
+
     elif config['labeler_algo'] in ['densenet']:
         from wbia.algo.detect import densenet
 
