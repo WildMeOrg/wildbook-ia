@@ -102,18 +102,18 @@ RUN set -ex \
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-deprecate-tpl-brambox \
- && pip install -e .'
+ && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-deprecate-tpl-lightnet \
- && /virtualenv/env3/bin/pip install -r develop.txt \
- && pip install -e .'
+ && /virtualenv/env3/bin/pip install --no-cache-dir -r develop.txt \
+ && pip install --no-cache-dir -e .'
 
 # Wildbook IA
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && /bin/bash run_developer_setup.sh \
- && pip install -r requirements/postgres.txt'
+ && pip install --no-cache-dir -r requirements/postgres.txt'
 
 # WBIA third-party plug-ins
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
@@ -126,37 +126,37 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-blend \
- && pip install -e .'
+ && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-finfindr \
- && pip install -e .'
+ && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-deepsense \
- && pip install -e .'
+ && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-kaggle7 \
- && pip install -e .'
+ && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-lca \
- && pip install -e .'
+ && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-orientation \
- && pip install -e .'
+ && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-flukematch \
  && ./unix_build.sh \
- && pip install -e .'
+ && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-curvrank \
  && ./unix_build.sh \
- && pip install -e .'
+ && pip install --no-cache-dir -e .'
 
 # Ensure no previous or deprecated repositories are installed
 # Ensure that opencv-python is un-installed since we want to use our built version
@@ -189,27 +189,27 @@ RUN set -ex \
      torch \
      torchvision \
      torchaudio \
- && /virtualenv/env3/bin/pip install \
+ && /virtualenv/env3/bin/pip install --no-cache-dir \
      pynvml \
- && /virtualenv/env3/bin/pip install --upgrade \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
      opencv-contrib-python-headless \
- && /virtualenv/env3/bin/pip install --upgrade --pre \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade --pre \
      torch==1.12.1 \
      torchvision \
      torchaudio \
      --extra-index-url https://download.pytorch.org/whl/nightly/cu113 \
- && /virtualenv/env3/bin/pip install \
+ && /virtualenv/env3/bin/pip install --no-cache-dir \
      MarkupSafe==2.0.1 \
      Flask==2.1.0
 
 # Wildbook IA problematic dependencies
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
- && pip install -r requirements/problematic.txt'
+ && pip install --no-cache-dir -r requirements/problematic.txt'
 
 # Ensure that we are running the local installed copy, not from PyPI
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
      wildbook-ia \
  && cd /wbia/wildbook-ia \
- && /virtualenv/env3/bin/pip install -e .
+ && /virtualenv/env3/bin/pip install --no-cache-dir -e .

@@ -109,7 +109,7 @@ RUN set -ex \
      qtbase5-dev-tools \
  && /virtualenv/env3/bin/pip uninstall -y \
      pyqt5 \
- && /virtualenv/env3/bin/pip install --upgrade \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
      pyqt5 \
  && apt-get clean \
  && apt-get autoclean \
@@ -129,7 +129,7 @@ RUN set -ex \
      opencv-contrib-python \
      opencv-python-headless \
      opencv-contrib-python-headless \
- && /virtualenv/env3/bin/pip install --upgrade \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
      opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11
@@ -139,6 +139,7 @@ RUN set -ex \
 RUN set -ex \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit \
+ && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \ 
  && /virtualenv/env3/bin/python -c "import wbia_cnn;         from wbia_cnn.__main__ import main;         main()" \
  && /virtualenv/env3/bin/python -c "import wbia_pie_v2;      from wbia_pie_v2.__main__ import main;      main()" \
  && /virtualenv/env3/bin/python -c "import wbia_blend;       from wbia_blend._plugin import *" \

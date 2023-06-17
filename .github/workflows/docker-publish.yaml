@@ -41,7 +41,7 @@ jobs:
              sudo apt clean
              docker rmi $(docker image ls -aq)
              df -h
-             
+            
       # Build images
       - name: Build images
         run: |
