@@ -1157,7 +1157,7 @@ def query_chips_graph(
                     try:
                         _, filepath_matches = ensure_review_image(
                             ibs,
-                      +     daid,
+                            daid,
                             cm,
                             qreq_,
                             view_orientation=view_orientation,
