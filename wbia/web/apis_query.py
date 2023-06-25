@@ -1075,7 +1075,7 @@ def query_chips_graph(
             logger.info('Visualizing %d annots: %r' % (len(daid_set), daid_set))
 
             if proot.lower() == 'miewid':
-                logger.info('Batch processing miewid match images')
+                logger.info('Batch processing match images')
                 batch_images = qreq_.render_batch_result(cm, daid_set)
 
                 for daid, image in zip(daid_set, batch_images):
