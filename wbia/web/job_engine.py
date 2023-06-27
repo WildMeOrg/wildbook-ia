@@ -1556,16 +1556,16 @@ def engine_loop(id_, port_dict, dbdir, containerized, lane):
     # CALLED_FROM: engine_queue
     import wbia
 
-    try:
-        import tensorflow as tf  # NOQA
-        from keras import backend as K  # NOQA
+    # try:
+    #     import tensorflow as tf  # NOQA
+    #     from keras import backend as K  #ß NOQA
 
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        sess = tf.Session(config=config)
-        K.set_session(sess)
-    except (ImportError, RuntimeError):
-        pass
+    #     config = tf.ConfigProto()
+    #     config.gpu_options.allow_growth = True
+    #     sess = tf.Session(config=config)
+    #     K.set_session(sess)
+    # except (ImportError, RuntimeError):
+    #     pass
 
     # base_print = print  # NOQA
     print = partial(ut.colorprint, color='brightgreen')
