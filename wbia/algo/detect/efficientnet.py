@@ -22,10 +22,12 @@ logger = logging.getLogger('wbia')
 
 
 PARALLEL = not const.CONTAINERIZED
-INPUT_SIZE = 224
+INPUT_SIZE = 512
 
 ARCHIVE_URL_DICT = {
     'seaturtles_effnet_v0': 'https://cthulhu.dyn.wildme.io/public/models/labeler_seaturtles_effnet.v0.zip',
+    'snail_effnet_v0': 'https://cthulhu.dyn.wildme.io/public/models/labeler_snail_effnet.v0.zip',
+
 }
 
 
