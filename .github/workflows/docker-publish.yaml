@@ -3,7 +3,7 @@ name: Build and upload Docker
 on:
   push:
     branches:
-      - main
+      - Replace-imgur-urls
     tags:
       - v*
   schedule:
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
         if: github.event_name == 'schedule'
         with:
-          ref: main
+          ref: Replace-imgur-urls
 
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
