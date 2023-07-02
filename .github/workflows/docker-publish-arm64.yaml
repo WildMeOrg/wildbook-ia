@@ -2,8 +2,10 @@ name: Build and upload Docker (ARM64)
 
 on:
   push:
-    tags:
-      - v*
+    branches:
+      - Replace-imgur-urls
+    #tags:
+    #  - v*
 
 jobs:
   devops:
@@ -20,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
         if: github.event_name == 'schedule'
         with:
-          ref: main
+          ref: Replace-imgur-urls
 
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
