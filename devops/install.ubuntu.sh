@@ -191,7 +191,7 @@ git clone --branch develop https://github.com/WildMeOrg/wbia-tpl-pyrf.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-brambox
 git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet
 git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-cnn.git
-git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-flukematch.git
+# git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-flukematch.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
