@@ -3,11 +3,8 @@ name: Build and upload Docker
 on:
   push:
     branches:
-      - main
-    tags:
-      - v*
-  schedule:
-    - cron: '0 0 * * *' # Every day at midnight
+      - build-exclude-flukematch
+  
 
 jobs:
   devops:
@@ -24,7 +21,7 @@ jobs:
       - uses: actions/checkout@v2
         if: github.event_name == 'schedule'
         with:
-          ref: main
+          ref: build-exclude-flukematch
 
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
