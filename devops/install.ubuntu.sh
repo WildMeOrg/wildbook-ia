@@ -261,9 +261,9 @@ pip install --no-cache-dir -e .
 cd ${CODE}/wbia-plugin-lca
 pip install --no-cache-dir -e .
 
-cd ${CODE}/wbia-plugin-flukematch
-./unix_build.sh
-pip install --no-cache-dir -e .
+# cd ${CODE}/wbia-plugin-flukematch
+# ./unix_build.sh
+# pip install --no-cache-dir -e .
 
 cd ${CODE}/wbia-plugin-curvrank
 ./unix_build.sh
