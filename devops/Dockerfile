@@ -134,8 +134,9 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11
 
-pip install -r https://raw.githubusercontent.com/Lasagne/Lasagne/master/requirements.txt
-pip install https://github.com/Lasagne/Lasagne/archive/master.zip
+RUN set -ex \
+ && /virtualenv/env3/bin/pip install -r https://raw.githubusercontent.com/Lasagne/Lasagne/master/requirements.txt \
+ && /virtualenv/env3/bin/pip install https://github.com/Lasagne/Lasagne/archive/master.zip
 
 # Run smoke tests
 # && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
