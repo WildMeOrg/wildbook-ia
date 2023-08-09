@@ -180,6 +180,9 @@ pip install --no-cache-dir pygraphviz --install-option="--include-path=/usr/incl
 
 cp -r ${VIRTUAL_ENV}/lib/python3.7/site-packages/cv2 /tmp/cv2
 
+pip install -r https://raw.githubusercontent.com/Lasagne/Lasagne/master/requirements.txt
+pip install https://github.com/Lasagne/Lasagne/archive/master.zip
+
 cd ${CODE}
 git clone --branch develop https://github.com/WildMeOrg/wildbook-ia.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-utool.git
