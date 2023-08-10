@@ -176,8 +176,8 @@ ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir 
 CMD []
 
 ##########################################################################################
-FROM org.wildme.wbia.install as org.wildme.wbia.depricated
+# FROM org.wildme.wbia.install as org.wildme.wbia.depricated
 
-COPY ./_config/deprecated.sh /bin/deprecated
+# COPY ./_config/deprecated.sh /bin/deprecated
 
-RUN if [ "$(uname -m)" != "aarch64" ] ; then deprecated ; fi
+# RUN if [ "$(uname -m)" != "aarch64" ] ; then deprecated ; fi
