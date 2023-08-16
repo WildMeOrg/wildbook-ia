@@ -9,6 +9,9 @@ cd /wbia \
 
 git clone https://github.com/WildMeOrg/wbia-plugin-pie.git
 
+/virtualenv/env3/bin/pip install --upgrade Cython
+/virtualenv/env3/bin/pip install --upgrade gast
+
 /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-pie \
  && /bin/bash run_developer_setup.sh'
