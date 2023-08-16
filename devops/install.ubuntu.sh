@@ -314,7 +314,7 @@ rm -rf /tmp/cv2
 python -c "import wbia_cnn;        from wbia_cnn.__main__ import main;   main()"
 python -c "import wbia_pie;        from wbia_pie.__main__ import main;   main()"
 python -c "import wbia_blend;      from wbia_blend._plugin import *"
-# python -c "import wbia_flukematch; from wbia_flukematch.plugin import *"
+python -c "import wbia_flukematch; from wbia_flukematch.plugin import *"
 python -c "import wbia_curvrank;   from wbia_curvrank._plugin  import *"
 python -c "import wbia_finfindr;   from wbia_finfindr._plugin  import *"
 python -c "import wbia_kaggle7;    from wbia_kaggle7._plugin   import *"
