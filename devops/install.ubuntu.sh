@@ -80,7 +80,7 @@ pip install --no-cache-dir --upgrade \
     scikit-build \
     'setuptools>=42' \
     'setuptools_scm[toml]>=3.4' \
-    cython \
+    cython==3.0.0 \
     numpy \
     ipython
 
