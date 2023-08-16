@@ -7,7 +7,7 @@ boto==2.49.0
 cachetools==5.2.0 
 click==7.1.2
 colorama==0.4.5
-Cython==0.29.32
+Cython==3.0.0
 dateutils==0.6.12
 delorean==1.0.0
 deprecated==1.2.13
