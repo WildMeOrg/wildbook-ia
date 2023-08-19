@@ -302,8 +302,8 @@ class SimulationHelpers(object):
 
         test_print = ut.partial(infr.print, level=2)
 
-        def test_print(x, **kw):
-            infr.print('[ACTION] ' + x, level=2, **kw)
+        #def test_print(x, **kw):
+        #    infr.print('[ACTION] ' + x, level=2, **kw)
 
         # test_print = lambda *a, **kw: None  # NOQA
 
