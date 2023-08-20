@@ -351,7 +351,7 @@ def rows_equal(row1, row2):
 
 def _complex_type_equality_check(v1, v2):
     """Returns True on the equality of ``v1`` and ``v2``; otherwise False"""
-    if type(v1) != type(v2):
+    if type(v1) is not type(v2):
         if isinstance(v1, (float, int)) and isinstance(v2, (float, int)):
             # We have some float in integer fields in sqlite, for example in
             # annotmatch, the annotmatch_posixtime_modified field has values
