@@ -456,7 +456,7 @@ def review_graph_match_html(
         'pie',
         'pietwo',
         'miewid',
-        'wbia_finfindr'
+        'whaleridgefindr'
     ):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
