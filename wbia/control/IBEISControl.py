@@ -220,7 +220,7 @@ for modname in ut.ProgIter(
         if modname == 'wbia_miew_id._plugin':
             ub.import_module_from_path('/wbia/wbia-plugin-miew-id/wbia_miew_id/__init__.py')
         if modname == 'whaleridgefindr._plugin':
-            ub.import_module_from_path('/wbia/wbia-plugin-whaleridgefindr/wbia_finfindr/__init__.py')        
+            ub.import_module_from_path('/wbia/wbia-plugin-whaleridgefindr/wbia_finfindr/__init__.py')
         else:
             ub.import_module_from_name(modname)
     except ImportError:
