@@ -594,7 +594,7 @@ def review_query_chips_test(**kwargs):
     elif 'use_miew_id' in request.args:
         query_config_dict = {'pipeline_root': 'MiewId'}
     elif 'use_whaleridgefindr' in request.args:
-        query_config_dict = {'pipeline_root': 'whaleridgefindr'}        
+        query_config_dict = {'pipeline_root': 'whaleridgefindr'}
     else:
         query_config_dict = {}
     result_dict = ibs.query_chips_test(query_config_dict=query_config_dict)
