@@ -125,6 +125,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && /bin/bash run_developer_setup.sh'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-whaleridgefindr \
+ && /bin/bash run_developer_setup.sh'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-blend \
  && pip install --no-cache-dir -e .'
 
