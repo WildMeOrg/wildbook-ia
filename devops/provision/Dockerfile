@@ -126,10 +126,14 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-whaleridgefindr \
- && /bin/bash run_developer_setup.sh'
+ && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-blend \
+ && pip install --no-cache-dir -e .'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-finfindr \
  && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
