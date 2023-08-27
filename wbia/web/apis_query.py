@@ -456,7 +456,7 @@ def review_graph_match_html(
         'pie',
         'pietwo',
         'miewid',
-        'whaleridgefindr'
+        'wbia_whaleridgefindr'
     ):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
@@ -594,7 +594,7 @@ def review_query_chips_test(**kwargs):
     elif 'use_miew_id' in request.args:
         query_config_dict = {'pipeline_root': 'MiewId'}
     elif 'use_whaleridgefindr' in request.args:
-        query_config_dict = {'pipeline_root': 'whaleridgefindr'}
+        query_config_dict = {'pipeline_root': 'wbia_whaleridgefindr'}
     else:
         query_config_dict = {}
     result_dict = ibs.query_chips_test(query_config_dict=query_config_dict)
