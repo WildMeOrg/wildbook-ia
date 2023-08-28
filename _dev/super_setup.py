@@ -37,6 +37,7 @@ REPOS = [
     ('WildMeOrg/wbia-plugin-pie-v2', 'wbia-plugin-pie-v2', 'develop'),
     ('WildMeOrg/wbia-plugin-lca', 'wbia-plugin-lca', 'develop'),
     ('WildMeOrg/wbia-plugin-miew-id', 'wbia-plugin-miew-id', 'develop'),
+    ('WildMeOrg/wbia-plugin-whaleridgefindr', 'wbia-plugin-whaleridgefindr', 'develop'),
     # ('WildMeOrg/wbia-plugin-2d-orientation', 'wbia-plugin-2d-orientation', 'develop'),
 ]
 
