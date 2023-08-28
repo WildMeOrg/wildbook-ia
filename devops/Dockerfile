@@ -148,7 +148,7 @@ RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia_orientation; from wbia_orientation.__main__ import main; main()" \
  && /virtualenv/env3/bin/python -c "import wbia_curvrank_v2; from wbia_curvrank_v2._plugin import *" \
  && /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr._plugin    import *" \
- && /virtualenv/env3/bin/python -c "import wbia_whaleridgefindr;    from wbia_whaleridgefindr._plugin     import *" \
+ && /virtualenv/env3/bin/python -c "import wbia-whaleridgefindr;    from wbia-whaleridgefindr._plugin     import *" \
  && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" \
  && /virtualenv/env3/bin/python -c "import wbia_lca;         from wbia_lca._plugin         import *" \
  && /virtualenv/env3/bin/python -c "import wbia_deepsense;   from wbia_deepsense._plugin   import *" \
