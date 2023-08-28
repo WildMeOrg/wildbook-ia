@@ -64,13 +64,13 @@ jobs:
           password: ${{ secrets.GHCR_PAT }}
 
       - name: Push to Docker Hub (Nightly)
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'push'
         run: bash devops/publish.sh -t nightly ${PUBLISH_IMAGES}
         env:
           PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
 
       - name: Push to GitHub Packages (Nightly)
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'push'
         run: bash devops/publish.sh -t nightly -r ghcr.io/wildmeorg/wildbook-ia ${PUBLISH_IMAGES}
         env:
           PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
