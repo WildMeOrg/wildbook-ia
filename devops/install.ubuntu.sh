@@ -318,7 +318,7 @@ python -c "import wbia_blend;      from wbia_blend._plugin import *"
 python -c "import wbia_flukematch; from wbia_flukematch.plugin import *"
 python -c "import wbia_curvrank;   from wbia_curvrank._plugin  import *"
 python -c "import wbia_finfindr;   from wbia_finfindr._plugin  import *"
-python -c "import wbia-whaleridgefindr;   from wbia-whaleridgefindr._plugin  import *"
+python -c "import wbia_whaleridgefindr;   from wbia_whaleridgefindr._plugin  import *"
 python -c "import wbia_kaggle7;    from wbia_kaggle7._plugin   import *"
 python -c "import wbia_deepsense;  from wbia_deepsense._plugin import *"
 
