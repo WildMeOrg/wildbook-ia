@@ -170,7 +170,7 @@ if ut.get_argflag('--miew-id'):
         (('--no-miew-id', '--nomiew-id'), 'wbia_miew_id._plugin'),
     ]
 
-if ut.get_argflag('--wbia-whaleridgefindr'):
+if ut.get_argflag('--whaleridgefindr'):
     AUTOLOAD_PLUGIN_MODNAMES += [
         (('--no-whaleridgefindr', '--nowhaleridgefindr'), 'wbia_whaleridgefindr._plugin'),
     ]

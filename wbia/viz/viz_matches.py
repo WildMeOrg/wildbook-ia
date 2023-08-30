@@ -52,7 +52,7 @@ def get_query_annot_pair_info(
             'pie',
             'pietwo',
             'miewid',
-            'wbia-whaleridgefindr'
+            'whaleridgefindr'
         ]
     ) and getattr(qreq_, '_isnewreq', None):
         if (
@@ -102,7 +102,7 @@ def get_data_annot_pair_info(
             'pie',
             'pietwo',
             'miewid',
-            'wbia-whaleridgefindr'
+            'whaleridgefindr'
         ]
     ) and getattr(qreq_, '_isnewreq', None):
         if (
