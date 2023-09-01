@@ -25,7 +25,9 @@ _, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 DOCKER_CONFIG_REGISTRY = {}
 DOCKER_IMAGE_PREFIX = [
     'wildme',
+
     'haimeh'
+
 
 ]
 DOCKER_DEFAULT_RUN_ARGS = {'detach': True, 'restart_policy': {'Name': 'on-failure'}}

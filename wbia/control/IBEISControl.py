@@ -170,6 +170,10 @@ if ut.get_argflag('--miew-id'):
         (('--no-miew-id', '--nomiew-id'), 'wbia_miew_id._plugin'),
     ]
 
+if ut.get_argflag('--whaleridgefindr'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-whaleridgefindr', '--nowhaleridgefindr'), 'wbia_whaleridgefindr._plugin'),
+    ]
 
 if ut.get_argflag('--blend'):
     AUTOLOAD_PLUGIN_MODNAMES += [
@@ -215,6 +219,8 @@ for modname in ut.ProgIter(
         # NOTE hack
         if modname == 'wbia_miew_id._plugin':
             ub.import_module_from_path('/wbia/wbia-plugin-miew-id/wbia_miew_id/__init__.py')
+        if modname == 'wbia_whaleridgefindr._plugin':
+            ub.import_module_from_path('/wbia/wbia-plugin-whaleridgefindr/wbia_whaleridgefindr/__init__.py')
         else:
             ub.import_module_from_name(modname)
     except ImportError:

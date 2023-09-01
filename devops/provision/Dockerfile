@@ -40,8 +40,8 @@ RUN set -ex \
  && git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-miew-id.git
-
+ && git clone https://github.com/WildMeOrg/wbia-plugin-miew-id.git \
+ && git clone https://github.com/WildMeOrg/wbia-plugin-whaleridgefindr.git
 
 RUN set -ex \
  && cd /wbia \
@@ -130,6 +130,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-finfindr \
+ && pip install --no-cache-dir -e .'
+
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-whaleridgefindr \
  && pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
