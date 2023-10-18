@@ -21,15 +21,15 @@ jobs:
           - wbia-base wbia-provision wbia
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         if: github.event_name == 'schedule'
         with:
           ref: fix-tf-space-issue-error
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         if: github.event_name != 'schedule'
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v3
         name: Install Python
         with:
           python-version: 3.8
