@@ -10,7 +10,7 @@ export PIP_CACHE_DIR=/home/$USER/tmp
 du -h
 cd /wbia \
 
-git clone https://github.com/WildMeOrg/wbia-plugin-pie.git
+git clone https://github.com/WildMeOrg/wbia-plugin-pie.git -b patch-1
 
 /virtualenv/env3/bin/pip install --cache-dir $TMPDIR --upgrade Cython
 /virtualenv/env3/bin/pip install --cache-dir $TMPDIR --upgrade gast
