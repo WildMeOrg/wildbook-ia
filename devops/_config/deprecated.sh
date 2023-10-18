@@ -9,16 +9,18 @@ cd /wbia \
 
 git clone https://github.com/WildMeOrg/wbia-plugin-pie.git
 
-/virtualenv/env3/bin/pip install --upgrade Cython
-/virtualenv/env3/bin/pip install --upgrade gast
+/virtualenv/env3/bin/pip install --cache-dir $TMPDIR --upgrade Cython
+/virtualenv/env3/bin/pip install --cache-dir $TMPDIR --upgrade gast
+
+/virtualenv/env3/bin/pip cache purge
 
 /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-pie \
  && /bin/bash run_developer_setup.sh'
 
-/virtualenv/env3/bin/pip install --cache-dir $TMPDIR \
-    'tensorflow-gpu==1.15.5' \
-    'keras==2.2.5'
+# /virtualenv/env3/bin/pip install --cache-dir $TMPDIR \
+#    'tensorflow-gpu==1.15.5' \
+#    'keras==2.2.5'
 
 /virtualenv/env3/bin/pip install --cache-dir $TMPDIR --upgrade \
     numpy
