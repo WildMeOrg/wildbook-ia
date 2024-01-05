@@ -110,6 +110,7 @@ CONFIG_URL_DICT = {
     'tigershark_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.tigershark.v0.py',
     'snail_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.snail.v0.py',
     'deer_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.deer.v0.py',
+    'trout_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.trout.v0.py'
 }
 
 

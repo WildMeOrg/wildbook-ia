@@ -29,6 +29,7 @@ ARCHIVE_URL_DICT = {
     'snail_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_snail_effnet.v0.zip',
     'deer_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_deer_effnet.v0.zip',
     'leopard_shark_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_leopard_shark_effnet.v0.zip',
+    'trout_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_trout_effnet.v0.zip'
 }
 
 

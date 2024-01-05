@@ -110,7 +110,7 @@ ARCHIVE_URL_DICT = {
     'tigershark_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.tigershark.v0.zip',
     'snail_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.snail.v0.zip',
     'deer_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.deer.v0.zip',
-
+    'trout_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.trout.v0.zip'
 }
 
 
