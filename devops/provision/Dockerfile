@@ -25,8 +25,8 @@ RUN set -ex \
  && git clone https://github.com/WildMeOrg/wbia-tpl-pyflann.git \
  && git clone https://github.com/WildMeOrg/wbia-tpl-pydarknet.git \
  # Depricated
- && git clone https://github.com/WildMeOrg/wbia-deprecate-tpl-brambox \
- && git clone https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet
+ && git clone https://github.com/WildMeOrg/wbia-deprecate-tpl-brambox.git \
+ && git clone https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet.git
 
 # Clone first-party WBIA plug-in repositories
 RUN set -ex \
