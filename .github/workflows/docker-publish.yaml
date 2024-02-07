@@ -3,7 +3,7 @@ name: Build and upload Docker
 on:
   push:
      branches:
-      - build-issue-no-space-left
+      - main
      tags:
       - v*
   schedule:
