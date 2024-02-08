@@ -2,22 +2,20 @@
 WBIA - WildBook IA
 ==================
 
-|Build| |Pypi| |Documentation| |Downloads|
+|Build| |Documentation| |Downloads|
 
 .. image:: http://i.imgur.com/TNCiEBe.png
     :alt: "(Note: the rhino and wildebeest matches may be dubious. Other species do work well though")
 
-WBIA program for the storage and management of images and derived data for
-use in computer vision algorithms. It aims to compute who an animal is, what
-species an animal is, and where an animal is with the ultimate goal being to
-ask important why biological questions.
+WBIA program for the storage and management of images and derived data for use in computer vision algorithms. It aims to compute who an animal is, what species an animal is, and where an animal is with the ultimate goal being to ask important why biological questions.
 
 This project is the Machine Learning (ML) / computer vision component of the WildBook project: See https://github.com/WildMeOrg/.  This project is an actively maintained fork of the popular IBEIS (Image Based Ecological Information System) software suite for wildlife conservation.  The original IBEIS project is maintained by Jon Crall (@Erotemic) at https://github.com/Erotemic/ibeis.  The IBEIS toolkit originally was a wrapper around HotSpotter, which original binaries can be downloaded from: http://cs.rpi.edu/hotspotter/
 
-Currently the system is build around and SQLite database, a web GUI,
-and matplotlib visualizations. Algorithms employed are: convolutional neural network
-detection and localization and classification, hessian-affine keypoint detection, SIFT keypoint
-description, LNBNN identification using approximate nearest neighbors.
+Currently the system is build around and SQLite database, a web GUI, and matplotlib visualizations. Algorithms employed are: convolutional neural network detection and localization and classification, hessian-affine keypoint detection, SIFT keypoint description, LNBNN identification using approximate nearest neighbors.
+
+Support
+--------
+While WBIA can be set up independently, the Wild Me team is not able to assist with independent model training. Support is limited to system setup at this time.
 
 Requirements
 ------------
@@ -29,41 +27,13 @@ Requirements
 Installation Instructions
 -------------------------
 
-PyPI
-~~~~
-
-The WBIA software is now available on `pypi
-<https://pypi.org/project/wbia/>`_ for Linux systems. This means if you have
-`Python installed
-<https://xdoctest.readthedocs.io/en/latest/installing_python.html>`_. You can
-simply run:
-
 .. code:: bash
 
-    pip install wildbook-ia
+    git clone https://github.com/WildMeOrg/wildbook-ia.git
+    cd wildbook-ia/devops
+    sudo ./build.sh wbia-base wbia-provision wbia
 
-to install the software. Then the command to run the web server is:
-
-.. code:: bash
-
-    python -m wbia.dev --dbdir wbia-data/ --web
-
-We highly recommend using a Python virtual environment: https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv
-
-Documentation
-~~~~~~~~~~~~~
-
-The documentation is built and available online at `wildmeorg.github.io/wildbook-ia/ <http://wildmeorg.github.io/wildbook-ia/>`_. However, if you need to build a local copy of the source, the following instructions can be used.
-
-.. code:: bash
-
-   # checkout the source code
-   # install the project in development mode
-   pip install -e .
-   # build the docs
-   scripts/build-docs.sh
-
-Then open the html file at ``docs/build/html/index.html``.
+If you build times out, run the command again. The previous run is cached and the build will advance. Note that you cannot tag this build.
 
 Docker
 ~~~~~~
@@ -73,15 +43,13 @@ The WBIA software is built and deployed as a Docker image `wildme/wbia`.  You ca
 .. code:: bash
 
     # Install Docker - https://docs.docker.com/engine/install/
-    docker pull wildme/wbia:latest
-    docker container run -p <external port>:5000 --name wildbook-ia -v /path/to/local/database/:/data/docker/ wildme/wbia:latest
+    docker pull wildme/wbia:lates
+    docker run -p 84:5000 wildme/wbia:latest bash
 
-This image is built using the multi-stage Dockerfiles in `devops/`.
+This image is built using the multi-stage Dockerfiles in `devops/`. Once the container is up and running, go to `localhost:84` to see the WBIA landing page.
 
-Source
+Dependencies
 ~~~~~~
-
-To be updated soon.
 
 This project depends on an array of other repositories for functionality.
 
@@ -201,7 +169,18 @@ If you use this code or its models in your research, please cite:
 Documentation
 -------------------------
 
-The WBIA API Documentation can be found here: https://wildmeorg.github.io/wildbook-ia/
+The documentation is built and available online at `wildmeorg.github.io/wildbook-ia/ <http://wildmeorg.github.io/wildbook-ia/>`_. However, if you need to build a local copy of the source, the following instructions can be used.
+
+.. code:: bash
+
+   # checkout the source code
+   # install the project in development mode
+   pip install -e .
+   # build the docs
+   scripts/build-docs.sh
+
+Then open the html file at ``docs/build/html/index.html``.
+
 
 Code Style and Development Guidelines
 -------------------------------------
