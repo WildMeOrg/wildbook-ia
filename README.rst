@@ -43,7 +43,7 @@ The WBIA software is built and deployed as a Docker image `wildme/wbia`.  You ca
 .. code:: bash
 
     # Install Docker - https://docs.docker.com/engine/install/
-    docker pull wildme/wbia:lates
+    docker pull wildme/wbia:latest
     docker run -p 84:5000 wildme/wbia:latest bash
 
 This image is built using the multi-stage Dockerfiles in `devops/`. Once the container is up and running, go to `localhost:84` to see the WBIA landing page.
