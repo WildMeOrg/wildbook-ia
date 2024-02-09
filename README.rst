@@ -11,11 +11,11 @@ WBIA program for the storage and management of images and derived data for use i
 
 This project is the Machine Learning (ML) / computer vision component of the WildBook project: See https://github.com/WildMeOrg/.  This project is an actively maintained fork of the popular IBEIS (Image Based Ecological Information System) software suite for wildlife conservation.  The original IBEIS project is maintained by Jon Crall (@Erotemic) at https://github.com/Erotemic/ibeis.  The IBEIS toolkit originally was a wrapper around HotSpotter, which original binaries can be downloaded from: http://cs.rpi.edu/hotspotter/
 
-Currently the system is build around and SQLite database, a web GUI, and matplotlib visualizations. Algorithms employed are: convolutional neural network detection and localization and classification, hessian-affine keypoint detection, SIFT keypoint description, LNBNN identification using approximate nearest neighbors.
+Currently the system is build around a SQLite database, a web GUI, and matplotlib visualizations. Algorithms employed are: convolutional neural network detection and localization and classification, hessian-affine keypoint detection, SIFT keypoint description, LNBNN identification using approximate nearest neighbors.
 
 Support
 --------
-While WBIA can be set up independently, the Wild Me team is not able to assist with independent model training. Support is limited to system setup at this time.
+While WBIA can be set up independently, the Wild Me team is not able to assist with independent model training. Support is limited to system setup in Docker at this time.
 
 Requirements
 ------------
@@ -33,7 +33,7 @@ Installation Instructions
     cd wildbook-ia/devops
     sudo ./build.sh wbia-base wbia-provision wbia
 
-If you build times out, run the command again. The previous run is cached and the build will advance. Note that you cannot tag this build.
+If your build times out, run the command again. The previous run is cached and the build will advance. Note that you cannot tag this build.
 
 Docker
 ~~~~~~
