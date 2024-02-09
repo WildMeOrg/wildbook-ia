@@ -936,6 +936,7 @@ def query_chips_graph(
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
+    use_gradcam = query_config_dict.get('use_gradcam', False)
     logger.info('query_config_dict = {!r}'.format(query_config_dict))
 
     curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', None)
@@ -1077,7 +1078,7 @@ def query_chips_graph(
             daid_set = list(set(daid_set))
             logger.info('Visualizing %d annots: %r' % (len(daid_set), daid_set))
 
-            if proot.lower() == 'miewid':
+            if proot.lower() == 'miewid' and use_gradcam:
                 logger.info('Batch processing miewid match images')
                 batch_images = qreq_.render_batch_result(cm, daid_set)
 
@@ -1139,7 +1140,7 @@ def query_chips_graph(
 
             extern_flag_list = []
             for daid in daid_list_:
-                if proot.lower() == 'miewid':
+                if proot.lower() == 'miewid' and use_gradcam:
                     break
                 extern_flag = daid in daid_set
 
