@@ -1494,7 +1494,7 @@ class AnnotMatch(
         cm.name_groupxs = None
 
     def __nice__(cm):
-        return 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
+        return 'qaid={} nD={}'.format(cm.qaid, cm.num_daids)
 
     def initialize(
         cm,
