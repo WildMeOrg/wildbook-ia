@@ -1305,6 +1305,11 @@ def query_chips_graph(
             'dannot_extern_list': extern_flag_list,
         }
 
+        if hasattr(cm, 'model_url'):
+            cm_dict[cm_key]['model_url'] = cm.model_url
+        if hasattr(cm, 'config_url'):
+            cm_dict[cm_key]['config_url'] = cm.config_url
+
     result_dict = {
         'cm_dict': cm_dict,
         'inference_dict': inference_dict,

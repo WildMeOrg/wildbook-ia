@@ -1448,6 +1448,8 @@ class AnnotMatch(
         'annot_score_list',
         'unique_nids',
         'name_score_list',
+        'model_url',
+        'config_url'
     ]
 
     _special_annot_scores = [
@@ -1478,6 +1480,8 @@ class AnnotMatch(
         # Name scores
         cm.unique_nids = None  # belongs to name_groupxs
         cm.name_score_list = None
+        cm.model_url = None
+        cm.config_url = None
         cm.algo_annot_scores = {key: None for key in cm._special_annot_scores}
         cm.algo_name_scores = {key: None for key in cm._special_name_scores}
         # for score_method in cm._special_name_scores:
@@ -1490,7 +1494,7 @@ class AnnotMatch(
         cm.name_groupxs = None
 
     def __nice__(cm):
-        return 'qaid={} nD={}'.format(cm.qaid, cm.num_daids)
+        return 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
 
     def initialize(
         cm,
@@ -1503,6 +1507,8 @@ class AnnotMatch(
         name_score_list=None,
         annot_score_list=None,
         autoinit=True,
+        model_url=None,
+        config_url=None,
     ):
         """
         qaid and daid_list are not optional. fm_list and fsv_list are strongly
@@ -1517,6 +1523,8 @@ class AnnotMatch(
         cm.unique_nids = safeop(np.array, unique_nids, dtype=hstypes.INDEX_TYPE)
         cm.name_score_list = safeop(np.array, name_score_list, dtype=hstypes.FLOAT_TYPE)
         cm.annot_score_list = safeop(np.array, annot_score_list, dtype=hstypes.FLOAT_TYPE)
+        cm.model_url = model_url
+        cm.config_url = config_url
 
         if autoinit:
             cm._update_daid_index()
