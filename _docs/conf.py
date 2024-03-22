@@ -32,7 +32,7 @@ html_sidebars = {
 
 project = 'wildbook-ia'
 
-copyright = f'{date.today().year}, Wild Me'
+copyright = f'{date.today().year}, Conservation X Labs'
 author = 'Wild Me (wildme.org)'
 
 try:
