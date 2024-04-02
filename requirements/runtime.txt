@@ -90,7 +90,7 @@ PyQt5==5.15.9
 wbia-lightnet
 wbia-pydarknet
 wbia-pyflann
-wbia-utool
+wbia-utool @ git+https://github.com/WildMeOrg/wbia-utool@main
 wbia-vtool
 wbia-pyhesaff
 # webargs==5.5.3
