@@ -113,7 +113,6 @@ CONFIG_URL_DICT = {
     'trout_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.trout.v0.py',
     'trout_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.trout.v1.py',
     'shark_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.shark.v0.py'
-    
 }
 
 
