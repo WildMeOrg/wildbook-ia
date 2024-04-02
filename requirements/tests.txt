@@ -1,7 +1,6 @@
-brunette
-codecov
-coverage
-pytest
-pytest-cov
-pytest-random-order
-xdoctest
+brunette==0.2.8
+coverage==7.2.2
+pytest==7.2.2
+pytest-cov==4.0.0
+pytest-random-order==1.1.0
+xdoctest==1.0.2

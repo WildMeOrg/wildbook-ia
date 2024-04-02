@@ -213,6 +213,7 @@ def ensure_review_image(
     draw_matches=True,
     draw_heatmask=False,
     verbose=False,
+    image=None
 ):
     r""" "
     Create the review image for a pair of annotations
@@ -282,7 +283,9 @@ def ensure_review_image(
             'white_background': True,
         }
 
-        if hasattr(qreq_, 'render_single_result'):
+        if image is not None:
+            pass
+        elif hasattr(qreq_, 'render_single_result'):
             image = qreq_.render_single_result(cm, aid, **render_config)
         elif hasattr(cm, 'render_single_annotmatch'):
             image = cm.render_single_annotmatch(qreq_, aid, **render_config)
@@ -452,6 +455,8 @@ def review_graph_match_html(
         'kaggleseven',
         'pie',
         'pietwo',
+        'miewid',
+        'whaleridgefindr'
     ):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
@@ -586,6 +591,10 @@ def review_query_chips_test(**kwargs):
         query_config_dict = {'pipeline_root': 'Pie'}
     elif 'use_pie_v2' in request.args:
         query_config_dict = {'pipeline_root': 'PieTwo'}
+    elif 'use_miew_id' in request.args:
+        query_config_dict = {'pipeline_root': 'MiewId'}
+    elif 'use_whaleridgefindr' in request.args:
+        query_config_dict = {'pipeline_root': 'whaleridgefindr'}
     else:
         query_config_dict = {}
     result_dict = ibs.query_chips_test(query_config_dict=query_config_dict)
@@ -927,6 +936,7 @@ def query_chips_graph(
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
+    use_gradcam = query_config_dict.get('use_gradcam', False)
     logger.info('query_config_dict = {!r}'.format(query_config_dict))
 
     curvrank_daily_tag = query_config_dict.get('curvrank_daily_tag', None)
@@ -1068,8 +1078,70 @@ def query_chips_graph(
             daid_set = list(set(daid_set))
             logger.info('Visualizing %d annots: %r' % (len(daid_set), daid_set))
 
+            if proot.lower() == 'miewid' and use_gradcam:
+                logger.info('Batch processing miewid match images')
+                batch_images = qreq_.render_batch_result(cm, daid_set)
+
+                for daid, image in zip(daid_set, batch_images):
+                    extern_flag = daid in daid_set
+
+                    logger.info('Rendering match images to disk for daid=%d' % (daid,))
+                    duuid = ibs.get_annot_uuids(daid)
+
+                    args = (duuid,)
+                    dannot_cache_filepath = join(
+                        qannot_cache_filepath, 'dannot_uuid_%s' % args
+                    )
+                    ut.ensuredir(dannot_cache_filepath)
+
+                    cache_filepath_fmtstr = join(
+                        dannot_cache_filepath, 'version_%s_orient_%s.png'
+                    )
+
+                    try:
+                        _, filepath_heatmask = ensure_review_image(
+                            ibs,
+                            daid,
+                            cm,
+                            qreq_,
+                            view_orientation=view_orientation,
+                            draw_matches=False,
+                            draw_heatmask=True,
+                            image=image
+                        )
+                    except Exception as ex:
+                        filepath_heatmask = None
+                        extern_flag = 'error'
+                        ut.printex(ex, iswarning=True)
+
+                    log_render_status(
+                        ibs,
+                        ut.timestamp(),
+                        cm.qaid,
+                        daid,
+                        quuid,
+                        duuid,
+                        cm,
+                        qreq_,
+                        view_orientation,
+                        False,
+                        True,
+                        filepath_heatmask,
+                        extern_flag,
+                    )
+
+                    if filepath_heatmask is not None:
+                        args = (
+                            'heatmask',
+                            view_orientation,
+                        )
+                        cache_filepath = cache_filepath_fmtstr % args
+                        ut.symlink(filepath_heatmask, cache_filepath, overwrite=True)
+
             extern_flag_list = []
             for daid in daid_list_:
+                if proot.lower() == 'miewid' and use_gradcam:
+                    break
                 extern_flag = daid in daid_set
 
                 if extern_flag:
@@ -1201,7 +1273,6 @@ def query_chips_graph(
                 extern_flag_list.append(extern_flag)
         else:
             extern_flag_list = None
-
         cm_dict[cm_key] = {
             # 'qaid'                    : cm.qaid,
             'qannot_uuid': ibs.get_annot_uuids(cm.qaid),
@@ -1233,6 +1304,11 @@ def query_chips_graph(
             'dannot_extern_reference': reference,
             'dannot_extern_list': extern_flag_list,
         }
+
+        if hasattr(cm, 'model_url'):
+            cm_dict[cm_key]['model_url'] = cm.model_url
+        if hasattr(cm, 'config_url'):
+            cm_dict[cm_key]['config_url'] = cm.config_url
 
     result_dict = {
         'cm_dict': cm_dict,

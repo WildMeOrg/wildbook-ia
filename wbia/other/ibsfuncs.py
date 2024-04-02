@@ -5232,6 +5232,7 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         >>> aid_list = ibs.get_valid_aids()
         >>> species = const.TEST_SPECIES.ZEB_GREVY
         >>> aid_list_ = filter_aids_to_species(ibs, aid_list, species)
+        >>> aid_list_.sort()
         >>> result = 'aid_list_ = %r' % (aid_list_,)
         >>> print(result)
         aid_list_ = [9, 10]

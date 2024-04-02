@@ -92,6 +92,7 @@ CONFIG_URL_DICT = {
     'beluga_whale_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.whale_beluga.v1.py',
     'seals_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.seals.v0.py',
     'sea_turtle_v4': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.sea_turtle.v4.py',
+    'sea_turtle_new_v0': 'https://cthulhu.dyn.wildme.io/public/models/detect.lightnet.sea_turtle_new.v0.py',
     'spotted_eagle_ray_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.spotted_eagle_ray.v0.py',
     'yellow_bellied_toad_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.yellow_bellied_toad.v0.py',
     'lions_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.lions.v0.py',
@@ -107,7 +108,10 @@ CONFIG_URL_DICT = {
     'training_kit': 'https://wildbookiarepository.azureedge.net/data/lightnet-training-kit.zip',
     'leopard_shark_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.leopard_shark.v0.py',
     'tigershark_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.tigershark.v0.py',
-
+    'snail_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.snail.v0.py',
+    'deer_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.deer.v0.py',
+    'trout_v0': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.trout.v0.py',
+    'trout_v1': 'https://wildbookiarepository.azureedge.net/models/detect.lightnet.trout.v1.py'
 }
 
 

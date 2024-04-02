@@ -165,6 +165,15 @@ if ut.get_argflag('--pie-v2'):
         (('--no-pie-v2', '--nopiev2'), 'wbia_pie_v2._plugin'),
     ]
 
+if ut.get_argflag('--miew-id'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-miew-id', '--nomiew-id'), 'wbia_miew_id._plugin'),
+    ]
+
+if ut.get_argflag('--whaleridgefindr'):
+    AUTOLOAD_PLUGIN_MODNAMES += [
+        (('--no-whaleridgefindr', '--nowhaleridgefindr'), 'wbia_whaleridgefindr._plugin'),
+    ]
 
 if ut.get_argflag('--blend'):
     AUTOLOAD_PLUGIN_MODNAMES += [
@@ -207,7 +216,13 @@ for modname in ut.ProgIter(
             continue
     try:
         # ut.import_modname(modname)
-        ub.import_module_from_name(modname)
+        # NOTE hack
+        if modname == 'wbia_miew_id._plugin':
+            ub.import_module_from_path('/wbia/wbia-plugin-miew-id/wbia_miew_id/__init__.py')
+        if modname == 'wbia_whaleridgefindr._plugin':
+            ub.import_module_from_path('/wbia/wbia-plugin-whaleridgefindr/wbia_whaleridgefindr/__init__.py')
+        else:
+            ub.import_module_from_name(modname)
     except ImportError:
         if 'wbia_cnn' in modname:
             import warnings
@@ -1204,9 +1219,9 @@ class IBEISController(BASE_CLASS):
             species = self.get_primary_database_species()
             # Use a url to get the icon
             url = {
-                self.const.TEST_SPECIES.GIR_MASAI: 'http://i.imgur.com/tGDVaKC.png',
-                self.const.TEST_SPECIES.ZEB_PLAIN: 'http://i.imgur.com/2Ge1PRg.png',
-                self.const.TEST_SPECIES.ZEB_GREVY: 'http://i.imgur.com/PaUT45f.png',
+                self.const.TEST_SPECIES.GIR_MASAI: 'https://cthulhu.dyn.wildme.io/public/testimgs/tGDVaKC.png',
+                self.const.TEST_SPECIES.ZEB_PLAIN: 'https://cthulhu.dyn.wildme.io/public/testimgs/2Ge1PRg.png',
+                self.const.TEST_SPECIES.ZEB_GREVY: 'https://cthulhu.dyn.wildme.io/public/testimgs/PaUT45f.png',
             }.get(species, None)
             if url is not None:
                 icon = vt.imread(ut.grab_file_url(url), orient='auto')

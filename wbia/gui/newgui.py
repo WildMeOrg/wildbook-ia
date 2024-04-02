@@ -1022,8 +1022,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         current_rowid = model._get_row_id(qtindex)
         next_qtindex = model._get_adjacent_qtindex(qtindex, 1)
         prev_qtindex = model._get_adjacent_qtindex(qtindex, -1)
-        next_callback = None
-        prev_callback = None
+        # next_callback = None
+        # prev_callback = None
         numclicks = [0]  # semephore, invalidates both functions after one call
         if next_qtindex is not None and next_qtindex.isValid():
 

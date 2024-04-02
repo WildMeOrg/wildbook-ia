@@ -1,4 +1,4 @@
-ARG WBIA_UBUNTU_IMAGE=nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04
+ARG WBIA_UBUNTU_IMAGE=nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
 
 FROM ${WBIA_UBUNTU_IMAGE} as org.wildme.wbia.base
 

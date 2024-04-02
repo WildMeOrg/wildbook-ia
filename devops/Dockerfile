@@ -23,7 +23,9 @@ RUN set -ex \
  && git reset --hard origin/main \
  && git pull \
  && cd /wbia/wildbook-ia/ \
- && git reset --hard origin/main \
+ && git fetch \
+ && git reset --hard origin/main  \
+ && git config pull.rebase true \
  && git pull
 
 ##########################################################################################
@@ -36,7 +38,7 @@ ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
 ARG VCS_REF="main"
 
-ARG BUILD_DATE="2020"
+ARG BUILD_DATE="2023"
 
 LABEL autoheal=true
 
@@ -91,9 +93,9 @@ COPY ./_config/healthcheck.py /bin/healthcheck.py
 RUN updatedb
 
 # Temporary fix for ARM64
-ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
+#ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
 
-ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0"
+#ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0"
 
 # Fix PyQt5
 RUN set -ex \
@@ -101,11 +103,13 @@ RUN set -ex \
  && apt-get remove -y \
      python3-pyqt5* \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+     qtbase5-dev \
+     qtchooser \
      qt5-qmake \
-     qt5-default \
+     qtbase5-dev-tools \
  && /virtualenv/env3/bin/pip uninstall -y \
      pyqt5 \
- && /virtualenv/env3/bin/pip install --upgrade \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
      pyqt5 \
  && apt-get clean \
  && apt-get autoclean \
@@ -125,21 +129,26 @@ RUN set -ex \
      opencv-contrib-python \
      opencv-python-headless \
      opencv-contrib-python-headless \
- && /virtualenv/env3/bin/pip install --upgrade \
-     opencv-contrib-python-headless
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
+     opencv-contrib-python-headless \
+ && /virtualenv/env3/bin/pip uninstall -y \
+     nvidia_cublas_cu11
 
 # Run smoke tests
+# && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
+# && /virtualenv/env3/bin/python -c "import wbia_flukematch;  from wbia_flukematch.plugin   import *" \  -- commented out due to Lasagne package dependency issues
+#  && /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr.__main__ import main;      main()" \
 RUN set -ex \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit \
- && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
+ && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \ 
  && /virtualenv/env3/bin/python -c "import wbia_cnn;         from wbia_cnn.__main__ import main;         main()" \
  && /virtualenv/env3/bin/python -c "import wbia_pie_v2;      from wbia_pie_v2.__main__ import main;      main()" \
  && /virtualenv/env3/bin/python -c "import wbia_blend;       from wbia_blend._plugin import *" \
  && /virtualenv/env3/bin/python -c "import wbia_orientation; from wbia_orientation.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia_flukematch;  from wbia_flukematch.plugin   import *" \
  && /virtualenv/env3/bin/python -c "import wbia_curvrank_v2; from wbia_curvrank_v2._plugin import *" \
  && /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr._plugin    import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_whaleridgefindr;    from wbia_whaleridgefindr._plugin     import *" \
  && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" \
  && /virtualenv/env3/bin/python -c "import wbia_lca;         from wbia_lca._plugin         import *" \
  && /virtualenv/env3/bin/python -c "import wbia_deepsense;   from wbia_deepsense._plugin   import *" \

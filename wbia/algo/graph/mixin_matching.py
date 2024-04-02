@@ -219,6 +219,36 @@ class AnnotInfrMatching(object):
             edges = set(edges)
             return edges
         # </HACK>
+        # <HACK FOR miew-id>
+        if cfgdict.get('pipeline_root', None) in ['MiewId']:
+            from wbia_miew_id._plugin import distance_to_score
+
+            globals().update(locals())
+
+            edges = []
+
+            for qaid in tqdm.tqdm(qaids):
+                daids_ = list(set(daids) - {qaid})
+                miew_id_annot_distances = ibs.miew_id_predict_light_distance(
+                    qaid,
+                    daids_,
+                )
+                score_list = [
+                    distance_to_score(miew_id_annot_distance, norm=500.0)
+                    for miew_id_annot_distance in miew_id_annot_distances
+                ]
+                values = sorted(zip(score_list, daids_))[::-1]
+                keep = values[:ranks_top]
+                daid_list = ut.take_column(keep, 1)
+                for daid in daid_list:
+                    u, v = (qaid, daid)
+                    if v < u:
+                        u, v = v, u
+                    edges.append((u, v))
+
+            edges = set(edges)
+            return edges
+        # </HACK>
 
         if batch_size is not None:
             qaids_chunks = list(ut.ichunks(qaids, batch_size))

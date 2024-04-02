@@ -13,104 +13,23 @@ import PIL
 import tqdm
 import utool as ut
 
+import timm
+
 from wbia import constants as const
 
-(print, rrr, profile) = ut.inject2(__name__, '[densenet]')
+(print, rrr, profile) = ut.inject2(__name__, '[efficientnet]')
 logger = logging.getLogger('wbia')
 
 
 PARALLEL = not const.CONTAINERIZED
-INPUT_SIZE = 224
+INPUT_SIZE = 512
 
 ARCHIVE_URL_DICT = {
-    'canonical_zebra_grevys_v1': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.zebra_grevys.v1.zip',
-    'canonical_zebra_grevys_v2': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.zebra_grevys.v2.zip',
-    'canonical_zebra_grevys_v3': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.zebra_grevys.v3.zip',
-    'canonical_zebra_grevys_v4': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.zebra_grevys.v4.zip',
-    'canonical_giraffe_reticulated_v1': 'https://wildbookiarepository.azureedge.net/models/classifier.canonical.giraffe_reticulated.v1.zip',
-    'ryan_densenet_v1': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.ryan.densenet.v1.zip',
-    'ryan_densenet_v2': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.ryan.densenet.v2.zip',
-    'megan_argentina_v1': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.megan.argentina.densenet.v1.zip',
-    'megan_kenya_v1': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.megan.kenya.densenet.v1.zip',
-    'megan_kenya_v2': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.megan.kenya.densenet.v2.zip',
-    'laterals_v0': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.laterals.densenet.v0.zip',
-    'belly_v0': 'https://wildbookiarepository.azureedge.net/models/classifier.cameratrap.right_whale_belly.densenet.v0.zip',
-    'zebra_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.zebra_grevys-zebra_plains.v1.zip',
-    'zebra_mountain_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.zebra_mountain.v0.zip',
-    'giraffe_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.giraffe.v1.zip',
-    'jaguar_v3': 'https://wildbookiarepository.azureedge.net/models/labeler.jaguar.v3.zip',
-    'lynx_v3': 'https://wildbookiarepository.azureedge.net/models/labeler.lynx.v3.zip',
-    'manta_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.manta_ray_giant.v1.zip',
-    'seaturtle_v3': 'https://wildbookiarepository.azureedge.net/models/labeler.seaturtle.v3.zip',
-    'hendrik_dorsal_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.hendrik_dorsal.v2.zip',
-    'spotted_dolphin_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.dolphin_spotted.v0.zip',
-    'spotted_skunk_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.skunk_spotted.v0.zip',
-    'humpback_dorsal': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_humpback.dorsal.v0.zip',
-    'orca_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_orca.v0.zip',
-    'whale_sperm_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_sperm.v0.zip',
-    'fins_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v0.zip',
-    'fins_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.v1.1.zip',
-    'fins_enforcement_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.fins.enforcement.v0.zip',
-    'wilddog_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v0.zip',
-    'wilddog_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v1.zip',
-    'wilddog_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v2.zip',
-    'wilddog_v3': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_dog.v3.zip',
-    'leopard_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.leopard.v0.zip',
-    'cheetah_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.cheetah.v1.zip',
-    'cheetah_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.cheetah.v2.zip',
-    'hyaena_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.hyaena.v0.zip',
-    'wild_horse_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.wild_horse.v0.zip',
-    'seadragon_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v0.zip',
-    'seadragon_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v1.zip',
-    'seadragon_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.seadragon.v2.zip',
-    'jaguar_v4': 'https://wildbookiarepository.azureedge.net/models/labeler.jaguar.v4.zip',
-    'lynx_v4': 'https://wildbookiarepository.azureedge.net/models/labeler.lynx.v4.zip',
-    'manta_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.manta_ray_giant.v2.zip',
-    'seaturtle_v4': 'https://wildbookiarepository.azureedge.net/models/labeler.seaturtle.v4.zip',
-    'nassau_grouper_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v0.zip',
-    'nassau_grouper_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v1.zip',
-    'nassau_grouper_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v2.zip',
-    'nassau_grouper_v3': 'https://wildbookiarepository.azureedge.net/models/labeler.grouper_nassau.v3.zip',
-    'salanader_fire_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.salamander_fire.v0.zip',
-    'salanader_fire_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.salamander_fire.v1.zip',
-    'salamander_fire_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.salamander_fire.v0.zip',
-    'salamander_fire_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.salamander_fire.v1.zip',
-    'salamander_fire_v2': 'https://wildbookiarepository.azureedge.net/models/labeler.salamander_fire.v2.zip',
-    'spotted_dolphin_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.dolphin_spotted.v1.zip',
-    'spotted_skunk_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.skunk_spotted.v1.zip',
-    'monk_seal_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.mediterranean_monk_seal.v0.zip',
-    'iot_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.iot.v0.zip',
-    'right_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.rightwhale.v0.zip',
-    'whale_shark_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_shark.v0.zip',
-    'flukebook_v1': 'https://wildbookiarepository.azureedge.net/models/classifier2.flukebook.v1.zip',
-    'rightwhale_v5': 'https://wildbookiarepository.azureedge.net/models/labeler.rightwhale.v5.zip',
-    'snow_leopard_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.snow_leopard.v0.zip',
-    'grey_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_grey.v0.zip',
-    'beluga_whale_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_beluga.v0.zip',
-    'beluga_whale_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_beluga.v1.zip',
-    'sea_turtle_v4': 'https://wildbookiarepository.azureedge.net/models/labeler.sea_turtle.v4.zip',
-    'seals_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.seals.v0.zip',
-    'seals_v1': 'https://wildbookiarepository.azureedge.net/models/labeler.seals.v1.zip',
-    'lions_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.lions.v0.zip',
-    'spotted_eagle_ray_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.spotted_eagle_ray.v0.zip',
-    'scout-d3e8bf43-boost0': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.0.zip',
-    'scout-d3e8bf43-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.1.zip',
-    'scout-d3e8bf43-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.2.zip',
-    'scout-d3e8bf43-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.3.zip',
-    'scout-d3e8bf43-boost4': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.4.zip',
-    'scout-d3e8bf43-boost5': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.5.zip',
-    'scout-d3e8bf43-boost6': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.6.zip',
-    'scout-d3e8bf43-boost7': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.d3e8bf43.7.zip',
-    'scout-5fbfff26-boost0': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.0.zip',
-    'scout-5fbfff26-boost1': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.1.zip',
-    'scout-5fbfff26-boost2': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.2.zip',
-    'scout-5fbfff26-boost3': 'https://wildbookiarepository.azureedge.net/models/classifier2.scout.5fbfff26.3.zip',
-    'whale_fin_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.whale_fin.v0.zip',
-    'leopard_shark_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.leopard_shark.v10.zip',
-    'tigershark_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.tigershark.v0.zip',
-    'snail_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.snail.v0.zip',
-    'deer_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.deer.v0.zip',
-    'trout_v0': 'https://wildbookiarepository.azureedge.net/models/labeler.trout.v0.zip'
+    'seaturtles_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_seaturtles_effnet.v0.zip',
+    'snail_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_snail_effnet.v0.zip',
+    'deer_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_deer_effnet.v0.zip',
+    'leopard_shark_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_leopard_shark_effnet.v0.zip',
+    'trout_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_trout_effnet.v0.zip'
 }
 
 
@@ -203,6 +122,28 @@ def _init_transforms(**kwargs):
     }
 
     return TRANSFORMS
+
+
+class EfficientnetModel(nn.Module):
+    def __init__(self, n_class, model_arch='tf_efficientnet_b4_ns', pretrained=False):
+        super().__init__()
+        self.model = timm.create_model(model_arch, pretrained=pretrained)
+
+        if n_class is not None:
+            n_features = self.model.classifier.in_features
+            self.model.classifier = nn.Linear(n_features, n_class)
+        else:
+            self.model.classifier = nn.Identity(n_features, n_class)
+        '''
+        self.model.classifier = nn.Sequential(
+            nn.Dropout(0.3),
+            #nn.Linear(n_features, hidden_size,bias=True), nn.ELU(),
+            nn.Linear(n_features, n_class, bias=True)
+        )
+        '''
+    def forward(self, x):
+        x = self.model(x)
+        return x
 
 
 class ImageFilePathList(torch.utils.data.Dataset):
@@ -467,7 +408,7 @@ def visualize_augmentations(dataset, augmentation, tag, num_per_class=10, **kwar
     canvas = np.vstack(canvas_list)
 
     canvas_filepath = expanduser(
-        join('~', 'Desktop', 'densenet-augmentation-{}.png'.format(tag))
+        join('~', 'Desktop', 'efficientnet-augmentation-{}.png'.format(tag))
     )
     plt.imsave(canvas_filepath, canvas)
 
@@ -523,9 +464,9 @@ def train(
     logger.info('Initializing Model...')
 
     # Initialize the model for this run
-    model = torchvision.models.densenet201(pretrained=True)
-    num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, num_classes)
+    model = EfficientnetModel(n_class=num_classes)
+    # num_ftrs = model.classifier.in_features
+    # model.classifier = nn.Linear(num_ftrs, num_classes)
 
     # Send the model to GPU
     model = model.to(device)
@@ -573,7 +514,7 @@ def train(
     model = finetune(model, dataloaders, criterion, optimizer, scheduler, device)
 
     ut.ensuredir(output_path)
-    weights_path = os.path.join(output_path, 'classifier.densenet.weights')
+    weights_path = os.path.join(output_path, 'classifier.efficientnet.weights')
     weights = {
         'state': copy.deepcopy(model.state_dict()),
         'classes': train_classes,
@@ -611,9 +552,9 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
     num_classes = len(classes)
 
     # Initialize the model for this run
-    model = torchvision.models.densenet201()
-    num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, num_classes)
+    model = EfficientnetModel(n_class=num_classes)
+    # num_ftrs = model.classifier.in_features
+    # model.classifier = nn.Linear(num_ftrs, num_classes)
 
     # Convert any weights to non-parallel version
     from collections import OrderedDict
@@ -627,7 +568,7 @@ def test_single(filepath_list, weights_path, batch_size=1792, multi=PARALLEL, **
     model.load_state_dict(new_state)
 
     # Add softmax
-    model.classifier = nn.Sequential(model.classifier, nn.LogSoftmax(), nn.Softmax())
+    model.model.classifier = nn.Sequential(model.model.classifier, nn.LogSoftmax(), nn.Softmax())
 
     # Make parallel at end
     if multi:
@@ -700,7 +641,7 @@ def test_ensemble(
                     model_index,
                 )
                 config = {
-                    'classifier_two_algo': 'densenet',
+                    'classifier_two_algo': 'efficientnet',
                     'classifier_two_weight_filepath': classifier_two_weight_filepath_,
                 }
                 scores_list = ibs.depc_image.get_property(
@@ -716,7 +657,7 @@ def test_ensemble(
                     model_index,
                 )
                 config = {
-                    'classifier_algo': 'densenet',
+                    'classifier_algo': 'efficientnet',
                     'classifier_weight_filepath': classifier_weight_filepath_,
                 }
                 prediction_list = ibs.depc_image.get_property(
@@ -887,7 +828,7 @@ def features(filepath_list, batch_size=512, multi=PARALLEL, **kwargs):
     )
 
     # Initialize the model for this run
-    model = torchvision.models.densenet201(pretrained=True)
+    model = EfficientnetModel(n_class=None)
 
     # Send the model to GPU
     model = model.to(device)
