@@ -5,4 +5,3 @@ setuptools==59.5.0
 setuptools_scm[toml]==6.3.2
 wheel==0.38.4
 pyhesaff==2.1.1
-wbia-utool
