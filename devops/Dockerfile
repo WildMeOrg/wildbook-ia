@@ -3,13 +3,14 @@ ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
 ARG WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest
 
 FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.latest
-#  && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
+
 # Grab latest code
 RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me" \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
     'cd {} && cd .. && echo $(pwd) && git reset --hard origin/main && git pull' \
+ && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
  && git reset --hard origin/main \
  && git pull \
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
@@ -137,9 +138,6 @@ RUN set -ex \
 # && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
 # && /virtualenv/env3/bin/python -c "import wbia_flukematch;  from wbia_flukematch.plugin   import *" \  -- commented out due to Lasagne package dependency issues
 #  && /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr.__main__ import main;      main()" \
-#  && /virtualenv/env3/bin/python -c "import wbia_curvrank_v2; from wbia_curvrank_v2._plugin import *" \
-#&& /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr._plugin    import *" \
-
 RUN set -ex \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit \
@@ -148,6 +146,8 @@ RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia_pie_v2;      from wbia_pie_v2.__main__ import main;      main()" \
  && /virtualenv/env3/bin/python -c "import wbia_blend;       from wbia_blend._plugin import *" \
  && /virtualenv/env3/bin/python -c "import wbia_orientation; from wbia_orientation.__main__ import main; main()" \
+ && /virtualenv/env3/bin/python -c "import wbia_curvrank_v2; from wbia_curvrank_v2._plugin import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr._plugin    import *" \
  && /virtualenv/env3/bin/python -c "import wbia_whaleridgefindr;    from wbia_whaleridgefindr._plugin     import *" \
  && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" \
  && /virtualenv/env3/bin/python -c "import wbia_lca;         from wbia_lca._plugin         import *" \
