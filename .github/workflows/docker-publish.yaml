@@ -3,7 +3,7 @@ name: Build and upload Docker
 on:
   push:
      branches:
-      - main
+      - Remove_CurvRank2_FinFindr
      tags:
       - v*
   schedule:
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
         if: github.event_name == 'schedule'
         with:
-          ref: main
+          ref: Remove_CurvRank2_FinFindr
 
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
