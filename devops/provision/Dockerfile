@@ -37,11 +37,11 @@ RUN set -ex \
  && cd /wbia \
  && git clone https://github.com/WildMeOrg/wbia-plugin-orientation.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-flukematch.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
+ #&& git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-miew-id.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-whaleridgefindr.git
+ #&& git clone https://github.com/WildMeOrg/wbia-plugin-whaleridgefindr.git
 
 RUN set -ex \
  && cd /wbia \
@@ -51,12 +51,12 @@ RUN set -ex \
  && git checkout main
 
 # Clone third-party WBIA plug-in repositories
-RUN set -ex \
- && cd /wbia \
- && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-curvrank.git \
- && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
- && git fetch origin \
- && git checkout main
+#RUN set -ex \
+# && cd /wbia \
+# && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-curvrank.git \
+# && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
+# && git fetch origin \
+# && git checkout main
 
 RUN set -ex \
  && cd /wbia \
@@ -128,13 +128,13 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-blend \
  && pip install --no-cache-dir -e .'
 
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-finfindr \
- && pip install --no-cache-dir -e .'
+#RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+# && cd /wbia/wbia-plugin-finfindr \
+# && pip install --no-cache-dir -e .'
 
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-whaleridgefindr \
- && pip install --no-cache-dir -e .'
+#RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ #&& cd /wbia/wbia-plugin-whaleridgefindr \
+ #&& pip install --no-cache-dir -e .'
 
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-plugin-deepsense \
@@ -157,10 +157,10 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && ./unix_build.sh \
  && pip install --no-cache-dir -e .'
 
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-curvrank \
- && ./unix_build.sh \
- && pip install --no-cache-dir -e .'
+#RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+# && cd /wbia/wbia-plugin-curvrank \
+# && ./unix_build.sh \
+# && pip install --no-cache-dir -e .'
 
 # Ensure no previous or deprecated repositories are installed
 # Ensure that opencv-python is un-installed since we want to use our built version
