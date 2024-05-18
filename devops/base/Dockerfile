@@ -128,7 +128,7 @@ RUN set -ex \
         cmake \
         ninja \
         scikit-build \
-        setuptools \
+        setuptools==59.5.0 \
         setuptools_scm[toml] \
         cython \
         # Install handy developer tools
