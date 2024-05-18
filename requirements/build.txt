@@ -2,7 +2,7 @@ cmake==3.25.2
 ninja==1.11.1
 pyproject-hooks!=1.1 
 fairseq==0.12.2
-setuptools
+setuptools==58.2.0
 setuptools_scm[toml]==6.3.2
 wheel==0.38.4
 pyhesaff==2.1.1
