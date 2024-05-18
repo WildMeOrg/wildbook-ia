@@ -124,10 +124,11 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip install --upgrade \
         pip \
  && /virtualenv/env3/bin/pip install setuptools==59.5.0 \
- && /virtualenv/env3/bin/pip install --upgrade \
+ && /virtualenv/env3/bin/pip install  \
         # Install build requirements
         cmake \
         ninja \
+        setuptools==59.5.0 \
         scikit-build \    
         setuptools_scm[toml] \
         cython \
