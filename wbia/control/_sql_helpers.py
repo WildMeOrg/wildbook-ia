@@ -20,8 +20,8 @@ def version_check():
     """
     try:
         print("setuptools version:", setuptools.__version__)
-    except:
-        print("setuptools version - no able to fetch version")
+    except Exception as ex:
+        print("setuptools version - no able to fetch version", ex.message, ex.args)
 
 
 def compare_string_versions(a, b):
