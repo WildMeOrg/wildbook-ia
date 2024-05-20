@@ -78,7 +78,7 @@ pip install --no-cache-dir --upgrade \
     'cmake!=3.18.2' \
     ninja \
     scikit-build \
-    'setuptools==59.5.0' \
+    'setuptools==59.8.0' \
     'setuptools_scm[toml]>=3.4' \
     cython==3.0.0 \
     numpy \
