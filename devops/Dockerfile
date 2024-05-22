@@ -13,6 +13,7 @@ RUN set -ex \
  && git config --global user.name "Wild Me" \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
     'cd {} && cd .. && echo $(pwd) && git reset --hard origin/main && git pull' \
+
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
  && git reset --hard origin/main \
  && git pull \
@@ -151,6 +152,7 @@ RUN set -ex \
  && /virtualenv/env3/bin/python -c "import wbia_pie_v2;      from wbia_pie_v2.__main__ import main;      main()" \
  && /virtualenv/env3/bin/python -c "import wbia_blend;       from wbia_blend._plugin import *" \
  && /virtualenv/env3/bin/python -c "import wbia_orientation; from wbia_orientation.__main__ import main; main()" \
+
  && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" \
  && /virtualenv/env3/bin/python -c "import wbia_lca;         from wbia_lca._plugin         import *" \
  && /virtualenv/env3/bin/python -c "import wbia_deepsense;   from wbia_deepsense._plugin   import *" \
