@@ -78,7 +78,7 @@ pip install --no-cache-dir --upgrade \
     'cmake!=3.18.2' \
     ninja \
     scikit-build \
-    'setuptools>=42' \
+    'setuptools==59.5.0' \
     'setuptools_scm[toml]>=3.4' \
     cython==3.0.0 \
     numpy \
@@ -192,17 +192,17 @@ git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-bramb
 git clone --branch develop https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet
 git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-cnn.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-flukematch.git
-git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git
+#git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-finfindr.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-deepsense.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-whaleridgefindr.git
 git clone --branch develop https://github.com/WildMeOrg/wbia-plugin-pie.git
 git clone https://github.com/WildMeOrg/wbia-plugin-blend.git
 
-cd ${CODE}
-git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-curvrank.git
-cd wbia-plugin-curvrank/wbia_curvrank
-git fetch origin
-git checkout develop
+#cd ${CODE}
+#git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-curvrank.git
+#cd wbia-plugin-curvrank/wbia_curvrank
+#git fetch origin
+#git checkout develop
 
 cd ${CODE}
 git clone --recursive --branch develop https://github.com/WildMeOrg/wbia-plugin-kaggle7.git
@@ -250,8 +250,8 @@ cd ${CODE}/wbia-plugin-pie
 cd ${CODE}/wbia-plugin-blend
 pip install --no-cache-dir -e .
 
-cd ${CODE}/wbia-plugin-finfindr
-pip install --no-cache-dir -e .
+#cd ${CODE}/wbia-plugin-finfindr
+#pip install --no-cache-dir -e .
 
 cd ${CODE}/wbia-plugin-whaleridgefindr
 pip install --no-cache-dir -e .
@@ -269,9 +269,9 @@ cd ${CODE}/wbia-plugin-flukematch
 ./unix_build.sh
 pip install --no-cache-dir -e .
 
-cd ${CODE}/wbia-plugin-curvrank
-./unix_build.sh
-pip install --no-cache-dir -e .
+#cd ${CODE}/wbia-plugin-curvrank
+#./unix_build.sh
+#pip install --no-cache-dir -e .
 
 pip uninstall -y \
     opencv-python \
@@ -316,8 +316,8 @@ python -c "import wbia_cnn;        from wbia_cnn.__main__ import main;   main()"
 python -c "import wbia_pie;        from wbia_pie.__main__ import main;   main()"
 python -c "import wbia_blend;      from wbia_blend._plugin import *"
 python -c "import wbia_flukematch; from wbia_flukematch.plugin import *"
-python -c "import wbia_curvrank;   from wbia_curvrank._plugin  import *"
-python -c "import wbia_finfindr;   from wbia_finfindr._plugin  import *"
+#python -c "import wbia_curvrank;   from wbia_curvrank._plugin  import *"
+#python -c "import wbia_finfindr;   from wbia_finfindr._plugin  import *"
 python -c "import wbia_whaleridgefindr;   from wbia_whaleridgefindr._plugin  import *"
 python -c "import wbia_kaggle7;    from wbia_kaggle7._plugin   import *"
 python -c "import wbia_deepsense;  from wbia_deepsense._plugin import *"

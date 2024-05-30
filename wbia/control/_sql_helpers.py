@@ -18,7 +18,10 @@ def version_check():
     r"""
     duct tape function to avoid the setup tools version issues
     """
-    print("setuptools version:", setuptools.__version__)
+    try:
+        print("setuptools version:", setuptools.__version__)
+    except Exception as ex:
+        print("setuptools version - no able to fetch version", ex.message, ex.args)
 
 
 def compare_string_versions(a, b):
