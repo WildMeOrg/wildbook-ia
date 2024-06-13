@@ -169,7 +169,7 @@ class EfficientnetModel(nn.Module):
         if n_class is not None:
             n_features = self.model.classifier.in_features
             self.model.classifier = nn.Linear(n_features, n_class)
-            
+
         else:
             self.model.classifier = nn.Identity(n_features, n_class)
         '''
@@ -179,7 +179,7 @@ class EfficientnetModel(nn.Module):
             nn.Linear(n_features, n_class, bias=True)
         )
         '''
-        
+
     def process_row(self, row_labels, preds, sort_weights, labels):
         multi_labels = labels[row_labels.astype(bool)]
         preds = preds[row_labels.astype(bool)]
