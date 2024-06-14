@@ -1,4 +1,4 @@
-ARG WBIA_UBUNTU_IMAGE=nvidia/12.1.0-cudnn8-runtime-ubuntu22.04
+ARG WBIA_UBUNTU_IMAGE=nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
 #nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04
 #docker pull nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04
 #nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
