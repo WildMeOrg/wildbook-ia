@@ -257,7 +257,7 @@ KWARGS = OrderedDict(
         'Environment :: Console',
         'Environment :: Web Environment',
         'Environment :: GPU',
-        'Environment :: GPU :: NVIDIA CUDA :: 11.0',
+        'Environment :: GPU :: NVIDIA CUDA :: 12.2',
         'Natural Language :: English',
         'License :: OSI Approved :: Apache Software License',
         'Intended Audience :: Developers',
