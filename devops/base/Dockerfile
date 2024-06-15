@@ -151,12 +151,12 @@ RUN set -ex \
     && wait-for google.com:80 -- echo "success"
 
 # Set CUDA-specific environment paths
-ENV PATH "/usr/local/cuda/bin:${PATH}"
+ENV PATH "/usr/local/nvidia/bin:${PATH}"
 
-ENV LD_LIBRARY_PATH "/usr/local/cuda/lib64:/virtualenv/env3/lib:${LD_LIBRARY_PATH}"
-
+ENV LD_LIBRARY_PATH "/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/virtualenv/env3/lib:${LD_LIBRARY_PATH}"
+                    
 ENV CUDA_HOME "/usr/local/cuda"
 
-ENV CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda"
+ENV CUDA_TOOLKIT_ROOT_DIR "/usr/local/nvidia/cuda"
 
 CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]
