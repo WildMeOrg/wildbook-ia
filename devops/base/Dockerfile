@@ -42,11 +42,11 @@ RUN set -ex \
         build-essential \
         lsb-release \
         pkg-config \
-        # Install Python 3.7
-        python3.7 \
-        python3.7-dev \
-        python3.7-gdbm \
-        python3.7-distutils \
+        # Install Python 3.8
+        python3.8 \
+        python3.8-dev \
+        python3.8-gdbm \
+        python3.8-distutils \
         python3-pip \
         python3-setuptools \
         python3-venv \
