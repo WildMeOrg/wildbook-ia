@@ -69,7 +69,7 @@ export OPENCV_VERSION=3.4.11
 
 pip3 install --no-cache-dir virtualenv
 
-virtualenv -p $(which python3.7) ${VENV}
+virtualenv -p $(which python3.8) ${VENV}
 
 source ${VENV}/bin/activate
 
