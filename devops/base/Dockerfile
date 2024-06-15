@@ -123,7 +123,7 @@ RUN set -ex \
 
 # Create virtualenvs for Python3
 RUN set -ex \
- && virtualenv --system-site-packages -p $(which python3.7) /virtualenv/env3
+ && virtualenv --system-site-packages -p $(which python3.8) /virtualenv/env3
 
 # Install PyPI packages
 RUN set -ex \
