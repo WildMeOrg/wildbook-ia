@@ -13,7 +13,6 @@ RUN set -ex \
  && git config --global user.name "Wild Me" \
  && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
     'cd {} && cd .. && echo $(pwd) && git reset --hard origin/main && git pull' \
-
  && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
  && git reset --hard origin/main \
  && git pull \
