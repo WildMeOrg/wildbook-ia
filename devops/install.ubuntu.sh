@@ -178,7 +178,7 @@ pip install --no-cache-dir -e .
 
 pip install --no-cache-dir pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
 
-cp -r ${VIRTUAL_ENV}/lib/python3.7/site-packages/cv2 /tmp/cv2
+cp -r ${VIRTUAL_ENV}/lib/python3.8/site-packages/cv2 /tmp/cv2
 
 cd ${CODE}
 git clone --branch develop https://github.com/WildMeOrg/wildbook-ia.git
@@ -307,8 +307,8 @@ pip install --no-cache-dir \
     tensorflow-gpu==1.15.4 \
     keras==2.2.5
 
-rm -rf ${VIRTUAL_ENV}/lib/python3.7/site-packages/cv2*
-cp -r /tmp/cv2 ${VIRTUAL_ENV}/lib/python3.7/site-packages/cv2
+rm -rf ${VIRTUAL_ENV}/lib/python3.8/site-packages/cv2*
+cp -r /tmp/cv2 ${VIRTUAL_ENV}/lib/python3.8/site-packages/cv2
 rm -rf /tmp/cv2
 
 # python -c "import wbia;            from wbia.__main__ import smoke_test; smoke_test()"
