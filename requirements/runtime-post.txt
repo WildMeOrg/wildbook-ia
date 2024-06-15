@@ -1,0 +1,13 @@
+tornado==6.2
+tqdm==4.64.0
+ubelt==1.2.1
+visdom==0.1.8.9
+PyQt5==5.15.9
+wbia-lightnet
+wbia-pydarknet
+wbia-pyflann
+wbia-utool @ git+https://github.com/WildMeOrg/wbia-utool@main
+wbia-vtool
+wbia-pyhesaff
+# webargs==5.5.3
+# werkzeug==0.15.6
