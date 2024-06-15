@@ -17,8 +17,8 @@ git clone https://github.com/WildMeOrg/wbia-plugin-pie.git
  && /bin/bash run_developer_setup.sh'
 
 /virtualenv/env3/bin/pip install --no-cache-dir \
-    'tensorflow-gpu==2.13.1' \
-    'keras==2.13.1'
+    'tensorflow-gpu' \
+    'keras'
 
 /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
     numpy
