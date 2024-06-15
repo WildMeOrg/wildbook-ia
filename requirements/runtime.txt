@@ -32,7 +32,7 @@ grad-cam==1.4.6
 imgaug==0.4.0
 ipython==7.34.0
 jupyter==1.0.0
-keras==2.2.5
+keras
 line-profiler==3.5.1
 lockfile==0.12.2
 mako==1.2.2
