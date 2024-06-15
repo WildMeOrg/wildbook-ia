@@ -131,9 +131,10 @@ RUN set -ex \
      opencv-python-headless \
      opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
-     opencv-contrib-python-headless \
- && /virtualenv/env3/bin/pip uninstall -y \
-     nvidia_cublas_cu11
+     opencv-contrib-python-headless 
+ #\
+ #&& /virtualenv/env3/bin/pip uninstall -y \
+ #    nvidia_cublas_cu11
 
 # Run smoke tests
 # && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
