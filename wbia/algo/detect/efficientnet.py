@@ -32,6 +32,7 @@ ARCHIVE_URL_DICT = {
     'trout_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_trout_effnet.v0.zip',
     'shark_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_shark_effnet.v0.zip',
     'msv2_multilabel_effnet_v0': 'https://cthulhu.dyn.wildme.io/public/models/labeler_msv2_multilabel_effnet.v2.zip',
+    'msv2_multilabel_flip_effnet_v0': 'https://cthulhu.dyn.wildme.io/public/models/labeler_msv2_multilabel_flip_effnet.v2.zip',
 }
 
 
