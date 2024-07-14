@@ -8,7 +8,7 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && pip uninstall -y wildbook-ia \
  && cd /wbia/wildbook-ia \
  && /bin/bash run_developer_setup.sh \
- && pip install --upgrade pip setuptools-scm \
+ && pip install --upgrade pip setuptools-scm==5.0.2 \
  && pip install --no-cache-dir -r /wbia/wildbook-ia/requirements/tests.txt \
  && pip install --no-cache-dir -r /wbia/wildbook-ia/requirements/runtime.txt \
  && pip install --no-cache-dir -r /wbia/wildbook-ia/requirements/torch.txt \
