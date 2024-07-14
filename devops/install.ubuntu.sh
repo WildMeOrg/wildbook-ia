@@ -79,8 +79,8 @@ pip install --no-cache-dir --upgrade \
     ninja \
     scikit-build \
     'setuptools' \
-    'setuptools_scm[toml]' \
-    cython==3.0.0 \
+    'setuptools_scm[toml]==5.0.2 ' \
+       cython==3.0.0 \
     numpy \
     ipython
 
