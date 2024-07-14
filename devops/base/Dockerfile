@@ -18,7 +18,6 @@ ENV LANG C.UTF-8
 ENV DISPLAY :1
 
 USER root
-
 # Fix for Arm64 builds on GitHub actions
 RUN set -ex \
  && ln -s /usr/bin/dpkg-split /usr/sbin/dpkg-split \
