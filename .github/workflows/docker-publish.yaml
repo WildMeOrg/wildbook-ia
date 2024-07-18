@@ -3,7 +3,7 @@ name: Build and upload Docker
 on:
   push:
      branches:
-      - main
+      - Cuda12-2-upgrade
      tags:
       - v*
   schedule:
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
         if: github.event_name == 'schedule'
         with:
-          ref: main
+          ref: Cuda12-2-upgrade
 
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
