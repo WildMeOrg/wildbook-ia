@@ -32,7 +32,8 @@ ARCHIVE_URL_DICT = {
     'trout_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_trout_effnet.v0.zip',
     'shark_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_shark_effnet.v0.zip',
     'msv2_multilabel_effnet_v0': 'https://cthulhu.dyn.wildme.io/public/models/labeler_msv2_multilabel_effnet.v2.zip',
-    'grouper_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_grouper_effnet.v0.zip'
+    'grouper_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_grouper_effnet.v0.zip',
+    'whaleshark_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_whaleshark_effnet.v0.zip'
 }
 
 
