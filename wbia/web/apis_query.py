@@ -1080,70 +1080,8 @@ def query_chips_graph(
             daid_set = list(set(daid_set))
             logger.info('Visualizing %d annots: %r' % (len(daid_set), daid_set))
 
-            # if proot.lower() == 'miewid' and use_gradcam:
-            #     logger.info('Batch processing miewid match images')
-            #     batch_images = qreq_.render_batch_result(cm, daid_set)
-
-            #     for daid, image in zip(daid_set, batch_images):
-            #         extern_flag = daid in daid_set
-
-            #         logger.info('Rendering match images to disk for daid=%d' % (daid,))
-            #         duuid = ibs.get_annot_uuids(daid)
-
-            #         args = (duuid,)
-            #         dannot_cache_filepath = join(
-            #             qannot_cache_filepath, 'dannot_uuid_%s' % args
-            #         )
-            #         ut.ensuredir(dannot_cache_filepath)
-
-            #         cache_filepath_fmtstr = join(
-            #             dannot_cache_filepath, 'version_%s_orient_%s.png'
-            #         )
-
-            #         try:
-            #             _, filepath_heatmask = ensure_review_image(
-            #                 ibs,
-            #                 daid,
-            #                 cm,
-            #                 qreq_,
-            #                 view_orientation=view_orientation,
-            #                 draw_matches=False,
-            #                 draw_heatmask=True,
-            #                 image=image
-            #             )
-            #         except Exception as ex:
-            #             filepath_heatmask = None
-            #             extern_flag = 'error'
-            #             ut.printex(ex, iswarning=True)
-
-            #         log_render_status(
-            #             ibs,
-            #             ut.timestamp(),
-            #             cm.qaid,
-            #             daid,
-            #             quuid,
-            #             duuid,
-            #             cm,
-            #             qreq_,
-            #             view_orientation,
-            #             False,
-            #             True,
-            #             filepath_heatmask,
-            #             extern_flag,
-            #         )
-
-            #         if filepath_heatmask is not None:
-            #             args = (
-            #                 'heatmask',
-            #                 view_orientation,
-            #             )
-            #             cache_filepath = cache_filepath_fmtstr % args
-            #             ut.symlink(filepath_heatmask, cache_filepath, overwrite=True)
-
             extern_flag_list = []
             for daid in daid_list_:
-                # if proot.lower() == 'miewid' and use_gradcam:
-                #     break
                 extern_flag = daid in daid_set
 
                 if extern_flag:
