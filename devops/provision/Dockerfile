@@ -40,7 +40,7 @@ RUN set -ex \
  #&& git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-miew-id.git \
+ && git clone --recurse-submodules https://github.com/WildMeOrg/wbia-plugin-miew-id.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-whaleridgefindr.git
 
 RUN set -ex \

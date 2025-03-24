@@ -78,7 +78,7 @@ sqlalchemy==1.4.14
 SQLAlchemy-Utils==0.38.3
 tensorboard_logger==0.1.0
 Theano==1.0.5
-timm==0.6.12
+timm==0.9.2
 torch==1.13.1
 torchvision==0.14.1
 torchaudio==0.13.1
@@ -95,3 +95,4 @@ wbia-vtool
 wbia-pyhesaff
 # webargs==5.5.3
 # werkzeug==0.15.6
+zennit==0.5.1
