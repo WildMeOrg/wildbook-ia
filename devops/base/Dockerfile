@@ -5,7 +5,6 @@ FROM ${WBIA_UBUNTU_IMAGE} as org.wildme.wbia.base
 MAINTAINER Wild Me <dev@wildme.org>
 
 ENV LC_ALL C.UTF-8
-
 ENV LANG C.UTF-8
 
 # Set up xvfb for running gui doctests
@@ -36,11 +35,11 @@ RUN set -ex \
         build-essential \
         lsb-release \
         pkg-config \
-        # Install Python 3.7
-        python3.7 \
-        python3.7-dev \
-        python3.7-gdbm \
-        python3.7-distutils \
+        # Install Python 3.8
+        python3.8 \
+        python3.8-dev \
+        python3.8-gdbm \
+        python3.8-distutils \
         python3-pip \
         python3-setuptools \
         python3-venv \
@@ -97,7 +96,6 @@ RUN set -ex \
  update-alternatives --set hdf5.pc /usr/lib/*-linux-gnu/pkgconfig/hdf5-openmpi.pc
 
 RUN unlink /etc/localtime
-
 RUN ln -s /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
 
 # Install Docker CE
@@ -117,7 +115,7 @@ RUN set -ex \
 
 # Create virtualenvs for Python3
 RUN set -ex \
- && virtualenv --system-site-packages -p $(which python3.7) /virtualenv/env3
+ && virtualenv --system-site-packages -p $(which python3.8) /virtualenv/env3
 
 # Install PyPI packages
 RUN set -ex \
@@ -135,10 +133,9 @@ RUN set -ex \
         # Install handy developer tools
         ipython
 
-RUN apt-get remove -y \
-        python3-setuptools
+RUN apt-get remove -y python3-setuptools
 
- # Install wait-for
+# Install wait-for
 RUN set -ex \
     && curl -s https://raw.githubusercontent.com/eficode/wait-for/v2.0.0/wait-for > /usr/local/bin/wait-for \
     && chmod a+x /usr/local/bin/wait-for \
@@ -147,11 +144,8 @@ RUN set -ex \
 
 # Set CUDA-specific environment paths
 ENV PATH "/usr/local/cuda/bin:${PATH}"
-
 ENV LD_LIBRARY_PATH "/usr/local/cuda/lib64:/virtualenv/env3/lib:${LD_LIBRARY_PATH}"
-
 ENV CUDA_HOME "/usr/local/cuda"
-
 ENV CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda"
 
 CMD ["/bin/bash", "-c", "Xvfb :1 -screen 0 1024x768x16 &>/tmp/xvfb.log & /bin/bash"]

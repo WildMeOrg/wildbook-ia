@@ -874,6 +874,7 @@ class LocalizerOriginalConfig(dtool.Config):
             valid_values=[
                 'azure',
                 'yolo',
+                'yolo_ultralyrics',
                 'lightnet',
                 'ssd',
                 'darknet',
@@ -1103,7 +1104,47 @@ def compute_localizations_original(depc, gid_list, config=None):
         from wbia.algo.detect import lightnet
 
         logger.info('[ibs] detecting using Lightnet CNN YOLO v2')
+        logger.info(config)
         detect_gen = lightnet.detect_gid_list(ibs, gid_list, **config)
+
+        first_item = next(detect_gen)
+        print(first_item)
+        import json
+        logger.info(json.dumps(first_item, indent=2))
+
+        raise NotImplementedError
+
+
+    elif config['algo'] in ['yolo_ultralyrics']:
+        # from wbia.algo.detect import yolo_ultralyrics
+        from wbia.algo.detect import lightnet, yolo_ultralytics
+        import json
+
+        logger.info('[ibs] detecting using YOLO v11')
+        # detect_gen = yolo_ultralyrics.detect_gid_list(ibs, gid_list, **config)
+        logger.info(config)
+
+
+        # config['algo'] = 'lightnet'
+        config = {
+            'algo': 'lightnet',
+            'sensitivity': 0.75,
+            'nms': True,
+            'nms_thresh': 0.4,
+            'nms_aware': None,
+            'config_filepath': 'sea_turtle_new_v0',
+            'weight_filepath': 'sea_turtle_new_v0',
+        }
+        config = dict(config)
+
+        detect_gen = yolo_ultralytics.detect_gid_list(ibs, gid_list, **config)
+
+        first_item = next(detect_gen)
+        print(first_item)
+        import json
+        logger.info(json.dumps(first_item, indent=2))
+
+
     elif config['algo'] in ['azure']:
         from wbia.algo.detect import azure
 

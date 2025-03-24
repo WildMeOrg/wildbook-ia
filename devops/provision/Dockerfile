@@ -162,6 +162,8 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 # && ./unix_build.sh \
 # && pip install --no-cache-dir -e .'
 
+RUN /virtualenv/env3/bin/pip install git+https://github.com/ultralytics/ultralytics.git@v8.3.76
+
 # Ensure no previous or deprecated repositories are installed
 # Ensure that opencv-python is un-installed since we want to use our built version
 # Ensure specific version of keras and tensorflow-gpu are installed (for Pie support)

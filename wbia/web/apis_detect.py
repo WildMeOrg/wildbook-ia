@@ -585,37 +585,7 @@ def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET', 'POST'])
 def detect_cnn_yolo(ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs):
     """
-    Run animal detection in each image. Adds annotations to the database as they are found.
 
-    Args:
-        gid_list (list): list of image ids to run detection on
-
-    Returns:
-        aids_list (list): list of lists of annotation ids detected in each
-            image
-
-    CommandLine:
-        python -m wbia.web.apis_detect --test-detect_cnn_yolo --show
-
-    RESTful:
-        Method: PUT, GET
-        URL:    /api/detect/cnn/yolo/
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from wbia.web.apis_detect import *  # NOQA
-        >>> import wbia
-        >>> ibs = wbia.opendb('PZ_MTEST')
-        >>> gid_list = ibs.get_valid_gids()[:5]
-        >>> aids_list = ibs.detect_cnn_yolo(gid_list)
-        >>> if ut.show_was_requested():
-        >>>     import wbia.plottool as pt
-        >>>     from wbia.viz import viz_image
-        >>>     for fnum, gid in enumerate(gid_list):
-        >>>         viz_image.show_image(ibs, gid, fnum=fnum)
-        >>>     pt.show_if_requested()
-        >>> # Remove newly detected annotations
-        >>> ibs.delete_annots(ut.flatten(aids_list))
     """
     # TODO: Return confidence here as well
     depc = ibs.depc_image
@@ -877,37 +847,7 @@ def detect_cnn_lightnet(
     ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs
 ):
     """
-    Run animal detection in each image. Adds annotations to the database as they are found.
 
-    Args:
-        gid_list (list): list of image ids to run detection on
-
-    Returns:
-        aids_list (list): list of lists of annotation ids detected in each
-            image
-
-    CommandLine:
-        python -m wbia.web.apis_detect --test-detect_cnn_lightnet --show
-
-    RESTful:
-        Method: PUT, GET
-        URL:    /api/detect/cnn/lightnet/
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from wbia.web.apis_detect import *  # NOQA
-        >>> import wbia
-        >>> ibs = wbia.opendb('PZ_MTEST')
-        >>> gid_list = ibs.get_valid_gids()[:5]
-        >>> aids_list = ibs.detect_cnn_lightnet(gid_list)
-        >>> if ut.show_was_requested():
-        >>>     import wbia.plottool as pt
-        >>>     from wbia.viz import viz_image
-        >>>     for fnum, gid in enumerate(gid_list):
-        >>>         viz_image.show_image(ibs, gid, fnum=fnum)
-        >>>     pt.show_if_requested()
-        >>> # Remove newly detected annotations
-        >>> ibs.delete_annots(ut.flatten(aids_list))
     """
     # TODO: Return confidence here as well
     depc = ibs.depc_image
@@ -941,6 +881,51 @@ def detect_cnn_lightnet(
     else:
         return results_list
 
+@register_ibs_method
+@accessor_decors.getter_1to1
+def detect_cnn_yolo_ultralyrics_json(ibs, gid_list, config={}, **kwargs):
+    return detect_cnn_json(
+        ibs, gid_list, ibs.detect_cnn_yolo_ultralyrics_json, config=config, **kwargs
+    )
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/detect/cnn/yolov11/', methods=['PUT', 'GET', 'POST'])
+def detect_cnn_yolo_ultralyrics_json(ibs, gid_list, model_tag=None, commit=True, testing=False, **kwargs):
+    """
+
+    """
+    # TODO: Return confidence here as well
+    depc = ibs.depc_image
+    config = {
+        'grid': False,
+        'algo': 'yolo_ultralyrics',
+        'sensitivity': 0.2,
+        'nms': True,
+        'nms_thresh': 0.4,
+    }
+    if model_tag is not None:
+        config['config_filepath'] = model_tag
+        config['weight_filepath'] = model_tag
+
+    config_str_list = ['config_filepath', 'weight_filepath'] + list(config.keys())
+    for config_str in config_str_list:
+        if config_str in kwargs:
+            config[config_str] = kwargs[config_str]
+
+    if testing:
+        depc.delete_property('localizations', gid_list, config=config)
+
+    results_list = depc.get_property('localizations', gid_list, None, config=config)
+
+    if commit:
+        aids_list = ibs.commit_localization_results(
+            gid_list, results_list, note='cnnyoloultralyticsdetect', **kwargs
+        )
+        return aids_list
+    else:
+        return results_list
 
 @register_ibs_method
 def commit_localization_results(

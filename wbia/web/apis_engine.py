@@ -1009,66 +1009,61 @@ def start_detect_image_algo(
     """
     assert len(image_uuid_list) > 0, 'Cannot send a list of image_uuid_list that is empty'
 
-    image_uuid_types = list(set(list(map(type, image_uuid_list))))
+    image_uuid_types = list(set(map(type, image_uuid_list)))
     if len(image_uuid_types) > 1:
         raise ValueError('Cannot send a list of UUIDs mixed with URLs')
     assert len(image_uuid_types) == 1
     image_uuid_type = image_uuid_types[0]
 
     algo = algo.lower()
-    assert algo in ['lightnet', 'yolo']
+    
+    action_map = {
+        'lightnet': {
+            'uuid': 'detect_cnn_lightnet_json',
+            'url': 'detect_cnn_lightnet_image_uris_json'
+        },
+        'yolo': {
+            'uuid': 'detect_cnn_yolo_json',
+            'url': 'detect_cnn_yolo_image_uris_json'
+        },
+        'yolov11': {
+            'uuid': 'detect_cnn_yolo_ultralyrics_json',
+            'url': 'detect_cnn_yolo_ultralyrics_image_uris_json' ## notimplemented
+        }
+    }
 
-    if image_uuid_type == uuid.UUID:
-        # Check UUIDs
+    assert algo in action_map, f'Invalid algorithm: {algo}'
+
+    key = 'uuid' if image_uuid_type == uuid.UUID else 'url'
+    action = action_map[algo][key]
+
+    # Handle UUID-based processing
+    if key == 'uuid':
         ibs.web_check_uuids(image_uuid_list=image_uuid_list)
-
-        # import wbia
-        # from wbia.web import apis_engine
-        # ibs.load_plugin_module(apis_engine)
         image_uuid_list = ensure_uuid_list(image_uuid_list)
         gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-        args = (
-            gid_list,
-            kwargs,
-        )
-        jobid = ibs.job_manager.jobiface.queue_job(
-            action='detect_cnn_lightnet_json'
-            if algo == 'lightnet'
-            else 'detect_cnn_yolo_json',
-            callback_url=callback_url,
-            callback_method=callback_method,
-            callback_detailed=callback_detailed,
-            lane=lane,
-            jobid=jobid,
-            args=args,
-        )
+        args = (gid_list, kwargs)
+
+    # Handle URL-based processing
     else:
-        # image_uuid_list contains urls
         for image_uuid in image_uuid_list:
             if len(image_uuid) == 0:
                 raise ValueError('Received an empty UUID')
+        args = (image_uuid_list, kwargs)
 
-        args = (
-            image_uuid_list,
-            kwargs,
-        )
-        jobid = ibs.job_manager.jobiface.queue_job(
-            action='detect_cnn_lightnet_image_uris_json'
-            if algo == 'lightnet'
-            else 'detect_cnn_yolo_image_uris_json',
-            callback_url=callback_url,
-            callback_method=callback_method,
-            callback_detailed=callback_detailed,
-            lane=lane,
-            jobid=jobid,
-            args=args,
-        )
+    # Queue the job with the selected action
+    jobid = ibs.job_manager.jobiface.queue_job(
+        action=action,
+        callback_url=callback_url,
+        callback_method=callback_method,
+        callback_detailed=callback_detailed,
+        lane=lane,
+        jobid=jobid,
+        args=args,
+    )
 
-    # if callback_url is not None:
-    #    #import requests
-    #    #requests.
-    #    #callback_url
     return jobid
+
 
 
 @register_ibs_method
