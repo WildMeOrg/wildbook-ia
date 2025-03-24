@@ -117,22 +117,20 @@ RUN set -ex \
 
 # Create virtualenvs for Python3
 RUN set -ex \
- && virtualenv --system-site-packages -p $(which python3.7) /virtualenv/env3
+ && virtualenv --system-site-packages -p $(which python3.7) \
+    --pip=22.3.1 \
+    --setuptools=59.5.0 \
+    --wheel=0.38.4 \
+    /virtualenv/env3
 
 # Install PyPI packages
 RUN set -ex \
- && /virtualenv/env3/bin/pip install --upgrade \
-        pip \
- && /virtualenv/env3/bin/pip install setuptools==59.5.0 \
- && /virtualenv/env3/bin/pip install  --upgrade  \
-        # Install build requirements
+ && /virtualenv/env3/bin/python -m pip install \
         cmake \
         ninja \
-        setuptools==59.5.0 \
-        scikit-build \    
+        scikit-build \
         setuptools_scm[toml] \
         cython \
-        # Install handy developer tools
         ipython
 
 RUN apt-get remove -y \
