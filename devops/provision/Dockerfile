@@ -40,7 +40,7 @@ RUN set -ex \
  #&& git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-miew-id.git \
+ && git clone --recurse-submodules https://github.com/WildMeOrg/wbia-plugin-miew-id.git \
  && git clone https://github.com/WildMeOrg/wbia-plugin-whaleridgefindr.git
 
 RUN set -ex \
@@ -204,7 +204,8 @@ RUN set -ex \
      --extra-index-url https://download.pytorch.org/whl/nightly/cu113 \
  && /virtualenv/env3/bin/pip install --no-cache-dir \
      MarkupSafe==2.0.1 \
-     Flask==2.1.0
+     Flask==2.1.0 \
+     zennit==0.5.1
 
 # Wildbook IA problematic dependencies
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
