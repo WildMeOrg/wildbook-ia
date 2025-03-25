@@ -109,6 +109,12 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && /virtualenv/env3/bin/pip install --no-cache-dir -r develop.txt \
  && pip install --no-cache-dir -e .'
 
+
+# Install Rust non-interactively (required for timm library used in WBIA)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Add Rust to PATH globally
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 # Wildbook IA
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
@@ -204,8 +210,7 @@ RUN set -ex \
      --extra-index-url https://download.pytorch.org/whl/nightly/cu113 \
  && /virtualenv/env3/bin/pip install --no-cache-dir \
      MarkupSafe==2.0.1 \
-     Flask==2.1.0 \
-     zennit==0.5.1
+     Flask==2.1.0
 
 # Wildbook IA problematic dependencies
 RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
