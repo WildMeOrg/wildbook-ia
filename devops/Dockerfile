@@ -161,14 +161,6 @@ RUN set -ex \
  && find /wbia/wildbook* -name '*.a' -print  | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
  && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}'
 
-# Install Rust non-interactively
-RUN set -ex && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-# Ensure Rust is in PATH and install clean version of timm
-RUN set -ex && bash -c '\
-    . /root/.cargo/env && \
-    /virtualenv/env3/bin/python -m pip uninstall -y timm && \
-    /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade timm==0.9.2'
 
 # Undo Fix
 ENV LD_PRELOAD ""
