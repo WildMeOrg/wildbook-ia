@@ -1332,4 +1332,3 @@ def detect_ws_injury(ibs, gid_list):
 
     labels = labelShark.classifyShark(ibs, gid_list)
     return labels
-    
