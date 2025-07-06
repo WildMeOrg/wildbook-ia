@@ -7,7 +7,7 @@ jobs:
     name: Lint code
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -25,7 +25,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --statistics
 
   test:
-    name: Test on ${{ matrix.python-version }}
+    name: Test Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -35,7 +35,7 @@ jobs:
       image: ${{ matrix.python-version == '3.7' && 'python:3.7-bullseye' || '' }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python (non-3.7 only)
         if: ${{ matrix.python-version != '3.7' }}
@@ -73,7 +73,7 @@ jobs:
           timeout 30 python -m wbia.dev --dbdir /tmp/work/db --web || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
   test_postgres:
-    name: Test on ${{ matrix.python-version }} (Postgres)
+    name: Test Python ${{ matrix.python-version }} (Postgres)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -96,7 +96,7 @@ jobs:
           - 5432:5432
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python (non-3.7 only)
         if: ${{ matrix.python-version != '3.7' }}
@@ -126,3 +126,4 @@ jobs:
       - name: Ensure web loads
         run: |
           timeout 30 python -m wbia.dev --dbdir /tmp/work/db --web || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+  
