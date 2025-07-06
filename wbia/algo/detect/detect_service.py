@@ -35,3 +35,4 @@ def run_inference_on_image(img_gid, image_path, model_tag):
     notes_list = ['service'] * len(bbox_list)
     gid_list = [img_gid] * len(bbox_list)
     return gid_list, bbox_list, theta_list, class_list, conf_list, notes_list
+    
