@@ -1,11 +1,13 @@
+# Stage: wbia-provision
 FROM wildme/wbia-base:latest
 
 WORKDIR /wbia
 
 COPY requirements.txt requirements.txt
 
+# Install required Python packages
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Pre-compile critical native packages
+# Pre-compile native extensions to catch build issues early
 RUN pip install pyhesaff fairseq --no-cache-dir || true
