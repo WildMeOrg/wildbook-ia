@@ -1,0 +1,96 @@
+import pandas as pd
+import json
+import os
+from tqdm.auto import tqdm
+import numpy as np
+
+def load_json(file_path):
+    import json
+    with open(file_path) as f:
+        data = json.load(f)
+    return data
+
+def get_image_dimensions(filename):
+    import cv2
+    img = cv2.imread(filename)
+    h, w, c = img.shape
+    return h, w
+
+    
+data_dir = "/data/db/coco_amp/coco"
+anno_dir = os.path.join(data_dir, "annotations") 
+images_dir = os.path.join(data_dir, "images","test2025") 
+anno_file = f"instances_test2025.json"
+
+train_anno_path = os.path.join(anno_dir, anno_file) 
+train_data = load_json(train_anno_path)
+
+dfa = pd.DataFrame(train_data['annotations'])
+dfi = pd.DataFrame(train_data['images'])
+
+df = dfa.merge(dfi, left_on='image_id', right_on='id')
+
+
+# Have to do it as a self-contained function because of embed() scope
+def id_to_cat(x):
+    cat_coco = [{'id': 0, 'name': 'salamander_fire_adult', 'supercategory': 'animal'},
+                {'id': 1, 'name': 'salamander_fire_juvenile', 'supercategory': 'animal'},
+                {'id': 2, 'name': 'yellow_bellied_toad', 'supercategory': 'animal'}]
+    
+    dct = {d['id']:d['name'] for d in cat_coco}
+    return dct[x]
+
+df['category'] = df['category_id'].apply(id_to_cat)
+
+
+
+# Check that images exist
+
+df['path_full'] = images_dir + '/' + df['file_name']
+
+add_paths = []
+add_bboxes = []
+add_species = []
+add_viewpoints = []
+add_thetas = []
+for i, row in tqdm(df.iterrows()):
+    path = os.path.join(images_dir, row['file_name'])
+    path_parts = path.split(os.sep)
+  
+    if not os.path.exists(path):
+       continue 
+    # name = row['name']
+    bbox = row['bbox']
+    image_h, image_w =  row['width'], row['height']#get_image_dimensions(path)
+    #print("row:", row)
+   
+    species = row['category']
+    if len(species)<1:
+       print(row)
+
+    viewpoint = row['viewpoint']
+    theta = row['theta']
+    
+    add_paths.append(path)
+    add_bboxes.append(bbox)
+    add_species.append(species)
+    add_viewpoints.append(viewpoint)
+    add_thetas.append(theta)
+
+
+from collections import Counter
+value_counts = Counter(add_species)
+print("Value counts:", value_counts)
+
+# add to db
+
+#5415 image
+
+gid_list = ibs.add_images(add_paths)
+add_aid_list= ibs.add_annots(
+    gid_list,
+    bbox_list=add_bboxes,
+    species_list=add_species,
+    theta_list=add_thetas,
+)
+ibs.set_annot_viewpoints(add_aid_list, add_viewpoints)
