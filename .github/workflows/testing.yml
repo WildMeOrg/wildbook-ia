@@ -1,6 +1,3 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
 name: Testing
 
 on: push
@@ -17,7 +14,6 @@ jobs:
         with:
           python-version: '3.8'
 
-      # Lint things before going any further
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -25,46 +21,36 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --show-source --statistics
-          # exit-zero treats all errors as warnings.
           flake8 . --count --exit-zero --max-complexity=10 --statistics
 
   test:
-    name: Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Test on ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
     strategy:
-      max-parallel: 2
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        # os: [ubuntu-latest, macos-latest]
         python-version: [3.7, 3.8, 3.9]
 
+    container:
+      image: ${{ matrix.python-version == '3.7' && 'python:3.7-bullseye' || '' }}
+
     steps:
-      # Checkout and env setup
       - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
+
+      - name: Set up Python (non-3.7 only)
+        if: ${{ matrix.python-version != '3.7' }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies (Linux)
-        if: ${{ runner.os == 'Linux' }}
+      - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo bash scripts/ci_prepare_linux_for_build.sh
-
-      - name: Install dependencies (macOS)
-        if: ${{ runner.os == 'macOS' }}
-        run: |
-          bash scripts/ci_prepare_macos_for_build.sh
+          apt-get update
+          bash scripts/ci_prepare_linux_for_build.sh
 
       - name: Build project
-        run: |
-          bash run_developer_setup.sh
+        run: bash run_developer_setup.sh
 
-      # Install and test
       - name: Install project
         run: |
           pip install --upgrade pip
@@ -76,34 +62,31 @@ jobs:
       - name: gdb backtrace (if failed)
         if: failure()
         run: |
-          set -x
-          sudo apt-get install -y gdb
+          apt-get install -y gdb
           echo -e "r\nbt\nq" | gdb --args python -m wbia --set-workdir /tmp/work --preload-exit
 
       - name: Test project
-        run: |
-          pytest --slow --web-tests
+        run: pytest --slow --web-tests
 
       - name: Ensure web loads
         run: |
           timeout 30 python -m wbia.dev --dbdir /tmp/work/db --web || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
   test_postgres:
-    name: Test on ${{ matrix.os }} (PostGRES)
-    runs-on: ${{ matrix.os }}
+    name: Test on ${{ matrix.python-version }} (Postgres)
+    runs-on: ubuntu-latest
     strategy:
-      max-parallel: 2
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         python-version: [3.7, 3.8, 3.9]
+
+    container:
+      image: ${{ matrix.python-version == '3.7' && 'python:3.7-bullseye' || '' }}
 
     services:
       db:
         image: postgres:10
         env:
           POSTGRES_PASSWORD: wbia
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -113,29 +96,22 @@ jobs:
           - 5432:5432
 
     steps:
-      # Checkout and env setup
       - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
+
+      - name: Set up Python (non-3.7 only)
+        if: ${{ matrix.python-version != '3.7' }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies (Linux)
-        if: ${{ runner.os == 'Linux' }}
+      - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo bash scripts/ci_prepare_linux_for_build.sh
-
-      - name: Install dependencies (macOS)
-        if: ${{ runner.os == 'macOS' }}
-        run: |
-          bash scripts/ci_prepare_macos_for_build.sh
+          apt-get update
+          bash scripts/ci_prepare_linux_for_build.sh
 
       - name: Build project
-        run: |
-          bash run_developer_setup.sh
+        run: bash run_developer_setup.sh
 
-      # Install and test
       - name: Install project
         run: |
           pip install --upgrade pip
@@ -143,7 +119,7 @@ jobs:
           mkdir -p /tmp/work
           python -m wbia --set-workdir /tmp/work --preload-exit
 
-      - name: Test project
+      - name: Test project (Postgres)
         run: |
           pytest --slow --web-tests --with-postgres-uri='postgresql://postgres:wbia@localhost:5432/postgres'
 
