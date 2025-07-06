@@ -1,13 +1,13 @@
-# Stage: wbia-provision
 FROM wildme/wbia-base:latest
 
 WORKDIR /wbia
 
-COPY requirements.txt requirements.txt
+COPY requirements.txt .
 
-# Install required Python packages
-RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Pre-compile native extensions to catch build issues early
+# Inject OpenCV flags manually for pyhesaff
+ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs
+
+# Try to build pyhesaff — fail allowed if fallback needed
 RUN pip install pyhesaff fairseq --no-cache-dir || true
