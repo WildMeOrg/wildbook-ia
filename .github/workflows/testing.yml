@@ -1,5 +1,3 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 name: Testing
 
 on: push
@@ -16,7 +14,6 @@ jobs:
         with:
           python-version: '3.8'
 
-      # Lint things before going any further
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -24,9 +21,7 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --show-source --statistics
-          # exit-zero treats all errors as warnings.
           flake8 . --count --exit-zero --max-complexity=10 --statistics
 
   test:
@@ -37,24 +32,34 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        # os: [ubuntu-latest, macos-latest]
         python-version: [3.8, 3.9]
 
     steps:
-      # Checkout and env setup
       - uses: actions/checkout@v2
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies (Linux)
-        if: ${{ runner.os == 'Linux' }}
+      - name: Install system dependencies for pyhesaff
         run: |
           sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libopencv-dev pkg-config
+
+      - name: Install Python dependencies and pyhesaff
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install scikit-build numpy
+          export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
+          pip install pyhesaff fairseq
+
+      - name: Install other project dependencies (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        run: |
           sudo bash scripts/ci_prepare_linux_for_build.sh
 
-      - name: Install dependencies (macOS)
+      - name: Install other project dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
         run: |
           bash scripts/ci_prepare_macos_for_build.sh
@@ -63,10 +68,8 @@ jobs:
         run: |
           bash run_developer_setup.sh
 
-      # Install and test
       - name: Install project
         run: |
-          pip install --upgrade pip
           pip install -e .[tests,problematic]
           mkdir -p /tmp/work
           export PYTHONFAULTHANDLER=1
@@ -75,7 +78,6 @@ jobs:
       - name: gdb backtrace (if failed)
         if: failure()
         run: |
-          set -x
           sudo apt-get install -y gdb
           echo -e "r\nbt\nq" | gdb --args python -m wbia --set-workdir /tmp/work --preload-exit
 
@@ -102,7 +104,6 @@ jobs:
         image: postgres:10
         env:
           POSTGRES_PASSWORD: wbia
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -112,20 +113,31 @@ jobs:
           - 5432:5432
 
     steps:
-      # Checkout and env setup
       - uses: actions/checkout@v2
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies (Linux)
-        if: ${{ runner.os == 'Linux' }}
+      - name: Install system dependencies for pyhesaff
         run: |
           sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libopencv-dev pkg-config
+
+      - name: Install Python dependencies and pyhesaff
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install scikit-build numpy
+          export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
+          pip install pyhesaff fairseq
+
+      - name: Install other project dependencies (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        run: |
           sudo bash scripts/ci_prepare_linux_for_build.sh
 
-      - name: Install dependencies (macOS)
+      - name: Install other project dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
         run: |
           bash scripts/ci_prepare_macos_for_build.sh
@@ -134,10 +146,8 @@ jobs:
         run: |
           bash run_developer_setup.sh
 
-      # Install and test
       - name: Install project
         run: |
-          pip install --upgrade pip
           pip install -e .[tests,problematic,postgres]
           mkdir -p /tmp/work
           python -m wbia --set-workdir /tmp/work --preload-exit
