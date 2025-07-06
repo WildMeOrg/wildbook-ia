@@ -1,8 +1,11 @@
+# Stage: wbia-base
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
     ninja-build \
@@ -14,16 +17,18 @@ RUN apt-get update && apt-get install -y \
     libopencv-dev \
     libgl1-mesa-glx \
     libglib2.0-0 \
+    ca-certificates \
     python3 \
     python3-dev \
     python3-pip \
+    python3-venv \
     python3-setuptools \
     python3-wheel \
-    python3-venv \
-    ca-certificates \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Symlinks for compatibility
 RUN ln -s /usr/bin/python3 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip
 
+# Upgrade pip & setuptools to latest
 RUN pip install --upgrade pip setuptools wheel
