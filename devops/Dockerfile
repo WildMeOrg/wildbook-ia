@@ -98,7 +98,7 @@ RUN updatedb
 
 #ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0"
 
-# Fix PyQt5
+# Fix PyQt5 and install OpenCV development headers for pyhesaff build
 RUN set -ex \
  && apt-get update \
  && apt-get remove -y \
@@ -108,6 +108,7 @@ RUN set -ex \
      qtchooser \
      qt5-qmake \
      qtbase5-dev-tools \
+     libopencv-dev \
  && /virtualenv/env3/bin/pip uninstall -y \
      pyqt5 \
  && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
