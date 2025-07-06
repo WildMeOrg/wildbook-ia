@@ -1016,7 +1016,6 @@ def start_detect_image_algo(
     image_uuid_type = image_uuid_types[0]
 
     algo = algo.lower()
-    
     action_map = {
         'lightnet': {
             'uuid': 'detect_cnn_lightnet_json',
@@ -1063,7 +1062,6 @@ def start_detect_image_algo(
     )
 
     return jobid
-
 
 
 @register_ibs_method
