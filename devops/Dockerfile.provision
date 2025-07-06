@@ -1,0 +1,10 @@
+FROM wbia-base
+
+WORKDIR /opt/wildbook-ia
+
+COPY requirements.txt requirements.txt
+
+RUN pip install -r requirements.txt
+
+# Optional: build native dependencies ahead of time
+RUN pip install pyhesaff fairseq --no-cache-dir || true
