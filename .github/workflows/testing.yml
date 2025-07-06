@@ -52,7 +52,8 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install scikit-build numpy
           export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
-          pip install pyhesaff fairseq
+          pip install pyhesaff 
+          pip install fairseq==0.10.2
 
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
