@@ -1,46 +1,46 @@
-#!/usr/bin/env bash
+#!/bin/bash
+set -euo pipefail
 
-set -ex
+# Constants
+REPO_URL="https://github.com/WildMeOrg/wildbook-ia.git"
+BRANCH_NAME="build-fix-jul25"
+BUILD_DIR="wbia_build_src"
 
-# See https://stackoverflow.com/a/246128/176882
-export ROOT_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+# Helper for logging
+log() {
+    echo -e "\033[1;34m[INFO]\033[0m $1"
+}
 
-export DOCKER_BUILDKIT=1
+# Step 1: Clean and prepare build directory
+log "Cleaning previous build directory..."
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
 
-export DOCKER_CLI_EXPERIMENTAL=enabled
+# Step 2: Clone the repo and checkout the correct branch
+log "Cloning Wildbook-IA from branch: $BRANCH_NAME..."
+git clone --depth 1 --branch "$BRANCH_NAME" "$REPO_URL" "$BUILD_DIR"
 
-# Change to the script's root directory location
-cd ${ROOT_LOC}
+# Step 3: Build the base image (adds OpenCV dev libs)
+log "Building base image (wbia-base)..."
+docker build \
+    -t wbia-base \
+    -f devops/Dockerfile.base \
+    devops/
 
-# Build the images in dependence order
-while [ $# -ge 1 ]; do
-    if [ "$1" == "wbia-base" ]; then
-        docker build \
-            --compress \
-            -t wildme/wbia-base:latest \
-            base
-    elif [ "$1" == "wbia-provision" ]; then
-        docker build \
-            --compress \
-            -t wildme/wbia-provision:latest \
-            provision
-    elif [ "$1" == "wbia" ] || [ "$1" == "wildbook-ia" ]; then
-        docker build \
-            --compress \
-            -t wildme/wbia:latest \
-            -t wildme/wildbook-ia:latest \
-            --no-cache \
-            .
-    elif [ "$1" == "wbia-develop" ]; then
-        cd ../
-        docker build \
-            --compress \
-            -t wildme/wbia:develop \
-            devops/develop
-        cd devops/
-    else
-        echo "Image $1 not found"
-        exit 1
-    fi
-    shift
-done
+# Step 4: Build provision layer (install Python deps and build extensions)
+log "Building provision image (wbia-provision)..."
+docker build \
+    -t wbia-provision \
+    -f devops/Dockerfile.provision \
+    devops/
+
+# Step 5: Build the final image (includes full repo and entrypoint)
+log "Building final WBIA image (wildme/wbia:latest)..."
+docker build \
+    -t wildme/wbia:latest \
+    --build-arg BUILD_CONTEXT="$BUILD_DIR" \
+    -f devops/Dockerfile.main \
+    devops/
+
+log "Build complete. You can now run the image using:"
+echo "  docker run -it wildme/wbia:latest"
