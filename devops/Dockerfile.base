@@ -1,4 +1,3 @@
-# Stage: wbia-base
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -14,10 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     git \
     pkg-config \
-    libopencv-dev \
     libgl1-mesa-glx \
     libglib2.0-0 \
-    ca-certificates \
     python3 \
     python3-dev \
     python3-pip \
@@ -26,9 +23,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-wheel \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Symlinks for compatibility
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+# Symlink Python & Pip
+RUN ln -s /usr/bin/python3 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip
 
-# Upgrade pip & setuptools to latest
-RUN pip install --upgrade pip setuptools wheel
+# Install Python packages early
+RUN pip install --upgrade pip setuptools wheel scikit-build ninja numpy
+
+# Install opencv-python (includes native libs but NOT OpenCVConfig.cmake)
+RUN pip install opencv-python-headless
