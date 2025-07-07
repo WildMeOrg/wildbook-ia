@@ -47,8 +47,6 @@ then
         qt5-qtbase-devel \
         qt5-qmake \
         coreutils
-#else
-  
 fi
 
 $PYTHON_BIN -m pip install --global-option=build_ext \
