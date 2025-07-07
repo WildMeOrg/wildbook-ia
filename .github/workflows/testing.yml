@@ -67,8 +67,24 @@ jobs:
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
         run: |
-           bash scripts/ci_prepare_linux_for_build.sh
-
+           # bash scripts/ci_prepare_linux_for_build.sh
+            sudo apt-get update
+            sudo apt-get install -y \
+              pgloader \
+              libgeos-dev \
+              libgdal-dev \
+              libproj-dev \
+              graphviz \
+              graphviz-dev \
+              postgresql \
+              libopencv-dev \
+              qt5-qmake \
+              qtbase5-dev \
+              qtchooser \
+              qtbase5-dev-tools \
+              qttools5-dev-tools \
+              coreutils
+              
       - name: Install other project dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
         run: |
