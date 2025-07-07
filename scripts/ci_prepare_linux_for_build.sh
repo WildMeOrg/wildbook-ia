@@ -2,29 +2,29 @@
 
 set -ex
 
-# Force use of the GitHub Actions Python (3.8 or 3.9), not system /usr/bin/python3
-#!/bin/bash
-set -ex
+PYTHON_BIN=$(which python3)
+PIP_BIN=$(which pip3)
 
-# Use correct Python installed by actions/setup-python
-PYTHON_BIN="${PYTHON_BIN:-$(which python3)}"
-PIP_BIN="${PIP_BIN:-$(which pip3)}"
+# Force-clean pip environment before reinstall
+$PYTHON_BIN -m pip uninstall -y pip setuptools wheel || true
 
-$PYTHON_BIN --version  # Debug
-$PIP_BIN --version     # Debug
-
-# Downgrade pip, setuptools, and wheel to versions that work with old metadata specs
+# Reinstall specific versions cleanly
+$PYTHON_BIN -m ensurepip --upgrade
 $PYTHON_BIN -m pip install --upgrade --force-reinstall \
-  --ignore-installed \
-  'pip<24.1' 'setuptools==59.5.0' 'wheel==0.38.4'
-    
-export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  'pip==24.0' 'setuptools==59.5.0' 'wheel==0.38.4'
 
-# Workaround fairseq + hydra-core omegaconf dependency hell
+# Confirm what pip we're running
+$PYTHON_BIN -m pip --version
+
+# Ensure clean pip cache to avoid versioning bugs
+$PIP_BIN cache purge || true
+
+# Force omegaconf pin
 echo "Appending omegaconf==2.0.6 to requirements/build.txt if not present..."
 grep -qxF 'omegaconf==2.0.6' requirements/build.txt || echo 'omegaconf==2.0.6' >> requirements/build.txt
 
-pip install -r requirements/build.txt
+# Install build deps
+$PYTHON_BIN -m pip install -r requirements/build.txt
 
 if command -v yum &> /dev/null
 then
