@@ -2,6 +2,11 @@
 
 set -ex
 
+# Fix for Debian-installed wheel causing uninstall error during pip installs
+echo "[ci] Forcing reinstall of pip, setuptools, wheel to avoid uninstall RECORD error"
+python3 -m pip install --upgrade --force-reinstall --ignore-installed pip setuptools wheel
+
+
 export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 pip install -r requirements/build.txt
