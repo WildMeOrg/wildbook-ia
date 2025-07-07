@@ -53,8 +53,12 @@ jobs:
           pip install scikit-build numpy
           export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
           pip install pyhesaff 
-          pip install fairseq==0.10.2 --prefer-binary --no-build-isolation
-
+      - name: Install fairseq 
+        run: |
+          git clone --depth=1 --branch v0.10.2 https://github.com/facebookresearch/fairseq.git
+          cd fairseq
+          pip install . --no-use-pep517
+      
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
         run: |
@@ -132,8 +136,11 @@ jobs:
           pip install scikit-build numpy
           export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
           pip install pyhesaff 
-          pip install fairseq==0.10.2 --prefer-binary --no-build-isolation
-
+      - name: Install fairseq 
+        run: |
+          git clone --depth=1 --branch v0.10.2 https://github.com/facebookresearch/fairseq.git
+          cd fairseq
+          pip install . --no-use-pep517
 
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
