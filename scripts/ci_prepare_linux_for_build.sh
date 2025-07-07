@@ -47,6 +47,8 @@ then
         qt5-qtbase-devel \
         qt5-qmake \
         coreutils
+else
+    echo "Skipping apt installs – handled in testing.yml"
 fi
 
 $PYTHON_BIN -m pip install --global-option=build_ext \
