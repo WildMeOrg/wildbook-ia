@@ -4,7 +4,7 @@ set -ex
 
 # Downgrade pip to avoid PEP 508 strict enforcement breaking old omegaconf
 python3 -m pip install --upgrade --force-reinstall \
-  --break-system-packages \
+  --ignore-installed \
   'pip<24.1' 'setuptools==59.5.0' 'wheel==0.38.4'
   
 export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
