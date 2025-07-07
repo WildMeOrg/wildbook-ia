@@ -47,23 +47,8 @@ then
         qt5-qtbase-devel \
         qt5-qmake \
         coreutils
-else
-    apt-get install -y \
-        pgloader \
-        libgeos-dev \
-        libgdal-dev \
-        libproj-dev \
-        graphviz \
-        graphviz-dev \
-        postgresql \
-        libopencv-dev \
-        qt5-qmake \
-        qtbase5-dev \
-        qtchooser \
-        qtbase5-dev-tools \
-        qttools5-dev-tools \
-        qtchooser \
-        coreutils
+#else
+  
 fi
 
 $PYTHON_BIN -m pip install --global-option=build_ext \
