@@ -67,12 +67,12 @@ jobs:
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
         run: |
-          sudo -E bash scripts/ci_prepare_linux_for_build.sh
+           bash scripts/ci_prepare_linux_for_build.sh
 
       - name: Install other project dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
         run: |
-          sudo -E bash scripts/ci_prepare_macos_for_build.sh
+          bash scripts/ci_prepare_macos_for_build.sh
 
       - name: Build project
         run: |
@@ -157,12 +157,12 @@ jobs:
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
         run: |
-          sudo -E bash scripts/ci_prepare_linux_for_build.sh
+           bash scripts/ci_prepare_linux_for_build.sh
 
       - name: Install other project dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
         run: |
-          sudo -E bash scripts/ci_prepare_macos_for_build.sh
+           bash scripts/ci_prepare_macos_for_build.sh
 
       - name: Build project
         run: |
