@@ -2,8 +2,16 @@
 
 set -ex
 
-# Downgrade pip to avoid PEP 508 strict enforcement breaking old omegaconf
-python3 -m pip install --upgrade --force-reinstall \
+# Force use of the GitHub Actions Python (3.8 or 3.9), not system /usr/bin/python3
+PYTHON_BIN="$(which python)"
+PIP_BIN="$(which pip)"
+
+# Sanity check
+$PYTHON_BIN --version
+$PIP_BIN --version
+
+# Downgrade pip etc. only in the correct Python env
+$PYTHON_BIN -m pip install --upgrade --force-reinstall \
   --ignore-installed \
   'pip<24.1' 'setuptools==59.5.0' 'wheel==0.38.4'
   
@@ -55,6 +63,9 @@ else
         coreutils
 fi
 
-pip install --global-option=build_ext --global-option="-I/usr/include/graphviz/" --global-option="-L/usr/lib/graphviz/" pygraphviz
-pip uninstall -y pyqt5
-pip install --upgrade pyqt5
+$PYTHON_BIN -m pip install --global-option=build_ext \
+  --global-option="-I/usr/include/graphviz/" \
+  --global-option="-L/usr/lib/graphviz/" pygraphviz
+
+$PYTHON_BIN -m pip uninstall -y pyqt5
+$PYTHON_BIN -m pip install --upgrade pyqt5
