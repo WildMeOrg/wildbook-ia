@@ -3,18 +3,21 @@
 set -ex
 
 # Force use of the GitHub Actions Python (3.8 or 3.9), not system /usr/bin/python3
-PYTHON_BIN="$(which python)"
-PIP_BIN="$(which pip)"
+#!/bin/bash
+set -ex
 
-# Sanity check
-$PYTHON_BIN --version
-$PIP_BIN --version
+# Use correct Python installed by actions/setup-python
+PYTHON_BIN="${PYTHON_BIN:-$(which python3)}"
+PIP_BIN="${PIP_BIN:-$(which pip3)}"
 
-# Downgrade pip etc. only in the correct Python env
+$PYTHON_BIN --version  # Debug
+$PIP_BIN --version     # Debug
+
+# Downgrade pip, setuptools, and wheel to versions that work with old metadata specs
 $PYTHON_BIN -m pip install --upgrade --force-reinstall \
   --ignore-installed \
   'pip<24.1' 'setuptools==59.5.0' 'wheel==0.38.4'
-  
+    
 export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Workaround fairseq + hydra-core omegaconf dependency hell
