@@ -53,7 +53,7 @@ jobs:
           pip install scikit-build numpy
           export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
           pip install pyhesaff 
-          pip install fairseq==0.10.2
+          pip install fairseq==0.10.2 --prefer-binary --no-build-isolation
 
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
@@ -131,7 +131,9 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel --ignore-installed
           pip install scikit-build numpy
           export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
-          pip install pyhesaff fairseq
+          pip install pyhesaff 
+          pip install fairseq==0.10.2 --prefer-binary --no-build-isolation
+
 
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
