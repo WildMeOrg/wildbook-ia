@@ -2,12 +2,14 @@
 
 set -ex
 
-# Fix for Debian-installed wheel causing uninstall error during pip installs
-echo "[ci] Forcing reinstall of pip, setuptools, wheel to avoid uninstall RECORD error"
-python3 -m pip install --upgrade --force-reinstall --ignore-installed pip setuptools wheel
-
+# Downgrade pip to avoid PEP 508 strict enforcement breaking old omegaconf
+python3 -m pip install --upgrade --force-reinstall "pip<24.1" "setuptools==59.5.0" "wheel==0.38.4"
 
 export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# Workaround fairseq + hydra-core omegaconf dependency hell
+echo "Appending omegaconf==2.0.6 to requirements/build.txt if not present..."
+grep -qxF 'omegaconf==2.0.6' requirements/build.txt || echo 'omegaconf==2.0.6' >> requirements/build.txt
 
 pip install -r requirements/build.txt
 
