@@ -49,7 +49,7 @@ jobs:
 
       - name: Install Python dependencies and pyhesaff
         run: |
-          python -m pip install --upgrade pip setuptools wheel --ignore-installed --force-reinstall
+          python -m pip install --upgrade pip setuptools --ignore-installed --force-reinstall
           pip install scikit-build numpy
           export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
      
@@ -137,7 +137,7 @@ jobs:
 
       - name: Install Python dependencies and pyhesaff
         run: |
-          python -m pip install --upgrade pip setuptools wheel --ignore-installed --force-reinstall
+          python -m pip install --upgrade pip setuptools --ignore-installed --force-reinstall
 
           pip install scikit-build numpy
           export OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
