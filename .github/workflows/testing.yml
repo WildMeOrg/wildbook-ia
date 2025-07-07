@@ -74,6 +74,7 @@ jobs:
               libgeos-dev \
               libgdal-dev \
               libproj-dev \
+              libgraphviz-dev \   
               graphviz \
               graphviz-dev \
               postgresql \
