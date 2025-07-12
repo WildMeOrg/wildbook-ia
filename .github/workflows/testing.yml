@@ -68,7 +68,7 @@ jobs:
               pip install "setuptools==51.3.3" "more-itertools"
               # Build fairseq
               cd fairseq
-              python setup.py install
+              pip install --use-pep517 .
 
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
