@@ -105,9 +105,9 @@ jobs:
                     qtbase5-dev-tools \
                     qttools5-dev-tools \
                     coreutils
-                  python -m pip install wbia-utool@git+https://github.com/WildMeOrg/wbia-utool@main  
+                  python -m pip install \
+                          'wbia-utool@git+https://github.com/WildMeOrg/wbia-utool.git@main#egg=wbia-utool'
                   bash scripts/ci_prepare_linux_for_build.sh
-
       - name: Install other project dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
         run: |
@@ -234,8 +234,10 @@ jobs:
                     qtbase5-dev-tools \
                     qttools5-dev-tools \
                     coreutils
-                  python -m pip install wbia-utool@git+https://github.com/WildMeOrg/wbia-utool@main  
+                  python -m pip install \
+                          'wbia-utool@git+https://github.com/WildMeOrg/wbia-utool.git@main#egg=wbia-utool'
                   bash scripts/ci_prepare_linux_for_build.sh
+
 
       - name: Install other project dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
