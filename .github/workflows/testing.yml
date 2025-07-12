@@ -57,14 +57,28 @@ jobs:
         run: |
            python -m pip install pyhesaff
 
-      - name: Setup Fairseq v0.10.2
+      - name: Fix setuptools and install Fairseq cleanly
         run: |
-    
-          pip install --upgrade pip
-          pip install setuptools==59.5.0 wheel more-itertools
+          # STEP 1: Upgrade pip and install latest setuptools TEMPORARILY
+          pip install --upgrade pip setuptools wheel more-itertools
+      
+          # STEP 2: Clone fairseq
           rm -rf fairseq
           git clone --depth=1 --branch v0.10.2 https://github.com/facebookresearch/fairseq.git
       
+          # STEP 3: Install dependencies including hydra-core and antlr4
+          pip install \
+            "cython" \
+            "cffi" \
+            "hydra-core>=1.1" \
+            "sacrebleu>=1.4.12" \
+            "regex" \
+            "tqdm"
+      
+          # STEP 4: Now pin setuptools to a safe level for fairseq's setup.py
+          pip install setuptools==59.5.0
+      
+          # STEP 5: Install fairseq in editable mode
           pip install -e ./fairseq
 
       - name: Install other project dependencies (Linux)
