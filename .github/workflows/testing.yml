@@ -196,24 +196,24 @@ jobs:
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
         run: |
-            sudo apt-get update
-            sudo apt-get install -y \
-              pgloader \
-              libgeos-dev \
-              libgdal-dev \
-              libproj-dev \
-              graphviz \
-              graphviz-dev \
-              postgresql \
-              libopencv-dev \
-              qt5-qmake \
-              qtbase5-dev \
-              qtchooser \
-              qtbase5-dev-tools \
-              qttools5-dev-tools \
-              coreutils
-            python -m pip install wbia-utool @ git+https://github.com/WildMeOrg/wbia-utool@main  
-            bash scripts/ci_prepare_linux_for_build.sh
+                  sudo apt-get update
+                  sudo apt-get install -y \
+                    pgloader \
+                    libgeos-dev \
+                    libgdal-dev \
+                    libproj-dev \
+                    libgraphviz-dev \
+                    graphviz \
+                    postgresql \
+                    libopencv-dev \
+                    qt5-qmake \
+                    qtbase5-dev \
+                    qtchooser \
+                    qtbase5-dev-tools \
+                    qttools5-dev-tools \
+                    coreutils
+                  python -m pip install wbia-utool@git+https://github.com/WildMeOrg/wbia-utool@main  
+                  bash scripts/ci_prepare_linux_for_build.sh
 
       - name: Install other project dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
