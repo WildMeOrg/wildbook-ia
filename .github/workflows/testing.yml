@@ -57,17 +57,13 @@ jobs:
         run: |
            python -m pip install pyhesaff
 
-      - name: Install setuptools compatible with fairseq
+      - name: Setup Fairseq v0.10.2
         run: |
           pip install --upgrade pip
-          pip install setuptools==49.6.0 wheel
-
-      - name: Clone and install fairseq
-        run: |
+          pip install setuptools==49.6.0 wheel more-itertools
           rm -rf fairseq
           git clone --depth=1 --branch v0.10.2 https://github.com/facebookresearch/fairseq.git
-          cd fairseq
-          pip install --editable .
+          pip install --no-use-pep517 -e ./fairseq
 
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
