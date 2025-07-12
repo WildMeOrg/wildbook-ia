@@ -59,12 +59,12 @@ jobs:
 
       - name: Install fairseq (patched)
         run: |
-           git clone --depth=1 --branch v0.10.2 https://github.com/facebookresearch/fairseq.git
-           cd fairseq
-           rm pyproject.toml
-           git clone --depth=1 --branch v0.10.2 https://github.com/facebookresearch/fairseq.git
-           pip install "setuptools==59.5.0"  # <= this is the latest version before check_test_suite was removed
-           python -m pip install .
+          rm -rf fairseq  # Clean up any previous partial clone
+          git clone --depth=1 --branch v0.10.2 https://github.com/facebookresearch/fairseq.git
+          cd fairseq
+          rm pyproject.toml
+          pip install "setuptools==59.5.0"
+          python -m pip install .
 
       - name: Install other project dependencies (Linux)
         if: ${{ runner.os == 'Linux' }}
