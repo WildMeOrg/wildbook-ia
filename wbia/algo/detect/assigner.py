@@ -602,14 +602,15 @@ def assigner_testdb_ibs():
     #  dbdir = '/data/testdb_assigner'
     import shutil
     import os
-    dbdir = sysres.ensure_testdb_assigner()
-    # Delete any existing depcache files so opendb() will rebuild them
+    from wbia.algo.detect.train_assigner import download_testdb_assigner
+    # download the canonical test‐database (with the right tables/schema)
+    dbdir = download_testdb_assigner()
+    # blow away any leftover depcache so that `config` and friends get rebuilt
     cache_dir = os.path.join(dbdir, '_ibsdb', '_ibeis_cache')
-    shutil.rmtree(cache_dir, ignore_errors=True)
-    # make sure the cache directory exists so SQLite can re-create its files
-    os.makedirs(cache_dir, exist_ok=True)
+    if os.path.isdir(cache_dir):
+        shutil.rmtree(cache_dir)
     # Now open IBEIS and let it regenerate all depcache tables from scratch
-    ibs = wbia.opendb(dbdir=dbdir)
+    ibs = wbia.opendb(dbdir=dbdir,use_cache=False)
     return ibs
 
 
