@@ -599,10 +599,14 @@ def gid_keyed_ground_truth(ibs, assigner_data):
 def assigner_testdb_ibs():
     import wbia
     from wbia import sysres
-
-    dbdir = sysres.ensure_testdb_assigner()
     #  dbdir = '/data/testdb_assigner'
-    ibs = wbia.opendb(dbdir=dbdir, use_cache=False)
+    import shutil, os
+    dbdir = sysres.ensure_testdb_assigner()
+    # Delete any existing depcache files so opendb() will rebuild them
+    cache_dir = os.path.join(dbdir, '_ibsdb', '_ibeis_cache')
+    shutil.rmtree(cache_dir, ignore_errors=True)
+    # Now open IBEIS and let it regenerate all depcache tables from scratch
+    ibs = wbia.opendb(dbdir=dbdir)
     return ibs
 
 
