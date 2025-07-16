@@ -602,7 +602,7 @@ def assigner_testdb_ibs():
 
     dbdir = sysres.ensure_testdb_assigner()
     #  dbdir = '/data/testdb_assigner'
-    ibs = wbia.opendb(dbdir=dbdir)
+    ibs = wbia.opendb(dbdir=dbdir, use_cache=False)
     return ibs
 
 
