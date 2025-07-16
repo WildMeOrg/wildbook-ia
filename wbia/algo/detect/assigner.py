@@ -606,6 +606,8 @@ def assigner_testdb_ibs():
     # Delete any existing depcache files so opendb() will rebuild them
     cache_dir = os.path.join(dbdir, '_ibsdb', '_ibeis_cache')
     shutil.rmtree(cache_dir, ignore_errors=True)
+    # make sure the cache directory exists so SQLite can re-create its files
+    os.makedirs(cache_dir, exist_ok=True)
     # Now open IBEIS and let it regenerate all depcache tables from scratch
     ibs = wbia.opendb(dbdir=dbdir)
     return ibs
