@@ -598,10 +598,6 @@ def gid_keyed_ground_truth(ibs, assigner_data):
 @register_ibs_method
 def assigner_testdb_ibs():
     import wbia
-    from wbia import sysres
-    #  dbdir = '/data/testdb_assigner'
-    import shutil
-    import os
     try:
         from wbia.algo.detect.train_assigner import download_testdb_assigner
     except ImportError:
