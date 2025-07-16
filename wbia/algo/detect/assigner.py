@@ -602,15 +602,21 @@ def assigner_testdb_ibs():
     #  dbdir = '/data/testdb_assigner'
     import shutil
     import os
-    from wbia.algo.detect.train_assigner import download_testdb_assigner
-    # download the canonical test‐database (with the right tables/schema)
+    try:
+        from wbia.algo.detect.train_assigner import download_testdb_assigner
+    except ImportError:
+        from wbia.algo.detect.train_assigner_test import download_testdb_assigner
+    # download (or re‑download) the test database, then open it
     dbdir = download_testdb_assigner()
-    # blow away any leftover depcache so that `config` and friends get rebuilt
-    cache_dir = os.path.join(dbdir, '_ibsdb', '_ibeis_cache')
-    if os.path.isdir(cache_dir):
-        shutil.rmtree(cache_dir)
+    # __VERY__ important: clear any existing in‑memory or on‑disk IBEIS/dep‑cache
+    # so that the config table (and all depcache tables) are re‑created from scratch.
+    # Depending on the version, one of these two calls will exist:
+    if hasattr(wbia, 'clear_ibeis_cache'):
+        wbia.clear_ibeis_cache()
+    else:
+        wbia._clear_ibeis_cache()
     # Now open IBEIS and let it regenerate all depcache tables from scratch
-    ibs = wbia.opendb(dbdir=dbdir, use_cache=False)
+    ibs = wbia.opendb(dbdir=dbdir)
     return ibs
 
 
