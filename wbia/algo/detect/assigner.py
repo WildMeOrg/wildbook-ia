@@ -600,7 +600,8 @@ def assigner_testdb_ibs():
     import wbia
     from wbia import sysres
     #  dbdir = '/data/testdb_assigner'
-    import shutil, os
+    import shutil
+    import os
     dbdir = sysres.ensure_testdb_assigner()
     # Delete any existing depcache files so opendb() will rebuild them
     cache_dir = os.path.join(dbdir, '_ibsdb', '_ibeis_cache')
