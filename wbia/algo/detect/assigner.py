@@ -610,7 +610,7 @@ def assigner_testdb_ibs():
     if os.path.isdir(cache_dir):
         shutil.rmtree(cache_dir)
     # Now open IBEIS and let it regenerate all depcache tables from scratch
-    ibs = wbia.opendb(dbdir=dbdir,use_cache=False)
+    ibs = wbia.opendb(dbdir=dbdir, use_cache=False)
     return ibs
 
 
