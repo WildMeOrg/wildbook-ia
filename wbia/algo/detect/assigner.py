@@ -371,8 +371,8 @@ def _make_assignments(ibs, pair_parts, pair_bodies, assigner_scores, cutoff_scor
             assigned_bodies.add(body_aid)
 
         if (
-            len(assigned_parts) is n_true_pairs
-            or len(assigned_bodies) is n_true_pairs
+            len(assigned_parts) == n_true_pairs
+            or len(assigned_bodies) == n_true_pairs
             or score < cutoff_score
         ):
             break
