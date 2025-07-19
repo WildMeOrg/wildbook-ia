@@ -922,7 +922,7 @@ def gid_train_test_split(ibs, aid_list, random_seed=777, test_size=0.1):
         >>> print(result)
         [False, False, False, False, True, True, True, True]
     """
-    #print('calling gid_train_test_split')
+    # print('calling gid_train_test_split')
     gid_list = ibs.get_annot_gids(aid_list)
     gid_set = list(set(gid_list))
     import math
