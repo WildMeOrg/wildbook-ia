@@ -260,4 +260,4 @@ jobs:
 
       - name: Ensure web loads
         run: |
-          timeout 30 python -m wbia.dev --dbdir /tmp/work/db --web || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+          timeout 31 python -m wbia.dev --dbdir /tmp/work/db --web || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
