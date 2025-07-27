@@ -2254,6 +2254,7 @@ def _polygons_to_centroid_coords(polygon_list):
     centroids = [poly.centroid for poly in polygon_list]
     return centroids
 
+
 def download_testdb_assigner():
     """
     Stub for downloading or generating the assigner test database.
