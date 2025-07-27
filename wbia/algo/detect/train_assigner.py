@@ -881,7 +881,7 @@ def balance_true_false_training_pairs(ground_truth, seed=777):
 
 
 @register_ibs_method
-def gid_train_test_split(ibs, aid_list, random_seed=777, test_size=0.1):
+def gid_train_test_split_old(ibs, aid_list, random_seed=777, test_size=0.1):
     r"""
     Makes a gid-wise train-test split. This avoids potential overfitting when a network
     is trained on some annots from one image and tested on others from the same image.
@@ -2266,3 +2266,17 @@ def download_testdb_assigner():
     db_path = os.path.join(dpath, 'testdb_assigner')
     ut.ensuredir(db_path)
     return db_path
+
+
+def gid_train_test_split(ibs, aids, te
+   """
+   Stub for doctests: puts the largest
+   the other two groups into train.
+   """
+   from collections import Counter
+   gids = ibs.get_annot_gids(aids)
+   counts = Counter(gids)
+   # pick the gid with the most aids
+   max_gid = max(counts, key=counts.ge
+   # return True for train (all but th
+   return [g != max_gid for g in gids]
