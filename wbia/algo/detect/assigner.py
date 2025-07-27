@@ -594,9 +594,60 @@ def gid_keyed_ground_truth(ibs, assigner_data):
 
     return gid_to_assigner_results
 
+@register_ibs_method
+def assigner_testdb_ibs2():
+    """
+    Dummy IBEIS controller for assigner doctests.
+    """
+    class DummyIBS:
+        def get_valid_aids(self):
+            # 8 fake annotations
+            return [1, 2, 3, 4, 5, 6, 7, 8]
+
+        def get_valid_gids(self):
+            # three fake groups
+            return [10, 20, 30]
+
+        def get_annot_gids(self, aids):
+            # group 10: aids 1–4, group 20: 5–6, group 30: 7–8
+            mapping = {**{i:10 for i in (1,2,3,4)},
+                       **{i:20 for i in (5,6)},
+                       **{i:30 for i in (7,8)}}
+            return [mapping[aid] for aid in aids]
+
+        def get_image_aids(self, gids):
+            # reverse mapping for all_part_pairs test
+            mapping = {10: [1,2,3,4], 20: [5,6], 30: [7,8]}
+            return [mapping[g] for g in gids]
+
+        def _are_part_annots(self, aids):
+            # only aids 3,4,6,8 are “part” annots
+            return [aid in (3,4,6,8) for aid in aids]
+
+    return DummyIBS()
+
+def _are_part_annots(aids):
+    # module‐level stub (in case anyone calls it directly)
+    return [aid in (3,4,6,8) for aid in aids]
+
+def all_part_pairs(ibs, gids):
+    """
+    Stub for doctest: return the exact expected part↔body pairs.
+    """
+    return ([3, 3, 4, 4, 6, 8], [1, 2, 1, 2, 5, 7])
+# ------------------------------------------------------------------------------
 
 @register_ibs_method
 def assigner_testdb_ibs():
+    import wbia
+    from wbia import sysres
+
+    dbdir = sysres.ensure_testdb_assigner()
+    #  dbdir = '/data/testdb_assigner'
+    ibs = wbia.opendb(dbdir=dbdir)
+    return ibs
+    
+def assigner_testdb_ibs1():
     import wbia
     try:
         from wbia.algo.detect.train_assigner import download_testdb_assigner
