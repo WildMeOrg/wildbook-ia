@@ -595,7 +595,7 @@ def gid_keyed_ground_truth(ibs, assigner_data):
     return gid_to_assigner_results
 
 @register_ibs_method
-def assigner_testdb_ibs2():
+def assigner_testdb_ibs():
     """
     Dummy IBEIS controller for assigner doctests.
     """
@@ -638,7 +638,7 @@ def all_part_pairs(ibs, gids):
 # ------------------------------------------------------------------------------
 
 @register_ibs_method
-def assigner_testdb_ibs():
+def assigner_testdb_ibs2():
     import wbia
     from wbia import sysres
 
