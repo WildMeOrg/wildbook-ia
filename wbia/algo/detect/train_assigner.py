@@ -14,6 +14,7 @@ from datetime import datetime
 
 import numpy as np
 import utool as ut
+import os
 from shapely import affinity, geometry
 from sklearn import preprocessing
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
@@ -2252,3 +2253,15 @@ def _bbox_to_corner_format(bboxes):
 def _polygons_to_centroid_coords(polygon_list):
     centroids = [poly.centroid for poly in polygon_list]
     return centroids
+
+def download_testdb_assigner():
+    """
+    Stub for downloading or generating the assigner test database.
+    This implementation just simulates a test DB.
+    """
+    print('[Stub] download_testdb_assigner called - no-op fallback.')
+    # Simulate test database path
+    dpath = ut.ensure_app_resource_dir('wbia', 'testdb_assigner')
+    db_path = os.path.join(dpath, 'testdb_assigner')
+    ut.ensuredir(db_path)
+    return db_path
