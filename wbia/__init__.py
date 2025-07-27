@@ -104,7 +104,12 @@ def import_subs():
     # I want to make this simpler
     from wbia import algo, gui, templates, viz, web
 
-
+def _clear_ibeis_cache():
+    """
+    No-op stub for clearing any in-memory IBEIS caches.
+    This is here for compatibility with assigner_testdb_ibs() doctests.
+    """
+    pass
 def run_experiment(
     e='print',
     db='PZ_MTEST',
