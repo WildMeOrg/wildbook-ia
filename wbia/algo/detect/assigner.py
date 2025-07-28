@@ -14,8 +14,18 @@ import wbia.plottool as pt
 # from os.path import expanduser, join
 from wbia import constants as const
 from wbia.control.controller_inject import make_ibs_register_decorator
-
+from wbia.algo.detect.train_assigner import get_annot_species
 logger = logging.getLogger('wbia')
+
+# ----------------------------------------------------------------------
+#  Register all of the above free functions as IBS methods
+# ----------------------------------------------------------------------
+
+from wbia.control.IBEISControl import IBEISController
+
+IBEISController.assign_parts           = assign_parts
+IBEISController.assign_parts_one_image = assign_parts_one_image
+IBEISController.assigner_feat_for_aids = assigner_feat_for_aids
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
@@ -685,15 +695,6 @@ def assigner_testdb_ibs1():
     ibs = wbia.opendb(dbdir=dbdir)
     return ibs
 
-# ----------------------------------------------------------------------
-#  Register all of the above free functions as IBS methods
-# ----------------------------------------------------------------------
-
-from wbia.control.IBEISControl import IBEISControl
-
-IBEISControl.assign_parts = assign_parts
-IBEISControl.assign_parts_one_image = assign_parts_one_image
-IBEISControl.get_annot_species = get_annot_species
 
 if __name__ == '__main__':
     r"""
