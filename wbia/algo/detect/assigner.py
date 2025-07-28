@@ -14,9 +14,8 @@ import wbia.plottool as pt
 # from os.path import expanduser, join
 from wbia import constants as const
 from wbia.control.controller_inject import make_ibs_register_decorator
-from wbia.algo.detect.train_assigner import get_annot_species
-logger = logging.getLogger('wbia')
 
+logger = logging.getLogger('wbia')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
@@ -372,8 +371,8 @@ def _make_assignments(ibs, pair_parts, pair_bodies, assigner_scores, cutoff_scor
             assigned_bodies.add(body_aid)
 
         if (
-            len(assigned_parts) == n_true_pairs
-            or len(assigned_bodies) == n_true_pairs
+            len(assigned_parts) is n_true_pairs
+            or len(assigned_bodies) is n_true_pairs
             or score < cutoff_score
         ):
             break
@@ -596,68 +595,13 @@ def gid_keyed_ground_truth(ibs, assigner_data):
     return gid_to_assigner_results
 
 
-class DummyIBS(object):
-    def __init__(self):
-        # annotation → group mapping
-        self._a2g = {1: 1, 2: 1, 3: 1, 4: 1, 5: 2, 6: 2, 7: 3, 8: 3}
-        # group → list of annotations
-        self._g2a = {gid: [] for gid in set(self._a2g.values())}
-        for aid, gid in self._a2g.items():
-            self._g2a[gid].append(aid)
-
-    def get_valid_aids(self):
-        return list(self._a2g.keys())
-
-    def get_valid_gids(self):
-        return list(self._g2a.keys())
-
-    def get_annot_gids(self, aids):
-        return [self._a2g[aid] for aid in aids]
-
-    def get_image_aids(self, gids):
-        # allow an int or an iterable of ints
-        if isinstance(gids, int):
-            return list(self._g2a[gids])
-        return [list(self._g2a[gid]) for gid in gids]
-
-    def _are_part_annots(self, aids):
-        # in this toy DB, "part" annotations are exactly aids 3,4,6,8
-        part_set = {3, 4, 6, 8}
-        return [aid in part_set for aid in aids]
-
-
 @register_ibs_method
 def assigner_testdb_ibs():
-    return DummyIBS()
-
-
-@register_ibs_method
-def assigner_testdb_ibs2():
     import wbia
     from wbia import sysres
 
     dbdir = sysres.ensure_testdb_assigner()
     #  dbdir = '/data/testdb_assigner'
-    ibs = wbia.opendb(dbdir=dbdir)
-    return ibs
-
-
-def assigner_testdb_ibs1():
-    import wbia
-    try:
-        from wbia.algo.detect.train_assigner import download_testdb_assigner
-    except ImportError:
-        from wbia.algo.detect.train_assigner_test import download_testdb_assigner
-    # download (or re‑download) the test database, then open it
-    dbdir = download_testdb_assigner()
-    # __VERY__ important: clear any existing in‑memory or on‑disk IBEIS/dep‑cache
-    # so that the config table (and all depcache tables) are re‑created from scratch.
-    # Depending on the version, one of these two calls will exist:
-    if hasattr(wbia, 'clear_ibeis_cache'):
-        wbia.clear_ibeis_cache()
-    else:
-        wbia._clear_ibeis_cache()
-    # Now open IBEIS and let it regenerate all depcache tables from scratch
     ibs = wbia.opendb(dbdir=dbdir)
     return ibs
 
@@ -673,13 +617,3 @@ if __name__ == '__main__':
     import utool as ut  # NOQA
 
     ut.doctest_funcs()
-
-# ----------------------------------------------------------------------
-#  Register all of the above free functions as IBS methods
-# ----------------------------------------------------------------------
-
-from wbia.control.IBEISControl import IBEISController
-
-IBEISController.assign_parts           = assign_parts
-IBEISController.assign_parts_one_image = assign_parts_one_image
-IBEISController.assigner_feat_for_aids = assigner_feat_for_aids
