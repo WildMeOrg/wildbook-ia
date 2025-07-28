@@ -685,6 +685,15 @@ def assigner_testdb_ibs1():
     ibs = wbia.opendb(dbdir=dbdir)
     return ibs
 
+# ----------------------------------------------------------------------
+#  Register all of the above free functions as IBS methods
+# ----------------------------------------------------------------------
+
+from wbia.control.IBEISControl import IBEISControl
+
+IBEISControl.assign_parts = assign_parts
+IBEISControl.assign_parts_one_image = assign_parts_one_image
+IBEISControl.get_annot_species = get_annot_species
 
 if __name__ == '__main__':
     r"""
