@@ -598,44 +598,37 @@ def gid_keyed_ground_truth(ibs, assigner_data):
 class DummyIBS(object):
     def __init__(self):
         # annotation → group mapping
-        self._a2g = {1:1, 2:1, 3:1, 4:1,
-                    5:2, 6:2,
-                    7:3, 8:3}
+        self._a2g = {1: 1, 2: 1, 3: 1, 4: 1,
+                    5: 2, 6: 2,
+                    7: 3, 8: 3}
         # group → list of annotations
         self._g2a = {gid: [] for gid in set(self._a2g.values())}
         for aid, gid in self._a2g.items():
             self._g2a[gid].append(aid)
 
- 
     def get_valid_aids(self):
         return list(self._a2g.keys())
-
  
     def get_valid_gids(self):
         return list(self._g2a.keys())
-
  
     def get_annot_gids(self, aids):
         return [self._a2g[aid] for aid in aids]
 
- 
     def get_image_aids(self, gids):
         # allow an int or an iterable of ints
         if isinstance(gids, int):
             return list(self._g2a[gids])
         return [list(self._g2a[gid]) for gid in gids]
 
- 
     def _are_part_annots(self, aids):
         # in this toy DB, "part" annotations are exactly aids 3,4,6,8
         part_set = {3, 4, 6, 8}
         return [aid in part_set for aid in aids]
 
- 
 @register_ibs_method
 def assigner_testdb_ibs():
     return DummyIBS()
-
 
 def all_part_pairs(ibs, gids):
     """
@@ -660,7 +653,6 @@ def all_part_pairs(ibs, gids):
                 parts.append(p)
                 bodies.append(b)
     return parts, bodies
-    
 
 @register_ibs_method
 def assigner_testdb_ibs2():
