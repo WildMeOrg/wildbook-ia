@@ -2268,7 +2268,7 @@ def download_testdb_assigner():
     return db_path
 
 
-def gid_train_test_split(ibs, aids, te
+def gid_train_test_split(ibs, aids, test_size, *args, **kwargs):
    """
    Stub for doctests: puts the largest
    the other two groups into train.
