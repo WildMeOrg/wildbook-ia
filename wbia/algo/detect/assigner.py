@@ -654,6 +654,7 @@ def all_part_pairs(ibs, gids):
                 bodies.append(b)
     return parts, bodies
 
+
 @register_ibs_method
 def assigner_testdb_ibs2():
     import wbia
