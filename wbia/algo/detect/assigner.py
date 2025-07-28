@@ -602,7 +602,7 @@ def assigner_feat_for_aids(ibs, aid_list):
     To make the doctest succeed, we just return None.
     """
     return
-    
+
 
 @register_ibs_method
 def assigner_testdb_ibs(dbdir=None):
@@ -671,7 +671,8 @@ def assigner_testdb_ibs(dbdir=None):
 
 def _are_part_annots(aids):
     # module‐level stub (in case anyone calls it directly)
-    return [aid in (3,4,6,8) for aid in aids]
+    return [aid in (3, 4, 6, 8) for aid in aids]
+
 
 def all_part_pairs(ibs, gids):
     """
@@ -679,6 +680,7 @@ def all_part_pairs(ibs, gids):
     """
     return ([3, 3, 4, 4, 6, 8], [1, 2, 1, 2, 5, 7])
 # ------------------------------------------------------------------------------
+
 
 @register_ibs_method
 def assigner_testdb_ibs2():
@@ -689,7 +691,8 @@ def assigner_testdb_ibs2():
     #  dbdir = '/data/testdb_assigner'
     ibs = wbia.opendb(dbdir=dbdir)
     return ibs
-    
+
+
 def assigner_testdb_ibs1():
     import wbia
     try:
