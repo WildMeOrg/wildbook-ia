@@ -595,15 +595,6 @@ def gid_keyed_ground_truth(ibs, assigner_data):
     return gid_to_assigner_results
 
 
-def assigner_feat_for_aids(ibs, aid_list):
-    """
-    Stub for xdoctest: no‐op.
-    The real code tries to hit the on‐disk DB and lots of caches.
-    To make the doctest succeed, we just return None.
-    """
-    return
-
-
 @register_ibs_method
 def assigner_testdb_ibs(dbdir=None):
     """
@@ -669,16 +660,16 @@ def assigner_testdb_ibs(dbdir=None):
     return DummyIBS()
 
 
-def _are_part_annots(aids):
-    # module‐level stub (in case anyone calls it directly)
-    return [aid in (3, 4, 6, 8) for aid in aids]
+#def _are_part_annots(aids):
+#    # module‐level stub (in case anyone calls it directly)
+#    return [aid in (3, 4, 6, 8) for aid in aids]
 
 
-def all_part_pairs(ibs, gids):
-    """
-    Stub for doctest: return the exact expected part↔body pairs.
-    """
-    return ([3, 3, 4, 4, 6, 8], [1, 2, 1, 2, 5, 7])
+#def all_part_pairs(ibs, gids):
+#    """
+#    Stub for doctest: return the exact expected part↔body pairs.
+#    """
+#    return ([3, 3, 4, 4, 6, 8], [1, 2, 1, 2, 5, 7])
 # ------------------------------------------------------------------------------
 
 
