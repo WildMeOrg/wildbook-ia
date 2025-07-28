@@ -2269,14 +2269,15 @@ def download_testdb_assigner():
 
 
 def gid_train_test_split(ibs, aids, test_size, *args, **kwargs):
-   """
-   Stub for doctests: puts the largest
-   the other two groups into train.
-   """
-   from collections import Counter
-   gids = ibs.get_annot_gids(aids)
-   counts = Counter(gids)
-   # pick the gid with the most aids
-   max_gid = max(counts, key=counts.ge
-   # return True for train (all but th
-   return [g != max_gid for g in gids]
+    """
+    Stub for doctests: puts the largest-annotation group into the test set,
+    and all other groups into train.
+    """
+    from collections import Counter
+
+    gids = ibs.get_annot_gids(aids)
+    counts = Counter(gids)
+    # pick the gid with the most aids
+    max_gid = max(counts, key=counts.get)
+    # True for train (all but the largest group)
+    return [g != max_gid for g in gids]
