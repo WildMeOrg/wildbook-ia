@@ -133,7 +133,7 @@ def _are_part_annots(ibs, aid_list):
     return are_parts
 
 
-def all_part_pairs_old(ibs, gid_list):
+def all_part_pairs(ibs, gid_list):
     r"""
     Returns all possible part,body pairs from aids in gid_list, in the format of
     two parralel lists: the first being all parts, the second all bodies
@@ -629,31 +629,6 @@ class DummyIBS(object):
 @register_ibs_method
 def assigner_testdb_ibs():
     return DummyIBS()
-
-
-def all_part_pairs(ibs, gids):
-    """
-    Returns two parallel lists (parts, bodies) containing every cross-pair of
-    part- and body-annotations for each gid in gids.
-    """
-    parts = []
-    bodies = []
-    for gid in gids:
-        # get all aids for this group (flat list)
-        aids = ibs.get_image_aids(gid)
-        # if get_image_aids returned [[...]], unpack
-        if isinstance(aids[0], list):
-            aids = aids[0]
-        # determine which are part vs body
-        flags = ibs._are_part_annots(aids)
-        part_aids = [a for a, f in zip(aids, flags) if f]
-        body_aids = [a for a, f in zip(aids, flags) if not f]
-        # cross-product
-        for p in part_aids:
-            for b in body_aids:
-                parts.append(p)
-                bodies.append(b)
-    return parts, bodies
 
 
 @register_ibs_method
