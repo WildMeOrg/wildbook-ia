@@ -132,7 +132,7 @@ def _are_part_annots(ibs, aid_list):
     return are_parts
 
 
-def all_part_pairs(ibs, gid_list):
+def all_part_pairs_old(ibs, gid_list):
     r"""
     Returns all possible part,body pairs from aids in gid_list, in the format of
     two parralel lists: the first being all parts, the second all bodies
@@ -598,9 +598,7 @@ def gid_keyed_ground_truth(ibs, assigner_data):
 class DummyIBS(object):
     def __init__(self):
         # annotation → group mapping
-        self._a2g = {1: 1, 2: 1, 3: 1, 4: 1,
-                    5: 2, 6: 2,
-                    7: 3, 8: 3}
+        self._a2g = {1: 1, 2: 1, 3: 1, 4: 1, 5: 2, 6: 2, 7: 3, 8: 3}
         # group → list of annotations
         self._g2a = {gid: [] for gid in set(self._a2g.values())}
         for aid, gid in self._a2g.items():
@@ -608,10 +606,10 @@ class DummyIBS(object):
 
     def get_valid_aids(self):
         return list(self._a2g.keys())
- 
+
     def get_valid_gids(self):
         return list(self._g2a.keys())
- 
+
     def get_annot_gids(self, aids):
         return [self._a2g[aid] for aid in aids]
 
@@ -626,9 +624,11 @@ class DummyIBS(object):
         part_set = {3, 4, 6, 8}
         return [aid in part_set for aid in aids]
 
+
 @register_ibs_method
 def assigner_testdb_ibs():
     return DummyIBS()
+
 
 def all_part_pairs(ibs, gids):
     """
