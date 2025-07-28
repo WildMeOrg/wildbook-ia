@@ -660,12 +660,12 @@ def assigner_testdb_ibs(dbdir=None):
     return DummyIBS()
 
 
-#def _are_part_annots(aids):
+# def _are_part_annots(aids):
 #    # module‐level stub (in case anyone calls it directly)
 #    return [aid in (3, 4, 6, 8) for aid in aids]
 
 
-#def all_part_pairs(ibs, gids):
+# def all_part_pairs(ibs, gids):
 #    """
 #    Stub for doctest: return the exact expected part↔body pairs.
 #    """
