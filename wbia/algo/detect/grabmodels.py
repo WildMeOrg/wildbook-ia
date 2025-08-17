@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from os.path import exists, join, realpath
+import os
 
 import utool as ut
 
@@ -9,7 +10,46 @@ logger = logging.getLogger('wbia')
 
 
 # DETECTMODELS_DIR = realpath(join(dirname(__file__), 'rf'))
-DEFAULT_DETECTMODELS_DIR = ut.get_app_resource_dir('wbia', 'detectmodels')
+# DEFAULT_DETECTMODELS_DIR = ut.get_app_resource_dir('wbia', 'detectmodels')
+
+def _choose_default_detectmodels_dir():
+    """
+    Resolve the base detectmodels directory with this priority:
+      1. WBIA_MODELS_DIR env var (can point either to a directory that directly
+         contains 'rf', or to one containing a 'detectmodels' subdir, or already be that subdir)
+      2. /models (same structural rules as above – for a mounted volume)
+      3. Original per-user/app cache: ~/.cache/wbia/detectmodels (ut.get_app_resource_dir)
+
+    """
+    candidates = []
+    env_dir = os.getenv('WBIA_MODELS_DIR')
+    if env_dir:
+        candidates.append(env_dir)
+    candidates.append('/models')
+
+    for cand in candidates:
+        if not cand:
+            continue
+        if not os.path.isdir(cand):
+            continue
+        # If it contains a detectmodels subdir, prefer that
+        if os.path.isdir(join(cand, 'detectmodels')):
+            resolved = realpath(join(cand, 'detectmodels'))
+            logger.info('[grabmodels] Using mounted detectmodels dir: %s', resolved)
+            return resolved
+        # If it already looks like the detectmodels dir (name or has rf)
+        if os.path.basename(cand).lower() == 'detectmodels' or os.path.isdir(join(cand, 'rf')):
+            resolved = realpath(cand)
+            logger.info('[grabmodels] Using mounted models dir: %s', resolved)
+            return resolved
+    # Fallback to app cache
+    fallback = ut.get_app_resource_dir('wbia', 'detectmodels')
+    logger.info('[grabmodels] Using cached detectmodels dir: %s', fallback)
+    return fallback
+
+
+# Original default (now override-aware)
+DEFAULT_DETECTMODELS_DIR = _choose_default_detectmodels_dir()
 
 DETECTOR_KEY_RF = 'rf'
 
