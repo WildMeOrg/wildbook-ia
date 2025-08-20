@@ -11,6 +11,7 @@ logger = logging.getLogger('wbia')
 # DETECTMODELS_DIR = realpath(join(dirname(__file__), 'rf'))
 DEFAULT_DETECTMODELS_DIR = ut.get_app_resource_dir('wbia', 'detectmodels')
 
+
 def _choose_default_detectmodels_dir():
     """
     Resolve the base detectmodels directory with this priority:
