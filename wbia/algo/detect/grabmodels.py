@@ -18,8 +18,6 @@ def _choose_default_detectmodels_dir():
          contains 'rf', or to one containing a 'detectmodels' subdir, or already be that subdir)
       2. /models (same structural rules as above – for a mounted volume)
       3. Original per-user/app cache: ~/.cache/wbia/detectmodels (ut.get_app_resource_dir)
-      
-      
     """
     candidates = []
     env_dir = os.getenv('WBIA_MODELS_DIR')
