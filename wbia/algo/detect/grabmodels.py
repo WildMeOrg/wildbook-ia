@@ -123,7 +123,7 @@ def ensure_models(modeldir='default', verbose=True):
         python -m wbia.algo.detect.grabmodels --test-ensure_models
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # doctest: +SKIP
         >>> from wbia.algo.detect.grabmodels import *  # NOQA
         >>> modeldir = 'default'
         >>> result = ensure_models(modeldir)
