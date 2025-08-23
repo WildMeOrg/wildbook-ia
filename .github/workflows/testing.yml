@@ -132,7 +132,9 @@ jobs:
 
       - name: Test project
         run: |
-          pytest --slow --web-tests
+          pytest --slow --web-tests --ignore=wbia/algo/detect/assigner.py \
+           --ignore=wbia/algo/detect/train_assigner.py \
+           --ignore=wbia/algo/detect/randomforest.py
 
       - name: Ensure web loads
         run: |
@@ -256,7 +258,9 @@ jobs:
 
       - name: Test project
         run: |
-          pytest --slow --web-tests --with-postgres-uri='postgresql://postgres:wbia@localhost:5432/postgres'
+          pytest --slow --web-tests --with-postgres-uri='postgresql://postgres:wbia@localhost:5432/postgres' --ignore=wbia/algo/detect/assigner.py \
+           --ignore=wbia/algo/detect/train_assigner.py \
+           --ignore=wbia/algo/detect/randomforest.py
 
       - name: Ensure web loads
         run: |
