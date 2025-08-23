@@ -901,7 +901,7 @@ def gid_train_test_split_old(ibs, aid_list, random_seed=777, test_size=0.1):
         python -m wbia.algo.detect.train_assigner gid_train_test_split
 
     Example:
-        # >>> # ENABLE_DOCTEST
+        # doctest: +SKIP
         >>> import utool as ut
         >>> from wbia.algo.detect.assigner import *
         >>> from wbia.algo.detect.train_assigner import *
