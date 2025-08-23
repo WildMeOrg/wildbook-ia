@@ -31,8 +31,8 @@ class Deployer(object):
     meta_suffix = '.meta.json'
 
     publish_info = {
-        'remote': 'cthulhu.dyn.wildme.io',
-        'path': '/data/public/models/pairclf',
+        'remote': 'wildbookiarepository.azureedge.net',
+        'path': '/data/models/pairclf',
     }
 
     published = {
@@ -73,7 +73,7 @@ class Deployer(object):
         >>> task_key = 'match_state'
         """
 
-        base_url = 'https://{remote}/public/models/pairclf'.format(**self.publish_info)
+        base_url = 'https://{remote}/models/pairclf'.format(**self.publish_info)
 
         task_fnames = self.published[species]
         fname = task_fnames[task_key]
@@ -261,7 +261,7 @@ class Deployer(object):
             >>> self = Deployer()
             >>> task_clf_names = self.find_latest_remote()
         """
-        base_url = 'https://{remote}/public/models/pairclf'.format(**self.publish_info)
+        base_url = 'https://{remote}/models/pairclf'.format(**self.publish_info)
         import bs4
         import requests
 
