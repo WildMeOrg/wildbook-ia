@@ -4,6 +4,7 @@ from os.path import exists, join, realpath
 import os
 import urllib.request
 import urllib.parse
+import time
 
 import utool as ut
 
@@ -206,16 +207,30 @@ def _download_model(algo, algo_modeldir):
             ut.delete(dest_fpath)
 
 
-def _stream_download(url, dest_fpath, chunk_size=1 << 20):
-    """Download a URL to a file path with streaming to limit memory and no logging of secrets."""
-    # Ensure destination directory exists
+def _stream_download(url, dest_fpath, chunk_size=1 << 20, retries=3, backoff=2.0, timeout=60):
+    """Download a URL to a file path with streaming, retries, and timeout."""
     ut.ensuredir(os.path.dirname(dest_fpath))
-    with urllib.request.urlopen(url) as resp, open(dest_fpath, 'wb') as out:
-        while True:
-            chunk = resp.read(chunk_size)
-            if not chunk:
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'wbia-grabmodels/1.0'})
+            with urllib.request.urlopen(req, timeout=timeout) as resp, open(dest_fpath, 'wb') as out:
+                while True:
+                    chunk = resp.read(chunk_size)
+                    if not chunk:
+                        break
+                    out.write(chunk)
+            return
+        except Exception as ex:
+            last_err = ex
+            if attempt < retries:
+                sleep_for = backoff ** (attempt - 1)
+                logger.warning('[grabmodels] download failed (attempt %d/%d): %s; retrying in %.1fs', attempt, retries, type(ex).__name__, sleep_for)
+                time.sleep(sleep_for)
+            else:
                 break
-            out.write(chunk)
+    # If all retries failed, raise the last error
+    raise last_err
 
 
 def _build_sas_url(base_url):
