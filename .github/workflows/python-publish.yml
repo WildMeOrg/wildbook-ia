@@ -3,6 +3,9 @@ name: Build and upload to PyPI
 # Build on every branch push, tag push, and pull request change:
 on: push
 
+env:
+  MODEL_DIR: ${{ github.workspace }}/models
+  MODEL_SAS_QUERY: ${{ secrets.MODEL_SAS_QUERY }}
 jobs:
 
   build_wheels:
