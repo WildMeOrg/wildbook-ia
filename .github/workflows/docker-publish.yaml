@@ -9,6 +9,10 @@ on:
   schedule:
     - cron: '0 0 * * *' # Every day at midnight
 
+env:
+  MODEL_DIR: ${{ github.workspace }}/models
+  MODEL_SAS_QUERY: ${{ secrets.MODEL_SAS_QUERY }}
+  
 jobs:
   devops:
     name: Docker image build
