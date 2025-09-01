@@ -135,9 +135,9 @@ jobs:
 
       - name: Test project
         run: |
-          pytest --slow --web-tests --ignore=wbia/algo/detect/assigner.py \
-           --ignore=wbia/algo/detect/train_assigner.py \
-           --ignore=wbia/algo/detect/randomforest.py
+          # pytest --slow --web-tests --ignore=wbia/algo/detect/assigner.py \
+          # --ignore=wbia/algo/detect/train_assigner.py \
+          # --ignore=wbia/algo/detect/randomforest.py
 
       - name: Ensure web loads
         run: |
