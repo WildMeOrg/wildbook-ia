@@ -8,7 +8,7 @@ from wbia.plottool import abstract_interaction, interact_annotations
 from wbia.plottool import interact_helpers as ih
 from wbia.plottool import plot_helpers as ph
 from wbia.plottool import viz_image2
-
+from wbia.tests.config.urls import TEST_IMAGES_URL
 from . import draw_func2 as df2
 
 try:
@@ -36,7 +36,6 @@ class MultiImageInteraction(BASE_CLASS):
         >>> # ENABLE_DOCTEST
         >>> from wbia.plottool.interact_multi_image import *  # NOQA
         >>> import utool as ut
-        >>> TEST_IMAGES_URL = 'https://wildbookiarepository.azureedge.net/data/testdata.zip'
         >>> test_image_dir = ut.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
         >>> # test image paths
         >>> imgpaths       = ut.list_images(test_image_dir, fullpath=True, recursive=False)

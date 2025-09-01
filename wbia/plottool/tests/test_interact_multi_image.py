@@ -6,6 +6,7 @@ import utool
 # DUPLICATE CODE, DELETE
 from wbia.plottool import draw_func2 as df2
 from wbia.plottool import interact_multi_image
+from wbia.tests.config.urls import TEST_IMAGES_URL
 
 # import wbia
 
@@ -29,7 +30,6 @@ def _test_interact_multimage(imgpaths):
 
 
 if __name__ == '__main__':
-    TEST_IMAGES_URL = 'https://wildbookiarepository.azureedge.net/data/testdata.zip'
     test_image_dir = utool.grab_zipped_url(TEST_IMAGES_URL, appname='utool')
     imgpaths = utool.list_images(
         test_image_dir, fullpath=True, recursive=False
