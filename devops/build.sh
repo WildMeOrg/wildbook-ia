@@ -20,27 +20,29 @@ mkdir -p "$BUILD_DIR"
 log "Cloning Wildbook-IA from branch: $BRANCH_NAME..."
 git clone --depth 1 --branch "$BRANCH_NAME" "$REPO_URL" "$BUILD_DIR"
 
+CONTEXT_DIR="$BUILD_DIR/devops"
+
 # Step 3: Build the base image (adds OpenCV dev libs)
 log "Building base image (wbia-base)..."
 docker build \
     -t wbia-base \
-    -f devops/Dockerfile.base \
-    devops/
+    -f "$CONTEXT_DIR/Dockerfile.base" \
+    "$CONTEXT_DIR"/
 
 # Step 4: Build provision layer (install Python deps and build extensions)
 log "Building provision image (wbia-provision)..."
 docker build \
     -t wbia-provision \
-    -f devops/Dockerfile.provision \
-    devops/
+    -f "$CONTEXT_DIR/Dockerfile.provision" \
+    "$CONTEXT_DIR"/
 
 # Step 5: Build the final image (includes full repo and entrypoint)
 log "Building final WBIA image (wildme/wbia:latest)..."
 docker build \
     -t wildme/wbia:latest \
     --build-arg BUILD_CONTEXT="$BUILD_DIR" \
-    -f devops/Dockerfile.main \
-    devops/
+    -f "$CONTEXT_DIR/Dockerfile.main" \
+    "$CONTEXT_DIR"/
 
 log "Build complete. You can now run the image using:"
 echo "  docker run -it wildme/wbia:latest"
