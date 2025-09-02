@@ -12,7 +12,11 @@ RUN python3 -m pip install --no-cache-dir "pip<24.1"
 
 RUN python3 -m pip install --no-cache-dir "PyYAML>=6.0.1" cython
 
-RUN python3 -m pip install --no-cache-dir -r requirements.txt
+# Force wheel for PyYAML and constrain versions to avoid sdist builds
+ENV PIP_ONLY_BINARY=PyYAML
+RUN printf "PyYAML>=6.0.1\n" > constraints.txt
+
+RUN python3 -m pip install --no-cache-dir -r requirements.txt -c constraints.txt --upgrade-strategy only-if-needed
 
 # Inject OpenCV flags manually for pyhesaff
 # ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs
