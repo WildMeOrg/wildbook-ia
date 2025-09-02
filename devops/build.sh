@@ -33,6 +33,7 @@ docker build \
 log "Building provision image (wbia-provision)..."
 docker build \
     -t wbia-provision \
+    --build-arg WBIA_BASE_IMAGE=wbia-base \
     -f "$CONTEXT_DIR/Dockerfile.provision" \
     "$BUILD_DIR"/
 
