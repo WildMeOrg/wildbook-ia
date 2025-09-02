@@ -5,6 +5,7 @@ FROM ${WBIA_BASE_IMAGE}
 WORKDIR /wbia
 
 COPY requirements.txt .
+COPY requirements/ ./requirements/
 
 # RUN pip install --force-reinstall -r requirements.txt
 RUN apt-get update && apt-get install -y python3-pip || true
