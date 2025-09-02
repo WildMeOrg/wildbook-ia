@@ -34,7 +34,7 @@ log "Building provision image (wbia-provision)..."
 docker build \
     -t wbia-provision \
     -f "$CONTEXT_DIR/Dockerfile.provision" \
-    "$CONTEXT_DIR"/
+    "$BUILD_DIR"/
 
 # Step 5: Build the final image (includes full repo and entrypoint)
 log "Building final WBIA image (wildme/wbia:latest)..."
