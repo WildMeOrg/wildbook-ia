@@ -10,6 +10,8 @@ COPY requirements/ ./requirements/
 # RUN pip install --force-reinstall -r requirements.txt
 RUN python3 -m pip install --no-cache-dir "pip<24.1"
 
+RUN python3 -m pip install --no-cache-dir "PyYAML>=6.0.1" cython
+
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
 # Inject OpenCV flags manually for pyhesaff
