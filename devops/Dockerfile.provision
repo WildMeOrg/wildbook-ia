@@ -1,14 +1,18 @@
-FROM wildme/wbia-base:latest
+# FROM wildme/wbia-base:latest
+ARG WBIA_BASE_IMAGE=wbia-base
 
+FROM ${WBIA_BASE_IMAGE}
 WORKDIR /wbia
 
 COPY requirements.txt .
 
 # RUN pip install --force-reinstall -r requirements.txt
+RUN apt-get update && apt-get install -y python3-pip || true
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
 # Inject OpenCV flags manually for pyhesaff
-ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs
+# ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs
+ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.10/dist-packages/opencv_python.libs
 
 # Try to build pyhesaff — fail allowed if fallback needed
 # RUN pip install pyhesaff fairseq --no-cache-dir || true
