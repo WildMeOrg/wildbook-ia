@@ -6,8 +6,8 @@ on:
       - build-fix-jul25
      #tags:
      # - v*
-  #schedule:
-  #  - cron: '0 0 * * *' # Every day at midnight
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight
 
 env:
   MODEL_DIR: ${{ github.workspace }}/models
