@@ -7,21 +7,24 @@ WORKDIR /wbia
 COPY requirements.txt .
 COPY requirements/ ./requirements/
 
-# RUN pip install --force-reinstall -r requirements.txt
+# Pip 24.1+ rejects older wheel metadata (omegaconf 2.0.x); pin for compatibility
 RUN python3 -m pip install --no-cache-dir "pip<24.1"
 
+# Avoid building PyYAML from source on py310 and ensure Cython is available for any builds
 RUN python3 -m pip install --no-cache-dir "PyYAML>=6.0.1" cython
 
 # Force wheel for PyYAML and constrain versions to avoid sdist builds
 ENV PIP_ONLY_BINARY=PyYAML
-RUN printf "PyYAML>=6.0.1\n" > constraints.txt
+ENV PIP_PREFER_BINARY=1
+RUN printf "PyYAML>=6.0.1\nomegaconf==2.0.6\nhydra-core==1.0.7\nantlr4-python3-runtime==4.8\n" > constraints.txt
 
-RUN python3 -m pip install --no-cache-dir -r requirements.txt -c constraints.txt --upgrade-strategy only-if-needed
+# Exclude build-time extras that pull legacy deps; install them later selectively
+RUN awk '!/^\s*-r\s+requirements\/build.txt\s*$/' requirements.txt > requirements.nobuild.txt
+RUN python3 -m pip install --no-cache-dir -r requirements.nobuild.txt -c constraints.txt --upgrade-strategy only-if-needed
 
-# Inject OpenCV flags manually for pyhesaff
-# ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs
+# Inject OpenCV flags manually for pyhesaff (match Python 3.10 on ubuntu:22.04)
 ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.10/dist-packages/opencv_python.libs
 
-# Try to build pyhesaff — fail allowed if fallback needed
-# RUN pip install pyhesaff fairseq --no-cache-dir || true
-RUN python3 -m pip install pyhesaff fairseq --no-cache-dir || true
+# Try to build pyhesaff and install fairseq without deps to avoid ruamel.yaml issues — allow failure
+RUN python3 -m pip install --no-cache-dir pyhesaff || true
+RUN python3 -m pip install --no-cache-dir --no-deps fairseq==0.12.2 || true
