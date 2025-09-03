@@ -20,6 +20,10 @@ RUN printf "PyYAML>=6.0.1\nomegaconf==2.0.6\nhydra-core==1.0.7\nantlr4-python3-r
 
 # Exclude build-time extras that pull legacy deps; install them later selectively
 RUN awk '!/^\s*-r\s+requirements\/build.txt\s*$/' requirements.txt > requirements.nobuild.txt
+# Also exclude gdm (which pulls yorm with PyYAML<6) from runtime requirements
+RUN awk '!/^\s*gdm(\s|==|$)/' requirements/runtime.txt > requirements/runtime.nogdm.txt
+# Point the aggregator to the modified runtime file
+RUN sed -i 's#requirements/runtime.txt#requirements/runtime.nogdm.txt#' requirements.nobuild.txt
 RUN python3 -m pip install --no-cache-dir -r requirements.nobuild.txt -c constraints.txt --upgrade-strategy only-if-needed
 
 # Inject OpenCV flags manually for pyhesaff (match Python 3.10 on ubuntu:22.04)
@@ -28,3 +32,7 @@ ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.10/dist-packages/opencv_python.libs
 # Try to build pyhesaff and install fairseq without deps to avoid ruamel.yaml issues — allow failure
 RUN python3 -m pip install --no-cache-dir pyhesaff || true
 RUN python3 -m pip install --no-cache-dir --no-deps fairseq==0.12.2 || true
+
+# Install yorm and gdm without deps to avoid PyYAML<6 constraints — allow failure
+RUN python3 -m pip install --no-cache-dir --no-deps yorm==1.6.2 || true
+RUN python3 -m pip install --no-cache-dir --no-deps gdm==0.2.1 || true
