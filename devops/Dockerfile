@@ -132,7 +132,7 @@ RUN set -ex \
      opencv-python-headless \
      opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
-     opencv-contrib-python-headless \
+     opencv-contrib-python-headless==4.7.0.72
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11
 
@@ -180,5 +180,7 @@ CMD []
 FROM org.wildme.wbia.install as org.wildme.wbia.depricated
 
 COPY ./_config/deprecated.sh /bin/deprecated
+# Gate the heavy deprecated stage to avoid disk exhaustion in CI runners
+ARG RUN_DEPRECATED=false
+RUN if [ "$RUN_DEPRECATED" = "true" ] && [ "$(uname -m)" != "aarch64" ] ; then deprecated ; else echo "Skipping deprecated stage" ; fi
 
-RUN if [ "$(uname -m)" != "aarch64" ] ; then deprecated ; fi
