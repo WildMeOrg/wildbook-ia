@@ -98,9 +98,9 @@ RUN set -ex \
      qt5-qmake \
      qtbase5-dev-tools \
      libopencv-dev \
- && /virtualenv/env3/bin/pip uninstall -y \
+ && /virtualenv/env3/bin/python -m pip uninstall -y \
      pyqt5 \
- && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
      pyqt5 \
  && apt-get clean \
  && apt-get autoclean \
@@ -115,14 +115,14 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 # Fix OpenCV
 RUN set -ex \
- && /virtualenv/env3/bin/pip uninstall -y \
+ && /virtualenv/env3/bin/python -m pip uninstall -y \
      opencv-python \
      opencv-contrib-python \
      opencv-python-headless \
      opencv-contrib-python-headless \
- && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
      opencv-contrib-python-headless==4.7.0.72 \
- && /virtualenv/env3/bin/pip uninstall -y \
+ && /virtualenv/env3/bin/python -m pip uninstall -y \
      nvidia_cublas_cu11
 
 # Run smoke tests
