@@ -42,7 +42,7 @@ log "Building final WBIA image (wildme/wbia:latest)..."
 docker build \
     -t wildme/wbia:latest \
     --build-arg BUILD_CONTEXT="$BUILD_DIR" \
-    -f "$CONTEXT_DIR/Dockerfile.main" \
+    -f "$CONTEXT_DIR/Dockerfile" \
     "$CONTEXT_DIR"/
 
 log "Build complete. You can now run the image using:"
