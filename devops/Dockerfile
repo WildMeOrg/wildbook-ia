@@ -98,6 +98,7 @@ RUN set -ex \
      qt5-qmake \
      qtbase5-dev-tools \
      libopencv-dev \
+ && /virtualenv/env3/bin/python -m pip --version || /virtualenv/env3/bin/python -m ensurepip --upgrade || true \
  && /virtualenv/env3/bin/python -m pip uninstall -y \
      pyqt5 \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
@@ -115,6 +116,7 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 # Fix OpenCV
 RUN set -ex \
+ && /virtualenv/env3/bin/python -m pip --version || /virtualenv/env3/bin/python -m ensurepip --upgrade || true \
  && /virtualenv/env3/bin/python -m pip uninstall -y \
      opencv-python \
      opencv-contrib-python \
