@@ -132,7 +132,7 @@ RUN set -ex \
      opencv-python-headless \
      opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
-     opencv-contrib-python-headless==4.7.0.72
+     opencv-contrib-python-headless==4.7.0.72 \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11
 
