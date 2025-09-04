@@ -1,4 +1,4 @@
-#!/bin/bash
+yhhjnjbbbbbbbbbbbbjhbhj#!/bin/bash
 set -euo pipefail
 
 # Constants
@@ -25,15 +25,15 @@ CONTEXT_DIR="$BUILD_DIR/devops"
 # Step 3: Build the base image (adds OpenCV dev libs)
 log "Building base image (wbia-base)..."
 docker build \
-    -t wbia-base \
+    -t wildme/wbia-base:latest \
     -f "$CONTEXT_DIR/Dockerfile.base" \
     "$CONTEXT_DIR"/
 
 # Step 4: Build provision layer (install Python deps and build extensions)
 log "Building provision image (wbia-provision)..."
 docker build \
-    -t wbia-provision \
-    --build-arg WBIA_BASE_IMAGE=wbia-base \
+    -t wildme/wbia-provision:latest \
+    --build-arg WBIA_BASE_IMAGE=wildme/wbia-base:latest \
     -f "$CONTEXT_DIR/Dockerfile.provision" \
     "$BUILD_DIR"/
 
@@ -41,7 +41,8 @@ docker build \
 log "Building final WBIA image (wildme/wbia:latest)..."
 docker build \
     -t wildme/wbia:latest \
-    --build-arg BUILD_CONTEXT="$BUILD_DIR" \
+    --build-arg WBIA_BASE_IMAGE=wildme/wbia-base:latest \
+    --build-arg WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest \
     -f "$CONTEXT_DIR/Dockerfile" \
     "$CONTEXT_DIR"/
 
