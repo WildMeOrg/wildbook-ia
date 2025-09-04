@@ -1,4 +1,4 @@
-yhhjnjbbbbbbbbbbbbjhbhj#!/bin/bash
+#!/bin/bash
 set -euo pipefail
 
 # Constants
@@ -6,19 +6,35 @@ REPO_URL="https://github.com/WildMeOrg/wildbook-ia.git"
 BRANCH_NAME="build-fix-jul25"
 BUILD_DIR="wbia_build_src"
 
+USE_LOCAL=${USE_LOCAL:-0}
+
 # Helper for logging
 log() {
     echo -e "\033[1;34m[INFO]\033[0m $1"
 }
 
 # Step 1: Clean and prepare build directory
-log "Cleaning previous build directory..."
-rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR"
+#log "Cleaning previous build directory..."
+#rm -rf "$BUILD_DIR"
+#mkdir -p "$BUILD_DIR"
+
+if [ "$USE_LOCAL" = "1" ]; then
+    log "Using local workspace for build context (no clone)."
+    BUILD_DIR="."
+else
+    log "Cleaning previous build directory..."
+    rm -rf "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR"
+fi
 
 # Step 2: Clone the repo and checkout the correct branch
-log "Cloning Wildbook-IA from branch: $BRANCH_NAME..."
-git clone --depth 1 --branch "$BRANCH_NAME" "$REPO_URL" "$BUILD_DIR"
+#log "Cloning Wildbook-IA from branch: $BRANCH_NAME..."
+#git clone --depth 1 --branch "$BRANCH_NAME" "$REPO_URL" "$BUILD_DIR"
+
+if [ "$USE_LOCAL" != "1" ]; then
+    log "Cloning Wildbook-IA from branch: $BRANCH_NAME..."
+    git clone --depth 1 --branch "$BRANCH_NAME" "$REPO_URL" "$BUILD_DIR"
+fi
 
 CONTEXT_DIR="$BUILD_DIR/devops"
 
