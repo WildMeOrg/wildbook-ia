@@ -77,8 +77,11 @@ COPY ./_config/entrypoint.sh /bin/entrypoint
 COPY ./_config/healthcheck.py /bin/healthcheck.py
 
 # Update locate database
-RUN updatedb
-
+#RUN updatedb
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends plocate \
+ && rm -rf /var/lib/apt/lists/* \
+ && updatedb
 # Temporary fix for ARM64
 #ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
 
