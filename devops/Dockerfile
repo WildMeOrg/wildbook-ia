@@ -11,23 +11,9 @@ FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.latest
 RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me" \
- && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
-    'cd {} && cd .. && echo $(pwd) && git reset --hard origin/main && git pull' \
-
- && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
- && git reset --hard origin/main \
- && git pull \
- && cd /wbia/wbia-plugin-lca/wbia_lca \
- && git reset --hard origin/main \
- && git pull \
- && cd /wbia/wbia-plugin-orientation/ \
- && git reset --hard origin/main \
- && git pull \
- && cd /wbia/wildbook-ia/ \
- && git fetch \
- && git reset --hard origin/main  \
- && git config pull.rebase true \
- && git pull
+ && if [ -d /wbia ]; then \
+            find /wbia -type d -name ".git" -print0 | xargs -0 -I{} /bin/bash -lc 'cd "$(dirname "{}")" && echo $(pwd) && git fetch || true && git reset --hard origin/main || true && git pull || true'; \
+        fi
 
 ##########################################################################################
 
