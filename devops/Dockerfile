@@ -51,7 +51,7 @@ ENV AWS_SECRET_ACCESS_KEY SECRET_KEY
 
 WORKDIR /data/db
 
-COPY --from=org.wildme.wbia.latest /virtualenv /virtualenv
+# COPY --from=org.wildme.wbia.latest /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.latest /wbia /wbia
 
