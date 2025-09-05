@@ -11,9 +11,23 @@ FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.latest
 RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
  && git config --global user.name "Wild Me" \
- && if [ -d /wbia ]; then \
-            find /wbia -type d -name ".git" -print0 | xargs -0 -I{} /bin/bash -lc 'cd "$(dirname "{}")" && echo $(pwd) && git fetch || true && git reset --hard origin/main || true && git pull || true'; \
-        fi
+ && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
+    'cd {} && cd .. && echo $(pwd) && git reset --hard origin/main && git pull' \
+
+ && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
+ && git reset --hard origin/main \
+ && git pull \
+ && cd /wbia/wbia-plugin-lca/wbia_lca \
+ && git reset --hard origin/main \
+ && git pull \
+ && cd /wbia/wbia-plugin-orientation/ \
+ && git reset --hard origin/main \
+ && git pull \
+ && cd /wbia/wildbook-ia/ \
+ && git fetch \
+ && git reset --hard origin/main  \
+ && git config pull.rebase true \
+ && git pull
 
 ##########################################################################################
 
@@ -51,16 +65,6 @@ ENV AWS_SECRET_ACCESS_KEY SECRET_KEY
 
 WORKDIR /data/db
 
-# Ensure the virtualenv exists (fallback recreate if missing)
-RUN set -ex \
- && if [ ! -x /virtualenv/env3/bin/python ]; then \
-            echo "Recreating missing /virtualenv/env3" && \
-            mkdir -p /virtualenv && \
-            (python3.7 -m venv /virtualenv/env3 || python3 -m venv /virtualenv/env3 || virtualenv --system-site-packages -p "$(which python3.7 || which python3)" /virtualenv/env3) && \
-            /virtualenv/env3/bin/python -m ensurepip --upgrade && \
-            /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade pip==22.3.1 setuptools==59.5.0 wheel==0.38.4 ; \
-        fi
-
 COPY --from=org.wildme.wbia.latest /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.latest /wbia /wbia
@@ -86,24 +90,9 @@ COPY ./_config/entrypoint.sh /bin/entrypoint
 # Python health check
 COPY ./_config/healthcheck.py /bin/healthcheck.py
 
-# Verify virtualenv health; if broken, recreate and bootstrap pip
-RUN set -ex \
- && if /virtualenv/env3/bin/python -V >/dev/null 2>&1; then \
-            echo "Virtualenv OK"; \
-        else \
-            echo "Virtualenv broken or missing; recreating..." && \
-            rm -rf /virtualenv/env3 && \
-            (python3.7 -m venv /virtualenv/env3 || python3 -m venv /virtualenv/env3 || virtualenv --system-site-packages -p "$(which python3.7 || which python3)" /virtualenv/env3) && \
-            /virtualenv/env3/bin/python -m ensurepip --upgrade && \
-            /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade pip==22.3.1 setuptools==59.5.0 wheel==0.38.4; \
-        fi
-        
 # Update locate database
-#RUN updatedb
-RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends plocate \
- && rm -rf /var/lib/apt/lists/* \
- && updatedb
+RUN updatedb
+
 # Temporary fix for ARM64
 #ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
 
@@ -120,9 +109,9 @@ RUN set -ex \
      qt5-qmake \
      qtbase5-dev-tools \
      libopencv-dev \
- && /virtualenv/env3/bin/python -m pip uninstall -y \
+ && /virtualenv/env3/bin/pip uninstall -y \
      pyqt5 \
- && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
      pyqt5 \
  && apt-get clean \
  && apt-get autoclean \
@@ -130,23 +119,23 @@ RUN set -ex \
  && rm -rf /var/cache/apt \
  && rm -rf /var/lib/apt/lists/*
 
-# Fix Lasagne
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-cnn \
- && /bin/bash run_developer_setup.sh'
+# Fix Lasagne (skip if plugin repo is not present)
+RUN /bin/bash -xc 'if [ -d /wbia/wbia-plugin-cnn ]; then \
+        . /virtualenv/env3/bin/activate && cd /wbia/wbia-plugin-cnn && /bin/bash run_developer_setup.sh; \
+    else \
+        echo "wbia-plugin-cnn not present; skipping Lasagne setup"; \
+    fi'
 
 # Fix OpenCV
 RUN set -ex \
- && PY="/virtualenv/env3/bin/python" ; if [ ! -x "$PY" ]; then PY="$(command -v python3)" ; fi \
- && "$PY" -m pip --version || "$PY" -m ensurepip --upgrade || true \
- && "$PY" -m pip uninstall -y \
+ && /virtualenv/env3/bin/pip uninstall -y \
      opencv-python \
      opencv-contrib-python \
      opencv-python-headless \
      opencv-contrib-python-headless \
- && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
-     opencv-contrib-python-headless==4.7.0.72 \
- && /virtualenv/env3/bin/python -m pip uninstall -y \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
+     opencv-contrib-python-headless \
+ && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11
 
 # Run smoke tests
@@ -157,22 +146,24 @@ RUN set -ex \
 #&& /virtualenv/env3/bin/python -c "import wbia_finfindr;    from wbia_finfindr._plugin    import *" \
 # && /virtualenv/env3/bin/python -c "import wbia_whaleridgefindr;    from wbia_whaleridgefindr._plugin     import *" \
 
+
 RUN set -ex \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit \
- && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
+ && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \ 
  && /virtualenv/env3/bin/python -c "import wbia_cnn;         from wbia_cnn.__main__ import main;         main()" \
  && /virtualenv/env3/bin/python -c "import wbia_pie_v2;      from wbia_pie_v2.__main__ import main;      main()" \
  && /virtualenv/env3/bin/python -c "import wbia_blend;       from wbia_blend._plugin import *" \
  && /virtualenv/env3/bin/python -c "import wbia_orientation; from wbia_orientation.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia_whaleridgefindr;    from wbia_whaleridgefindr._plugin     import *" || true \
- && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" || true \
- && /virtualenv/env3/bin/python -c "import wbia_lca;         from wbia_lca._plugin         import *" || true \
- && /virtualenv/env3/bin/python -c "import wbia_deepsense;   from wbia_deepsense._plugin   import *" || true \
+ && /virtualenv/env3/bin/python -c "import wbia_whaleridgefindr;    from wbia_whaleridgefindr._plugin     import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_lca;         from wbia_lca._plugin         import *" \
+ && /virtualenv/env3/bin/python -c "import wbia_deepsense;   from wbia_deepsense._plugin   import *" \
  && find /wbia/wbia* -name '*.a' -print      | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
  && find /wbia/wbia* -name '*.so' -print     | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
  && find /wbia/wildbook* -name '*.a' -print  | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
  && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}'
+
 
 # Undo Fix
 ENV LD_PRELOAD ""
@@ -193,7 +184,5 @@ CMD []
 FROM org.wildme.wbia.install as org.wildme.wbia.depricated
 
 COPY ./_config/deprecated.sh /bin/deprecated
-# Gate the heavy deprecated stage to avoid disk exhaustion in CI runners
-ARG RUN_DEPRECATED=false
-RUN if [ "$RUN_DEPRECATED" = "true" ] && [ "$(uname -m)" != "aarch64" ] ; then deprecated ; else echo "Skipping deprecated stage" ; fi
 
+RUN if [ "$(uname -m)" != "aarch64" ] ; then deprecated ; fi
