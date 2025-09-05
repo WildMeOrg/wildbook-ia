@@ -120,9 +120,6 @@ RUN set -ex \
      qt5-qmake \
      qtbase5-dev-tools \
      libopencv-dev \
- && PY="/virtualenv/env3/bin/python" ; if [ ! -x "$PY" ]; then PY="$(command -v python3)" ; fi \
- && "$PY" -m pip --version || "$PY" -m ensurepip --upgrade || true \
- && "$PY" -m pip uninstall -y \
  && /virtualenv/env3/bin/python -m pip uninstall -y \
      pyqt5 \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
