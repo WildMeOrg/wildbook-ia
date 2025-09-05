@@ -51,7 +51,17 @@ ENV AWS_SECRET_ACCESS_KEY SECRET_KEY
 
 WORKDIR /data/db
 
-# COPY --from=org.wildme.wbia.latest /virtualenv /virtualenv
+# Ensure the virtualenv exists (fallback recreate if missing)
+RUN set -ex \
+ && if [ ! -x /virtualenv/env3/bin/python ]; then \
+            echo "Recreating missing /virtualenv/env3" && \
+            mkdir -p /virtualenv && \
+            (python3.7 -m venv /virtualenv/env3 || python3 -m venv /virtualenv/env3 || virtualenv --system-site-packages -p "$(which python3.7 || which python3)" /virtualenv/env3) && \
+            /virtualenv/env3/bin/python -m ensurepip --upgrade && \
+            /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade pip==22.3.1 setuptools==59.5.0 wheel==0.38.4 ; \
+        fi
+
+COPY --from=org.wildme.wbia.latest /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.latest /wbia /wbia
 
@@ -76,6 +86,18 @@ COPY ./_config/entrypoint.sh /bin/entrypoint
 # Python health check
 COPY ./_config/healthcheck.py /bin/healthcheck.py
 
+# Verify virtualenv health; if broken, recreate and bootstrap pip
+RUN set -ex \
+ && if /virtualenv/env3/bin/python -V >/dev/null 2>&1; then \
+            echo "Virtualenv OK"; \
+        else \
+            echo "Virtualenv broken or missing; recreating..." && \
+            rm -rf /virtualenv/env3 && \
+            (python3.7 -m venv /virtualenv/env3 || python3 -m venv /virtualenv/env3 || virtualenv --system-site-packages -p "$(which python3.7 || which python3)" /virtualenv/env3) && \
+            /virtualenv/env3/bin/python -m ensurepip --upgrade && \
+            /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade pip==22.3.1 setuptools==59.5.0 wheel==0.38.4; \
+        fi
+        
 # Update locate database
 #RUN updatedb
 RUN apt-get update \
@@ -98,7 +120,9 @@ RUN set -ex \
      qt5-qmake \
      qtbase5-dev-tools \
      libopencv-dev \
- && /virtualenv/env3/bin/python -m pip --version || /virtualenv/env3/bin/python -m ensurepip --upgrade || true \
+ && PY="/virtualenv/env3/bin/python" ; if [ ! -x "$PY" ]; then PY="$(command -v python3)" ; fi \
+ && "$PY" -m pip --version || "$PY" -m ensurepip --upgrade || true \
+ && "$PY" -m pip uninstall -y \
  && /virtualenv/env3/bin/python -m pip uninstall -y \
      pyqt5 \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
@@ -116,8 +140,9 @@ RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
 
 # Fix OpenCV
 RUN set -ex \
- && /virtualenv/env3/bin/python -m pip --version || /virtualenv/env3/bin/python -m ensurepip --upgrade || true \
- && /virtualenv/env3/bin/python -m pip uninstall -y \
+ && PY="/virtualenv/env3/bin/python" ; if [ ! -x "$PY" ]; then PY="$(command -v python3)" ; fi \
+ && "$PY" -m pip --version || "$PY" -m ensurepip --upgrade || true \
+ && "$PY" -m pip uninstall -y \
      opencv-python \
      opencv-contrib-python \
      opencv-python-headless \
