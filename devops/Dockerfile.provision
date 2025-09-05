@@ -1,17 +1,23 @@
-# FROM wildme/wbia-base:latest
-ARG WBIA_BASE_IMAGE=wbia-base
+ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
 
 FROM ${WBIA_BASE_IMAGE}
+
 WORKDIR /wbia
 
 COPY requirements.txt .
 COPY requirements/ ./requirements/
 
+# Create a dedicated virtualenv expected by later stages
+ENV VENV_DIR=/virtualenv/env3
+RUN python3 -m venv ${VENV_DIR} || (apt-get update && apt-get install -y --no-install-recommends python3-venv && python3 -m venv ${VENV_DIR})
+RUN ${VENV_DIR}/bin/python -m ensurepip --upgrade && \
+	${VENV_DIR}/bin/python -m pip install --no-cache-dir --upgrade pip==22.3.1 setuptools==59.5.0 wheel==0.38.4
+
 # Pip 24.1+ rejects older wheel metadata (omegaconf 2.0.x); pin for compatibility
-RUN python3 -m pip install --no-cache-dir "pip<24.1"
+RUN ${VENV_DIR}/bin/python -m pip install --no-cache-dir "pip<24.1"
 
 # Avoid building PyYAML from source on py310 and ensure Cython is available for any builds
-RUN python3 -m pip install --no-cache-dir "PyYAML>=6.0.1" cython
+RUN ${VENV_DIR}/bin/python -m pip install --no-cache-dir "PyYAML>=6.0.1" cython
 
 # Force wheel for PyYAML and constrain versions to avoid sdist builds
 ENV PIP_ONLY_BINARY=PyYAML
@@ -24,15 +30,15 @@ RUN awk '!/^\s*-r\s+requirements\/build.txt\s*$/' requirements.txt > requirement
 RUN awk '!/^\s*gdm(\s|==|$)/' requirements/runtime.txt > requirements/runtime.nogdm.txt
 # Point the aggregator to the modified runtime file
 RUN sed -i 's#requirements/runtime.txt#requirements/runtime.nogdm.txt#' requirements.nobuild.txt
-RUN python3 -m pip install --no-cache-dir -r requirements.nobuild.txt -c constraints.txt --upgrade-strategy only-if-needed
+RUN ${VENV_DIR}/bin/python -m pip install --no-cache-dir -r requirements.nobuild.txt -c constraints.txt --upgrade-strategy only-if-needed
 
 # Inject OpenCV flags manually for pyhesaff (match Python 3.10 on ubuntu:22.04)
 ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.10/dist-packages/opencv_python.libs
 
 # Try to build pyhesaff and install fairseq without deps to avoid ruamel.yaml issues — allow failure
-RUN python3 -m pip install --no-cache-dir pyhesaff || true
-RUN python3 -m pip install --no-cache-dir --no-deps fairseq==0.12.2 || true
+RUN ${VENV_DIR}/bin/python -m pip install --no-cache-dir pyhesaff || true
+RUN ${VENV_DIR}/bin/python -m pip install --no-cache-dir --no-deps fairseq==0.12.2 || true
 
 # Install yorm and gdm without deps to avoid PyYAML<6 constraints — allow failure
-RUN python3 -m pip install --no-cache-dir --no-deps yorm==1.6.2 || true
-RUN python3 -m pip install --no-cache-dir --no-deps gdm==0.2.1 || true
+RUN ${VENV_DIR}/bin/python -m pip install --no-cache-dir --no-deps yorm==1.6.2 || true
+RUN ${VENV_DIR}/bin/python -m pip install --no-cache-dir --no-deps gdm==0.2.1 || true
