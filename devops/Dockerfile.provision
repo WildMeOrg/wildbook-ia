@@ -8,6 +8,7 @@ RUN mkdir -p /wbia \
             && /virtualenv/env3/bin/python -m ensurepip --upgrade \
             && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade pip==22.3.1 setuptools==59.5.0 wheel==0.38.4 \
         ) )
+
 # Wildbook IA version
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
@@ -90,8 +91,18 @@ RUN set -ex \
  && /bin/bash run_developer_setup.sh'
 
 # WBIA third-party toolkits
+## Ensure OpenCV C++ dev files are available for CMake builds and modern build backend tools are present
+ENV OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
 RUN set -ex \
- && /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libopencv-dev pkg-config \
+ && rm -rf /var/lib/apt/lists/* \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade "setuptools>=80" "wheel>=0.41"
+
+RUN set -ex \
+ && /bin/bash -xc 'export PIP_NO_BUILD_ISOLATION=1 \
+ && export CMAKE_PREFIX_PATH="${OpenCV_DIR}:${CMAKE_PREFIX_PATH}" \
+ && . /virtualenv/env3/bin/activate \
  && cd /wbia/wbia-tpl-pyhesaff \
  && /bin/bash run_developer_setup.sh'
 
