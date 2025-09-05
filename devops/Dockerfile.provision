@@ -132,8 +132,16 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # Add Rust to PATH globally
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+# Keep modern build backends when installing WBIA requirements
+RUN set -ex \
+ && sed -i -E 's/^setuptools==.*/setuptools>=80/' /wbia/wildbook-ia/requirements/build.txt \
+ && sed -i -E 's/^wheel==.*/wheel>=0.41/' /wbia/wildbook-ia/requirements/build.txt
+
 # Wildbook IA
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+RUN set -ex \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade "PyYAML>=6.0" "Cython>=0.29.36" \
+ && /bin/bash -xc 'export PIP_PREFER_BINARY=1 PIP_NO_BUILD_ISOLATION=1 \
+ && . /virtualenv/env3/bin/activate \
  && cd /wbia/wildbook-ia \
  && /bin/bash run_developer_setup.sh \
  && pip install --no-cache-dir -r requirements/postgres.txt'
