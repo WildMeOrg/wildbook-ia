@@ -1,4 +1,13 @@
-FROM ubuntu:22.04
+ARG WBIA_UBUNTU_IMAGE=nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
+
+FROM ${WBIA_UBUNTU_IMAGE} as org.wildme.wbia.base
+
+MAINTAINER Wild Me <dev@wildme.org>
+
+# Set up xvfb for running gui doctests
+ENV DISPLAY :1
+
+USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
