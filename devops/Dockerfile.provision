@@ -9,6 +9,21 @@ RUN mkdir -p /wbia \
             && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade pip==22.3.1 setuptools==59.5.0 wheel==0.38.4 \
         ) )
 
+# Prefer wheels and reuse current environment for legacy/PEP517 builds
+ENV PIP_PREFER_BINARY=1
+ENV PIP_NO_BUILD_ISOLATION=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Preinstall modern build tooling and a compatible NumPy for Python 3.10 before any builds
+RUN set -ex \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
+     "setuptools>=80" "wheel>=0.41" \
+     scikit-build cmake ninja packaging "numpy==1.23.5"
+
+# Configure pip globally to always prefer wheels and avoid build isolation
+RUN set -ex \
+ && printf "[global]\nprefer-binary = true\nno-build-isolation = true\n" > /etc/pip.conf
+
 # Wildbook IA version
 ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
 
@@ -136,6 +151,10 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN set -ex \
  && sed -i -E 's/^setuptools==.*/setuptools>=80/' /wbia/wildbook-ia/requirements/build.txt \
  && sed -i -E 's/^wheel==.*/wheel>=0.41/' /wbia/wildbook-ia/requirements/build.txt
+
+# Ensure PyYAML stays >=6.0 to avoid legacy sdist builds
+RUN set -ex \
+ && grep -qi '^PyYAML' /wbia/wildbook-ia/requirements/pinned.txt || echo 'PyYAML>=6.0' >> /wbia/wildbook-ia/requirements/pinned.txt
 
 # Wildbook IA
 RUN set -ex \
