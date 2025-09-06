@@ -45,10 +45,7 @@ RUN set -ex \
  && cd /wbia \
  && git clone https://github.com/WildMeOrg/wbia-tpl-pyhesaff.git \
  && git clone https://github.com/WildMeOrg/wbia-tpl-pyflann.git \
- && git clone https://github.com/WildMeOrg/wbia-tpl-pydarknet.git \
- # Depricated
- && git clone https://github.com/WildMeOrg/wbia-deprecate-tpl-brambox.git \
- && git clone https://github.com/WildMeOrg/wbia-deprecate-tpl-lightnet.git
+ && git clone https://github.com/WildMeOrg/wbia-tpl-pydarknet.git
 
 # Clone first-party WBIA plug-in repositories
 RUN set -ex \
@@ -132,14 +129,7 @@ RUN set -ex \
  && /bin/bash run_developer_setup.sh'
 
 
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-deprecate-tpl-brambox \
- && pip install --no-cache-dir -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-deprecate-tpl-lightnet \
- && /virtualenv/env3/bin/pip install --no-cache-dir -r develop.txt \
- && pip install --no-cache-dir -e .'
+## (Removed deprecated brambox/lightnet repos to avoid legacy dependency constraints)
 
 
 # Install Rust non-interactively (required for timm library used in WBIA)
@@ -152,40 +142,14 @@ RUN set -ex \
  && sed -i -E 's/^setuptools==.*/setuptools>=80/' /wbia/wildbook-ia/requirements/build.txt \
  && sed -i -E 's/^wheel==.*/wheel>=0.41/' /wbia/wildbook-ia/requirements/build.txt
 
-# Ensure PyYAML stays >=6.0 to avoid legacy sdist builds
-RUN set -ex \
- && grep -qi '^PyYAML' /wbia/wildbook-ia/requirements/pinned.txt || echo 'PyYAML>=6.0' >> /wbia/wildbook-ia/requirements/pinned.txt
+## Enforce dependency constraints (PyYAML>=6,<7 and block yorm via constraints.txt)
+ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt
+ENV PIP_ONLY_BINARY=PyYAML
 
-# Wildbook IA
+# Wildbook IA (deterministic install using constraints)
 RUN set -ex \
- && cp /wbia/wildbook-ia/requirements/pinned.txt /wbia/wildbook-ia/requirements/pinned.orig.txt \
- && sed -i -E 's/^PyYAML[<>=].*/# TEMP-DIAG COMMENTED: &/' /wbia/wildbook-ia/requirements/pinned.txt \
- && grep -n 'PyYAML' /wbia/wildbook-ia/requirements/pinned.txt || true \
- && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade "Cython>=0.29.36" pipdeptree
-
-# Step 2: Perform install and emit yorm reverse dependency information
-RUN /bin/bash -eux <<'EOF'
-export PIP_PREFER_BINARY=1
-export PIP_NO_BUILD_ISOLATION=1
-. /virtualenv/env3/bin/activate
-cd /wbia/wildbook-ia
-/bin/bash run_developer_setup.sh
-pip install --no-cache-dir -r requirements/postgres.txt
-echo "=== BEGIN: yorm reverse dependency tree ==="
-if pip show yorm >/dev/null 2>&1; then
-    pipdeptree -r -p yorm || true
-else
-    echo "yorm not installed"
-fi
-echo "=== END: yorm reverse dependency tree ==="
-echo "=== Installed PyYAML version (diagnostic) ==="
-python - <<'PYEOF'
-import pkg_resources
-ver = [d.version for d in pkg_resources.working_set if d.project_name.lower()=='pyyaml']
-print('PyYAML_VERSION:', ver[0] if ver else 'NOT INSTALLED')
-PYEOF
-echo "NOTE: PyYAML pin temporarily disabled for diagnostics. After identifying yorm parent, restore pinned.orig.txt and reapply PyYAML>=6.0,<7."
-EOF
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade "Cython>=0.29.36" \
+ && /bin/bash -xc '. /virtualenv/env3/bin/activate && cd /wbia/wildbook-ia && /bin/bash run_developer_setup.sh && pip install --no-cache-dir -r requirements/postgres.txt'
 
 
 # WBIA third-party plug-ins
