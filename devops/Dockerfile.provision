@@ -6,7 +6,9 @@ RUN mkdir -p /wbia \
  && ( [ -x /virtualenv/env3/bin/python ] || ( \
 		(python3 -m venv /virtualenv/env3 || (apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv && python3 -m venv /virtualenv/env3)) \
 		&& /virtualenv/env3/bin/python -m ensurepip --upgrade \
-		&& /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
+		# Pin pip to <24 (23.3.2) early (metadata leniency needed for legacy omegaconf 2.0.x invalid PyYAML spec)
+		&& /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade 'pip==23.3.2' \
+		&& /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade setuptools wheel \
 	) )
 
 ENV PIP_PREFER_BINARY=1 \
@@ -16,7 +18,8 @@ ENV PIP_PREFER_BINARY=1 \
 # Preinstall modern build toolchain and stable numpy baseline
 RUN set -ex \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
-	  "setuptools>=80" "wheel>=0.41" scikit-build cmake ninja packaging "Cython>=0.29.36" "numpy==1.23.5"
+	  "setuptools>=80" "wheel>=0.41" scikit-build cmake ninja packaging "Cython>=0.29.36" "numpy==1.23.5" \
+ && /virtualenv/env3/bin/python -m pip --version | awk '{print "[pip pinned]", $0}'
 
 # Global pip config (belt + suspenders for prefer-binary / no-build-isolation)
 RUN printf "[global]\nprefer-binary = true\nno-build-isolation = true\n" > /etc/pip.conf
@@ -37,8 +40,10 @@ RUN set -ex \
 ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt \
 	PIP_ONLY_BINARY=PyYAML
 
-# Install base requirements (no editable source yet)
+# Install base requirements (no editable source yet). Re-assert pip pin defensively (no-op if already 23.3.2)
 RUN set -ex \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir 'pip==23.3.2' \
+ && /virtualenv/env3/bin/python -m pip --version | awk '{print "[pip verify]", $0}' \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir -r requirements.txt
 
 # Copy full source after deps to leverage docker layer cache
@@ -50,6 +55,7 @@ RUN set -ex \
  && if [ -f requirements/postgres.txt ]; then /virtualenv/env3/bin/python -m pip install --no-cache-dir -r requirements/postgres.txt; fi
 
 # Inject OpenCV flags (legacy build aid for pyhesaff) and build native toolkits if requested
+ARG CMAKE_PREFIX_PATH=""
 ENV OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4 \
 	CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs:${CMAKE_PREFIX_PATH}
 
