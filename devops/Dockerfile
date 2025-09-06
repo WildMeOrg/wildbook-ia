@@ -2,36 +2,16 @@ ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
 
 ARG WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest
 
-FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.latest
+FROM ${WBIA_PROVISION_IMAGE} AS org.wildme.wbia.latest
 #  && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
 # && git reset --hard origin/main \
 # && git pull \
 
-# Grab latest code
-RUN set -ex \
- && git config --global user.email "dev@wildme.org" \
- && git config --global user.name "Wild Me" \
- && find /wbia/wbia* -name '.git' -type d -print0 | xargs -0 -i /bin/bash -c \
-    'cd {} && cd .. && echo $(pwd) && git reset --hard origin/main && git pull' \
-
- && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
- && git reset --hard origin/main \
- && git pull \
- && cd /wbia/wbia-plugin-lca/wbia_lca \
- && git reset --hard origin/main \
- && git pull \
- && cd /wbia/wbia-plugin-orientation/ \
- && git reset --hard origin/main \
- && git pull \
- && cd /wbia/wildbook-ia/ \
- && git fetch \
- && git reset --hard origin/main  \
- && git config pull.rebase true \
- && git pull
+# (Removed non-deterministic git update step; build now uses code baked into provision image + build context only.)
 
 ##########################################################################################
 
-FROM ${WBIA_BASE_IMAGE} as org.wildme.wbia.install
+FROM ${WBIA_BASE_IMAGE} AS org.wildme.wbia.install
 
 ARG VERSION="3.7.2"
 
@@ -55,13 +35,11 @@ LABEL org.wildme.vendor="Wild Me" \
       org.wildme.build-date=${BUILD_DATE} \
       org.wildme.docker.schema-version="1.0"
 
-ENV HOST_USER root
-
-ENV HOST_UID 0
-
-ENV AWS_ACCESS_KEY_ID ACCESS_KEY
-
-ENV AWS_SECRET_ACCESS_KEY SECRET_KEY
+ENV HOST_USER=root \
+    HOST_UID=0
+# NOTE: AWS credentials should be provided at runtime (e.g. -e or IAM role), not baked into the image.
+# ARG AWS_ACCESS_KEY_ID
+# ARG AWS_SECRET_ACCESS_KEY
 
 WORKDIR /data/db
 
@@ -119,12 +97,10 @@ RUN set -ex \
  && rm -rf /var/cache/apt \
  && rm -rf /var/lib/apt/lists/*
 
-# Fix Lasagne (skip if plugin repo is not present)
-RUN /bin/bash -xc 'if [ -d /wbia/wbia-plugin-cnn ]; then \
-        . /virtualenv/env3/bin/activate && cd /wbia/wbia-plugin-cnn && /bin/bash run_developer_setup.sh; \
-    else \
-        echo "wbia-plugin-cnn not present; skipping Lasagne setup"; \
-    fi'
+# Fix Lasagne
+RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
+ && cd /wbia/wbia-plugin-cnn \
+ && /bin/bash run_developer_setup.sh'
 
 # Fix OpenCV
 RUN set -ex \
@@ -176,7 +152,7 @@ STOPSIGNAL SIGTERM
 # Port for the web server
 EXPOSE 5000
 
-ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python -m wbia.dev --dbdir /data/db --logdir /data/db/logs --web --containerized --production"]
+ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python", "-m", "wbia.dev", "--dbdir", "/data/db", "--logdir", "/data/db/logs", "--web", "--containerized", "--production"]
 
 CMD []
 
