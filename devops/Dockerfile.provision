@@ -161,18 +161,31 @@ RUN set -ex \
  && cp /wbia/wildbook-ia/requirements/pinned.txt /wbia/wildbook-ia/requirements/pinned.orig.txt \
  && sed -i -E 's/^PyYAML[<>=].*/# TEMP-DIAG COMMENTED: &/' /wbia/wildbook-ia/requirements/pinned.txt \
  && grep -n 'PyYAML' /wbia/wildbook-ia/requirements/pinned.txt || true \
- && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade "Cython>=0.29.36" pipdeptree \
- && /bin/bash -xc 'export PIP_PREFER_BINARY=1 PIP_NO_BUILD_ISOLATION=1 \
- && . /virtualenv/env3/bin/activate \
- && cd /wbia/wildbook-ia \
- && /bin/bash run_developer_setup.sh \
- && pip install --no-cache-dir -r requirements/postgres.txt \
- && echo "=== BEGIN: yorm reverse dependency tree ===" \
- && pipdeptree -r -p yorm || echo "yorm not installed" \
- && echo "=== END: yorm reverse dependency tree ===" \
- && echo "=== Installed PyYAML version (diagnostic) ===" \
- && python -c "import pkg_resources, sys; v=[d.version for d in pkg_resources.working_set if d.project_name.lower()=='pyyaml']; print('PyYAML_VERSION:', v[0] if v else 'NOT INSTALLED')" \
- && echo "NOTE: PyYAML pin temporarily disabled for diagnostics. After identifying yorm parent, restore pinned.orig.txt and reapply PyYAML>=6.0,<7."'
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade "Cython>=0.29.36" pipdeptree
+
+# Step 2: Perform install and emit yorm reverse dependency information
+RUN /bin/bash -eux <<'EOF'
+export PIP_PREFER_BINARY=1
+export PIP_NO_BUILD_ISOLATION=1
+. /virtualenv/env3/bin/activate
+cd /wbia/wildbook-ia
+/bin/bash run_developer_setup.sh
+pip install --no-cache-dir -r requirements/postgres.txt
+echo "=== BEGIN: yorm reverse dependency tree ==="
+if pip show yorm >/dev/null 2>&1; then
+    pipdeptree -r -p yorm || true
+else
+    echo "yorm not installed"
+fi
+echo "=== END: yorm reverse dependency tree ==="
+echo "=== Installed PyYAML version (diagnostic) ==="
+python - <<'PYEOF'
+import pkg_resources
+ver = [d.version for d in pkg_resources.working_set if d.project_name.lower()=='pyyaml']
+print('PyYAML_VERSION:', ver[0] if ver else 'NOT INSTALLED')
+PYEOF
+echo "NOTE: PyYAML pin temporarily disabled for diagnostics. After identifying yorm parent, restore pinned.orig.txt and reapply PyYAML>=6.0,<7."
+EOF
 
 
 # WBIA third-party plug-ins
