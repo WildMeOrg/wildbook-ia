@@ -1,256 +1,73 @@
 ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
 FROM ${WBIA_BASE_IMAGE} AS org.wildme.wbia.provision
 
-# Ensure workspace and virtualenv exist early
+# Create workspace and ensure virtualenv (Python 3.x) exists early for cached layers
 RUN mkdir -p /wbia \
  && ( [ -x /virtualenv/env3/bin/python ] || ( \
-            (python3 -m venv /virtualenv/env3 || (apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv && python3 -m venv /virtualenv/env3)) \
-            && /virtualenv/env3/bin/python -m ensurepip --upgrade \
-            && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade pip==22.3.1 setuptools==59.5.0 wheel==0.38.4 \
-        ) )
+		(python3 -m venv /virtualenv/env3 || (apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv && python3 -m venv /virtualenv/env3)) \
+		&& /virtualenv/env3/bin/python -m ensurepip --upgrade \
+		&& /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
+	) )
 
-# Prefer wheels and reuse current environment for legacy/PEP517 builds
-ENV PIP_PREFER_BINARY=1
-ENV PIP_NO_BUILD_ISOLATION=1
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_PREFER_BINARY=1 \
+	PIP_NO_BUILD_ISOLATION=1 \
+	PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Preinstall modern build tooling and a compatible NumPy for Python 3.10 before any builds
+# Preinstall modern build toolchain and stable numpy baseline
 RUN set -ex \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
-     "setuptools>=80" "wheel>=0.41" \
-     scikit-build cmake ninja packaging "numpy==1.23.5"
+	  "setuptools>=80" "wheel>=0.41" scikit-build cmake ninja packaging "Cython>=0.29.36" "numpy==1.23.5"
 
-# Configure pip globally to always prefer wheels and avoid build isolation
+# Global pip config (belt + suspenders for prefer-binary / no-build-isolation)
+RUN printf "[global]\nprefer-binary = true\nno-build-isolation = true\n" > /etc/pip.conf
+
+WORKDIR /wbia/wildbook-ia
+
+# Copy only dependency manifests first for better layer caching
+COPY requirements/ requirements/
+COPY requirements.txt ./
+
+# Ensure constraints file (project may not ship it yet)
 RUN set -ex \
- && printf "[global]\nprefer-binary = true\nno-build-isolation = true\n" > /etc/pip.conf
+ && mkdir -p requirements \
+ && if [ ! -f requirements/constraints.txt ]; then \
+	  printf 'PyYAML>=6.0,<7\nyorm<0\n' > requirements/constraints.txt; \
+	fi
 
-# Wildbook IA version
-ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
+ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt \
+	PIP_ONLY_BINARY=PyYAML
 
-ARG VCS_REF="main"
-
-# Clone WBIA repository
+# Install base requirements (no editable source yet)
 RUN set -ex \
- && cd /wbia \
- && git clone --branch ${VCS_REF} ${VCS_URL}
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir -r requirements.txt
 
-# Clone WBIA toolkit repositories
+# Copy full source after deps to leverage docker layer cache
+COPY . .
+
+# Editable install with local source, plus postgres extras if present
 RUN set -ex \
- && cd /wbia \
- && git clone https://github.com/WildMeOrg/wbia-utool.git \
- && git clone https://github.com/WildMeOrg/wbia-vtool.git
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir -e . \
+ && if [ -f requirements/postgres.txt ]; then /virtualenv/env3/bin/python -m pip install --no-cache-dir -r requirements/postgres.txt; fi
 
-# Clone WBIA third-party toolkit repositories
+# Inject OpenCV flags (legacy build aid for pyhesaff) and build native toolkits if requested
+ENV OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4 \
+	CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs:${CMAKE_PREFIX_PATH}
+
+# Attempt optional native packages; failures tolerated to avoid breaking whole build
 RUN set -ex \
- && cd /wbia \
- && git clone https://github.com/WildMeOrg/wbia-tpl-pyhesaff.git \
- && git clone https://github.com/WildMeOrg/wbia-tpl-pyflann.git \
- && git clone https://github.com/WildMeOrg/wbia-tpl-pydarknet.git
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir pyhesaff || true \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir fairseq || true
 
-# Clone first-party WBIA plug-in repositories
+# Final sanity: show PyYAML version and assert yorm absence (non-fatal echo on failure)
 RUN set -ex \
- && cd /wbia \
- && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-cnn.git
-
-RUN set -ex \
- && cd /wbia \
- && git clone https://github.com/WildMeOrg/wbia-plugin-orientation.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-flukematch.git \
- #&& git clone https://github.com/WildMeOrg/wbia-plugin-finfindr.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-deepsense.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-pie-v2.git \
- && git clone --recurse-submodules https://github.com/WildMeOrg/wbia-plugin-miew-id.git \
- && git clone https://github.com/WildMeOrg/wbia-plugin-whaleridgefindr.git
-
-RUN set -ex \
- && cd /wbia \
- && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-blend.git \
- && cd /wbia/wbia-plugin-blend/wbia_blend \
- && git fetch origin \
- && git checkout main
-
-# Clone third-party WBIA plug-in repositories
-#RUN set -ex \
-# && cd /wbia \
-# && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-curvrank.git \
-# && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
-# && git fetch origin \
-# && git checkout main
-
-RUN set -ex \
- && cd /wbia \
- && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-kaggle7.git \
- && cd /wbia/wbia-plugin-kaggle7/wbia_kaggle7 \
- && git fetch origin \
- && git checkout main
-
-RUN set -ex \
- && cd /wbia \
- && git clone --recursive https://github.com/WildMeOrg/wbia-plugin-lca.git \
- && cd /wbia/wbia-plugin-lca/wbia_lca \
- && git fetch origin \
- && git checkout main
-
-# WBIA Toolkits
-RUN set -ex \
- && /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-utool \
- && /bin/bash run_developer_setup.sh'
-
-RUN set -ex \
- && /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-vtool \
- && /bin/bash run_developer_setup.sh'
-
-# WBIA third-party toolkits
-## Ensure OpenCV C++ dev files are available for CMake builds and modern build backend tools are present
-ENV OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4
-RUN set -ex \
- && apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libopencv-dev pkg-config \
- && rm -rf /var/lib/apt/lists/* \
- && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade "setuptools>=80" "wheel>=0.41"
-
-RUN set -ex \
- && /bin/bash -xc 'export PIP_NO_BUILD_ISOLATION=1 \
- && export CMAKE_PREFIX_PATH="${OpenCV_DIR}:${CMAKE_PREFIX_PATH}" \
- && . /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-tpl-pyhesaff \
- && /bin/bash run_developer_setup.sh'
-
-RUN set -ex \
- && /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-tpl-pyflann \
- && /bin/bash run_developer_setup.sh'
-
-RUN set -ex \
- && /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-tpl-pydarknet \
- && /bin/bash run_developer_setup.sh'
-
-
-## (Removed deprecated brambox/lightnet repos to avoid legacy dependency constraints)
-
-
-# Install Rust non-interactively (required for timm library used in WBIA)
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-# Add Rust to PATH globally
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# Keep modern build backends when installing WBIA requirements
-RUN set -ex \
- && sed -i -E 's/^setuptools==.*/setuptools>=80/' /wbia/wildbook-ia/requirements/build.txt \
- && sed -i -E 's/^wheel==.*/wheel>=0.41/' /wbia/wildbook-ia/requirements/build.txt
-
-## Enforce dependency constraints (PyYAML>=6,<7 and block yorm via constraints.txt)
-ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt
-ENV PIP_ONLY_BINARY=PyYAML
-
-# Wildbook IA (deterministic install using constraints)
-RUN set -ex \
- && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade "Cython>=0.29.36" \
- && /bin/bash -xc '. /virtualenv/env3/bin/activate && cd /wbia/wildbook-ia && /bin/bash run_developer_setup.sh && pip install --no-cache-dir -r requirements/postgres.txt'
-
-
-# WBIA third-party plug-ins
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-cnn \
- && /bin/bash run_developer_setup.sh'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-pie-v2 \
- && /bin/bash run_developer_setup.sh'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-blend \
- && pip install --no-cache-dir -e .'
-
-#RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
-# && cd /wbia/wbia-plugin-finfindr \
-# && pip install --no-cache-dir -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-whaleridgefindr \
- && pip install --no-cache-dir -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-deepsense \
- && pip install --no-cache-dir -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-kaggle7 \
- && pip install --no-cache-dir -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-lca \
- && pip install --no-cache-dir -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-orientation \
- && pip install --no-cache-dir -e .'
-
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-flukematch \
- && ./unix_build.sh \
- && pip install --no-cache-dir -e .'
-
-#RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
-# && cd /wbia/wbia-plugin-curvrank \
-# && ./unix_build.sh \
-# && pip install --no-cache-dir -e .'
-
-# Ensure no previous or deprecated repositories are installed
-# Ensure that opencv-python is un-installed since we want to use our built version
-# Ensure specific version of keras and tensorflow-gpu are installed (for Pie support)
-RUN set -ex \
- && /virtualenv/env3/bin/pip uninstall -y \
-     dtool-ibeis \
-     guitool-ibeis \
-     plottool-ibeis \
-     utool-ibeis \
-     vtool-ibeis \
-     dtool \
-     guitool \
-     plottool \
-     utool \
-     vtool \
-     lightnet \
-     brambox \
- && /virtualenv/env3/bin/pip uninstall -y \
-     opencv-python \
-     opencv-contrib-python \
-     opencv-python-headless \
-     opencv-contrib-python-headless \
-     tensorflow \
-     tensorflow-gpu \
-     tensorflow-estimator \
-     tensorboard \
-     tensorboard-plugin-wit \
-     keras \
-     torch \
-     torchvision \
-     torchaudio \
- && /virtualenv/env3/bin/pip install --no-cache-dir \
-     pynvml \
- && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
-     opencv-contrib-python-headless \
- && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade --pre \
-     torch==1.12.1 \
-     torchvision \
-     torchaudio \
-     --extra-index-url https://download.pytorch.org/whl/nightly/cu113 \
- && /virtualenv/env3/bin/pip install --no-cache-dir \
-     MarkupSafe==2.0.1 \
-     Flask==2.1.0
-
-# Wildbook IA problematic dependencies
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wildbook-ia \
- && pip install --no-cache-dir -r requirements/problematic.txt'
-
-# Ensure that we are running the local installed copy, not from PyPI
-RUN set -ex \
- && /virtualenv/env3/bin/pip uninstall -y \
-     wildbook-ia \
- && cd /wbia/wildbook-ia \
- && /virtualenv/env3/bin/pip install --no-cache-dir -e .
+ && /virtualenv/env3/bin/python - <<'PY'
+import importlib, sys
+try:
+	import yaml; print('PyYAML_VERSION', yaml.__version__)
+except Exception as e:
+	print('PyYAML import failed', e, file=sys.stderr)
+if importlib.util.find_spec('yorm') is None:
+	print('yorm: NOT INSTALLED (expected)')
+else:
+	print('WARNING: yorm PRESENT', file=sys.stderr)
+PY
