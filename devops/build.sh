@@ -49,20 +49,21 @@ else
 fi
 
 DEVOPS_DIR="$SRC_ROOT/devops"
+BUILD_CONTEXT_ROOT="$SRC_ROOT"
 
 # Step 3: Build the base image (adds OpenCV dev libs)
 log "Building base image (wbia-base) from $DEVOPS_DIR..."
 docker build $NO_CACHE_FLAG \
     -t wbia-base \
     -f "$DEVOPS_DIR/Dockerfile.base" \
-    "$DEVOPS_DIR"
+    "$BUILD_CONTEXT_ROOT"
 
 # Step 4: Build provision layer (install Python deps and build extensions)
 log "Building provision image (wbia-provision)..."
 docker build $NO_CACHE_FLAG \
     -t wbia-provision \
     -f "$DEVOPS_DIR/Dockerfile.provision" \
-    "$DEVOPS_DIR"
+    "$BUILD_CONTEXT_ROOT"
 
 # Step 5: Build the final image (includes full repo and entrypoint)
 FINAL_DOCKERFILE="$DEVOPS_DIR/Dockerfile.main"
@@ -72,10 +73,10 @@ if [ ! -f "$FINAL_DOCKERFILE" ]; then
 fi
 log "Building final WBIA image (wildme/wbia:latest) using $(basename "$FINAL_DOCKERFILE")..."
 docker build $NO_CACHE_FLAG \
-        -t wildme/wbia:latest \
-        --build-arg BUILD_CONTEXT="$BUILD_DIR" \
-        -f "$FINAL_DOCKERFILE" \
-        "$DEVOPS_DIR"
+    -t wildme/wbia:latest \
+    --build-arg BUILD_CONTEXT="$BUILD_DIR" \
+    -f "$FINAL_DOCKERFILE" \
+    "$BUILD_CONTEXT_ROOT"
 
 log "Build complete. You can now run the image using:"
 echo "  docker run -it wildme/wbia:latest"
