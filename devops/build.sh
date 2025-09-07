@@ -11,15 +11,29 @@ log() {
     echo -e "\033[1;34m[INFO]\033[0m $1"
 }
 
-# Optional: pass NO_CACHE=1 or --no-cache to disable docker layer cache
+# Optional flags:
+#   NO_CACHE=1 / --no-cache  : disable cache
+#   PRUNE=1 / --prune        : aggressively prune Docker images/containers/build cache first
 NO_CACHE_FLAG=""
+PRUNE_FLAG=0
 for arg in "$@"; do
-    if [ "$arg" = "--no-cache" ]; then
-        NO_CACHE_FLAG="--no-cache"; shift || true
-    fi
+    case "$arg" in
+        --no-cache) NO_CACHE_FLAG="--no-cache"; shift || true ;;
+        --prune) PRUNE_FLAG=1; shift || true ;;
+    esac
 done
-if [ "${NO_CACHE:-0}" = "1" ]; then
-    NO_CACHE_FLAG="--no-cache"
+[ "${NO_CACHE:-0}" = "1" ] && NO_CACHE_FLAG="--no-cache"
+[ "${PRUNE:-0}" = "1" ] && PRUNE_FLAG=1
+
+if [ "$PRUNE_FLAG" = "1" ]; then
+    log "Pruning Docker system to reclaim space..."
+    docker system df || true
+    docker ps -aq | xargs -r docker rm -f || true
+    docker images -q | xargs -r docker rmi -f || true
+    docker builder prune -af || true
+    docker system prune -af || true
+    docker volume prune -f || true
+    log "Post-prune disk usage:"; docker system df || true
 fi
 
 # Step 1 / 2: Optionally clone fresh source (skip if SKIP_CLONE=1 or --skip-clone)
