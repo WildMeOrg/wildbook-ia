@@ -1,0 +1,32 @@
+.git
+.gitignore
+.devcontainer
+.github/
+**/__pycache__/
+**/*.py[cod]
+**/*.so
+build/
+dist/
+*.egg-info/
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+.cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+notebooks/
+docs/
+_docs/
+examples/
+tests/
+*.whl
+*.tar.gz
+*.zip
+# Large auxiliary data directories (add if appear)
+# data/
+# datasets/
