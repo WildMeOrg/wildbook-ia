@@ -59,19 +59,11 @@ ARG CMAKE_PREFIX_PATH=""
 ENV OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4 \
 	CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs:${CMAKE_PREFIX_PATH}
 
-# Attempt optional native packages; failures tolerated to avoid breaking whole build
+# Attempt optional native packages; failures tolerated. fairseq disabled (pulls legacy omegaconf 2.0.6)
 RUN set -ex \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir pyhesaff || true \
- && /virtualenv/env3/bin/python -m pip install --no-cache-dir fairseq || true
+ && echo "[skip] fairseq install disabled to avoid legacy omegaconf; enable by editing Dockerfile.provision if needed" 
 
 # Final sanity: show PyYAML version and assert yorm absence (non-fatal)
-COPY devops/smoke_plugins.py /tmp/_ignore_for_layer_cache.py
-RUN set -ex \
- && /virtualenv/env3/bin/python - <<'EOF'
-import importlib, sys
-try:
-	import yaml; print('PyYAML_VERSION', yaml.__version__)
-except Exception as e:  # pragma: no cover
-	print('PyYAML import failed', e, file=sys.stderr)
-print('yorm: NOT INSTALLED (expected)' if importlib.util.find_spec('yorm') is None else 'WARNING: yorm PRESENT', file=sys.stderr if importlib.util.find_spec('yorm') else sys.stdout)
-EOF
+COPY devops/sanity_pyyaml.py /tmp/sanity_pyyaml.py
+RUN set -ex && /virtualenv/env3/bin/python /tmp/sanity_pyyaml.py
