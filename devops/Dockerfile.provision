@@ -16,14 +16,25 @@ ENV PIP_PREFER_BINARY=1 \
 	PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Preinstall build toolchain (setuptools & wheel already upgraded during venv bootstrap)
+# NOTE: Base image currently provides Python 3.7 (cp37 wheels observed). numpy>=1.22 requires >=3.8.
+#       We dynamically choose the highest compatible pin for the detected interpreter to ease future base upgrades.
 RUN set -ex \
+ && PYVER=$(/virtualenv/env3/bin/python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")') \
+ && case "$PYVER" in \
+			3.7) NUMPY_PIN="numpy==1.21.6" ;; \
+			3.8|3.9|3.10|3.11) NUMPY_PIN="numpy==1.23.5" ;; \
+			*) NUMPY_PIN="numpy==1.23.5" ;; \
+		esac \
+ && echo "[toolchain] Detected Python ${PYVER}; using ${NUMPY_PIN}" \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
-	  scikit-build cmake ninja packaging "Cython>=0.29.36" "numpy==1.23.5" \
+	scikit-build cmake ninja packaging "Cython>=0.29.36" ${NUMPY_PIN} \
  && /virtualenv/env3/bin/python -m pip --version | awk '{print "[pip pinned]", $0}' \
  && /virtualenv/env3/bin/python - <<'EOF'
 import pkg_resources as pr
 print('[toolchain] setuptools', pr.get_distribution('setuptools').version)
 print('[toolchain] wheel', pr.get_distribution('wheel').version)
+import numpy, sys
+print(f'[toolchain] numpy {numpy.__version__} (py{sys.version_info[0]}.{sys.version_info[1]})')
 EOF
 
 # Global pip config (belt + suspenders for prefer-binary / no-build-isolation)
