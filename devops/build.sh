@@ -74,7 +74,12 @@ docker build $NO_CACHE_FLAG \
 
 # Step 4: Build provision layer (install Python deps and build extensions)
 log "Building provision image (wbia-provision)..."
-docker build $NO_CACHE_FLAG \
+LIGHT_MODE_ARG=""
+if [ "${LIGHT_MODE:-0}" = "1" ]; then
+    log "LIGHT_MODE=1 (torch pruned, CUDA libs stripped)"
+    LIGHT_MODE_ARG="--build-arg LIGHT_MODE=1"
+fi
+docker build $NO_CACHE_FLAG $LIGHT_MODE_ARG \
     -t wbia-provision \
     -f "$DEVOPS_DIR/Dockerfile.provision" \
     "$BUILD_CONTEXT_ROOT"
@@ -88,6 +93,8 @@ fi
 log "Building final WBIA image (wildme/wbia:latest) using $(basename "$FINAL_DOCKERFILE")..."
 docker build $NO_CACHE_FLAG \
     -t wildme/wbia:latest \
+    $LIGHT_MODE_ARG \
+    --build-arg WBIA_PROVISION_IMAGE=wbia-provision \
     --build-arg BUILD_CONTEXT="$BUILD_DIR" \
     -f "$FINAL_DOCKERFILE" \
     "$BUILD_CONTEXT_ROOT"
