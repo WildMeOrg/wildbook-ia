@@ -64,16 +64,14 @@ RUN set -ex \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir pyhesaff || true \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir fairseq || true
 
-# Final sanity: show PyYAML version and assert yorm absence (non-fatal echo on failure)
+# Final sanity: show PyYAML version and assert yorm absence (non-fatal)
+COPY devops/smoke_plugins.py /tmp/_ignore_for_layer_cache.py
 RUN set -ex \
- && /virtualenv/env3/bin/python - <<'PY'
+ && /virtualenv/env3/bin/python - <<'EOF'
 import importlib, sys
 try:
 	import yaml; print('PyYAML_VERSION', yaml.__version__)
-except Exception as e:
+except Exception as e:  # pragma: no cover
 	print('PyYAML import failed', e, file=sys.stderr)
-if importlib.util.find_spec('yorm') is None:
-	print('yorm: NOT INSTALLED (expected)')
-else:
-	print('WARNING: yorm PRESENT', file=sys.stderr)
-PY
+print('yorm: NOT INSTALLED (expected)' if importlib.util.find_spec('yorm') is None else 'WARNING: yorm PRESENT', file=sys.stderr if importlib.util.find_spec('yorm') else sys.stdout)
+EOF
