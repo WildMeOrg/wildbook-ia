@@ -77,7 +77,33 @@ RUN set -ex \
       find $pattern -name '*.so' -print | grep -v 'cpython-37m-' | xargs -r -i /bin/bash -c 'echo {} && ld -d {}' || true; \
     done || true
 
-ENV LD_PRELOAD ""
+ARG LIGHT_MODE=0
+
+# In light mode, ensure no stray large CUDA libs (stage safety; torch may already be slimmed in provision)
+RUN set -ex \
+ && if [ "$LIGHT_MODE" = "1" ]; then \
+      echo "[light-mode] verifying torch CUDA library removal"; \
+      /virtualenv/env3/bin/python - <<'PY' || true
+try:
+    import torch, os, glob
+    libdir = os.path.join(os.path.dirname(torch.__file__), 'lib')
+    cuda_libs = [p for p in glob.glob(os.path.join(libdir, 'libtorch_cuda*'))]
+    if cuda_libs:
+        print('[light-mode] still present CUDA libs -> removing')
+        import shutil
+        for p in cuda_libs:
+            try:
+                os.remove(p); print('[light-mode] removed', p)
+            except OSError as e:
+                print('[light-mode] failed to remove', p, e)
+    else:
+        print('[light-mode] no CUDA libs detected')
+except Exception as e:
+    print('[light-mode] torch not importable or cleanup error:', e)
+PY \
+    ; fi
+
+ENV LD_PRELOAD=""
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=60 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
@@ -90,6 +116,6 @@ ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python", "-m", "wbia.dev", 
 CMD []
 
 ##########################################################################################
-FROM org.wildme.wbia.install AS org.wildme.wbia.depricated
-COPY devops/_config/deprecated.sh /bin/deprecated
-RUN if [ "$(uname -m)" != "aarch64" ] ; then deprecated ; fi
+# Deprecated stage removed to avoid pulling legacy tensorflow / keras stacks that
+# conflict with pinned runtime dependencies and cause build failures.
+# (Original stage: org.wildme.wbia.depricated)
