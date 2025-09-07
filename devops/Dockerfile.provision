@@ -15,11 +15,16 @@ ENV PIP_PREFER_BINARY=1 \
 	PIP_NO_BUILD_ISOLATION=1 \
 	PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Preinstall modern build toolchain and stable numpy baseline
+# Preinstall build toolchain (setuptools & wheel already upgraded during venv bootstrap)
 RUN set -ex \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
-	  "setuptools>=80" "wheel>=0.41" scikit-build cmake ninja packaging "Cython>=0.29.36" "numpy==1.23.5" \
- && /virtualenv/env3/bin/python -m pip --version | awk '{print "[pip pinned]", $0}'
+	  scikit-build cmake ninja packaging "Cython>=0.29.36" "numpy==1.23.5" \
+ && /virtualenv/env3/bin/python -m pip --version | awk '{print "[pip pinned]", $0}' \
+ && /virtualenv/env3/bin/python - <<'EOF'
+import pkg_resources as pr
+print('[toolchain] setuptools', pr.get_distribution('setuptools').version)
+print('[toolchain] wheel', pr.get_distribution('wheel').version)
+EOF
 
 # Global pip config (belt + suspenders for prefer-binary / no-build-isolation)
 RUN printf "[global]\nprefer-binary = true\nno-build-isolation = true\n" > /etc/pip.conf
