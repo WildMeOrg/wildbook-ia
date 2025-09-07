@@ -1,0 +1,3 @@
+PyYAML>=6.0,<7
+# Block obsolete yorm (forces resolver to fail if something tries to pull it)
+yorm<0
