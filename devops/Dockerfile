@@ -21,22 +21,19 @@ ARG VCS_REF="main"
 
 ARG BUILD_DATE="2023"
 
-LABEL autoheal=true
+LABEL autoheal="true" \
+    org.opencontainers.image.source="https://github.com/WildMeOrg/wildbook-ia" \
+    org.wildme.vendor="Wild Me" \
+    org.wildme.url="https://wildme.org" \
+    org.wildme.name="Wildbook IA" \
+    org.wildme.description="Wildbook's Image Analysis (WBIA) backend service supporting machine learning for wildlife conservation" \
+    org.wildme.version="${VERSION}" \
+    org.wildme.vcs-url="${VCS_URL}" \
+    org.wildme.vcs-ref="${VCS_REF}" \
+    org.wildme.build-date="${BUILD_DATE}" \
+    org.wildme.docker.schema-version="1.0"
 
-LABEL org.opencontainers.image.source https://github.com/WildMeOrg/wildbook-ia
-
-LABEL org.wildme.vendor="Wild Me" \
-      org.wildme.url="https://wildme.org" \
-      org.wildme.name="Wildbook IA" \
-      org.wildme.description="Wildbook's Image Analysis (WBIA) backend service supporting machine learning for wildlife conservation" \
-      org.wildme.version=${VERSION} \
-      org.wildme.vcs-url=${VCS_URL} \
-      org.wildme.vcs-ref=${VCS_REF} \
-      org.wildme.build-date=${BUILD_DATE} \
-      org.wildme.docker.schema-version="1.0"
-
-ENV HOST_USER=root \
-    HOST_UID=0
+ENV HOST_USER=root HOST_UID=0
 # NOTE: AWS credentials should be provided at runtime (e.g. -e or IAM role), not baked into the image.
 # ARG AWS_ACCESS_KEY_ID
 # ARG AWS_SECRET_ACCESS_KEY
@@ -68,8 +65,7 @@ COPY ./_config/entrypoint.sh /bin/entrypoint
 # Python health check
 COPY ./_config/healthcheck.py /bin/healthcheck.py
 
-# Update locate database
-RUN updatedb
+# (removed updatedb: utility not installed in base image and non-essential)
 
 # Temporary fix for ARM64
 #ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/torch/lib/libgomp-d22c30c5.so.1"
@@ -126,7 +122,7 @@ RUN set -ex \
 RUN set -ex \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit \
- && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \ 
+ && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
  && /virtualenv/env3/bin/python -c "import wbia_cnn;         from wbia_cnn.__main__ import main;         main()" \
  && /virtualenv/env3/bin/python -c "import wbia_pie_v2;      from wbia_pie_v2.__main__ import main;      main()" \
  && /virtualenv/env3/bin/python -c "import wbia_blend;       from wbia_blend._plugin import *" \
@@ -157,7 +153,7 @@ ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python", "-m", "wbia.dev", 
 CMD []
 
 ##########################################################################################
-FROM org.wildme.wbia.install as org.wildme.wbia.depricated
+FROM org.wildme.wbia.install AS org.wildme.wbia.depricated
 
 COPY ./_config/deprecated.sh /bin/deprecated
 
