@@ -15,6 +15,9 @@ ENV PIP_PREFER_BINARY=1 \
 	PIP_NO_BUILD_ISOLATION=1 \
 	PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# Light mode (CI) can skip heavy torch installs to save disk space
+ARG LIGHT_MODE=0
+
 # Preinstall build toolchain (setuptools & wheel already upgraded during venv bootstrap)
 # NOTE: Base image currently provides Python 3.7 (cp37 wheels observed). numpy>=1.22 requires >=3.8.
 #       We dynamically choose the highest compatible pin for the detected interpreter to ease future base upgrades.
@@ -54,7 +57,14 @@ ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt \
 RUN set -ex \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir 'pip==23.3.2' \
  && /virtualenv/env3/bin/python -m pip --version | awk '{print "[pip verify]", $0}' \
- && /virtualenv/env3/bin/python -m pip install --no-cache-dir -r requirements.txt
+ && if [ "$LIGHT_MODE" = "1" ]; then \
+			echo "[light-mode] pruning torch packages from requirements"; \
+			grep -vi '^torch' requirements.txt > /tmp/requirements.pruned || true; \
+			echo "[light-mode] installing pruned requirements (no torch*)"; \
+			/virtualenv/env3/bin/python -m pip install --no-cache-dir -r /tmp/requirements.pruned; \
+		else \
+			/virtualenv/env3/bin/python -m pip install --no-cache-dir -r requirements.txt; \
+		fi
 
 # Copy full source after deps to leverage docker layer cache
 COPY . .
@@ -68,6 +78,29 @@ RUN set -ex \
 ARG CMAKE_PREFIX_PATH=""
 ENV OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4 \
 	CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs:${CMAKE_PREFIX_PATH}
+
+# Allow space-constrained CI builds to remove large CUDA-enabled torch libs
+ARG LIGHT_MODE=0
+RUN set -ex \
+ && if [ "$LIGHT_MODE" = "1" ]; then \
+	  echo "[light-mode] Removing heavy torch CUDA libraries to save space"; \
+	  /virtualenv/env3/bin/python - <<'PY' || true
+try:
+	import torch, os, glob
+	libdir = os.path.join(os.path.dirname(torch.__file__), 'lib')
+	patterns = ['libtorch_cuda*', 'libnvrtc*', 'libcudnn*', 'libcublas*']
+	removed = 0
+	for pat in patterns:
+		for path in glob.glob(os.path.join(libdir, pat)):
+			try:
+				os.remove(path); removed += 1; print('[light-mode] removed', path)
+			except OSError as e:
+				print('[light-mode] could not remove', path, e)
+	print(f'[light-mode] total removed {removed} files')
+except Exception as e:
+	print('[light-mode] torch not present or removal failed:', e)
+PY \
+	; fi
 
 # Attempt optional native packages; failures tolerated. fairseq disabled (pulls legacy omegaconf 2.0.6)
 RUN set -ex \
