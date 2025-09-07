@@ -79,28 +79,15 @@ ARG CMAKE_PREFIX_PATH=""
 ENV OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4 \
 	CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs:${CMAKE_PREFIX_PATH}
 
-# Allow space-constrained CI builds to remove large CUDA-enabled torch libs
-ARG LIGHT_MODE=0
-RUN set -ex \
- && if [ "$LIGHT_MODE" = "1" ]; then \
-	  echo "[light-mode] Removing heavy torch CUDA libraries to save space"; \
-	  /virtualenv/env3/bin/python - <<'PY' || true
-try:
-	import torch, os, glob
-	libdir = os.path.join(os.path.dirname(torch.__file__), 'lib')
-	patterns = ['libtorch_cuda*', 'libnvrtc*', 'libcudnn*', 'libcublas*']
-	removed = 0
-	for pat in patterns:
-		for path in glob.glob(os.path.join(libdir, pat)):
-			try:
-				os.remove(path); removed += 1; print('[light-mode] removed', path)
-			except OSError as e:
-				print('[light-mode] could not remove', path, e)
-	print(f'[light-mode] total removed {removed} files')
-except Exception as e:
-	print('[light-mode] torch not present or removal failed:', e)
-PY \
-	; fi
+# Allow space-constrained CI builds to remove large CUDA-enabled torch libs (script-based, avoids heredoc)
+COPY devops/lightmode_prune_torch.py /tmp/lightmode_prune_torch.py
+RUN set -ex \ 
+ && if [ "$LIGHT_MODE" = "1" ]; then \ 
+			echo "[light-mode] invoking prune script"; \ 
+			/virtualenv/env3/bin/python /tmp/lightmode_prune_torch.py || true; \ 
+		else \ 
+			echo "[light-mode] disabled (skipping torch prune)"; \ 
+		fi
 
 # Attempt optional native packages; failures tolerated. fairseq disabled (pulls legacy omegaconf 2.0.6)
 RUN set -ex \
