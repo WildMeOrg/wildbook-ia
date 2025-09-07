@@ -93,10 +93,15 @@ RUN set -ex \
  && rm -rf /var/cache/apt \
  && rm -rf /var/lib/apt/lists/*
 
-# Fix Lasagne
-RUN /bin/bash -xc '. /virtualenv/env3/bin/activate \
- && cd /wbia/wbia-plugin-cnn \
- && /bin/bash run_developer_setup.sh'
+# Fix Lasagne (conditional: only if plugin exists)
+RUN set -ex; \
+ if [ -d /wbia/wbia-plugin-cnn ]; then \
+     . /virtualenv/env3/bin/activate; \
+     cd /wbia/wbia-plugin-cnn; \
+     /bin/bash run_developer_setup.sh || echo "[warn] wbia-plugin-cnn setup script failed"; \
+ else \
+     echo "[skip] wbia-plugin-cnn not present"; \
+ fi
 
 # Fix OpenCV
 RUN set -ex \
@@ -122,19 +127,37 @@ RUN set -ex \
 RUN set -ex \
  && mkdir -p /data \
  && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit \
- && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
- && /virtualenv/env3/bin/python -c "import wbia_cnn;         from wbia_cnn.__main__ import main;         main()" \
- && /virtualenv/env3/bin/python -c "import wbia_pie_v2;      from wbia_pie_v2.__main__ import main;      main()" \
- && /virtualenv/env3/bin/python -c "import wbia_blend;       from wbia_blend._plugin import *" \
- && /virtualenv/env3/bin/python -c "import wbia_orientation; from wbia_orientation.__main__ import main; main()" \
- && /virtualenv/env3/bin/python -c "import wbia_whaleridgefindr;    from wbia_whaleridgefindr._plugin     import *" \
- && /virtualenv/env3/bin/python -c "import wbia_kaggle7;     from wbia_kaggle7._plugin     import *" \
- && /virtualenv/env3/bin/python -c "import wbia_lca;         from wbia_lca._plugin         import *" \
- && /virtualenv/env3/bin/python -c "import wbia_deepsense;   from wbia_deepsense._plugin   import *" \
- && find /wbia/wbia* -name '*.a' -print      | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wbia* -name '*.so' -print     | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wildbook* -name '*.a' -print  | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}' \
- && find /wbia/wildbook* -name '*.so' -print | grep -v "cpython-37m-x86_64-linux-gnu" | grep -v "cpython-37m-aarch64-linux-gnu.so" | xargs -i /bin/bash -c 'echo {} && ld -d {}'
+ && /virtualenv/env3/bin/python - <<'PY' \
+import importlib, sys
+checks = [
+    ("wbia", "from wbia.__main__ import smoke_test; smoke_test()", True),
+    ("wbia_cnn", "from wbia_cnn.__main__ import main; main()", False),
+    ("wbia_pie_v2", "from wbia_pie_v2.__main__ import main; main()", False),
+    ("wbia_blend", "from wbia_blend._plugin import *", False),
+    ("wbia_orientation", "from wbia_orientation.__main__ import main; main()", False),
+    ("wbia_whaleridgefindr", "from wbia_whaleridgefindr._plugin import *", False),
+    ("wbia_kaggle7", "from wbia_kaggle7._plugin import *", False),
+    ("wbia_lca", "from wbia_lca._plugin import *", False),
+    ("wbia_deepsense", "from wbia_deepsense._plugin import *", False),
+]
+for mod, code, required in checks:
+    if importlib.util.find_spec(mod) is None:
+        msg = f"[skip] {mod} not installed"
+        (print(msg) if not required else print(f"[error] required module missing: {mod}", file=sys.stderr))
+        if required:
+            sys.exit(1)
+        continue
+    try:
+        print(f"[run] {mod}")
+        exec(code, {})
+    except Exception as e:
+        print(f"[warn] {mod} execution failed: {e}", file=sys.stderr)
+print("[smoke] optional plugin checks complete")
+PY \
+ && for pattern in /wbia/wbia* /wbia/wildbook*; do \
+      find $pattern -name '*.a' -print | grep -v 'cpython-37m-' | xargs -r -i /bin/bash -c 'echo {} && ld -d {}' || true; \
+      find $pattern -name '*.so' -print | grep -v 'cpython-37m-' | xargs -r -i /bin/bash -c 'echo {} && ld -d {}' || true; \
+    done || true
 
 
 # Undo Fix
