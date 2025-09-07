@@ -138,7 +138,25 @@ RUN set -ex \
 
 
 # Undo Fix
-ENV LD_PRELOAD ""
+ARG LIGHT_MODE=0
+RUN set -ex \
+ && if [ "$LIGHT_MODE" = "1" ]; then \
+      echo "[light-mode] pruning torch CUDA libraries (final stage)"; \
+      /virtualenv/env3/bin/python - <<'PY' || true
+try:
+    import torch, os, glob
+    libdir = os.path.join(os.path.dirname(torch.__file__), 'lib')
+    for p in glob.glob(os.path.join(libdir, 'libtorch_cuda*')):
+        try:
+            os.remove(p); print('[light-mode] removed', p)
+        except OSError as e:
+            print('[light-mode] failed to remove', p, e)
+except Exception as e:
+    print('[light-mode] torch not importable or cleanup issue:', e)
+PY \
+    ; fi
+
+ENV LD_PRELOAD=""
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=60 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
