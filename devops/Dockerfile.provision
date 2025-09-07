@@ -29,13 +29,7 @@ RUN set -ex \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
 	scikit-build cmake ninja packaging "Cython>=0.29.36" ${NUMPY_PIN} \
  && /virtualenv/env3/bin/python -m pip --version | awk '{print "[pip pinned]", $0}' \
- && /virtualenv/env3/bin/python - <<'EOF'
-import pkg_resources as pr
-print('[toolchain] setuptools', pr.get_distribution('setuptools').version)
-print('[toolchain] wheel', pr.get_distribution('wheel').version)
-import numpy, sys
-print(f'[toolchain] numpy {numpy.__version__} (py{sys.version_info[0]}.{sys.version_info[1]})')
-EOF
+ && /virtualenv/env3/bin/python -c "import pkg_resources as pr, numpy, sys; print('[toolchain] setuptools', pr.get_distribution('setuptools').version); print('[toolchain] wheel', pr.get_distribution('wheel').version); print(f'[toolchain] numpy {numpy.__version__} (py{sys.version_info[0]}.{sys.version_info[1]})')"
 
 # Global pip config (belt + suspenders for prefer-binary / no-build-isolation)
 RUN printf "[global]\nprefer-binary = true\nno-build-isolation = true\n" > /etc/pip.conf
