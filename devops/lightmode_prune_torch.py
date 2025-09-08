@@ -1,4 +1,6 @@
-import os, glob, sys
+import os
+import glob
+import sys
 try:
     import torch
 except Exception as e:
