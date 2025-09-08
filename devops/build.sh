@@ -75,13 +75,17 @@ docker build $NO_CACHE_FLAG \
 # Tag with namespace (required by publish script expecting ${IMAGE_NAMESPACE}/wbia-base:latest)
 docker tag wbia-base ${IMAGE_NAMESPACE}/wbia-base:latest || true
 
-# Step 3: Build dependencies stage (new intermediate layer)
-log "Building dependencies image (wbia-dependencies)..."
-docker build $NO_CACHE_FLAG \
-    -t wbia-dependencies \
-    -f "$DEVOPS_DIR/Dockerfile.dependencies" \
-    "$BUILD_CONTEXT_ROOT"
-docker tag wbia-dependencies ${IMAGE_NAMESPACE}/wbia-dependencies:latest || true
+# Step 3b: Build dependencies stage (optional intermediate layer)
+if [ -f "$DEVOPS_DIR/Dockerfile.dependencies" ]; then
+    log "Building dependencies image (wbia-dependencies)..."
+    docker build $NO_CACHE_FLAG \
+        -t wbia-dependencies \
+        -f "$DEVOPS_DIR/Dockerfile.dependencies" \
+        "$BUILD_CONTEXT_ROOT"
+    docker tag wbia-dependencies ${IMAGE_NAMESPACE}/wbia-dependencies:latest || true
+else
+    log "Skipping dependencies image (Dockerfile.dependencies not found)"
+fi
 
 # Step 4: Build provision layer (install Python deps and build extensions)
 log "Building provision image (wbia-provision)..."
