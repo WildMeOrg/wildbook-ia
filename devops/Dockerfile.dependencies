@@ -1,0 +1,15 @@
+ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
+
+FROM ${WBIA_BASE_IMAGE} AS org.wildme.wbia.dependencies
+
+# Minimal dependency layer placeholder.
+# In a future enhancement, move heavy system deps / shared build caches here.
+# Currently just copies virtualenv scaffold if present in base (none by default).
+
+LABEL org.wildme.stage="dependencies" \
+      org.opencontainers.image.source="https://github.com/WildMeOrg/wildbook-ia"
+
+# Create placeholder directory for future shared assets
+RUN mkdir -p /wbia-dependencies
+
+CMD ["/bin/bash"]
