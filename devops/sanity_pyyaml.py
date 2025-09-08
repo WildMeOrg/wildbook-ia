@@ -1,4 +1,5 @@
-import importlib, sys
+import importlib
+import sys
 
 try:
     import yaml  # type: ignore
