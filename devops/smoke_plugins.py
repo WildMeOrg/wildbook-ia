@@ -1,6 +1,7 @@
 import importlib
 import sys
 
+
 CHECKS = [
     ("wbia", "from wbia.__main__ import smoke_test; smoke_test()", True),
     ("wbia_cnn", "from wbia_cnn.__main__ import main; main()", False),
@@ -12,6 +13,7 @@ CHECKS = [
     ("wbia_lca", "from wbia_lca._plugin import *", False),
     ("wbia_deepsense", "from wbia_deepsense._plugin import *", False),
 ]
+
 
 def main():
     failures = 0
@@ -36,6 +38,7 @@ def main():
         print(f"[smoke] completed with {failures} required failures", file=sys.stderr)
         sys.exit(1)
     print("[smoke] all required checks passed; optional plugins skipped or succeeded")
+
 
 if __name__ == "__main__":  # pragma: no cover
     main()
