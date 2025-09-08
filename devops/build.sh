@@ -66,11 +66,22 @@ DEVOPS_DIR="$SRC_ROOT/devops"
 BUILD_CONTEXT_ROOT="$SRC_ROOT"
 
 # Step 3: Build the base image (adds OpenCV dev libs)
+IMAGE_NAMESPACE=${IMAGE_NAMESPACE:-wildme}
 log "Building base image (wbia-base) from $DEVOPS_DIR..."
 docker build $NO_CACHE_FLAG \
     -t wbia-base \
     -f "$DEVOPS_DIR/Dockerfile.base" \
     "$BUILD_CONTEXT_ROOT"
+# Tag with namespace (required by publish script expecting ${IMAGE_NAMESPACE}/wbia-base:latest)
+docker tag wbia-base ${IMAGE_NAMESPACE}/wbia-base:latest || true
+
+# Step 3: Build dependencies stage (new intermediate layer)
+log "Building dependencies image (wbia-dependencies)..."
+docker build $NO_CACHE_FLAG \
+    -t wbia-dependencies \
+    -f "$DEVOPS_DIR/Dockerfile.dependencies" \
+    "$BUILD_CONTEXT_ROOT"
+docker tag wbia-dependencies ${IMAGE_NAMESPACE}/wbia-dependencies:latest || true
 
 # Step 4: Build provision layer (install Python deps and build extensions)
 log "Building provision image (wbia-provision)..."
@@ -83,6 +94,8 @@ docker build $NO_CACHE_FLAG $LIGHT_MODE_ARG \
     -t wbia-provision \
     -f "$DEVOPS_DIR/Dockerfile.provision" \
     "$BUILD_CONTEXT_ROOT"
+# Namespace tag for provision image
+docker tag wbia-provision ${IMAGE_NAMESPACE}/wbia-provision:latest || true
 
 # Step 5: Build the final image (includes full repo and entrypoint)
 FINAL_DOCKERFILE="$DEVOPS_DIR/Dockerfile.main"
@@ -90,14 +103,18 @@ if [ ! -f "$FINAL_DOCKERFILE" ]; then
     # Fallback to primary Dockerfile if Dockerfile.main absent
     FINAL_DOCKERFILE="$DEVOPS_DIR/Dockerfile"
 fi
-log "Building final WBIA image (wildme/wbia:latest) using $(basename "$FINAL_DOCKERFILE")..."
+log "Building final WBIA image (${IMAGE_NAMESPACE}/wbia:latest) using $(basename "$FINAL_DOCKERFILE")..."
 docker build $NO_CACHE_FLAG \
-    -t wildme/wbia:latest \
+    -t ${IMAGE_NAMESPACE}/wbia:latest \
     $LIGHT_MODE_ARG \
     --build-arg WBIA_PROVISION_IMAGE=wbia-provision \
     --build-arg BUILD_CONTEXT="$BUILD_DIR" \
     -f "$FINAL_DOCKERFILE" \
     "$BUILD_CONTEXT_ROOT"
+
+# Additional convenience / legacy tags expected by publish script
+docker tag ${IMAGE_NAMESPACE}/wbia:latest wbia:latest || true
+docker tag ${IMAGE_NAMESPACE}/wbia:latest ${IMAGE_NAMESPACE}/wildbook-ia:latest || true
 
 log "Build complete. You can now run the image using:"
 echo "  docker run -it wildme/wbia:latest"
