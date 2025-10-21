@@ -12,6 +12,7 @@ import numpy as np
 import PIL
 import tqdm
 import utool as ut
+import yaml
 
 import timm
 
@@ -24,20 +25,61 @@ logger = logging.getLogger('wbia')
 PARALLEL = not const.CONTAINERIZED
 INPUT_SIZE = 512
 
-ARCHIVE_URL_DICT = {
-    'seaturtles_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_seaturtles_effnet.v0.zip',
-    'snail_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_snail_effnet.v0.zip',
-    'deer_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_deer_effnet.v0.zip',
-    'leopard_shark_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_leopard_shark_effnet.v0.zip',
-    'trout_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_trout_effnet.v0.zip',
-    'shark_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_shark_effnet.v0.zip',
-    'msv2_multilabel_effnet_v0': 'https://cthulhu.dyn.wildme.io/public/models/labeler_msv2_multilabel_effnet.v2.zip',
-    'msv2_multilabel_flip_effnet_v0': 'https://cthulhu.dyn.wildme.io/public/models/labeler_msv2_multilabel_flip_effnet.v2.zip',
-    'grouper_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_grouper_effnet.v0.zip',
-    'whaleshark_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_whaleshark_effnet.v0.zip',
-    'amphibian_effnet_v4': 'https://wildbookiarepository.azureedge.net/models/labeler_amphibian_effnet.v4.zip',
-    'python_effnet_v1': 'https://wildbookiarepository.azureedge.net/models/labeler_python_effnet.v1.zip'
-}
+# Default YAML config path for model paths (URLs or local paths)
+DEFAULT_CONFIG_PATH = '/models/efficientnet_config.yaml'
+
+
+def load_model_config_from_yaml(yaml_path=None):
+    """
+    Load model configuration from YAML file.
+    
+    Args:
+        yaml_path (str, optional): Path to YAML config file. If None, uses DEFAULT_CONFIG_PATH.
+    
+    Returns:
+        dict: Dictionary mapping model names to paths (URLs or local file paths)
+    
+    Raises:
+        RuntimeError: If config file does not exist
+    """
+    if yaml_path is None:
+        yaml_path = DEFAULT_CONFIG_PATH
+    
+    if not os.path.exists(yaml_path):
+        raise RuntimeError(
+            f'Model configuration file not found at {yaml_path}. '
+            f'Please mount a /models folder with efficientnet_config.yaml file. '
+            f'The YAML file should contain model names mapped to either URLs or local paths.'
+        )
+    
+    try:
+        with open(yaml_path, 'r') as f:
+            config = yaml.safe_load(f)
+            logger.info(f'Loaded model configuration from {yaml_path}')
+            models = config.get('models', {})
+            if not models:
+                raise RuntimeError(
+                    f'No models found in {yaml_path}. '
+                    f'YAML file must contain a "models" section with model paths.'
+                )
+            return models
+    except yaml.YAMLError as e:
+        raise RuntimeError(f'Error parsing YAML config from {yaml_path}: {e}')
+    except Exception as e:
+        raise RuntimeError(f'Error loading YAML config from {yaml_path}: {e}')
+
+
+def is_url(path):
+    """
+    Check if a path is a URL.
+    
+    Args:
+        path (str): Path to check
+    
+    Returns:
+        bool: True if path is a URL, False otherwise
+    """
+    return path.startswith('http://') or path.startswith('https://')
 
 
 if not ut.get_argflag('--no-pytorch'):
@@ -797,12 +839,13 @@ def test(
     classifier_weight_filepath=None,
     return_dict=False,
     multiclass=False,
+    yaml_config_path=None,
     **kwargs,
 ):
     from wbia.detecttools.directory import Directory
 
     # Get correct weight if specified with shorthand
-    archive_url = None
+    archive_source = None
 
     ensemble_index = None
     if classifier_weight_filepath is not None and ':' in classifier_weight_filepath:
@@ -810,23 +853,43 @@ def test(
         classifier_weight_filepath, ensemble_index = classifier_weight_filepath.split(':')
         ensemble_index = int(ensemble_index)
 
-    if classifier_weight_filepath in ARCHIVE_URL_DICT:
-        archive_url = ARCHIVE_URL_DICT[classifier_weight_filepath]
-        archive_path = ut.grab_file_url(archive_url, appname='wbia', check_hash=True)
-    else:
-        logger.info(
-            'classifier_weight_filepath {!r} not recognized'.format(
-                classifier_weight_filepath
-            )
+    # Load model paths from YAML config
+    archive_path_dict = load_model_config_from_yaml(yaml_config_path)
+
+    if classifier_weight_filepath not in archive_path_dict:
+        available_models = ', '.join(sorted(archive_path_dict.keys()))
+        raise RuntimeError(
+            f'Model "{classifier_weight_filepath}" not found in configuration. '
+            f'Available models: {available_models}. '
+            f'Please add the model to {yaml_config_path or DEFAULT_CONFIG_PATH}'
         )
-        raise RuntimeError
+    
+    archive_source = archive_path_dict[classifier_weight_filepath]
+    
+    # Check if it's a URL or local path
+    if is_url(archive_source):
+        # Download from URL
+        logger.info(f'Downloading model from URL: {archive_source}')
+        archive_path = ut.grab_file_url(archive_source, appname='wbia', check_hash=True)
+    else:
+        # Use local path
+        logger.info(f'Using local model path: {archive_source}')
+        archive_path = ut.truepath(expanduser(archive_source))
+        if not os.path.exists(archive_path):
+            logger.error(f'Local archive path does not exist: {archive_path}')
+            raise RuntimeError(f'Archive not found at {archive_path}')
 
     assert os.path.exists(archive_path)
     archive_path = ut.truepath(archive_path)
 
-    ensemble_path = archive_path.strip('.zip')
-    if not os.path.exists(ensemble_path):
-        ut.unarchive_file(archive_path, output_dir=ensemble_path)
+    # Handle both .zip archives and direct directory paths
+    if archive_path.endswith('.zip'):
+        ensemble_path = archive_path.rstrip('.zip')
+        if not os.path.exists(ensemble_path):
+            ut.unarchive_file(archive_path, output_dir=ensemble_path)
+    else:
+        # If it's already a directory, use it directly
+        ensemble_path = archive_path
 
     assert os.path.exists(ensemble_path)
     direct = Directory(ensemble_path, include_file_extensions=['weights'], recursive=True)
