@@ -1,0 +1,271 @@
+###############################################################################
+# DETECTION PARAMETERS
+###############################################################################
+
+image_uuid_list: # wbia/web/apis_engine.py:777
+  name: image_uuid_list
+  in: query # wbia/control/controller_inject.py:950
+  description: Comma-separated list of image uuids to detect on 
+  required: true
+  style: form
+  explode: false # wbia/control/controller_inject.py:454-485
+  schema:
+    type: array
+    items:
+      type: string
+      format: uuid
+  example: 
+    - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+    - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+algo: # wbia/web/apis_engine.py:1005
+  name: algo
+  in: query
+  description: Type of model to use (either lightnet (default) or yolo)
+  schema: 
+    type: string
+    enum: 
+      - lightnet
+      - yolo
+    default: lightnet 
+
+###############################################################################
+# JOB PARAMETERS
+###############################################################################
+
+getResultJobid: # wbia/web/job_engine.py:384
+  name: jobid
+  in: query
+  description: Job ID to retrieve results from 
+  required: true
+  schema: 
+    type: string
+
+###############################################################################
+# MATCH PARAMETERS
+###############################################################################
+
+query_config_dict: # wbia/web/apis_engine.py:410
+  name: query_config_dict
+  in: query 
+  description: Optional JSON string containing algorithmic configuration arguments.
+  schema:
+    type: string # see how the JSON is parsed in wbia/control/controller_inject.py:470-480
+
+# Parameters for all-vs-all matching
+
+annot_uuid_list: # wbia/web/apis_engine.py:405
+  name: annot_uuid_list
+  in: query 
+  description: |
+    Optional comma-separated list of query annotation UUIDs to identify. 
+    If not specified or empty, uses all valid annotations in the database.
+  style: form
+  explode: false # wbia/control/controller_inject.py:454-485
+  schema:
+    type: array
+    items:
+      type: string
+      format: uuid
+  example: 
+    - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+    - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+annot_name_list: # wbia/web/apis_engine.py:407
+  name: annot_name_list
+  in: query 
+  description: |
+    Optional comma-separated list to specify the query annotation names. 
+    Must match length of annot_uuid_list if provided.
+  style: form
+  explode: false # wbia/control/controller_inject.py:454-485
+  schema:
+    type: array
+    items:
+      type: string
+
+k: # wbia/web/apis_engine.py:391, wbia/web/apis_query.py:847
+  name: k
+  in: query 
+  description: Number of top matches to return per query annotation.
+  schema:
+    type: integer
+    default: 5
+
+# Parameters for one-vs-all matching
+
+query_annot_uuid_list: # wbia/web/apis_engine.py:490
+  name: query_annot_uuid_list
+  in: query 
+  description: Comma-separated list containing exactly one query annotation UUID to identify.
+  required: true
+  style: form
+  explode: false # wbia/control/controller_inject.py:454-485
+  schema:
+    type: array
+    items:
+      type: string
+      format: uuid
+  example: 
+    - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+
+query_annot_name_list: # wbia/web/apis_engine.py:492
+  name: query_annot_name_list
+  in: query 
+  description: |
+    Optional comma-separated list to specify the query annotation names. 
+    Must match length of query_annot_uuid_list if provided.
+  style: form
+  explode: false # wbia/control/controller_inject.py:454-485
+  schema:
+    type: array
+    items:
+      type: string
+
+database_annot_uuid_list: # wbia/web/apis_engine.py:493
+  name: database_annot_uuid_list
+  in: query 
+  description: |
+    Optional comma-separated list of the annotation UUIDs that the algorithm is allowed to use for identification.  
+    If not specified, all annotations are used. 
+    CANNOT be used together with database_imgsetid.
+  style: form
+  explode: false # wbia/control/controller_inject.py:454-485
+  schema:
+    type: array
+    items:
+      type: string
+      format: uuid
+  example: 
+    - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+    - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+database_annot_name_list: # wbia/web/apis_engine.py:496
+  name: database_annot_name_list
+  in: query 
+  description: |
+    Optional comma-separated list to specify the database annotation names. 
+    Must match length of database_annot_uuid_list if provided.
+  style: form
+  explode: false # wbia/control/controller_inject.py:454-485
+  schema:
+    type: array
+    items:
+      type: string
+
+database_imgsetid: # wbia/web/apis_engine.py:473, wbia/control/manual_imageset_funcs.py:449, wbia/control/manual_imageset_funcs.py:532
+  name: database_imgsetid
+  in: query 
+  description: |
+    Optional image set ID to restrict database annotations to a specific image set. 
+    CANNOT be used together with database_annot_uuid_list.
+  schema:
+    type: integer # integer row ID, automatically converted to a list by @accessor_decors.getter_1toM (getter_vector_output in wbia/control/accessor_decors.py:474) at wbia/control/manual_imageset_funcs.py:447
+
+matching_state_list: # wbia/web/apis_engine.py:498
+  name: matching_state_list
+  in: query 
+  description: |
+    Optional comma-separated list of matching state description to guide graph inference.
+    Each list item is a 3-tuple: [query_annot_uuid, database_annot_uuid, state] 
+    Valid states are:
+      - "matched" 
+      - "notmatched" / "nonmatch" 
+      - "notcomparable" 
+    If not specified or empty, the algorithm runs without human feedback constraint.
+  style: form
+  explode: false
+  schema:
+    type: array
+    items:
+      type: array
+      items:
+        type: string
+      minItems: 3
+      maxItems: 3
+  example: 
+    - ["uuid1", "uuid2", "matched"]
+    - ["uuid1", "uuid3", "notmatched"]
+
+echo_query_params: # wbia/web/apis_engine.py:502
+  name: echo_query_params
+  in: query
+  description: |
+    Whether to return the following query parameters with the result:
+      - query_annot_uuid_list
+      - database_annot_uuid_list
+      - query_config_dict
+  schema:
+    type: boolean
+    default: true
+
+include_qaid_in_daids: # wbia/web/apis_engine.py:477, wbia/web/apis_engine.py:669, wbia/algo/hots/pipeline.py:295
+  name: include_qaid_in_daids
+  in: query
+  description: |
+    Whether to include the query annotation in the database list for caching optimization.
+    Self-matches are automatically filtered out by the pipeline regardless of this setting.
+  schema:
+    type: boolean
+    default: true
+
+###############################################################################
+# SHARED PARAMETERS FOR INITIATING JOBS 
+###############################################################################
+
+callback_url: # wbia/web/apis_engine.py:778
+  name: callback_url
+  in: query
+  description: Optional URL that will be called when detection succeeds or fails
+  schema: 
+    type: string
+    format: uri 
+
+callback_method: # wbia/web/job_engine.py:2123-2128
+  name: callback_method
+  in: query
+  description: HTTP method for callback_url, defaults to POST if none is specified
+  schema: 
+    type: string
+    enum: 
+      - GET
+      - POST
+      - PUT
+    default: POST 
+
+callback_detailed: # wbia/web/job_engine.py:2133-2137
+  name: callback_detailed
+  in: query
+  description: Whether to include detailed results in callback
+  schema:
+    type: boolean
+    default: false
+
+fast_lane: # wbia/web/job_engine.py:497 (fast by default)
+  name: lane
+  in: query
+  description: Job queue lane (fast for quick jobs and slow for lower priority jobs)
+  schema: 
+    type: string
+    enum: 
+      - fast
+      - slow
+    default: fast 
+
+slow_lane: # wbia/web/job_engine.py:497 (slow by default)
+  name: lane
+  in: query
+  description: Job queue lane (fast for quick jobs and slow for lower priority jobs)
+  schema: 
+    type: string
+    enum: 
+      - fast
+      - slow
+    default: slow 
+
+jobid: # wbia/web/job_engine.py:1112, wbia/web/job_engine.py:1398
+  name: jobid
+  in: query
+  description: Optional custom job ID # restrictions TBD: https://wildme.slack.com/archives/C09M79QFTMY/p1761066892770159
+  schema: 
+    type: string

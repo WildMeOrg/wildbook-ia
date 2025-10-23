@@ -1,0 +1,30 @@
+SpecificDetectJobRequestBody:
+  required: true 
+  content:
+    application/json: # wbia/control/controller_inject.py:954
+      schema:
+        $ref: '#/components/schemas/SpecificDetectJobRequestBodySchema'
+GenericDetectJobRequestBody:
+  required: true 
+  content:
+    application/json: 
+      schema:
+        $ref: '#/components/schemas/GenericDetectJobRequestBodySchema'
+GetJobResultRequestBody:
+  required: true 
+  content:
+    application/json: 
+      schema:
+        $ref: '#/components/schemas/GetJobResultRequestBodySchema'
+GetCompleteMatchRequestBody:
+  required: true 
+  content:
+    application/json: 
+      schema:
+        $ref: '#/components/schemas/GetCompleteMatchRequestBodySchema'
+GetMatchRequestBody:
+  required: true 
+  content:
+    application/json: 
+      schema:
+        $ref: '#/components/schemas/GetMatchRequestBodySchema'

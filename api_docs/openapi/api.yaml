@@ -1,0 +1,287 @@
+openapi: 3.0.4
+
+info:
+  title: WBIA API
+  description: Wildbook's Image Analysis (WBIA) backend service supporting machine learning for wildlife conservation
+  version: 4.0.4
+  
+servers:
+  - url: http://localhost:5000
+    description: Local development server (WBIA does not have a production server. It is deployed as a backend service to multiple species-specific Wildbook instances.)
+    
+tags:
+  - name: annotations
+    description: Operations related to annotations (/api/annot/*)
+  - name: images
+    description: Operations related to images (/api/image/*)
+  - name: detect
+    description: Initiate a detection job (/api/engine/detect/*)
+  - name: match
+    description: Initiate matching between query and target annotations (/api/engine/query/graph/*)
+  - name: jobs
+    description: Get the status and results of a job (/api/engine/job/*)
+    
+components:
+  schemas: 
+    $ref: './components/schemas.yaml'
+  responses:
+    $ref: './components/responses.yaml'
+  requestBodies:
+    $ref: './components/requestBodies.yaml'
+  parameters:
+    $ref: './components/parameters.yaml'
+  x-standardErrors: &WBIAStandardErrors
+    "400":
+      $ref: '#/components/responses/MissingOrInvalidInput400'
+    "401":
+      $ref: '#/components/responses/Unauthorized401'
+    "415":
+      $ref: '#/components/responses/InvalidImageInput415'
+    "500":
+      $ref: '#/components/responses/WebRuntimeException500'
+    "600":
+      $ref: '#/components/responses/MissingUUID600'
+    "601":
+      $ref: '#/components/responses/DuplicateUUID601'
+    "602":
+      $ref: '#/components/responses/UnknownUUID602'
+    "603":
+      $ref: '#/components/responses/ReviewNotReady603'
+    "604":
+      $ref: '#/components/responses/UnavailableUUID604'
+    "605":
+      $ref: '#/components/responses/ReviewFinished605'
+    "606":
+      $ref: '#/components/responses/MultipleNamedDuplicate606'
+    "607":
+      $ref: '#/components/responses/MatchThumb607'
+    "608":
+      $ref: '#/components/responses/InvalidUUID608'
+    "609":
+      $ref: '#/components/responses/InvalidMatch609'
+
+paths:
+
+###############################################################################
+# DETECTION ENDPOINTS
+# wbia/web/apis_engine.py:760:@register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
+# wbia/web/apis_engine.py:910:@register_api('/api/engine/detect/cnn/lightnet/', methods=['POST', 'GET'])
+# wbia/web/apis_engine.py:988:@register_api('/api/engine/detect/cnn/', methods=['POST', 'GET'])
+###############################################################################
+
+  /api/engine/detect/cnn/yolo/: # wbia/web/apis_engine.py:760
+    post:
+      tags:
+      - detect
+      summary: (POST) Initiate a YOLO detection job
+      description: Queues an asynchronous job to run YOLO CNN detection on the specified images.
+      requestBodies:
+        $ref: '#/components/requestBodies/SpecificDetectJobRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobId'
+  /api/engine/detect/cnn/lightnet/: # wbia/web/apis_engine.py:910
+    post:
+      tags:
+      - detect
+      summary: (POST) Initiate a LightNet detection job 
+      description: Queues an asynchronous job to run LightNet CNN detection on the specified images.
+      requestBody:
+        $ref: '#/components/requestBodies/SpecificDetectJobRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobId'
+    get:
+      tags:
+      - detect
+      summary: (GET) Initiate a LightNet detection job
+      description: Queues an asynchronous job to run LightNet CNN detection on the specified images.
+      parameters:
+        - $ref: '#/components/parameters/image_uuid_list'
+        - $ref: '#/components/parameters/callback_url'
+        - $ref: '#/components/parameters/callback_method'
+        - $ref: '#/components/parameters/callback_detailed'
+        - $ref: '#/components/parameters/fast_lane'
+        - $ref: '#/components/parameters/jobid'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobId'
+  /api/engine/detect/cnn/: # wbia/web/apis_engine.py:988
+    post:
+      tags:
+      - detect
+      summary: (POST) Initiate a detection job with the specified model (LightNet or YOLO)
+      description: |
+        Queues an asynchronous job to run CNN detection on the specified images.
+        Uses a specified model (LightNet or YOLO).
+        Returns a job ID for asynchronous processing. 
+      requestBody:
+        $ref: '#/components/requestBodies/GenericDetectJobRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobId'
+    get:
+      tags:
+      - detect
+      summary: (GET) Initiate a detection job with the specified model (LightNet or YOLO)
+      description: |
+        Queues an asynchronous job to run CNN detection on the specified images.
+        Uses a specified model (LightNet or YOLO).
+        Returns a job ID for asynchronous processing. 
+      parameters:
+        - $ref: '#/components/parameters/image_uuid_list'
+        - $ref: '#/components/parameters/callback_url'
+        - $ref: '#/components/parameters/callback_method'
+        - $ref: '#/components/parameters/callback_detailed'
+        - $ref: '#/components/parameters/fast_lane'
+        - $ref: '#/components/parameters/jobid'
+        - $ref: '#/components/parameters/algo'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobId'
+
+###############################################################################
+# JOB ENDPOINTS
+# wbia/web/job_engine.py:249:@register_api('/api/engine/job/', methods=['GET', 'POST'], __api_plural_check__=False)
+# wbia/web/job_engine.py:383:@register_api('/api/engine/job/result/', methods=['GET', 'POST'])
+###############################################################################
+
+  /api/engine/job/: # wbia/web/job_engine.py:249
+    post:
+      tags:
+      - jobs
+      summary: (POST) Web call that returns the list of job ids
+      description: Web call that returns the list of job ids
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobIds'
+    get:
+      tags:
+      - jobs
+      summary: (GET) Web call that returns the list of job ids
+      description: Web call that returns the list of job ids
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobIds'
+
+  /api/engine/job/result/: # wbia/web/job_engine.py:383
+    post:
+      tags:
+      - jobs
+      summary: (POST) Web call that returns the result of the specified job
+      description: Web call that returns the result of the specified job
+      requestBody:
+        $ref: '#/components/requestBodies/GetJobResultRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobResult'
+    get:
+      tags:
+      - jobs
+      summary: (GET) Web call that returns the result of the specified job
+      description: Web call that returns the result of the specified job
+      parameters:
+        - $ref: '#/components/parameters/getResultJobid'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobResult'
+
+###############################################################################
+# QUERY GRAPH ENDPOINTS
+# wbia/web/apis_engine.py:384:@register_api('/api/engine/query/graph/complete/', methods=['GET', 'POST'])
+# wbia/web/apis_engine.py:464:@register_api('/api/engine/query/graph/', methods=['GET', 'POST'])
+###############################################################################
+
+  /api/engine/query/graph/complete/: # wbia/web/apis_engine.py:384, wbia/web/apis_query.py:831-852
+    post:
+      tags:
+      - match
+      summary: (POST) Queues job for all-vs-all annotation matching
+      description: |
+        Queues an all-vs-all annotation matching job that:
+          - compares every annotation against all others in the set
+          - generates top-k matches per annotation
+        Returns a job ID for asynchronous processing. 
+      requestBody:
+        $ref: '#/components/requestBodies/GetCompleteMatchRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobId'
+    get:
+      tags:
+      - match
+      summary: (GET) Queues job for all-vs-all annotation matching
+      description: |
+        Queues an all-vs-all annotation matching job that:
+          - compares every annotation against all others in the set
+          - generates top-k matches per annotation
+        Returns a job ID for asynchronous processing. 
+      parameters:
+        - $ref: '#/components/parameters/annot_uuid_list'
+        - $ref: '#/components/parameters/annot_name_list'
+        - $ref: '#/components/parameters/query_config_dict'
+        - $ref: '#/components/parameters/k'
+        - $ref: '#/components/parameters/callback_url'
+        - $ref: '#/components/parameters/callback_method'
+        - $ref: '#/components/parameters/callback_detailed'
+        - $ref: '#/components/parameters/slow_lane'
+        - $ref: '#/components/parameters/jobid'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobId'
+
+  /api/engine/query/graph/: # wbia/web/apis_engine.py:464, wbia/web/apis_query.py:912-1297
+    post:
+      tags:
+      - match
+      summary: (POST) Queues job for one-vs-all annotation matching
+      description: |
+        Queues a one-vs-all annotation matching job that:
+          - compares an annotation against all others in the database
+          - generates a results dictionary with details of top-n annotation and individual matches
+        Returns a job ID for asynchronous processing.
+      requestBody:
+        $ref: '#/components/requestBodies/GetMatchRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobId'
+    get:
+      tags:
+      - match
+      summary: (GET) Queues job for one-vs-all annotation matching
+      description: |
+        Queues a one-vs-all annotation matching job that:
+          - compares an annotation against all others in the database
+          - generates a results dictionary with details of top-n annotation and individual matches
+        Returns a job ID for asynchronous processing.
+      parameters:
+        - $ref: '#/components/parameters/query_annot_uuid_list'
+        - $ref: '#/components/parameters/query_annot_name_list'
+        - $ref: '#/components/parameters/database_annot_uuid_list'
+        - $ref: '#/components/parameters/database_annot_name_list'
+        - $ref: '#/components/parameters/database_imgsetid'
+        - $ref: '#/components/parameters/matching_state_list'
+        - $ref: '#/components/parameters/query_config_dict'
+        - $ref: '#/components/parameters/echo_query_params'
+        - $ref: '#/components/parameters/include_qaid_in_daids'
+        - $ref: '#/components/parameters/callback_url'
+        - $ref: '#/components/parameters/callback_method'
+        - $ref: '#/components/parameters/callback_detailed'
+        - $ref: '#/components/parameters/slow_lane'
+        - $ref: '#/components/parameters/jobid'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobId'
