@@ -184,7 +184,7 @@ paths:
         If jobid is not specified, returns a dictionary containing the status of all jobs. 
         
         Job status can be any of:
-          - received    job has been received, but not ingested yet
+          - received:   job has been received, but not ingested yet
           - accepted:   job has been accepted (validated)
           - queued:     job has been transferred to the engine queue
           - working:    job is being worked on by the engine
@@ -209,7 +209,7 @@ paths:
         If jobid is not specified, returns a dictionary containing the status of all jobs. 
         
         Job status can be any of:
-          - received    job has been received, but not ingested yet
+          - received:   job has been received, but not ingested yet
           - accepted:   job has been accepted (validated)
           - queued:     job has been transferred to the engine queue
           - working:    job is being worked on by the engine
