@@ -92,6 +92,16 @@ GenericDetectJobRequestBodySchema:
 # JOB REQUEST BODY SCHEMAS
 ###############################################################################
 
+GetJobStatusRequestBodySchema: 
+  type: object 
+  properties:
+    jobid: # wbia/web/job_engine.py:295
+      type: string
+      nullable: true
+      description: |
+        Optional Job ID to retrieve status from.
+        If not provided, returns status information for all jobs.
+
 GetJobResultRequestBodySchema: 
   type: object 
   required:

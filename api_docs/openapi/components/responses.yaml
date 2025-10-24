@@ -34,6 +34,36 @@ Success200WithJobIds:
             - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
             - "a768243c-4456-4516-a2de-f2abc8702c0a"
 
+Success200WithJobStatus:
+  description: |
+    Successful operation with job status response.
+    If jobid is specified, returns the status of the specified job.
+    If jobid is not specified, returns a dictionary containing the status of all jobs. 
+    
+    Job status can be any of:
+      - received    job has been received, but not ingested yet
+      - accepted:   job has been accepted (validated)
+      - queued:     job has been transferred to the engine queue
+      - working:    job is being worked on by the engine
+      - publishing: job is done on the engine, pushing results to collector
+      - completed:  job is complete  
+      - exception:  job has an error 
+      - corrupted:  job is corrupted because of missing engine_request, metadata, or jobcounter (wbia/web/job_engine.py:767,774,783)
+      - suppressed: job has been suppressed (when attempts >= MAX_ATTEMPTS, wbia/web/job_engine.py:766)
+      - unknown:    job ID not found (when job ID is specified, wbia/web/job_engine.py:2195)
+  content:
+    application/json:
+      schema: 
+        $ref: '#/components/schemas/Envelope' 
+      example:
+        status:
+          success: true
+          code: 200
+          message: "Job status retrieved successfully"
+          cache: -1
+        response:
+          result: "Job-specific status or dictionary containing all job status"
+
 Success200WithJobResult:
   description: Successful operation with job result response
   content:

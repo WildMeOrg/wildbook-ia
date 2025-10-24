@@ -10,6 +10,12 @@ GenericDetectJobRequestBody:
     application/json: 
       schema:
         $ref: '#/components/schemas/GenericDetectJobRequestBodySchema'
+GetJobStatusRequestBody:
+  required: true 
+  content:
+    application/json: 
+      schema:
+        $ref: '#/components/schemas/GetJobStatusRequestBodySchema'
 GetJobResultRequestBody:
   required: true 
   content:

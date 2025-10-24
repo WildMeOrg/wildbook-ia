@@ -33,6 +33,17 @@ algo: # wbia/web/apis_engine.py:1005
 # JOB PARAMETERS
 ###############################################################################
 
+getStatusJobid: # wbia/web/job_engine.py:295
+  name: jobid
+  in: query
+  description: |
+    Optional job ID to retrieve status from.
+    If jobid is specified, returns the status of the specified job.
+    If jobid is not specified, returns a dictionary containing the status of all jobs.   
+  schema: 
+    type: string
+    nullable: true
+
 getResultJobid: # wbia/web/job_engine.py:384
   name: jobid
   in: query

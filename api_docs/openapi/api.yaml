@@ -148,6 +148,9 @@ paths:
 ###############################################################################
 # JOB ENDPOINTS
 # wbia/web/job_engine.py:249:@register_api('/api/engine/job/', methods=['GET', 'POST'], __api_plural_check__=False)
+# wbia/web/job_engine.py-292-@register_api(
+# wbia/web/job_engine.py:293:    '/api/engine/job/status/', methods=['GET', 'POST'], __api_plural_check__=False
+# wbia/web/job_engine.py-294-)
 # wbia/web/job_engine.py:383:@register_api('/api/engine/job/result/', methods=['GET', 'POST'])
 ###############################################################################
 
@@ -170,6 +173,58 @@ paths:
         <<: *WBIAStandardErrors
         "200":
           $ref: '#/components/responses/Success200WithJobIds'
+
+  /api/engine/job/status/: # wbia/web/job_engine.py:293
+    post:
+      tags:
+      - jobs
+      summary: (POST) Web call that returns the status of a job or all jobs
+      description: |
+        If jobid is specified, returns the status of the specified job.
+        If jobid is not specified, returns a dictionary containing the status of all jobs. 
+        
+        Job status can be any of:
+          - received    job has been received, but not ingested yet
+          - accepted:   job has been accepted (validated)
+          - queued:     job has been transferred to the engine queue
+          - working:    job is being worked on by the engine
+          - publishing: job is done on the engine, pushing results to collector
+          - completed:  job is complete  
+          - exception:  job has an error 
+          - corrupted:  job is corrupted because of missing engine_request, metadata, or jobcounter (wbia/web/job_engine.py:767,774,783)
+          - suppressed: job has been suppressed (when attempts >= MAX_ATTEMPTS, wbia/web/job_engine.py:766)
+          - unknown:    job ID not found (when job ID is specified, wbia/web/job_engine.py:2195)
+      requestBody:
+        $ref: '#/components/requestBodies/GetJobStatusRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobStatus'
+    get:
+      tags:
+      - jobs
+      summary: (GET) Web call that returns the status of a job or all jobs
+      description: |
+        If jobid is specified, returns the status of the specified job.
+        If jobid is not specified, returns a dictionary containing the status of all jobs. 
+        
+        Job status can be any of:
+          - received    job has been received, but not ingested yet
+          - accepted:   job has been accepted (validated)
+          - queued:     job has been transferred to the engine queue
+          - working:    job is being worked on by the engine
+          - publishing: job is done on the engine, pushing results to collector
+          - completed:  job is complete  
+          - exception:  job has an error 
+          - corrupted:  job is corrupted because of missing engine_request, metadata, or jobcounter (wbia/web/job_engine.py:767,774,783)
+          - suppressed: job has been suppressed (when attempts >= MAX_ATTEMPTS, wbia/web/job_engine.py:766)
+          - unknown:    job ID not found (when job ID is specified, wbia/web/job_engine.py:2195)
+      parameters:
+        - $ref: '#/components/parameters/getStatusJobid'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithJobStatus'
 
   /api/engine/job/result/: # wbia/web/job_engine.py:383
     post:
