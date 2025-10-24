@@ -75,7 +75,7 @@ paths:
       - detect
       summary: (POST) Initiate a YOLO detection job
       description: Queues an asynchronous job to run YOLO CNN detection on the specified images.
-      requestBodies:
+      requestBody:
         $ref: '#/components/requestBodies/SpecificDetectJobRequestBody'
       responses:
         <<: *WBIAStandardErrors
@@ -285,3 +285,82 @@ paths:
         <<: *WBIAStandardErrors
         "200":
           $ref: '#/components/responses/Success200WithJobId'
+
+###############################################################################
+# ANNOTATION ENDPOINTS
+# wbia/web/apis_json.py:550:@register_api('/api/annot/json/', methods=['POST'])
+# wbia/web/apis_json.py:1408:@register_api('/api/annot/json/', methods=['GET'])
+###############################################################################
+
+  /api/annot/json/:
+    post: # wbia/web/apis_json.py:550 
+      tags:
+      - annotations
+      summary: (POST) Adds annotation(s) to image(s)
+      description: Adds annotation(s) to image(s) and returns a list of annotation UUID(s).
+      requestBody:
+        $ref: '#/components/requestBodies/AddAnnotationRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithCreationAnnotationUUIDs'
+    get: # wbia/web/apis_json.py:1408
+      tags:
+      - annotations
+      summary: (GET) Gets annotation UUID(s) based on filter(s)
+      description: Gets a list of annotation UUID(s) based on the specified filter(s).
+      parameters: # based on wbia/control/manual_annot_funcs.py:687
+        - $ref: '#/components/parameters/imgsetid'
+        - $ref: '#/components/parameters/include_only_gid_list'
+        - $ref: '#/components/parameters/yaw'
+        - $ref: '#/components/parameters/is_exemplar'
+        - $ref: '#/components/parameters/is_staged'
+        - $ref: '#/components/parameters/species'
+        - $ref: '#/components/parameters/is_known'
+        - $ref: '#/components/parameters/hasgt'
+        - $ref: '#/components/parameters/minqual'
+        - $ref: '#/components/parameters/has_timestamp'
+        - $ref: '#/components/parameters/min_timedelta'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithRetrievalAnnotationUUIDs'
+
+###############################################################################
+# IMAGE ENDPOINTS
+# wbia/web/apis_json.py:294:@register_api('/api/image/json/', methods=['POST'])
+# wbia/web/apis_json.py:1167:@register_api('/api/image/json/', methods=['GET'])
+###############################################################################
+
+  /api/image/json/:
+    post: # wbia/web/apis_json.py:294 
+      tags:
+      - images
+      summary: (POST) Adds a list of image paths to the database.
+      description: |
+        Adds a list of image paths to the database.
+        Initially we set the image_uri to exactly the given gpath.
+        Later we change the uri, but keeping it the same here lets
+        us process images asynchronously.
+      requestBody:
+        $ref: '#/components/requestBodies/AddImageRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithCreationImageUUIDs'
+    get: # wbia/web/apis_json.py:1167
+      tags:
+      - images
+      summary: (GET) Gets image UUID(s) based on filter(s)
+      description: Gets a list of image UUID(s) based on the specified filter(s).
+      parameters: # based on wbia/control/manual_image_funcs.py:119
+        - $ref: '#/components/parameters/imgsetid'
+        - $ref: '#/components/parameters/imgsetid_list'
+        - $ref: '#/components/parameters/require_unixtime'
+        - $ref: '#/components/parameters/require_gps'
+        - $ref: '#/components/parameters/is_tile'
+        - $ref: '#/components/parameters/is_reviewed'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithRetrievalImageUUIDs'

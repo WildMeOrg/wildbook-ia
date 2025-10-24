@@ -49,6 +49,74 @@ Success200WithJobResult:
         response:
           result: "Job-specific result"
 
+Success200WithCreationAnnotationUUIDs:
+  description: Successful operation with annotation UUIDs response
+  content:
+    application/json:
+      schema: 
+        $ref: '#/components/schemas/Envelope' 
+      example:
+        status:
+          success: true
+          code: 200
+          message: "Annotations created successfully"
+          cache: -1
+        response:
+          annot_uuid_list: 
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+Success200WithRetrievalAnnotationUUIDs:
+  description: Successful operation with annotation UUIDs response
+  content:
+    application/json:
+      schema: 
+        $ref: '#/components/schemas/Envelope' 
+      example:
+        status:
+          success: true
+          code: 200
+          message: "Annotations retrieved successfully"
+          cache: -1
+        response:
+          annot_uuid_list: 
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+Success200WithCreationImageUUIDs:
+  description: Successful operation with Image UUIDs response
+  content:
+    application/json:
+      schema: 
+        $ref: '#/components/schemas/Envelope' 
+      example:
+        status:
+          success: true
+          code: 200
+          message: "Image paths added successfully"
+          cache: -1
+        response:
+          image_uuid_list: 
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+Success200WithRetrievalImageUUIDs:
+  description: Successful operation with Image UUIDs response
+  content:
+    application/json:
+      schema: 
+        $ref: '#/components/schemas/Envelope' 
+      example:
+        status:
+          success: true
+          code: 200
+          message: "Image UUIDs retrieved successfully"
+          cache: -1
+        response:
+          image_uuid_list: 
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
 ###############################################################################
 # ERROR RESPONSES
 ###############################################################################
@@ -61,6 +129,7 @@ MissingOrInvalidInput400:
     application/json:
       schema: 
         $ref: '#/components/schemas/Envelope'
+
 Unauthorized401: # authentication_challenge: wbia/control/controller_inject.py:648
   description: Authentication required
   headers:
@@ -71,12 +140,14 @@ Unauthorized401: # authentication_challenge: wbia/control/controller_inject.py:6
     application/json:
       schema:
         $ref: '#/components/schemas/Envelope'
+
 InvalidImageInput415: # WebInvalidInput: wbia/control/controller_inject.py:372-382
   description: Invalid image input
   content:
     application/json:
       schema: 
         $ref: '#/components/schemas/Envelope'
+
 WebRuntimeException500: # WebRuntimeException: wbia/control/controller_inject.py:385
   description: Runtime exception
   content:
@@ -91,54 +162,63 @@ MissingUUID600: # WebMissingUUIDException: wbia/control/controller_inject.py:221
     application/json: 
       schema: 
         $ref: '#/components/schemas/Envelope'
+
 DuplicateUUID601: # WebDuplicateUUIDException: wbia/control/controller_inject.py:236
   description: Some UUIDs are specified more than once
   content: 
     application/json: 
       schema: 
         $ref: '#/components/schemas/Envelope'
+
 UnknownUUID602: # WebUnknownUUIDException: wbia/control/controller_inject.py:253
   description: Unknown UUIDs
   content: 
     application/json:
       schema: 
         $ref: '#/components/schemas/Envelope'
+
 ReviewNotReady603: # WebReviewNotReadyException: wbia/control/controller_inject.py:269
   description: The query_uuid is not yet ready for review
   content: 
     application/json: 
       schema: 
         $ref: '#/components/schemas/Envelope'
+
 UnavailableUUID604: # WebUnavailableUUIDException: wbia/control/controller_inject.py:280
   description: A running query is using (at least one of) the requested annotations. Filter out these annotations from the new query or stop the previous query.
   content: 
     application/json: 
       schema:
         $ref: '#/components/schemas/Envelope'
+
 ReviewFinished605: # WebReviewFinishedException: wbia/control/controller_inject.py:296
   description: The query_uuid has nothing more to review
   content: 
     application/json: 
       schema: 
         $ref: '#/components/schemas/Envelope' 
+
 MultipleNamedDuplicate606: # WebMultipleNamedDuplicateException: wbia/control/controller_inject.py:307
   description: Duplicate UUIDs are specified with more than one name
   content: 
     application/json:
       schema: 
         $ref: '#/components/schemas/Envelope' 
+
 MatchThumb607: # WebMatchThumbException: wbia/control/controller_inject.py:323
   description: Unknown input parameters when visualizing the results of matching # see how the exception is raised in query_chips_graph_match_thumb at wbia/web/apis_query.py:1306-1374
   content: 
     application/json: 
       schema:
         $ref: '#/components/schemas/Envelope'
+
 InvalidUUID608: # WebInvalidUUIDException: wbia/control/controller_inject.py:335
   description: Invalid image and/or annotation UUIDs
   content: 
     application/json: 
       schema:
         $ref: '#/components/schemas/Envelope' 
+
 InvalidMatch609: # WebInvalidMatchException: wbia/control/controller_inject.py:350
   description: The ID request is invalid because the database annotation ID list is empty (after filtering out the query annotation ID list)
   content: 
