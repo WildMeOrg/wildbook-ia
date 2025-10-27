@@ -23,13 +23,169 @@ tags:
     
 components:
   schemas: 
-    $ref: './components/schemas.yaml'
+    Status:
+      $ref: './components/schemas.yaml#/Status'
+    Envelope:
+      $ref: './components/schemas.yaml#/Envelope'
+    SpecificDetectJobRequestBodySchema:
+      $ref: './components/schemas.yaml#/SpecificDetectJobRequestBodySchema'
+    GenericDetectJobRequestBodySchema:
+      $ref: './components/schemas.yaml#/GenericDetectJobRequestBodySchema'
+    GetJobStatusRequestBodySchema: 
+      $ref: './components/schemas.yaml#/GetJobStatusRequestBodySchema'
+    GetJobResultRequestBodySchema:
+      $ref: './components/schemas.yaml#/GetJobResultRequestBodySchema'
+    GetCompleteMatchRequestBodySchema: 
+      $ref: './components/schemas.yaml#/GetCompleteMatchRequestBodySchema'
+    GetMatchRequestBodySchema: 
+      $ref: './components/schemas.yaml#/GetMatchRequestBodySchema'
+    AddAnnotationRequestBodySchema: 
+      $ref: './components/schemas.yaml#/AddAnnotationRequestBodySchema'
+    AddImageRequestBodySchema: 
+      $ref: './components/schemas.yaml#/AddImageRequestBodySchema'
+
   responses:
-    $ref: './components/responses.yaml'
+    Success200WithJobId:
+      $ref: './components/responses.yaml#/Success200WithJobId'
+    Success200WithJobIds:
+      $ref: './components/responses.yaml#/Success200WithJobIds'
+    Success200WithJobStatus:
+      $ref: './components/responses.yaml#/Success200WithJobStatus'
+    Success200WithJobResult: 
+      $ref: './components/responses.yaml#/Success200WithJobResult'
+    Success200WithCreationAnnotationUUIDs:
+      $ref: './components/responses.yaml#/Success200WithCreationAnnotationUUIDs'
+    Success200WithRetrievalAnnotationUUIDs:
+      $ref: './components/responses.yaml#/Success200WithRetrievalAnnotationUUIDs'
+    Success200WithCreationImageUUIDs:
+      $ref: './components/responses.yaml#/Success200WithCreationImageUUIDs'
+    Success200WithRetrievalImageUUIDs:
+      $ref: './components/responses.yaml#/Success200WithRetrievalImageUUIDs'
+    MissingOrInvalidInput400:
+      $ref: './components/responses.yaml#/MissingOrInvalidInput400'
+    Unauthorized401:
+      $ref: './components/responses.yaml#/Unauthorized401'
+    InvalidImageInput415: 
+      $ref: './components/responses.yaml#/InvalidImageInput415'
+    WebRuntimeException500:
+      $ref: './components/responses.yaml#/WebRuntimeException500'
+    MissingUUID600:
+      $ref: './components/responses.yaml#/MissingUUID600'
+    DuplicateUUID601:
+      $ref: './components/responses.yaml#/DuplicateUUID601'
+    UnknownUUID602:
+      $ref: './components/responses.yaml#/UnknownUUID602'
+    ReviewNotReady603:
+      $ref: './components/responses.yaml#/ReviewNotReady603'
+    UnavailableUUID604:
+      $ref: './components/responses.yaml#/UnavailableUUID604'
+    ReviewFinished605:
+      $ref: './components/responses.yaml#/ReviewFinished605'
+    MultipleNamedDuplicate606:
+      $ref: './components/responses.yaml#/MultipleNamedDuplicate606'
+    MatchThumb607:
+      $ref: './components/responses.yaml#/MatchThumb607'
+    InvalidUUID608:
+      $ref: './components/responses.yaml#/InvalidUUID608'
+    InvalidMatch609:
+      $ref: './components/responses.yaml#/InvalidMatch609'
+
   requestBodies:
-    $ref: './components/requestBodies.yaml'
+    SpecificDetectJobRequestBody:
+      $ref: './components/requestBodies.yaml#/SpecificDetectJobRequestBody'
+    GenericDetectJobRequestBody:
+      $ref: './components/requestBodies.yaml#/GenericDetectJobRequestBody'
+    GetJobStatusRequestBody:
+      $ref: './components/requestBodies.yaml#/GetJobStatusRequestBody'
+    GetJobResultRequestBody:
+      $ref: './components/requestBodies.yaml#/GetJobResultRequestBody'
+    GetCompleteMatchRequestBody:
+      $ref: './components/requestBodies.yaml#/GetCompleteMatchRequestBody'
+    GetMatchRequestBody:
+      $ref: './components/requestBodies.yaml#/GetMatchRequestBody'
+    AddAnnotationRequestBody:
+      $ref: './components/requestBodies.yaml#/AddAnnotationRequestBody'
+    AddImageRequestBody:
+      $ref: './components/requestBodies.yaml#/AddImageRequestBody'
+
   parameters:
-    $ref: './components/parameters.yaml'
+    image_uuid_list:
+      $ref: './components/parameters.yaml#/image_uuid_list'
+    algo:
+      $ref: './components/parameters.yaml#/algo'
+    getStatusJobid:
+      $ref: './components/parameters.yaml#/getStatusJobid'
+    getResultJobid:
+      $ref: './components/parameters.yaml#/getResultJobid'
+    query_config_dict:
+      $ref: './components/parameters.yaml#/query_config_dict'
+    annot_uuid_list:
+      $ref: './components/parameters.yaml#/annot_uuid_list'
+    annot_name_list:
+      $ref: './components/parameters.yaml#/annot_name_list'
+    k:
+      $ref: './components/parameters.yaml#/k'
+    query_annot_uuid_list:
+      $ref: './components/parameters.yaml#/query_annot_uuid_list'
+    query_annot_name_list:
+      $ref: './components/parameters.yaml#/query_annot_name_list'
+    database_annot_uuid_list:
+      $ref: './components/parameters.yaml#/database_annot_uuid_list'
+    database_annot_name_list:
+      $ref: './components/parameters.yaml#/database_annot_name_list'
+    database_imgsetid:
+      $ref: './components/parameters.yaml#/database_imgsetid'
+    matching_state_list:
+      $ref: './components/parameters.yaml#/matching_state_list'
+    echo_query_params:
+      $ref: './components/parameters.yaml#/echo_query_params'
+    include_qaid_in_daids:
+      $ref: './components/parameters.yaml#/include_qaid_in_daids'
+    callback_url:
+      $ref: './components/parameters.yaml#/callback_url'
+    callback_method:
+      $ref: './components/parameters.yaml#/callback_method'
+    callback_detailed:
+      $ref: './components/parameters.yaml#/callback_detailed'
+    fast_lane:
+      $ref: './components/parameters.yaml#/fast_lane'
+    slow_lane:
+      $ref: './components/parameters.yaml#/slow_lane'
+    jobid:
+      $ref: './components/parameters.yaml#/jobid'
+    include_only_gid_list:
+      $ref: './components/parameters.yaml#/include_only_gid_list'
+    yaw:
+      $ref: './components/parameters.yaml#/yaw'
+    is_exemplar:
+      $ref: './components/parameters.yaml#/is_exemplar'
+    is_staged:
+      $ref: './components/parameters.yaml#/is_staged'
+    species:
+      $ref: './components/parameters.yaml#/species'
+    is_known:
+      $ref: './components/parameters.yaml#/is_known'
+    hasgt:
+      $ref: './components/parameters.yaml#/hasgt'
+    minqual:
+      $ref: './components/parameters.yaml#/minqual'
+    has_timestamp:
+      $ref: './components/parameters.yaml#/has_timestamp'
+    min_timedelta:
+      $ref: './components/parameters.yaml#/min_timedelta'
+    imgsetid_list:
+      $ref: './components/parameters.yaml#/imgsetid_list'
+    require_unixtime:
+      $ref: './components/parameters.yaml#/require_unixtime'
+    require_gps:
+      $ref: './components/parameters.yaml#/require_gps'
+    is_tile:
+      $ref: './components/parameters.yaml#/is_tile'
+    is_reviewed:
+      $ref: './components/parameters.yaml#/is_reviewed'
+    imgsetid:
+      $ref: './components/parameters.yaml#/imgsetid'
+
   x-standardErrors: &WBIAStandardErrors
     "400":
       $ref: '#/components/responses/MissingOrInvalidInput400'
