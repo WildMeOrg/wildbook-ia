@@ -3,45 +3,45 @@ SpecificDetectJobRequestBody:
   content:
     application/json: # wbia/control/controller_inject.py:954
       schema:
-        $ref: '#/components/schemas/SpecificDetectJobRequestBodySchema'
+        $ref: './components/schemas.yaml#/SpecificDetectJobRequestBodySchema'
 GenericDetectJobRequestBody:
   required: true 
   content:
     application/json: 
       schema:
-        $ref: '#/components/schemas/GenericDetectJobRequestBodySchema'
+        $ref: './components/schemas.yaml#/GenericDetectJobRequestBodySchema'
 GetJobStatusRequestBody:
   content:
     application/json: 
       schema:
-        $ref: '#/components/schemas/GetJobStatusRequestBodySchema'
+        $ref: './components/schemas.yaml#/GetJobStatusRequestBodySchema'
 GetJobResultRequestBody:
   required: true 
   content:
     application/json: 
       schema:
-        $ref: '#/components/schemas/GetJobResultRequestBodySchema'
+        $ref: './components/schemas.yaml#/GetJobResultRequestBodySchema'
 GetCompleteMatchRequestBody:
   required: true 
   content:
     application/json: 
       schema:
-        $ref: '#/components/schemas/GetCompleteMatchRequestBodySchema'
+        $ref: './components/schemas.yaml#/GetCompleteMatchRequestBodySchema'
 GetMatchRequestBody:
   required: true 
   content:
     application/json: 
       schema:
-        $ref: '#/components/schemas/GetMatchRequestBodySchema'
+        $ref: './components/schemas.yaml#/GetMatchRequestBodySchema'
 AddAnnotationRequestBody:
   required: true 
   content:
     application/json: 
       schema:
-        $ref: '#/components/schemas/AddAnnotationRequestBodySchema'
+        $ref: './components/schemas.yaml#/AddAnnotationRequestBodySchema'
 AddImageRequestBody:
   required: true 
   content:
     application/json: 
       schema:
-        $ref: '#/components/schemas/AddImageRequestBodySchema'
+        $ref: './components/schemas.yaml#/AddImageRequestBodySchema'

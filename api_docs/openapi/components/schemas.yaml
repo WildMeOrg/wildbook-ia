@@ -21,7 +21,7 @@ Envelope: # see template from wbia/web/apis_engine.py:425-435
   type: object
   properties:
     status: 
-      $ref: '#/components/schemas/Status'
+      $ref: '#/Status'
     response:
       description: Endpoint-specific payload
       nullable: true
@@ -77,7 +77,7 @@ SpecificDetectJobRequestBodySchema:
 
 GenericDetectJobRequestBodySchema:
   allOf:
-    - $ref: '#/components/schemas/SpecificDetectJobRequestBodySchema'
+    - $ref: '#/SpecificDetectJobRequestBodySchema'
     - type: object
       properties:
         algo: # wbia/web/apis_engine.py:1005
