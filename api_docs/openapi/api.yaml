@@ -23,168 +23,1274 @@ tags:
     
 components:
   schemas: 
-    Status:
-      $ref: './components/schemas.yaml#/Status'
-    Envelope:
-      $ref: './components/schemas.yaml#/Envelope'
-    SpecificDetectJobRequestBodySchema:
-      $ref: './components/schemas.yaml#/SpecificDetectJobRequestBodySchema'
+    Status: # see status template from wbia/web/apis_engine.py:426-432
+      type: object
+      properties:
+        success: 
+          type: boolean
+        code:
+          oneOf:
+            - type: integer
+            - type: string
+        message: 
+          type: string 
+        cache:
+          type: integer 
+      required: 
+        - success
+        - code
+        - message
+        - cache
+
+    Envelope: # see template from wbia/web/apis_engine.py:425-435
+      type: object
+      properties:
+        status: 
+          $ref: '#/components/schemas/Status'
+        response:
+          description: Endpoint-specific payload
+          nullable: true
+      required: [status, response]
+
+    ###############################################################################
+    # DETECTION REQUEST BODY SCHEMAS
+    ###############################################################################
+
+    SpecificDetectJobRequestBodySchema: 
+      type: object 
+      required:
+        - image_uuid_list
+      properties:
+        image_uuid_list: # wbia/web/apis_engine.py:777
+          type: array
+          description: List of image uuids to detect on 
+          items:
+            type: string
+            format: uuid # https://spec.openapis.org/registry/format/
+          example: 
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+        callback_url: # wbia/web/apis_engine.py:778
+          type: string
+          nullable: true
+          format: uri
+          description: Optional URL that will be called when detection succeeds or fails
+        callback_method: # wbia/web/job_engine.py:2123-2128
+          type: string
+          nullable: true
+          enum: 
+            - GET
+            - POST
+            - PUT
+          default: POST 
+          description: HTTP method for callback_url, defaults to POST if none is specified
+        callback_detailed: # wbia/web/job_engine.py:2133-2137
+          type: boolean
+          default: false 
+          description: Whether to include detailed results in callback
+        lane: # wbia/web/job_engine.py:497
+          type: string 
+          enum:
+            - fast
+            - slow 
+          default: fast
+          description: Job queue lane (fast for quick jobs and slow for lower priority jobs)
+        jobid: # wbia/web/job_engine.py:1112, wbia/web/job_engine.py:1398
+          type: string
+          nullable: true
+          description: Optional custom job ID # restrictions TBD: https://wildme.slack.com/archives/C09M79QFTMY/p1761066892770159
+
     GenericDetectJobRequestBodySchema:
-      $ref: './components/schemas.yaml#/GenericDetectJobRequestBodySchema'
+      allOf:
+        - $ref: '#/components/schemas/SpecificDetectJobRequestBodySchema'
+        - type: object
+          properties:
+            algo: # wbia/web/apis_engine.py:1005
+              type: string
+              enum:
+                - lightnet
+                - yolo
+              default: lightnet 
+              description: Type of model to use (either lightnet (default) or yolo)
+
+    ###############################################################################
+    # JOB REQUEST BODY SCHEMAS
+    ###############################################################################
+
     GetJobStatusRequestBodySchema: 
-      $ref: './components/schemas.yaml#/GetJobStatusRequestBodySchema'
-    GetJobResultRequestBodySchema:
-      $ref: './components/schemas.yaml#/GetJobResultRequestBodySchema'
-    GetCompleteMatchRequestBodySchema: 
-      $ref: './components/schemas.yaml#/GetCompleteMatchRequestBodySchema'
-    GetMatchRequestBodySchema: 
-      $ref: './components/schemas.yaml#/GetMatchRequestBodySchema'
-    AddAnnotationRequestBodySchema: 
-      $ref: './components/schemas.yaml#/AddAnnotationRequestBodySchema'
-    AddImageRequestBodySchema: 
-      $ref: './components/schemas.yaml#/AddImageRequestBodySchema'
+      type: object 
+      properties:
+        jobid: # wbia/web/job_engine.py:295
+          type: string
+          nullable: true
+          description: |
+            Optional Job ID to retrieve status from.
+            If not provided, returns status information for all jobs.
+
+    GetJobResultRequestBodySchema: 
+      type: object 
+      required:
+        - jobid
+      properties:
+        jobid: # wbia/web/job_engine.py:384
+          type: string
+          description: Job ID to retrieve results from 
+
+    ###############################################################################
+    # MATCH REQUEST BODY SCHEMAS
+    ###############################################################################
+
+    GetCompleteMatchRequestBodySchema:  
+      type: object 
+      properties:
+        annot_uuid_list: # wbia/web/apis_engine.py:405
+          type: array
+          nullable: true
+          description: |
+            List of query annotation UUIDs to identify. 
+            If not specified or empty, uses all valid annotations in the database.
+          items:
+            type: string
+            format: uuid
+          example: 
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+        annot_name_list: # wbia/web/apis_engine.py:407
+          type: array
+          nullable: true
+          description: |
+            List to specify the query annotation names. 
+            Must match length of annot_uuid_list if provided.
+          items:
+            type: string
+            nullable: true
+        query_config_dict: # wbia/web/apis_engine.py:410
+          type: string # see how the JSON is parsed in wbia/control/controller_inject.py:470-480
+          description: Optional dictionary of algorithmic configuration parameters
+        k: # wbia/web/apis_engine.py:391, wbia/web/apis_query.py:847
+          type: integer
+          default: 5
+          description: Number of top matches to return per query annotation.
+        callback_url: # wbia/web/apis_engine.py:778
+          type: string
+          nullable: true
+          format: uri
+          description: Optional URL that will be called when detection succeeds or fails
+        callback_method: # wbia/web/job_engine.py:2123-2128
+          type: string
+          nullable: true
+          enum: 
+            - GET
+            - POST
+            - PUT
+          default: POST 
+          description: HTTP method for callback_url, defaults to POST if none is specified
+        callback_detailed: # wbia/web/job_engine.py:2133-2137
+          type: boolean
+          default: false 
+          description: Whether to include detailed results in callback
+        lane: # wbia/web/job_engine.py:497
+          type: string 
+          enum:
+            - fast
+            - slow 
+          default: slow
+          description: Job queue lane (fast for quick jobs and slow for lower priority jobs)
+        jobid: # wbia/web/job_engine.py:1112, wbia/web/job_engine.py:1398
+          type: string
+          nullable: true
+          description: Optional custom job ID # restrictions TBD: https://wildme.slack.com/archives/C09M79QFTMY/p1761066892770159
+
+    GetMatchRequestBodySchema:
+      type: object 
+      properties:
+        query_annot_uuid_list: # wbia/web/apis_engine.py:490
+          type: array
+          nullable: true
+          description: List containing exactly one query annotation UUID to identify.
+          items:
+            type: string
+            format: uuid
+          example: 
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+        query_annot_name_list: # wbia/web/apis_engine.py:492
+          type: array
+          nullable: true
+          description: |
+            Optional list to specify the query annotation names. 
+            Must match length of query_annot_uuid_list if provided.
+          items:
+            type: string
+            nullable: true
+        database_annot_uuid_list: # wbia/web/apis_engine.py:493
+          type: array
+          nullable: true
+          description:  |
+            Optional list of the annotation UUIDs that the algorithm is allowed to use for identification.  
+            If not specified, all annotations are used. 
+            CANNOT be used together with database_imgsetid.
+          items:
+            type: string
+            format: uuid
+          example: 
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+        database_annot_name_list: # wbia/web/apis_engine.py:496
+          type: array
+          nullable: true
+          description: |
+            Optional list to specify the database annotation names. 
+            Must match length of database_annot_uuid_list if provided.
+          items:
+            type: string
+            nullable: true
+        database_imgsetid: # wbia/web/apis_engine.py:473, wbia/control/manual_imageset_funcs.py:449, wbia/control/manual_imageset_funcs.py:532
+          type: integer # integer row ID, automatically converted to a list by @accessor_decors.getter_1toM (getter_vector_output in wbia/control/accessor_decors.py:474) at wbia/control/manual_imageset_funcs.py:447
+          nullable: true
+          description: |
+            Optional image set ID to restrict database annotations to a specific image set. 
+            CANNOT be used together with database_annot_uuid_list.
+        matching_state_list:
+          type: array
+          description: |
+            Optional list of matching state description to guide graph inference.
+            Each list item is a 3-tuple: [query_annot_uuid, database_annot_uuid, state] 
+            Valid states are:
+              - "matched" 
+              - "notmatched" / "nonmatch" 
+              - "notcomparable" 
+            If not specified or empty, the algorithm runs without human feedback constraint.
+          items:
+            type: array
+            items:
+              type: string
+            minItems: 3
+            maxItems: 3
+          example: 
+            - ["uuid1", "uuid2", "matched"]
+            - ["uuid1", "uuid3", "notmatched"]
+        query_config_dict: # wbia/web/apis_engine.py:410
+          type: string # see how the JSON is parsed in wbia/control/controller_inject.py:470-480
+          description: Optional dictionary of algorithmic configuration parameters
+        echo_query_params: # wbia/web/apis_engine.py:502
+          type: boolean
+          default: true 
+          description: |
+            Whether to return the following query parameters with the result:
+              - query_annot_uuid_list
+              - database_annot_uuid_list
+              - query_config_dict
+        include_qaid_in_daids: # wbia/web/apis_engine.py:477, wbia/web/apis_engine.py:669, wbia/algo/hots/pipeline.py:295
+          type: boolean
+          default: true 
+          description: |
+            Whether to include the query annotation in the database list for caching optimization.
+            Self-matches are automatically filtered out by the pipeline regardless of this setting.
+        callback_url: # wbia/web/apis_engine.py:778
+          type: string
+          nullable: true
+          format: uri
+          description: Optional URL that will be called when detection succeeds or fails
+        callback_method: # wbia/web/job_engine.py:2123-2128
+          type: string
+          nullable: true
+          enum: 
+            - GET
+            - POST
+            - PUT
+          default: POST 
+          description: HTTP method for callback_url, defaults to POST if none is specified
+        callback_detailed: # wbia/web/job_engine.py:2133-2137
+          type: boolean
+          default: false 
+          description: Whether to include detailed results in callback
+        lane: # wbia/web/job_engine.py:497
+          type: string 
+          enum:
+            - fast
+            - slow 
+          default: slow
+          description: Job queue lane (fast for quick jobs and slow for lower priority jobs)
+        jobid: # wbia/web/job_engine.py:1112, wbia/web/job_engine.py:1398
+          type: string
+          nullable: true
+          description: Optional custom job ID # restrictions TBD: https://wildme.slack.com/archives/C09M79QFTMY/p1761066892770159
+
+    ###############################################################################
+    # ANNOTATION REQUEST BODY SCHEMAS
+    ###############################################################################
+
+    AddAnnotationRequestBodySchema: # wbia/web/apis_json.py:550
+      type: object 
+      required:
+        - image_uuid_list
+        - annot_bbox_list
+        - annot_theta_list
+      properties:
+        image_uuid_list: # wbia/web/apis_json.py:574
+          type: array
+          description: A list of image UUIDs to be used in IBEIS IA
+          items:
+            type: string
+            format: uuid
+        annot_bbox_list: # wbia/web/apis_json.py:575
+          type: array
+          description: |
+            A list of bounding box coordinates encoded as a 4-tuple of the values 
+            (xtl, ytl, width, height) where xtl is the 'top left corner, 
+            x value' and ytl is the 'top left corner, y value'.
+          items:
+            type: array
+            items:
+              type: number
+            minItems: 4
+            maxItems: 4
+          example: 
+            - ["x value of top left corner", "y value of top left corner", "width", "height"]
+        annot_theta_list: # wbia/web/apis_json.py:578
+          type: array
+          description: |
+            A list of radian rotation around center. 
+            Defaults to 0.0 (no rotation).
+          items:
+            type: number
+        annot_viewpoint_list: # wbia/web/apis_json.py:556
+          type: array
+          description: |
+            A list of viewpoint for the annotation, if known.
+            If the list is partially known, use None (null in JSON) for unknown entries.
+          items:
+            type: string
+            nullable: true 
+        annot_quality_list: # wbia/web/apis_json.py:557
+          type: array
+          description: |
+            A list of quality for the annotation, if known.
+            If the list is partially known, use None (null in JSON) for unknown entries.
+          items:
+            type: string
+            nullable: true 
+        annot_species_list: # wbia/web/apis_json.py:580
+          type: array
+          description: |
+            A list of species for the annotation, if known.
+            If the list is partially known, use None (null in JSON) for unknown entries.
+          items:
+            type: string
+            nullable: true 
+        annot_multiple_list: # wbia/web/apis_json.py:559
+          type: array
+          description: |
+            A list of boolean indicating whether each annotation contains multiple individuals.
+            If the list is partially known, use None (null in JSON) for unknown entries.
+          items:
+            type: boolean
+            nullable: true 
+        annot_interest_list: # wbia/web/apis_json.py:560
+          type: array
+          description: |
+            A list of boolean indicating whether each annotation is of interest.
+            If the list is partially known, use None (null in JSON) for unknown entries.
+          items:
+            type: boolean
+            nullable: true 
+        annot_name_list: # wbia/web/apis_json.py:582
+          type: array
+          nullable: true
+          description: |
+            List of names for the annotation, if known.
+            If the list is partially known, use None (null in JSON) for unknown entries.
+          items:
+            type: string
+            nullable: true 
+        annot_uuid_list: # wbia/web/apis_json.py:584
+          type: array
+          nullable: true
+          description: |
+            List of annotation UUIDs to assign to the new annotations being added; 
+            if provided, these UUIDs will be used for the created annotations.
+            If the list is partially known, use None (null in JSON) for unknown entries.
+          items:
+            type: string
+            format: uuid
+            nullable: true 
+
+    ###############################################################################
+    # IMAGE REQUEST BODY SCHEMAS
+    ###############################################################################
+
+    AddImageRequestBodySchema: # wbia/web/apis_json.py:295
+      type: object 
+      required:
+        - image_uri_list
+      properties:
+        image_uri_list: # wbia/web/apis_json.py:312
+          type: array
+          description: |
+            List of string image uris, most likely HTTP(S) or S3 encoded URLs.
+            Alternatively, this can be a list of dictionaries (JSON objects) 
+            that specify AWS S3 stored assets.         
+
+            Note that you cannot specify AWS authentication access ids or secret keys
+            using string uri's. For specific authentication methods, please use the
+            latter list of dictionaries.
+            
+            An example below:
+            image_uri_list = [
+                'http://domain.com/example/asset1.png',
+                '/home/example/Desktop/example/asset2.jpg',
+                's3://s3.amazon.com/example-bucket-2/asset1-in-bucket-2.tif',
+                {
+                    'bucket'          : 'example-bucket-1',
+                    'key'             : 'example/asset1.png',
+                    'auth_domain'     : None,  # Uses 127.0.0.1
+                    'auth_access_id'  : None,  # Uses system default
+                    'auth_secret_key' : None,  # Uses system default
+                },
+                {
+                    'bucket' : 'example-bucket-1',
+                    'key'    : 'example/asset2.jpg',
+                    # if unspecified, auth uses 127.0.0.1 and system defaults
+                },
+                {
+                    'bucket'          : 'example-bucket-2',
+                    'key'             : 'example/asset1-in-bucket-2.tif',
+                    'auth_domain'     : 's3.amazon.com',
+                    'auth_access_id'  : '____________________',
+                    'auth_secret_key' : '________________________________________',
+                },
+            ]
+          items:
+            anyOf:
+              - type: string
+                format: uri
+                description: Image uris (HTTP(S), S3 encoded URLs, or file paths)
+              - type: object
+                description: Dictionaries (JSON objects) that specify AWS S3 stored assets
+                required:
+                  - bucket
+                  - key
+                properties:
+                  bucket:
+                    type: string
+                    description: AWS S3 bucket name
+                  key:
+                    type: string
+                    description: Object key/path within the S3 bucket
+                  auth_domain:
+                    type: string
+                    nullable: true
+                    description: AWS S3 domain. If unspecified, auth uses 127.0.0.1.
+                  auth_access_id:
+                    type: string
+                    nullable: true
+                    description: AWS access key ID. If unspecified, auth uses system defaults.
+                  auth_secret_key:
+                    type: string
+                    nullable: true
+                    description: AWS secret access key. If unspecified, auth uses system defaults.
+        image_unixtime_list: # wbia/web/apis_json.py:298
+          type: array
+          nullable: true
+          description: |
+            Optional list of image unix timestamps. 
+            Must match length of image_uri_list if provided.
+            Set the value to null for unknown timestamps.
+          items:
+            type: number
+            nullable: true 
+        image_gps_lat_list: # wbia/web/apis_json.py:346
+          type: array
+          nullable: true
+          description: |
+            Optional list of image GPS latitude values. 
+            Must match length of image_uri_list if provided.
+            Must be provided with image_gps_lon_list for effects.
+            Set the value to null for unknown coordinates.
+            If a value is set to null, the corresponding longitude value must also be null.
+          items:
+            type: number
+            nullable: true
+        image_gps_lon_list: # wbia/web/apis_json.py:347
+          type: array
+          nullable: true
+          description: |
+            Optional list of image GPS longitude values. 
+            Must match length of image_uri_list if provided.
+            Must be provided with image_gps_lat_list for effects.
+            Set the value to null for unknown coordinates.
+            If a value is set to null, the corresponding latitude value must also be null.
+          items:
+            type: number
+            nullable: true
 
   responses:
+    ###############################################################################
+    # SUCCESS RESPONSES
+    ###############################################################################
+
     Success200WithJobId:
-      $ref: './components/responses.yaml#/Success200WithJobId'
+      description: Successful operation with job id response 
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Job queued successfully"
+              cache: -1
+            response:
+              job_id: "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+
     Success200WithJobIds:
-      $ref: './components/responses.yaml#/Success200WithJobIds'
+      description: Successful operation with job id list response
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Job IDs retrieved successfully"
+              cache: -1
+            response:
+              job_id: 
+                - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+                - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
     Success200WithJobStatus:
-      $ref: './components/responses.yaml#/Success200WithJobStatus'
-    Success200WithJobResult: 
-      $ref: './components/responses.yaml#/Success200WithJobResult'
+      description: |
+        Successful operation with job status response.
+        If jobid is specified, returns the status of the specified job.
+        If jobid is not specified, returns a dictionary containing the status of all jobs. 
+        
+        Job status can be any of:
+          - received:   job has been received, but not ingested yet
+          - accepted:   job has been accepted (validated)
+          - queued:     job has been transferred to the engine queue
+          - working:    job is being worked on by the engine
+          - publishing: job is done on the engine, pushing results to collector
+          - completed:  job is complete  
+          - exception:  job has an error 
+          - corrupted:  job is corrupted because of missing engine_request, metadata, or jobcounter (wbia/web/job_engine.py:767,774,783)
+          - suppressed: job has been suppressed (when attempts >= MAX_ATTEMPTS, wbia/web/job_engine.py:766)
+          - unknown:    job ID not found (when job ID is specified, wbia/web/job_engine.py:2195)
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Job status retrieved successfully"
+              cache: -1
+            response:
+              result: "Job-specific status or dictionary containing all job status"
+
+    Success200WithJobResult:
+      description: Successful operation with job result response
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Job result retrieved successfully"
+              cache: -1
+            response:
+              result: "Job-specific result"
+
     Success200WithCreationAnnotationUUIDs:
-      $ref: './components/responses.yaml#/Success200WithCreationAnnotationUUIDs'
+      description: Successful operation with annotation UUIDs response
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Annotations created successfully"
+              cache: -1
+            response:
+              annot_uuid_list: 
+                - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+                - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
     Success200WithRetrievalAnnotationUUIDs:
-      $ref: './components/responses.yaml#/Success200WithRetrievalAnnotationUUIDs'
+      description: Successful operation with annotation UUIDs response
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Annotations retrieved successfully"
+              cache: -1
+            response:
+              annot_uuid_list: 
+                - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+                - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
     Success200WithCreationImageUUIDs:
-      $ref: './components/responses.yaml#/Success200WithCreationImageUUIDs'
+      description: Successful operation with Image UUIDs response
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Image paths added successfully"
+              cache: -1
+            response:
+              image_uuid_list: 
+                - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+                - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
     Success200WithRetrievalImageUUIDs:
-      $ref: './components/responses.yaml#/Success200WithRetrievalImageUUIDs'
-    MissingOrInvalidInput400:
-      $ref: './components/responses.yaml#/MissingOrInvalidInput400'
-    Unauthorized401:
-      $ref: './components/responses.yaml#/Unauthorized401'
-    InvalidImageInput415: 
-      $ref: './components/responses.yaml#/InvalidImageInput415'
-    WebRuntimeException500:
-      $ref: './components/responses.yaml#/WebRuntimeException500'
-    MissingUUID600:
-      $ref: './components/responses.yaml#/MissingUUID600'
-    DuplicateUUID601:
-      $ref: './components/responses.yaml#/DuplicateUUID601'
-    UnknownUUID602:
-      $ref: './components/responses.yaml#/UnknownUUID602'
-    ReviewNotReady603:
-      $ref: './components/responses.yaml#/ReviewNotReady603'
-    UnavailableUUID604:
-      $ref: './components/responses.yaml#/UnavailableUUID604'
-    ReviewFinished605:
-      $ref: './components/responses.yaml#/ReviewFinished605'
-    MultipleNamedDuplicate606:
-      $ref: './components/responses.yaml#/MultipleNamedDuplicate606'
-    MatchThumb607:
-      $ref: './components/responses.yaml#/MatchThumb607'
-    InvalidUUID608:
-      $ref: './components/responses.yaml#/InvalidUUID608'
-    InvalidMatch609:
-      $ref: './components/responses.yaml#/InvalidMatch609'
+      description: Successful operation with Image UUIDs response
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Image UUIDs retrieved successfully"
+              cache: -1
+            response:
+              image_uuid_list: 
+                - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+                - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+    ###############################################################################
+    # ERROR RESPONSES
+    ###############################################################################
+
+    MissingOrInvalidInput400: 
+    # WebMissingInput: wbia/control/controller_inject.py:361
+    # WebInvalidInput: wbia/control/controller_inject.py:372-382
+      description: Missing required parameter or invalid input (non-image)
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope'
+
+    Unauthorized401: # authentication_challenge: wbia/control/controller_inject.py:648
+      description: Authentication required
+      headers:
+        WWW-Authenticate:
+          schema: 
+            type: string 
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Envelope'
+
+    InvalidImageInput415: # WebInvalidInput: wbia/control/controller_inject.py:372-382
+      description: Invalid image input
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope'
+
+    WebRuntimeException500: # WebRuntimeException: wbia/control/controller_inject.py:385
+      description: Runtime exception
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope'
+
+    # WBIA custom status codes (600-609)
+    MissingUUID600: # WebMissingUUIDException: wbia/control/controller_inject.py:221
+      description: Missing image and/or annotation UUIDs
+      content: 
+        application/json: 
+          schema: 
+            $ref: '#/components/schemas/Envelope'
+
+    DuplicateUUID601: # WebDuplicateUUIDException: wbia/control/controller_inject.py:236
+      description: Some UUIDs are specified more than once
+      content: 
+        application/json: 
+          schema: 
+            $ref: '#/components/schemas/Envelope'
+
+    UnknownUUID602: # WebUnknownUUIDException: wbia/control/controller_inject.py:253
+      description: Unknown UUIDs
+      content: 
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope'
+
+    ReviewNotReady603: # WebReviewNotReadyException: wbia/control/controller_inject.py:269
+      description: The query_uuid is not yet ready for review
+      content: 
+        application/json: 
+          schema: 
+            $ref: '#/components/schemas/Envelope'
+
+    UnavailableUUID604: # WebUnavailableUUIDException: wbia/control/controller_inject.py:280
+      description: A running query is using (at least one of) the requested annotations. Filter out these annotations from the new query or stop the previous query.
+      content: 
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/Envelope'
+
+    ReviewFinished605: # WebReviewFinishedException: wbia/control/controller_inject.py:296
+      description: The query_uuid has nothing more to review
+      content: 
+        application/json: 
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+
+    MultipleNamedDuplicate606: # WebMultipleNamedDuplicateException: wbia/control/controller_inject.py:307
+      description: Duplicate UUIDs are specified with more than one name
+      content: 
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+
+    MatchThumb607: # WebMatchThumbException: wbia/control/controller_inject.py:323
+      description: Unknown input parameters when visualizing the results of matching # see how the exception is raised in query_chips_graph_match_thumb at wbia/web/apis_query.py:1306-1374
+      content: 
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/Envelope'
+
+    InvalidUUID608: # WebInvalidUUIDException: wbia/control/controller_inject.py:335
+      description: Invalid image and/or annotation UUIDs
+      content: 
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/Envelope' 
+
+    InvalidMatch609: # WebInvalidMatchException: wbia/control/controller_inject.py:350
+      description: The ID request is invalid because the database annotation ID list is empty (after filtering out the query annotation ID list)
+      content: 
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope'
 
   requestBodies:
     SpecificDetectJobRequestBody:
-      $ref: './components/requestBodies.yaml#/SpecificDetectJobRequestBody'
+      required: true 
+      content:
+        application/json: # wbia/control/controller_inject.py:954
+          schema:
+            $ref: '#/components/schemas/SpecificDetectJobRequestBodySchema'
     GenericDetectJobRequestBody:
-      $ref: './components/requestBodies.yaml#/GenericDetectJobRequestBody'
+      required: true 
+      content:
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/GenericDetectJobRequestBodySchema'
     GetJobStatusRequestBody:
-      $ref: './components/requestBodies.yaml#/GetJobStatusRequestBody'
+      content:
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/GetJobStatusRequestBodySchema'
     GetJobResultRequestBody:
-      $ref: './components/requestBodies.yaml#/GetJobResultRequestBody'
+      required: true 
+      content:
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/GetJobResultRequestBodySchema'
     GetCompleteMatchRequestBody:
-      $ref: './components/requestBodies.yaml#/GetCompleteMatchRequestBody'
+      required: true 
+      content:
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/GetCompleteMatchRequestBodySchema'
     GetMatchRequestBody:
-      $ref: './components/requestBodies.yaml#/GetMatchRequestBody'
+      required: true 
+      content:
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/GetMatchRequestBodySchema'
     AddAnnotationRequestBody:
-      $ref: './components/requestBodies.yaml#/AddAnnotationRequestBody'
+      required: true 
+      content:
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/AddAnnotationRequestBodySchema'
     AddImageRequestBody:
-      $ref: './components/requestBodies.yaml#/AddImageRequestBody'
+      required: true 
+      content:
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/AddImageRequestBodySchema'
 
   parameters:
-    image_uuid_list:
-      $ref: './components/parameters.yaml#/image_uuid_list'
-    algo:
-      $ref: './components/parameters.yaml#/algo'
-    getStatusJobid:
-      $ref: './components/parameters.yaml#/getStatusJobid'
-    getResultJobid:
-      $ref: './components/parameters.yaml#/getResultJobid'
-    query_config_dict:
-      $ref: './components/parameters.yaml#/query_config_dict'
-    annot_uuid_list:
-      $ref: './components/parameters.yaml#/annot_uuid_list'
-    annot_name_list:
-      $ref: './components/parameters.yaml#/annot_name_list'
-    k:
-      $ref: './components/parameters.yaml#/k'
-    query_annot_uuid_list:
-      $ref: './components/parameters.yaml#/query_annot_uuid_list'
-    query_annot_name_list:
-      $ref: './components/parameters.yaml#/query_annot_name_list'
-    database_annot_uuid_list:
-      $ref: './components/parameters.yaml#/database_annot_uuid_list'
-    database_annot_name_list:
-      $ref: './components/parameters.yaml#/database_annot_name_list'
-    database_imgsetid:
-      $ref: './components/parameters.yaml#/database_imgsetid'
-    matching_state_list:
-      $ref: './components/parameters.yaml#/matching_state_list'
-    echo_query_params:
-      $ref: './components/parameters.yaml#/echo_query_params'
-    include_qaid_in_daids:
-      $ref: './components/parameters.yaml#/include_qaid_in_daids'
-    callback_url:
-      $ref: './components/parameters.yaml#/callback_url'
-    callback_method:
-      $ref: './components/parameters.yaml#/callback_method'
-    callback_detailed:
-      $ref: './components/parameters.yaml#/callback_detailed'
-    fast_lane:
-      $ref: './components/parameters.yaml#/fast_lane'
-    slow_lane:
-      $ref: './components/parameters.yaml#/slow_lane'
-    jobid:
-      $ref: './components/parameters.yaml#/jobid'
-    include_only_gid_list:
-      $ref: './components/parameters.yaml#/include_only_gid_list'
-    yaw:
-      $ref: './components/parameters.yaml#/yaw'
-    is_exemplar:
-      $ref: './components/parameters.yaml#/is_exemplar'
-    is_staged:
-      $ref: './components/parameters.yaml#/is_staged'
-    species:
-      $ref: './components/parameters.yaml#/species'
-    is_known:
-      $ref: './components/parameters.yaml#/is_known'
-    hasgt:
-      $ref: './components/parameters.yaml#/hasgt'
-    minqual:
-      $ref: './components/parameters.yaml#/minqual'
-    has_timestamp:
-      $ref: './components/parameters.yaml#/has_timestamp'
-    min_timedelta:
-      $ref: './components/parameters.yaml#/min_timedelta'
-    imgsetid_list:
-      $ref: './components/parameters.yaml#/imgsetid_list'
-    require_unixtime:
-      $ref: './components/parameters.yaml#/require_unixtime'
-    require_gps:
-      $ref: './components/parameters.yaml#/require_gps'
-    is_tile:
-      $ref: './components/parameters.yaml#/is_tile'
-    is_reviewed:
-      $ref: './components/parameters.yaml#/is_reviewed'
-    imgsetid:
-      $ref: './components/parameters.yaml#/imgsetid'
+    ###############################################################################
+    # DETECTION PARAMETERS
+    ###############################################################################
+
+    image_uuid_list: # wbia/web/apis_engine.py:777
+      name: image_uuid_list
+      in: query # wbia/control/controller_inject.py:950
+      description: Comma-separated list of image uuids to detect on 
+      required: true
+      style: form
+      explode: false # wbia/control/controller_inject.py:454-485
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+      example: 
+        - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+        - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+    algo: # wbia/web/apis_engine.py:1005
+      name: algo
+      in: query
+      description: Type of model to use (either lightnet (default) or yolo)
+      schema: 
+        type: string
+        enum: 
+          - lightnet
+          - yolo
+        default: lightnet 
+
+    ###############################################################################
+    # JOB PARAMETERS
+    ###############################################################################
+
+    getStatusJobid: # wbia/web/job_engine.py:295
+      name: jobid
+      in: query
+      description: |
+        Optional job ID to retrieve status from.
+        If jobid is specified, returns the status of the specified job.
+        If jobid is not specified, returns a dictionary containing the status of all jobs.   
+      schema: 
+        type: string
+        nullable: true
+
+    getResultJobid: # wbia/web/job_engine.py:384
+      name: jobid
+      in: query
+      description: Job ID to retrieve results from 
+      required: true
+      schema: 
+        type: string
+
+    ###############################################################################
+    # MATCH PARAMETERS
+    ###############################################################################
+
+    query_config_dict: # wbia/web/apis_engine.py:410
+      name: query_config_dict
+      in: query 
+      description: Optional JSON string containing algorithmic configuration arguments.
+      schema:
+        type: string # see how the JSON is parsed in wbia/control/controller_inject.py:470-480
+
+    # Parameters for all-vs-all matching
+
+    annot_uuid_list: # wbia/web/apis_engine.py:405
+      name: annot_uuid_list
+      in: query 
+      description: |
+        Optional comma-separated list of query annotation UUIDs to identify. 
+        If not specified or empty, uses all valid annotations in the database.
+      style: form
+      explode: false # wbia/control/controller_inject.py:454-485
+      schema:
+        type: array
+        nullable: true
+        items:
+          type: string
+          format: uuid
+      example: 
+        - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+        - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+    annot_name_list: # wbia/web/apis_engine.py:407
+      name: annot_name_list
+      in: query 
+      description: |
+        Optional comma-separated list to specify the query annotation names. 
+        Must match length of annot_uuid_list if provided.
+      style: form
+      explode: false # wbia/control/controller_inject.py:454-485
+      schema:
+        type: array
+        nullable: true
+        items:
+          type: string
+          nullable: true
+
+    k: # wbia/web/apis_engine.py:391, wbia/web/apis_query.py:847
+      name: k
+      in: query 
+      description: Number of top matches to return per query annotation.
+      schema:
+        type: integer
+        default: 5
+
+    # Parameters for one-vs-all matching
+
+    query_annot_uuid_list: # wbia/web/apis_engine.py:490
+      name: query_annot_uuid_list
+      in: query 
+      description: Comma-separated list containing exactly one query annotation UUID to identify.
+      required: true
+      style: form
+      explode: false # wbia/control/controller_inject.py:454-485
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+      example: 
+        - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+
+    query_annot_name_list: # wbia/web/apis_engine.py:492
+      name: query_annot_name_list
+      in: query 
+      description: |
+        Optional comma-separated list to specify the query annotation names. 
+        Must match length of query_annot_uuid_list if provided.
+      style: form
+      explode: false # wbia/control/controller_inject.py:454-485
+      schema:
+        type: array
+        nullable: true
+        items:
+          type: string
+          nullable: true
+
+    database_annot_uuid_list: # wbia/web/apis_engine.py:493
+      name: database_annot_uuid_list
+      in: query 
+      description: |
+        Optional comma-separated list of the annotation UUIDs that the algorithm is allowed to use for identification.  
+        If not specified, all annotations are used. 
+        CANNOT be used together with database_imgsetid.
+      style: form
+      explode: false # wbia/control/controller_inject.py:454-485
+      schema:
+        type: array
+        nullable: true
+        items:
+          type: string
+          format: uuid
+      example: 
+        - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+        - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
+    database_annot_name_list: # wbia/web/apis_engine.py:496
+      name: database_annot_name_list
+      in: query 
+      description: |
+        Optional comma-separated list to specify the database annotation names. 
+        Must match length of database_annot_uuid_list if provided.
+      style: form
+      explode: false # wbia/control/controller_inject.py:454-485
+      schema:
+        type: array
+        nullable: true
+        items:
+          type: string
+          nullable: true
+
+    database_imgsetid: # wbia/web/apis_engine.py:473, wbia/control/manual_imageset_funcs.py:449, wbia/control/manual_imageset_funcs.py:532
+      name: database_imgsetid
+      in: query 
+      description: |
+        Optional image set ID to restrict database annotations to a specific image set. 
+        CANNOT be used together with database_annot_uuid_list.
+      schema:
+        type: integer # integer row ID, automatically converted to a list by @accessor_decors.getter_1toM (getter_vector_output in wbia/control/accessor_decors.py:474) at wbia/control/manual_imageset_funcs.py:447
+        nullable: true
+
+    matching_state_list: # wbia/web/apis_engine.py:498
+      name: matching_state_list
+      in: query 
+      description: |
+        Optional comma-separated list of matching state description to guide graph inference.
+        Each list item is a 3-tuple: [query_annot_uuid, database_annot_uuid, state] 
+        Valid states are:
+          - "matched" 
+          - "notmatched" / "nonmatch" 
+          - "notcomparable" 
+        If not specified or empty, the algorithm runs without human feedback constraint.
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: array
+          items:
+            type: string
+          minItems: 3
+          maxItems: 3
+      example: 
+        - ["uuid1", "uuid2", "matched"]
+        - ["uuid1", "uuid3", "notmatched"]
+
+    echo_query_params: # wbia/web/apis_engine.py:502
+      name: echo_query_params
+      in: query
+      description: |
+        Whether to return the following query parameters with the result:
+          - query_annot_uuid_list
+          - database_annot_uuid_list
+          - query_config_dict
+      schema:
+        type: boolean
+        default: true
+
+    include_qaid_in_daids: # wbia/web/apis_engine.py:477, wbia/web/apis_engine.py:669, wbia/algo/hots/pipeline.py:295
+      name: include_qaid_in_daids
+      in: query
+      description: |
+        Whether to include the query annotation in the database list for caching optimization.
+        Self-matches are automatically filtered out by the pipeline regardless of this setting.
+      schema:
+        type: boolean
+        default: true
+
+    ###############################################################################
+    # SHARED PARAMETERS FOR INITIATING JOBS 
+    ###############################################################################
+
+    callback_url: # wbia/web/apis_engine.py:778
+      name: callback_url
+      in: query
+      description: Optional URL that will be called when detection succeeds or fails
+      schema: 
+        type: string
+        nullable: true
+        format: uri 
+        
+    callback_method: # wbia/web/job_engine.py:2123-2128
+      name: callback_method
+      in: query
+      description: HTTP method for callback_url, defaults to POST if none is specified
+      schema: 
+        type: string
+        nullable: true
+        enum: 
+          - GET
+          - POST
+          - PUT
+        default: POST 
+
+    callback_detailed: # wbia/web/job_engine.py:2133-2137
+      name: callback_detailed
+      in: query
+      description: Whether to include detailed results in callback
+      schema:
+        type: boolean
+        default: false
+
+    fast_lane: # wbia/web/job_engine.py:497 (fast by default)
+      name: lane
+      in: query
+      description: Job queue lane (fast for quick jobs and slow for lower priority jobs)
+      schema: 
+        type: string
+        enum: 
+          - fast
+          - slow
+        default: fast 
+
+    slow_lane: # wbia/web/job_engine.py:497 (slow by default)
+      name: lane
+      in: query
+      description: Job queue lane (fast for quick jobs and slow for lower priority jobs)
+      schema: 
+        type: string
+        enum: 
+          - fast
+          - slow
+        default: slow 
+
+    jobid: # wbia/web/job_engine.py:1112, wbia/web/job_engine.py:1398
+      name: jobid
+      in: query
+      description: Optional custom job ID # restrictions TBD: https://wildme.slack.com/archives/C09M79QFTMY/p1761066892770159
+      schema: 
+        type: string
+        nullable: true
+
+    ###############################################################################
+    # ANNOTATION PARAMETERS
+    ###############################################################################
+
+    include_only_gid_list: # wbia/control/manual_annot_funcs.py:710
+      name: include_only_gid_list
+      in: query 
+      description: If specified, remove annotations that don't have these GIDs (default = None)
+      style: form
+      explode: false # wbia/control/controller_inject.py:454-485
+      schema:
+        type: array
+        nullable: true
+        items:
+          type: integer
+
+    yaw: # wbia/control/manual_annot_funcs.py:711
+      name: yaw
+      in: query
+      description: |
+        DEPRECATED yaw filter (see wbia/control/manual_annot_funcs.py:1986).
+        TBD on whether this can be used: https://wildme.slack.com/archives/C09M79QFTMY/p1761245102220719
+        The yaw value cannot be None as a default because None is used as a filtering value,
+        therefore it is set to 'no-filter' by default.
+      schema:
+        type: string
+        default: 'no-filter'
+
+    is_exemplar: # wbia/control/manual_annot_funcs.py:712
+      name: is_exemplar
+      in: query
+      description:  If specified, filter annotations to either be or not be exemplars (default = None)
+      schema:
+        type: boolean
+        nullable: true 
+
+    is_staged: # wbia/control/manual_annot_funcs.py:693
+      name: is_staged
+      in: query
+      description: |
+        If specified, filter annotations to either be or not be staged (default = None)
+        As of Oct 23 2025, staging is not allowed (see wbia/web/appfuncs.py:34),
+        so this parameter has no effects.
+      schema:
+        type: boolean
+        default: false
+
+    species: # wbia/control/manual_annot_funcs.py:713
+      name: species
+      in: query
+      description: If specified, filter annotations to be of the given species (default = None)
+      schema:
+        type: string
+        nullable: true
+
+    is_known: # wbia/control/manual_annot_funcs.py:714
+      name: is_known
+      in: query
+      description: If specified, filter annotations to either be or not be known individuals (default = None)
+      schema:
+        type: boolean
+        nullable: true
+
+    hasgt: # wbia/control/manual_annot_funcs.py:716
+      name: hasgt
+      in: query
+      description: If specified, filter annotations to either have or not have ground truth (default = None)
+      schema:
+        type: boolean
+        nullable: true
+
+    minqual: # wbia/control/manual_annot_funcs.py:709
+      name: minqual
+      in: query
+      description: If specified, filter annotations to have at least the given quality (default = None)
+      schema:
+        type: integer
+        nullable: true
+
+    has_timestamp: # wbia/control/manual_annot_funcs.py:709
+      name: has_timestamp
+      in: query
+      description: If specified, filter annotations to either have or not have timestamps (default = None)
+      schema:
+        type: boolean
+        nullable: true
+
+    min_timedelta: # wbia/control/manual_annot_funcs.py:715
+      name: min_timedelta
+      in: query
+      description: Minimum timedelta between annotations of known individuals (default = None)
+      schema:
+        type: integer
+        nullable: true
+
+    ###############################################################################
+    # IMAGE PARAMETERS
+    ###############################################################################
+
+    imgsetid_list: # wbia/control/manual_image_funcs.py:122
+      name: imgsetid_list
+      in: query 
+      description: |
+        Only used if imgsetid is None.
+        If specified, filter images to only those that belong to the given tuple of image set IDs
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: integer
+
+    require_unixtime: # wbia/control/manual_image_funcs.py:123
+      name: require_unixtime
+      in: query
+      description: If true, do not include images without timestamps # wbia/control/manual_image_funcs.py:199
+      schema:
+        type: boolean
+        default: false
+
+    require_gps: # wbia/control/manual_image_funcs.py:189
+      name: require_gps
+      in: query
+      description: If true, do not include images without gps # wbia/control/manual_image_funcs.py:205
+      schema:
+        type: boolean
+        nullable: true
+
+    is_tile: # wbia/control/manual_image_funcs.py:126
+      name: is_tile
+      in: query
+      description: |
+        If true, only include tiles (wbia/control/manual_image_funcs.py:209)
+        A tile is an image with a non-null parent_gid (wbia/control/manual_image_funcs.py:3190)
+        Tiles are used to divide large images into smaller regions for processing.
+      schema:
+        type: boolean
+        default: false
+
+    is_reviewed: # wbia/control/manual_image_funcs.py:127
+      name: is_reviewed
+      in: query
+      description: |
+        If specified, filter images to either be or not be reviewed.
+        The default is None (no filtering of this criteria).
+        Here, reviewed refers to the "All Instances Found" flag, which is
+        true if all objects of interest (animals) have an ANNOTATION in the image,
+        and false otherwise (wbia/control/manual_image_funcs.py:2176).
+      schema:
+        type: boolean
+        nullable: true
+
+    ###############################################################################
+    # SHARED ANNOTATION AND IMAGE PARAMETERS
+    ###############################################################################
+
+    imgsetid: # wbia/control/manual_image_funcs.py:121, wbia/control/manual_annot_funcs.py:709
+      name: imgsetid
+      in: query
+      description: Imageset ID (default = None)
+      schema:
+        type: integer
+        nullable: true
 
   x-standardErrors: &WBIAStandardErrors
     "400":
@@ -195,26 +1301,6 @@ components:
       $ref: '#/components/responses/InvalidImageInput415'
     "500":
       $ref: '#/components/responses/WebRuntimeException500'
-    "600":
-      $ref: '#/components/responses/MissingUUID600'
-    "601":
-      $ref: '#/components/responses/DuplicateUUID601'
-    "602":
-      $ref: '#/components/responses/UnknownUUID602'
-    "603":
-      $ref: '#/components/responses/ReviewNotReady603'
-    "604":
-      $ref: '#/components/responses/UnavailableUUID604'
-    "605":
-      $ref: '#/components/responses/ReviewFinished605'
-    "606":
-      $ref: '#/components/responses/MultipleNamedDuplicate606'
-    "607":
-      $ref: '#/components/responses/MatchThumb607'
-    "608":
-      $ref: '#/components/responses/InvalidUUID608'
-    "609":
-      $ref: '#/components/responses/InvalidMatch609'
 
 paths:
 
