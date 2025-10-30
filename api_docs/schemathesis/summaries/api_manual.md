@@ -4,20 +4,22 @@
 See log here: https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt
 
 API Operations:
-  Selected: 19/19
-  Tested: 19
+- Selected: 19/19
+- Tested: 19
 
 Failures: 
-  ❌ Server error: 21
-  ❌ API accepted schema-violating request: 4
-  ❌ API rejected schema-compliant request: 5
-  ❌ Unsupported methods: 2
+- Server error: 21
+- API accepted schema-violating request: 4
+- API rejected schema-compliant request: 5
+- Unsupported methods: 2
 
 ## Failure summaries 
 ### (1) No validation of input parameters - 23 errors
+
 Errors: 
 - Server error (18)
 - API accepted schema-violating request (5)
+
 Test Cases: 
 1. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L47: `/api/engine/detect/cnn/yolo/` accepts `jobid` of the wrong type ({})
 2. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L63: `/api/engine/detect/cnn/yolo/` accepts invalid input and then crashes with type error resulting in server error (500) rather than Missing or Invalid Input Error (400)
@@ -44,9 +46,11 @@ Test Cases:
 23. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#417: `/api/engine/job/status/` GET accepts invalid garbage parameters from the fuzzing test and then crashes with internal server error (500) rather than Missing or Invalid Input Error (400)
 
 ### (2) `schemathesis` fails to recoginize custom 6XX error codes (LESS IMPORTANT) - 9 errors
+
 Errors: 
 - Server error (5)
 - API rejected schema-compliant request (4)
+
 Test Cases: 
 1. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L30
 2. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L76
