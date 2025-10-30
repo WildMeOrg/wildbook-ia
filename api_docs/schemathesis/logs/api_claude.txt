@@ -1,0 +1,3454 @@
+Schemathesis v4.3.15
+━━━━━━━━━━━━━━━━━━━━
+
+
+ ✅  Loaded specification from ../openapi/api_claude.yaml (in 0.34s)                                                                                                                  
+
+     Base URL:         http://localhost:85                                                                                                                                            
+     Specification:    Open API 3.0.4                                                                                                                                                 
+     Operations:       227 selected / 227 total                                                                                                                                       
+
+
+ ✅  API capabilities:                                                                                                                                                                
+
+     Supports NULL byte in headers:    ✓                                                                                                                                              
+
+ 🚫  Examples (in 87.65s)                                                                                                                                                             
+                                                                                                                                                                                      
+     ✅  18 passed  ❌  25 failed  🚫   3 errors  ⏭  181 skipped                                                                                                                      
+
+ ❌  Coverage (in 66.24s)                                                                                                                                                                                   
+                                                                                                                                                                                                            
+     ✅   1 passed  ❌ 226 failed                                                                                                                                                                           
+
+ ❌  Fuzzing (in 44.67s)                                                                                                                                                                                    
+                                                                                                                                                                                                            
+     ✅   1 passed  ❌ 226 failed                                                                                                                                                                           
+
+==================================== ERRORS ====================================
+_____________________________ GET /api/image/uri/ ______________________________
+Network Error
+
+Read timed out after 10.0 seconds
+
+Reproduce with: 
+
+    curl -X GET 'http://localhost:85/api/image/uri/?gid_list=1%2C2%2C3'
+_____________________________ GET /api/image/uuid/ _____________________________
+Network Error
+
+Read timed out after 10.0 seconds
+
+Reproduce with: 
+
+    curl -X GET 'http://localhost:85/api/image/uuid/?gid_list=1%2C2%2C3'
+
+Need more help?
+    Join our Discord server: https://discord.gg/R9ASRAmHnA
+=================================== FAILURES ===================================
+_______________________________ POST /api/annot/ _______________________________
+1. Test Case ID: 5pDKSi
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: add_annots(ibs, gid_list, bbox_list=None, theta_list=None, species_list=None, nid_list=None, name_list=None, vert_list=None, annot_uuid_list=None, yaw_list=None, viewpoint_list=None, quality_list=None, multiple_list=None, interest_list=None, canonical_list=None, detect_confidence_list=None, notes_list=None, annot_visual_uuid_list=None, annot_semantic_uuid_list=None, species_rowid_list=None, staged_uuid_list=None, staged_use // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "bbox_list": [[10, 20, 300, 400], [50, 60, 250, 350]], "vert_list": [[[0, 0], [100, 0], [100, 100], [0, 100]]], "theta_list": [0.0, 1.57, 3.14], "species_list": ["zebra_plains", "elephant_savanna", "giraffe_reticulated"], "species_rowid_list": [1, 2, 3], "name_list": ["Fred", "Sally", "Unknown_123"], "nid_list": [1, 2, 3], "viewpoint_list": ["left", "right", "front"], "quality_list": [5, "good", 3, "excellent"], "detect_confidence_list": [0.95, 0.87, 0.92], "notes_list": ["Clear shot", "Partially occluded", "Good lighting"], "multiple_list": [false, true, false], "interest_list": [true, false, true], "canonical_list": [false, true, false], "annot_uuid_list": ["550e8400-e29b-41d4-a716-446655440000", "6ba7b810-9dad-11d1-80b4-00c04fd430c8"], "annot_visual_uuid_list": ["550e8400-e29b-41d4-a716-446655440001"], "annot_semantic_uuid_list": ["550e8400-e29b-41d4-a716-446655440002"], "staged_uuid_list": [null, "7ba7b810-9dad-11d1-80b4-00c04fd430c9", null], "staged_user_id_list": [null, "user@example.com", null]}' http://localhost:85/api/annot/
+
+_____________________________ PUT /api/annot/bbox/ _____________________________
+1. Test Case ID: StObPf
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True, **kwargs)\nReceived Function Definition: set_annot_bboxes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], bbox_list=[[100, 150, 200, 250], [300, 400, 180, 220], [50, 75, 150, 175]])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'bbox_list': [[100, 150, 200, 250], [300, 400, 180, 220], [50, 75, 150, 175]]\nAs // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "bbox_list": [[100, 150, 200, 250], [300, 400, 180, 220], [50, 75, 150, 175]]}' http://localhost:85/api/annot/bbox/
+
+___________________________ PUT /api/annot/species/ ____________________________
+1. Test Case ID: B5C6d3
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_species(ibs, aid_list, species_text_list, **kwargs)\nReceived Function Definition: set_annot_species(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], species_text_list=['zebra_plains', 'zebra_grevys', 'bear_polar'])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'species_text_list': ['zebra_plains', 'zebra_grevys', 'bear_polar']\nAssertionError: index=0 in gid_l // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "species_text_list": ["zebra_plains", "zebra_grevys", "bear_polar"]}' http://localhost:85/api/annot/species/
+
+__________________________ PUT /api/annot/name/text/ ___________________________
+1. Test Case ID: wvATBy
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3, 4], "name_text_list": ["zebra_001", "fred", "sue", "____"]}' http://localhost:85/api/annot/name/text/
+
+2. Test Case ID: rsBFnw
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'name_text_list' value: array with fewer items than allowed by minitems)
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3, 4], "name_text_list": []}' http://localhost:85/api/annot/name/text/
+
+__________________________ GET /api/annot/image/uuid/ __________________________
+1. Test Case ID: t878CS
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_uuids(ibs, aid_list)\nReceived Function Definition: get_annot_image_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\nAssertionError: index=0 in gid_list is None\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    outp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET 'http://localhost:85/api/annot/image/uuid/?aid_list=1%2C2%2C3'
+
+________________________ PUT /api/annot/age/months/min/ ________________________
+1. Test Case ID: bKXzi9
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list, duplicate_behavior='error')\nReceived Function Definition: set_annot_age_months_est_min(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, age_months_est_min_list=[12, 24, 6], aid_list=[1, 2, 3])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'age_months_est_min_list': [12, 24, 6]\nTypeError: set_annot_age_months_est_mi // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "age_months_est_min_list": [12, 24, 6]}' http://localhost:85/api/annot/age/months/min/
+
+________________________ PUT /api/annot/age/months/max/ ________________________
+1. Test Case ID: okNFLc
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list, duplicate_behavior='error')\nReceived Function Definition: set_annot_age_months_est_max(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, age_months_est_max_list=[36, 48, 18], aid_list=[1, 2, 3])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'age_months_est_max_list': [36, 48, 18]\nTypeError: set_annot_age_months_est_ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "age_months_est_max_list": [36, 48, 18]}' http://localhost:85/api/annot/age/months/max/
+
+___________________________ PUT /api/annot/interest/ ___________________________
+1. Test Case ID: mUlubB
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False, delete_thumbs=True)\nReceived Function Definition: set_annot_interest(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], interest_list=[False, True, False])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'interest_list': [False, True, False]\nTypeError: set_annot_interest() got an unexpected keyword arg // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "interest_list": [false, true, false]}' http://localhost:85/api/annot/interest/
+
+___________________________ PUT /api/annot/multiple/ ___________________________
+1. Test Case ID: dEA5Y6
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_multiple(ibs, aid_list, flag_list)\nReceived Function Definition: set_annot_multiple(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], multiple_list=[False, True, False])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'multiple_list': [False, True, False]\nTypeError: set_annot_multiple() got an unexpected keyword argument 'multiple_list'\nTraceback (most recent c // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "multiple_list": [false, true, false]}' http://localhost:85/api/annot/multiple/
+
+__________________________ PUT /api/annot/canonical/ ___________________________
+1. Test Case ID: bumJ8t
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_canonical(ibs, aid_list, flag_list)\nReceived Function Definition: set_annot_canonical(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], canonical_list=[True, False, False])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'canonical_list': [True, False, False]\nTypeError: set_annot_canonical() got an unexpected keyword argument 'canonical_list'\nTraceback (most re // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "canonical_list": [true, false, false]}' http://localhost:85/api/annot/canonical/
+
+_____________________________ PUT /api/annot/yaw/ ______________________________
+1. Test Case ID: nSeLBl
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False)\nReceived Function Definition: set_annot_yaws(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], yaw_list=[0.0, 1.57, 3.14])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'yaw_list': [0.0, 1.57, 3.14]\nAssertionError: index=0 in gid_list is None\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/w // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "yaw_list": [0.0, 1.57, 3.14]}' http://localhost:85/api/annot/yaw/
+
+____________________________ PUT /api/annot/theta/ _____________________________
+1. Test Case ID: JlqjzC
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True, update_visual_uuids=True, notify_root=True)\nReceived Function Definition: set_annot_thetas(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], theta_list=[0.0, 0.5, 1.0])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'theta_list': [0.0, 0.5, 1.0]\nAssertionError: index=0 in gid_list is None\nTraceback (most re // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "theta_list": [0.0, 0.5, 1.0]}' http://localhost:85/api/annot/theta/
+
+_____________________________ PUT /api/annot/vert/ _____________________________
+1. Test Case ID: 9UhFAe
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_verts(ibs, aid_list, verts_list, theta_list=None, interest_list=None, canonical_list=None, delete_thumbs=True, update_visual_uuids=True, notify_root=True)\nReceived Function Definition: set_annot_verts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2], verts_list=[[[100, 100], [200, 100], [200, 200], [100, 200]], [[50, 50], [150, 50], [150, 150]]])\nReceived Function Parameters: // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2], "verts_list": [[[100, 100], [200, 100], [200, 200], [100, 200]], [[50, 50], [150, 50], [150, 150]]]}' http://localhost:85/api/annot/vert/
+
+_____________________________ PUT /api/annot/note/ _____________________________
+1. Test Case ID: tescTU
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_notes(ibs, aid_list, notes_list)\nReceived Function Definition: set_annot_notes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], note_list=['Good quality', 'Check species ID', ''])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'note_list': ['Good quality', 'Check species ID', '']\nTypeError: set_annot_notes() got an unexpected keyword argument 'note_list'\nTrac // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "note_list": ["Good quality", "Check species ID", ""]}' http://localhost:85/api/annot/note/
+
+___________________________ PUT /api/annot/metadata/ ___________________________
+1. Test Case ID: E6QZW6
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_metadata(ibs, aid_list, metadata_dict_list)\nReceived Function Definition: set_annot_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], metadata_list=[dict(key1='value1'), dict(key2='value2'), None])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'metadata_list': [{'key1': 'value1'}, {'key2': 'value2'}, None]\nTypeError: set_annot_metadata() got an unexpe // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "metadata_list": [{"key1": "value1"}, {"key2": "value2"}, null]}' http://localhost:85/api/annot/metadata/
+
+_____________________________ PUT /api/annot/sex/ ______________________________
+1. Test Case ID: VEClNp
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_sex(ibs, aid_list, name_sex_list, eager=True, nInput=None)\nReceived Function Definition: set_annot_sex(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], sex_list=[0, 1, -1])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'sex_list': [0, 1, -1]\nTypeError: set_annot_sex() got an unexpected keyword argument 'sex_list'\nTraceback (most recent call last):\n  File \" // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "sex_list": [0, 1, -1]}' http://localhost:85/api/annot/sex/
+
+__________________________ PUT /api/annot/part/rowid/ __________________________
+1. Test Case ID: UE2Huu
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "part_rowid_list": [1, 2, 1]}' http://localhost:85/api/annot/part/rowid/
+
+2. Test Case ID: 7cZGzL
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'part_rowid_list' value: array with invalid items: incorrect type)
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "part_rowid_list": [{}]}' http://localhost:85/api/annot/part/rowid/
+
+_______________________________ GET /api/image/ ________________________________
+1. Test Case ID: cdEtes
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_valid_gids(ibs, imgsetid=None, imgsetid_list=(), require_unixtime=False, require_gps=None, reviewed=None, is_tile=False, is_reviewed=None, sort=False, **kwargs)\nReceived Function Definition: get_valid_gids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, imgsetid=1, imgsetid_list=[1, 2, 3], is_reviewed=True, is_tile=False, require_gps=False, require_unixtime=False, reviewed=True, sort=False)\nRecei // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET 'http://localhost:85/api/image/?imgsetid=1&imgsetid_list=1%2C2%2C3&require_unixtime=False&require_gps=False&reviewed=True&is_tile=False&is_reviewed=True&sort=False'
+
+_____________________________ PUT /api/image/uri/ ______________________________
+1. Test Case ID: VBTAWs
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_uris(ibs, gid_list, new_gpath_list)\nReceived Function Definition: set_image_uris(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=42, new_gpath_list='/data/images/localized/elephant_042.jpg')\nReceived Function Parameters:\n\t'gid_list': 42\n\t'new_gpath_list': '/data/images/localized/elephant_042.jpg'\nTypeError: 'int' object is not iterable\nTraceback (most recent call last):\n  Fi // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": 42, "new_gpath_list": "/data/images/localized/elephant_042.jpg"}' http://localhost:85/api/image/uri/
+
+_____________________________ PUT /api/image/gps/ ______________________________
+1. Test Case ID: WfurMe
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None)\nReceived Function Definition: set_image_gps(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], gps_list=[[-1.286389, 36.817223], [47.606209, -122.332069], [-1, -1]], lat_list=[-1.286389, 47.606209, -1], lon_list=[36.817223, -122.332069, -1])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'gps_list':  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "gps_list": [[-1.286389, 36.817223], [47.606209, -122.332069], [-1, -1]], "lat_list": [-1.286389, 47.606209, -1], "lon_list": [36.817223, -122.332069, -1]}' http://localhost:85/api/image/gps/
+
+_________________________ PUT /api/image/orientation/ __________________________
+1. Test Case ID: qX4ccm
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_orientation(ibs, gid_list, orientation_list)\nReceived Function Definition: set_image_orientation(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], orientation_list=[0, 1, 0])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'orientation_list': [0, 1, 0]\nAssertionError: Could not find path (None, 1)\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/w // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "orientation_list": [0, 1, 0]}' http://localhost:85/api/image/orientation/
+
+_____________________________ PUT /api/image/note/ _____________________________
+1. Test Case ID: Bke8co
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_notes(ibs, gid_list, notes_list)\nReceived Function Definition: set_image_notes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], note_list=['Good quality', 'Check timestamp', ''])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'note_list': ['Good quality', 'Check timestamp', '']\nTypeError: set_image_notes() got an unexpected keyword argument 'note_list'\nTraceb // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "note_list": ["Good quality", "Check timestamp", ""]}' http://localhost:85/api/image/note/
+
+___________________________ PUT /api/image/metadata/ ___________________________
+1. Test Case ID: VVTzBt
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_metadata(ibs, gid_list, metadata_dict_list)\nReceived Function Definition: set_image_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], metadata_list=[dict(camera='Canon'), dict(device='phone'), None])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'metadata_list': [{'camera': 'Canon'}, {'device': 'phone'}, None]\nTypeError: set_image_metadata() got an un // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "metadata_list": [{"camera": "Canon"}, {"device": "phone"}, null]}' http://localhost:85/api/image/metadata/
+
+_______________________ PUT /api/image/timedelta/posix/ ________________________
+1. Test Case ID: pHZaWa
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_timedelta_posix(ibs, gid_list, image_timedelta_posix_list, duplicate_behavior='error')\nReceived Function Definition: set_image_timedelta_posix(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], timedelta_list=[0, 3600, -7200])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'timedelta_list': [0, 3600, -7200]\nTypeError: set_image_timedelta_posix() got an unexpecte // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "timedelta_list": [0, 3600, -7200]}' http://localhost:85/api/image/timedelta/posix/
+
+__________________________ PUT /api/image/time/posix/ __________________________
+1. Test Case ID: EAd0OY
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_time_posix(ibs, gid_list, image_time_posix_list, duplicate_behavior='error')\nReceived Function Definition: set_image_time_posix(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], unixtime_list=[1609459200, 1609545600, 1609632000])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'unixtime_list': [1609459200, 1609545600, 1609632000]\nTypeError: set_image_time_posix( // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "unixtime_list": [1609459200, 1609545600, 1609632000]}' http://localhost:85/api/image/time/posix/
+
+_______________________________ GET /api/annot/ ________________________________
+1. Test Case ID: hjrdLE
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_valid_aids(ibs, imgsetid=None, include_only_gid_list=None, yaw='no-filter', is_exemplar=None, is_staged=False, species=None, is_known=None, hasgt=None, minqual=None, has_timestamp=None, min_timedelta=None)\nReceived Function Definition: get_valid_aids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, x-schemathesis-unknown-property=42, yaw=None)\nReceived Function Parameters:\n\t'yaw': None\n\t'x-sch // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/?yaw=null&x-schemathesis-unknown-property=42'
+
+______________________________ DELETE /api/annot/ ______________________________
+1. Test Case ID: VxAae1
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'aid_list' value: array with fewer items than allowed by minitems)
+
+[200] OK:
+
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": []}' http://localhost:85/api/annot/
+
+2. Test Case ID: vMg1tu
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_annots(ibs, aid_list)\nReceived Function Definition: delete_annots(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: delete_annots() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTypeEr // Output truncated...`
+
+Reproduce with: 
+
+    curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/annot/
+
+_____________________________ GET /api/annot/bbox/ _____________________________
+1. Test Case ID: Klffga
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_bboxes(ibs, aid_list, reference_tile_gid=None)\nReceived Function Definition: get_annot_bboxes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[''], x-schemathesis-unknown-property=42)\nReceived Function Parameters:\n\t'aid_list': ['']\n\t'x-schemathesis-unknown-property': 42\nTypeError: get_annot_bboxes() got an unexpected keyword argument 'x-schemathesis-unknown-property'\nTracebac // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/bbox/?aid_list=&x-schemathesis-unknown-property=42'
+
+___________________________ GET /api/annot/species/ ____________________________
+1. Test Case ID: nWDJxQ
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_species(ibs, aid_list)\nReceived Function Definition: get_annot_species(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_species() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwa // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/species/
+
+__________________________ GET /api/annot/name/text/ ___________________________
+1. Test Case ID: 15vF48
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_name_texts(ibs, aid_list, distinguish_unknowns=False)\nReceived Function Definition: get_annot_name_texts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[0], x-schemathesis-unknown-property=42)\nReceived Function Parameters:\n\t'aid_list': [0]\n\t'x-schemathesis-unknown-property': 42\nTypeError: get_annot_name_texts() got an unexpected keyword argument 'x-schemathesis-unknown-proper // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/name/text/?aid_list=0&x-schemathesis-unknown-property=42'
+
+__________________________ GET /api/annot/name/rowid/ __________________________
+1. Test Case ID: wd9kKL
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_nids(ibs, aid_list, distinguish_unknowns=True)\nReceived Function Definition: get_annot_nids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_nids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    o // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/name/rowid/
+
+__________________________ PUT /api/annot/name/rowid/ __________________________
+1. Test Case ID: P2suAY
+
+- Server error
+
+- Unsupported methods
+
+    Unsupported method DELETE returned 500, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_annot_nids(ibs, aid_list)\nReceived Function Definition: delete_annot_nids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[], nid_list=[])\nReceived Function Parameters:\n\t'aid_list': []\n\t'nid_list': []\nTypeError: delete_annot_nids() got an unexpected keyword argument 'nid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", lin // Output truncated...`
+
+Reproduce with: 
+
+    curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "nid_list": []}' http://localhost:85/api/annot/name/rowid/
+
+2. Test Case ID: 7btOOy
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/name/rowid/
+
+__________________________ GET /api/annot/name/uuid/ ___________________________
+1. Test Case ID: hp4kd7
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_name_uuids(ibs, aid_list, **kwargs)\nReceived Function Definition: get_annot_name_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_name_uuids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n     // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/name/uuid/
+
+__________________________ PUT /api/annot/name/uuid/ ___________________________
+1. Test Case ID: w5c1lc
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'name_uuid_list' value: array with invalid items: incorrect type)
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "name_uuid_list": [{}]}' http://localhost:85/api/annot/name/uuid/
+
+2. Test Case ID: OnL0Va
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/name/uuid/
+
+________________________ GET /api/annot/species/rowid/ _________________________
+1. Test Case ID: NvZHSi
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_species_rowids(ibs, aid_list)\nReceived Function Definition: get_annot_species_rowids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_species_rowids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n   // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/species/rowid/
+
+________________________ PUT /api/annot/species/rowid/ _________________________
+1. Test Case ID: Rruk8i
+
+- Server error
+
+- Unsupported methods
+
+    Unsupported method DELETE returned 500, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_annot_speciesids(ibs, aid_list)\nReceived Function Definition: delete_annot_speciesids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[], species_rowid_list=[])\nReceived Function Parameters:\n\t'aid_list': []\n\t'species_rowid_list': []\nTypeError: delete_annot_speciesids() got an unexpected keyword argument 'species_rowid_list'\nTraceback (most recent call last):\n  File \"/wbia/wild // Output truncated...`
+
+Reproduce with: 
+
+    curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "species_rowid_list": []}' http://localhost:85/api/annot/species/rowid/
+
+_________________________ GET /api/annot/species/text/ _________________________
+1. Test Case ID: Tl5COw
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_species_texts(ibs, aid_list)\nReceived Function Definition: get_annot_species_texts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_species_texts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    o // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/species/text/
+
+_________________________ PUT /api/annot/species/text/ _________________________
+1. Test Case ID: xq9AVY
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'species_text_list' value: array with invalid items: incorrect type)
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "species_text_list": [{}]}' http://localhost:85/api/annot/species/text/
+
+2. Test Case ID: VfPat5
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/species/text/
+
+_________________________ GET /api/annot/species/uuid/ _________________________
+1. Test Case ID: Gdt3Zw
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_species_uuids(ibs, aid_list)\nReceived Function Definition: get_annot_species_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_species_uuids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    o // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/species/uuid/
+
+_________________________ PUT /api/annot/species/uuid/ _________________________
+1. Test Case ID: DjefOX
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'species_uuid_list' value: array with invalid items: incorrect type)
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "species_uuid_list": [{}]}' http://localhost:85/api/annot/species/uuid/
+
+2. Test Case ID: VsJC5e
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/species/uuid/
+
+________________________ GET /api/annot/imageset/rowid/ ________________________
+1. Test Case ID: QKbL1v
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_imgsetids(ibs, aid_list)\nReceived Function Definition: get_annot_imgsetids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_imgsetids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/imageset/rowid/
+
+________________________ GET /api/annot/imageset/text/ _________________________
+1. Test Case ID: U0koC5
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_set_texts(ibs, aid_list)\nReceived Function Definition: get_annot_image_set_texts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_set_texts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/imageset/text/
+
+________________________ GET /api/annot/imageset/uuid/ _________________________
+1. Test Case ID: x0ihdZ
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_imgset_uuids(ibs, aid_list)\nReceived Function Definition: get_annot_imgset_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_imgset_uuids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    outp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/imageset/uuid/
+
+_____________________________ GET /api/annot/name/ _____________________________
+1. Test Case ID: YGy4to
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "(builtins.ValueError) invalid literal for int() with base 10: 'name'\n[SQL: SELECT chips.annotations_rowid, chips.config_rowid, chips.chips_rowid \nFROM chips \nWHERE (chips.annotations_rowid, chips.config_rowid) IN ([POSTCOMPILE_params])]\n[parameters: [{'params': [('name', 2)]}]]", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/name/
+
+_________________________ GET /api/annot/image/rowid/ __________________________
+1. Test Case ID: fHB52k
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_gids(ibs, aid_list, assume_unique=False)\nReceived Function Definition: get_annot_gids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_gids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/rowid/
+
+__________________________ GET /api/annot/image/gps/ ___________________________
+1. Test Case ID: UZCuzn
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_gps(ibs, aid_list)\nReceived Function Definition: get_annot_image_gps(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_gps() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/gps/
+
+_____________________________ GET /api/annot/uuid/ _____________________________
+1. Test Case ID: xIeU7l
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_uuids(ibs, aid_list)\nReceived Function Definition: get_annot_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_uuids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/uuid/
+
+___________________________ GET /api/annot/quality/ ____________________________
+1. Test Case ID: denJTu
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_qualities(ibs, aid_list, eager=True)\nReceived Function Definition: get_annot_qualities(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_qualities() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    o // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/quality/
+
+___________________________ PUT /api/annot/quality/ ____________________________
+1. Test Case ID: 8VMzvL
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_qualities(ibs, aid_list, annot_quality_list)\nReceived Function Definition: set_annot_qualities(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], annot_quality_list=[6])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'annot_quality_list': [6]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/c // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "annot_quality_list": [6]}' http://localhost:85/api/annot/quality/
+
+__________________________ GET /api/annot/age/months/ __________________________
+1. Test Case ID: SbxFNL
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est(ibs, aid_list, eager=True, nInput=None)\nReceived Function Definition: get_annot_age_months_est(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in t // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/
+
+________________________ GET /api/annot/age/months/min/ ________________________
+1. Test Case ID: q07dFr
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_min(ibs, aid_list, eager=True, nInput=None)\nReceived Function Definition: get_annot_age_months_est_min(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_min() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", li // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/min/
+
+________________________ GET /api/annot/age/months/max/ ________________________
+1. Test Case ID: r8Z8H5
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_max(ibs, aid_list, eager=True, nInput=None)\nReceived Function Definition: get_annot_age_months_est_max(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_max() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", li // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/max/
+
+_______________________ GET /api/annot/age/months/text/ ________________________
+1. Test Case ID: Ght3xg
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_texts(ibs, aid_list, eager=True, nInput=None)\nReceived Function Definition: get_annot_age_months_est_texts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_texts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/text/
+
+___________________________ GET /api/annot/exemplar/ ___________________________
+1. Test Case ID: hTPuTx
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_exemplar_flags(ibs, aid_list)\nReceived Function Definition: get_annot_exemplar_flags(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_exemplar_flags() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n   // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/exemplar/
+
+___________________________ PUT /api/annot/exemplar/ ___________________________
+1. Test Case ID: M56gUf
+
+- Server error
+
+- Unsupported methods
+
+    Unsupported method POST returned 500, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_view=None, imgsetid=None, dry_run=False, verbose=True, prog_hook=None)\nReceived Function Definition: set_exemplars_from_quality_and_viewpoint(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], flag_list=[True, False, True])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'flag_list': [True, False, Tr // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "flag_list": [true, false, true]}' http://localhost:85/api/annot/exemplar/
+
+___________________________ GET /api/annot/reviewed/ ___________________________
+1. Test Case ID: E9ydeo
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_reviewed(ibs, aid_list)\nReceived Function Definition: get_annot_reviewed(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_reviewed() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(** // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/reviewed/
+
+___________________________ PUT /api/annot/reviewed/ ___________________________
+1. Test Case ID: Nwr483
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_reviewed(ibs, aid_list, reviewed_list)\nReceived Function Definition: set_annot_reviewed(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], reviewed_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'reviewed_list': [{}]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/cont // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "reviewed_list": [{}]}' http://localhost:85/api/annot/reviewed/
+
+___________________________ GET /api/annot/interest/ ___________________________
+1. Test Case ID: ThcYfO
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_interest(ibs, aid_list)\nReceived Function Definition: get_annot_interest(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_interest() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(** // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/interest/
+
+___________________________ GET /api/annot/multiple/ ___________________________
+1. Test Case ID: 44dxbS
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_multiple(ibs, aid_list)\nReceived Function Definition: get_annot_multiple(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_multiple() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(** // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/multiple/
+
+__________________________ GET /api/annot/canonical/ ___________________________
+1. Test Case ID: I5rMaP
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_canonical(ibs, aid_list, default_none_to_false=True)\nReceived Function Definition: get_annot_canonical(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_canonical() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbi // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/canonical/
+
+_____________________________ GET /api/annot/yaw/ ______________________________
+1. Test Case ID: hbyBp1
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_yaws(ibs, aid_list, assume_unique=False)\nReceived Function Definition: get_annot_yaws(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_yaws() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/yaw/
+
+____________________________ GET /api/annot/theta/ _____________________________
+1. Test Case ID: Xn8UPN
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_thetas(ibs, aid_list)\nReceived Function Definition: get_annot_thetas(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_thetas() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/theta/
+
+__________________________ GET /api/annot/viewpoint/ ___________________________
+1. Test Case ID: mejizG
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_viewpoints(ibs, aid_list, assume_unique=False)\nReceived Function Definition: get_annot_viewpoints(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_viewpoints() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_we // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/viewpoint/
+
+__________________________ PUT /api/annot/viewpoint/ ___________________________
+1. Test Case ID: qmOrhp
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_viewpoints(ibs, aid_list, viewpoint_list, purge_cache=True, only_allow_known=True, _yaw_update=False, _code_update=True)\nReceived Function Definition: set_annot_viewpoints(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], viewpoint_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'viewpoint_list': [{}]\nTypeError: unhashable type: 'dict'\nTraceback  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "viewpoint_list": [{}]}' http://localhost:85/api/annot/viewpoint/
+
+_____________________________ GET /api/annot/vert/ _____________________________
+1. Test Case ID: nIBTNi
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_verts(ibs, aid_list)\nReceived Function Definition: get_annot_verts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_verts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/vert/
+
+___________________________ GET /api/annot/num/vert/ ___________________________
+1. Test Case ID: 8ZQndV
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_num_verts(ibs, aid_list)\nReceived Function Definition: get_annot_num_verts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_num_verts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/num/vert/
+
+______________________ GET /api/annot/detect/confidence/ _______________________
+1. Test Case ID: 4ALZAg
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_detect_confidence(ibs, aid_list)\nReceived Function Definition: get_annot_detect_confidence(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_detect_confidence() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_we // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/detect/confidence/
+
+______________________ PUT /api/annot/detect/confidence/ _______________________
+1. Test Case ID: G74irb
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_detect_confidence(ibs, aid_list, confidence_list)\nReceived Function Definition: set_annot_detect_confidence(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], confidence_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'confidence_list': [{}]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbia/wildb // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "confidence_list": [{}]}' http://localhost:85/api/annot/detect/confidence/
+
+_____________________________ GET /api/annot/note/ _____________________________
+1. Test Case ID: ZjM95E
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_notes(ibs, aid_list)\nReceived Function Definition: get_annot_notes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_notes() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/note/
+
+___________________________ GET /api/annot/metadata/ ___________________________
+1. Test Case ID: lw0XYs
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_metadata(ibs, aid_list, return_raw=False)\nReceived Function Definition: get_annot_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_metadata() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n   // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/metadata/
+
+_____________________________ GET /api/annot/sex/ ______________________________
+1. Test Case ID: jX6TdI
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_sex(ibs, aid_list, eager=True, nInput=None)\nReceived Function Definition: get_annot_sex(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_sex() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/sex/
+
+__________________________ GET /api/annot/part/rowid/ __________________________
+1. Test Case ID: znqypu
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_part_rowids(ibs, aid_list, is_staged=False)\nReceived Function Definition: get_annot_part_rowids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_part_rowids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_web // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/part/rowid/
+
+__________________________ GET /api/annot/tile/rowid/ __________________________
+1. Test Case ID: sRyMnW
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_tile_rowids(ibs, aid_list)\nReceived Function Definition: get_annot_image_tile_rowids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_tile_rowids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_we // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/tile/rowid/
+
+________________________ GET /api/annot/image/unixtime/ ________________________
+1. Test Case ID: Qzz5o4
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_unixtimes(ibs, aid_list, **kwargs)\nReceived Function Definition: get_annot_image_unixtimes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_unixtimes() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbi // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/unixtime/
+
+_______________________ GET /api/annot/image/file/path/ ________________________
+1. Test Case ID: L3l98h
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_paths(ibs, aid_list)\nReceived Function Definition: get_annot_image_paths(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_paths() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/file/path/
+
+__________________________ GET /api/annot/image/name/ __________________________
+1. Test Case ID: ZB9i3E
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_names(ibs, aid_list)\nReceived Function Definition: get_annot_image_names(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_names() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/name/
+
+_______________________________ POST /api/image/ _______________________________
+1. Test Case ID: Wg4ru3
+
+- Server error
+
+- Unsupported methods
+
+    Unsupported method DELETE returned 500, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_images(ibs, gid_list, trash_images=True)\nReceived Function Definition: delete_images(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gpath_list=['http://example.com/wildlife/zebra_001.jpg', 'http://example.com/wildlife/elephant_002.jpg'])\nReceived Function Parameters:\n\t'gpath_list': ['http://example.com/wildlife/zebra_001.jpg', 'http://example.com/wildlife/elephant_002.jpg']\nTypeError: dele // Output truncated...`
+
+Reproduce with: 
+
+    curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gpath_list": ["http://example.com/wildlife/zebra_001.jpg", "http://example.com/wildlife/elephant_002.jpg"]}' http://localhost:85/api/image/
+
+_____________________________ GET /api/image/uuid/ _____________________________
+1. Test Case ID: HNjh5l
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_uuids(ibs, gid_list)\nReceived Function Definition: get_image_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_uuids() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/uuid/
+
+_____________________________ GET /api/image/uri/ ______________________________
+1. Test Case ID: D3r8Qg
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_uris(ibs, gid_list)\nReceived Function Definition: get_image_uris(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_uris() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTyp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/uri/
+
+_____________________________ GET /api/image/gps/ ______________________________
+1. Test Case ID: 8niaO5
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_gps(ibs, gid_list)\nReceived Function Definition: get_image_gps(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_gps() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTypeEr // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/image/gps/
+
+___________________________ GET /api/image/unixtime/ ___________________________
+1. Test Case ID: 28P50u
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_unixtime(ibs, gid_list, timedelta_correction=True)\nReceived Function Definition: get_image_unixtime(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[0], x-schemathesis-unknown-property=42)\nReceived Function Parameters:\n\t'gid_list': [0]\n\t'x-schemathesis-unknown-property': 42\nTypeError: get_image_unixtime() got an unexpected keyword argument 'x-schemathesis-unknown-property'\nTr // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/unixtime/?gid_list=0&x-schemathesis-unknown-property=42'
+
+___________________________ PUT /api/image/unixtime/ ___________________________
+1. Test Case ID: kRIfJd
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')\nReceived Function Definition: set_image_unixtime(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, duplicate_behavior='AAA', gid_list=[1, 2, 3, 4], unixtime_list=[1609459200, 1625097600, 1640995200, 1656633600])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3, 4]\n\t'unixtime_list': [1609459200, 1625097600, 1640995200, 1 // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": [1, 2, 3, 4], "unixtime_list": [1609459200, 1625097600, 1640995200, 1656633600], "duplicate_behavior": "AAA"}' http://localhost:85/api/image/unixtime/
+
+____________________________ GET /api/image/width/ _____________________________
+1. Test Case ID: og9xuI
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_widths(ibs, gid_list)\nReceived Function Definition: get_image_widths(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_widths() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/width/
+
+____________________________ GET /api/image/height/ ____________________________
+1. Test Case ID: 360Ovk
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_heights(ibs, gid_list)\nReceived Function Definition: get_image_heights(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_heights() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwa // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/height/
+
+_________________________ GET /api/image/orientation/ __________________________
+1. Test Case ID: Hm3Xsw
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_orientation(ibs, gid_list)\nReceived Function Definition: get_image_orientation(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_orientation() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/orientation/
+
+_____________________________ GET /api/image/size/ _____________________________
+1. Test Case ID: YLNJ7C
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_sizes(ibs, gid_list)\nReceived Function Definition: get_image_sizes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_sizes() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/size/
+
+___________________________ GET /api/image/reviewed/ ___________________________
+1. Test Case ID: UScdQl
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_reviewed(ibs, gid_list)\nReceived Function Definition: get_image_reviewed(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_reviewed() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(** // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/reviewed/
+
+___________________________ PUT /api/image/reviewed/ ___________________________
+1. Test Case ID: NEdN3M
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_reviewed(ibs, gid_list, reviewed_list)\nReceived Function Definition: set_image_reviewed(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], reviewed_list=[dict()])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'reviewed_list': [{}]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/cont // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": [1, 2, 3], "reviewed_list": [{}]}' http://localhost:85/api/image/reviewed/
+
+_____________________________ GET /api/image/lat/ ______________________________
+1. Test Case ID: eL6ZYX
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_lat(ibs, gid_list)\nReceived Function Definition: get_image_lat(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_lat() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTypeEr // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/lat/
+
+_____________________________ GET /api/image/lon/ ______________________________
+1. Test Case ID: 0iJC1h
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_lon(ibs, gid_list)\nReceived Function Definition: get_image_lon(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_lon() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTypeEr // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/lon/
+
+_____________________________ GET /api/image/gps2/ _____________________________
+1. Test Case ID: URJxGN
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_gps2(ibs, gid_list)\nReceived Function Definition: get_image_gps2(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_gps2() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTyp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/gps2/
+
+______________________ GET /api/image/detect/confidence/ _______________________
+1. Test Case ID: iEyMXl
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_detect_confidence(ibs, gid_list)\nReceived Function Definition: get_image_detect_confidence(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_detect_confidence() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_we // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/detect/confidence/
+
+_____________________________ GET /api/image/note/ _____________________________
+1. Test Case ID: gtdGlu
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_notes(ibs, gid_list)\nReceived Function Definition: get_image_notes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_notes() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/note/
+
+___________________________ GET /api/image/metadata/ ___________________________
+1. Test Case ID: AUJWh3
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_metadata(ibs, gid_list, return_raw=False)\nReceived Function Definition: get_image_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_metadata() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n   // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/metadata/
+
+_______________________ GET /api/image/timedelta/posix/ ________________________
+1. Test Case ID: R14v6o
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_timedelta_posix(ibs, gid_list, eager=True)\nReceived Function Definition: get_image_timedelta_posix(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_timedelta_posix() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_w // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/timedelta/posix/
+
+__________________________ GET /api/image/time/posix/ __________________________
+1. Test Case ID: 3QTIxi
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/time/posix/
+
+2. Test Case ID: rSAgvc
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/time/posix/?gid_list='
+
+__________________________ GET /api/image/file/name/ ___________________________
+1. Test Case ID: UPEjtx
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_gnames(ibs, gid_list)\nReceived Function Definition: get_image_gnames(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_gnames() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/file/name/
+
+__________________________ GET /api/image/file/path/ ___________________________
+1. Test Case ID: oAih3z
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_paths(ibs, gid_list)\nReceived Function Definition: get_image_paths(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_paths() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/file/path/
+
+__________________________ GET /api/image/file/hash/ ___________________________
+1. Test Case ID: Fn6K9n
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_hash(ibs, gid_list=None, algo='md5')\nReceived Function Definition: get_image_hash(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: 'NoneType' object is not iterable\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTypeError: get_image // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/file/hash/
+
+__________________________ GET /api/image/num/annot/ ___________________________
+1. Test Case ID: 0uCaIl
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_num_annotations(ibs, gid_list)\nReceived Function Definition: get_image_num_annotations(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_num_annotations() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/num/annot/
+
+_______________________ GET /api/annot/age/months/json/ ________________________
+1. Test Case ID: BLU68Z
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_age_months_est_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\",  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/json/
+
+_____________________ GET /api/annot/age/months/max/json/ ______________________
+1. Test Case ID: ERaYeF
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_max_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_age_months_est_max_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_max_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_i // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/max/json/
+
+_____________________ GET /api/annot/age/months/min/json/ ______________________
+1. Test Case ID: h2XEOm
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_min_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_age_months_est_min_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_min_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_i // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/min/json/
+
+_____________________ GET /api/annot/age/months/text/json/ _____________________
+1. Test Case ID: bInjqK
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_texts_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_age_months_est_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/contro // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/text/json/
+
+__________________________ GET /api/annot/bbox/json/ ___________________________
+1. Test Case ID: Slrq9e
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_bboxes_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_bboxes_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_bboxes_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcal // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/bbox/json/
+
+____________________ GET /api/annot/detect/confidence/json/ ____________________
+1. Test Case ID: Mvo6dR
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_detect_confidence_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_detect_confidence_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_detect_confidence_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", l // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/detect/confidence/json/
+
+________________________ GET /api/annot/exemplar/json/ _________________________
+1. Test Case ID: 4VsYoC
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_exemplar_flags_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_exemplar_flags_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_exemplar_flags_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597,  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/exemplar/json/
+
+_____________________ GET /api/annot/image/file/path/json/ _____________________
+1. Test Case ID: jHqdYt
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_paths_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_image_paths_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_paths_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in transl // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/file/path/json/
+
+_______________________ GET /api/annot/image/name/json/ ________________________
+1. Test Case ID: KTfXeD
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_names_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_image_names_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_names_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in transl // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/name/json/
+
+_____________________ GET /api/annot/image/unixtime/json/ ______________________
+1. Test Case ID: D8flwX
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_unixtimes_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_image_unixtimes_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_unixtimes_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 59 // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/unixtime/json/
+
+________________________ GET /api/annot/interest/json/ _________________________
+1. Test Case ID: 7y9fWo
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_interest_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_interest_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_interest_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in trans // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/interest/json/
+
+________________________ GET /api/annot/multiple/json/ _________________________
+1. Test Case ID: p9UC6X
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_multiple_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_multiple_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_multiple_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in trans // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/multiple/json/
+
+__________________________ GET /api/annot/note/json/ ___________________________
+1. Test Case ID: U3e3nM
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_notes_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_notes_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_notes_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/note/json/
+
+________________________ GET /api/annot/num/vert/json/ _________________________
+1. Test Case ID: knGH5F
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_num_verts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_num_verts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_num_verts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wb // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/num/vert/json/
+
+_________________________ GET /api/annot/quality/json/ _________________________
+1. Test Case ID: 3Lmve1
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_qualities_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_qualities_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_qualities_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in tr // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/quality/json/
+
+________________________ GET /api/annot/reviewed/json/ _________________________
+1. Test Case ID: N7ggIf
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_reviewed_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_reviewed_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_reviewed_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/reviewed/json/
+
+___________________________ GET /api/annot/sex/json/ ___________________________
+1. Test Case ID: pSPbDc
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_sex_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_sex_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_sex_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webca // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/sex/json/
+
+__________________________ GET /api/annot/theta/json/ __________________________
+1. Test Case ID: D6Mrsq
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_thetas_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_thetas_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_thetas_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcal // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/theta/json/
+
+__________________________ GET /api/annot/vert/json/ ___________________________
+1. Test Case ID: PfFwMq
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_verts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_verts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_verts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/vert/json/
+
+________________________ GET /api/annot/viewpoint/json/ ________________________
+1. Test Case ID: 0PKvsX
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_viewpoints_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_viewpoints_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_viewpoints_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/viewpoint/json/
+
+___________________________ GET /api/annot/yaw/json/ ___________________________
+1. Test Case ID: p6Ht4V
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_yaws_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_yaws_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_yaws_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/yaw/json/
+
+____________________ GET /api/image/detect/confidence/json/ ____________________
+1. Test Case ID: C0S9Oi
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_detect_confidence_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_detect_confidence_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_detect_confidence_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", l // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/detect/confidence/json/
+
+________________________ GET /api/image/file/hash/json/ ________________________
+1. Test Case ID: Z82n4I
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_hash_json(ibs, image_uuid_list, **kwargs)\nReceived Function Definition: get_image_hash_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_hash_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_we // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/file/hash/json/
+
+________________________ GET /api/image/file/name/json/ ________________________
+1. Test Case ID: rrLLDy
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_gnames_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_gnames_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_gnames_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcal // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/file/name/json/
+
+________________________ GET /api/image/file/path/json/ ________________________
+1. Test Case ID: ycznpe
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_paths_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_paths_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_paths_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/file/path/json/
+
+___________________________ GET /api/image/gps/json/ ___________________________
+1. Test Case ID: HXg9eV
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_gps_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_gps_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_gps_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    ou // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/gps/json/
+
+_________________________ GET /api/image/height/json/ __________________________
+1. Test Case ID: lnZRQf
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_heights_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_heights_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_heights_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_web // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/height/json/
+
+___________________________ GET /api/image/lat/json/ ___________________________
+1. Test Case ID: 9JqnGJ
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_lat_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_lat_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_lat_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    ou // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/lat/json/
+
+___________________________ GET /api/image/lon/json/ ___________________________
+1. Test Case ID: sZQhgi
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_lon_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_lon_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_lon_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    ou // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/lon/json/
+
+__________________________ GET /api/image/note/json/ ___________________________
+1. Test Case ID: iEyaLc
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_notes_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_notes_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_notes_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/note/json/
+
+________________________ GET /api/image/num/annot/json/ ________________________
+1. Test Case ID: udh4Zz
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_num_annotations_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_num_annotations_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_num_annotations_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 59 // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/num/annot/json/
+
+_______________________ GET /api/image/orientation/json/ _______________________
+1. Test Case ID: vsCyjS
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_orientation_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_orientation_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_orientation_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in transl // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/orientation/json/
+
+________________________ GET /api/image/reviewed/json/ _________________________
+1. Test Case ID: 0nVT17
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_reviewed_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_reviewed_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_reviewed_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/reviewed/json/
+
+__________________________ GET /api/image/size/json/ ___________________________
+1. Test Case ID: 298eId
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_sizes_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_sizes_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_sizes_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/size/json/
+
+_____________________ GET /api/image/timedelta/posix/json/ _____________________
+1. Test Case ID: TIwGMt
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_timedelta_posix_json(ibs, image_uuid_list, **kwargs)\nReceived Function Definition: get_image_timedelta_posix_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_timedelta_posix_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/timedelta/posix/json/
+
+________________________ GET /api/image/unixtime/json/ _________________________
+1. Test Case ID: YDuHCo
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_unixtimes_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_unixtimes_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_unixtimes_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wb // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/unixtime/json/
+
+__________________________ GET /api/image/width/json/ __________________________
+1. Test Case ID: WdcZKa
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_widths_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_widths_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_widths_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcal // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/width/json/
+
+_________________________ GET /api/image/annot/rowid/ __________________________
+1. Test Case ID: sUCrpZ
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_aids(ibs, gid_list, is_staged=False, __check_staged__=True, check_tiles=True)\nReceived Function Definition: get_image_aids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_aids() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, i // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/annot/rowid/
+
+__________________________ GET /api/image/annot/uuid/ __________________________
+1. Test Case ID: Zfw2DX
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_annot_uuids(ibs, gid_list)\nReceived Function Definition: get_image_annot_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_annot_uuids() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/annot/uuid/
+
+________________________ GET /api/image/imageset/rowid/ ________________________
+1. Test Case ID: Ll7d56
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_imgsetids(ibs, gid_list)\nReceived Function Definition: get_image_imgsetids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_imgsetids() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/imageset/rowid/
+
+________________________ GET /api/image/imageset/text/ _________________________
+1. Test Case ID: QNzvI5
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_imagesettext(ibs, gid_list)\nReceived Function Definition: get_image_imagesettext(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_imagesettext() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    outp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/imageset/text/
+
+________________________ GET /api/image/imageset/uuid/ _________________________
+1. Test Case ID: fy4BTV
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_imgset_uuids(ibs, gid_list)\nReceived Function Definition: get_image_imgset_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_imgset_uuids() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    outp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/imageset/uuid/
+
+________________________ GET /api/image/species/rowid/ _________________________
+1. Test Case ID: u0PgZz
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_species_rowids(ibs, gid_list)\nReceived Function Definition: get_image_species_rowids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_species_rowids() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n   // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/species/rowid/
+
+_________________________ GET /api/image/species/uuid/ _________________________
+1. Test Case ID: YaQyrR
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_species_uuids(ibs, gid_list)\nReceived Function Definition: get_image_species_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_species_uuids() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    o // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/species/uuid/
+
+_______________________ GET /api/annot/name/rowid/json/ ________________________
+1. Test Case ID: kDWvwM
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_nids_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_nids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_nids_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_we // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/name/rowid/json/
+
+________________________ GET /api/annot/name/text/json/ ________________________
+1. Test Case ID: 4IcfKp
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_name_texts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_name_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_name_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/name/text/json/
+
+________________________ GET /api/annot/name/uuid/json/ ________________________
+1. Test Case ID: 3K8KMN
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_name_rowids_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_name_rowids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_name_rowids_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/name/uuid/json/
+
+______________________ GET /api/annot/species/rowid/json/ ______________________
+1. Test Case ID: f3o8N8
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_species_rowids_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_species_rowids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_species_rowids_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597,  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/species/rowid/json/
+
+______________________ GET /api/annot/species/text/json/ _______________________
+1. Test Case ID: bexsU8
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_species_texts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_species_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_species_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/species/text/json/
+
+______________________ GET /api/annot/species/uuid/json/ _______________________
+1. Test Case ID: BinzDN
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_species_uuids_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_species_uuids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_species_uuids_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/species/uuid/json/
+
+_____________________ GET /api/annot/imageset/rowid/json/ ______________________
+1. Test Case ID: gm6kbf
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_imgsetids_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_imgsetids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_imgsetids_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wb // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/imageset/rowid/json/
+
+______________________ GET /api/annot/imageset/text/json/ ______________________
+1. Test Case ID: UyDVyA
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_set_texts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_image_set_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_set_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 59 // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/imageset/text/json/
+
+______________________ GET /api/annot/imageset/uuid/json/ ______________________
+1. Test Case ID: 6Xof23
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_imgset_uuids_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_imgset_uuids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_imgset_uuids_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in tra // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/imageset/uuid/json/
+
+_______________________ GET /api/annot/image/rowid/json/ _______________________
+1. Test Case ID: iP1HAD
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_gids_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_gids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_gids_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/rowid/json/
+
+_______________________ GET /api/annot/image/uuid/json/ ________________________
+1. Test Case ID: 3QasfD
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_uuids_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_image_uuids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_uuids_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in transl // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/uuid/json/
+
+________________________ GET /api/annot/image/gps/json/ ________________________
+1. Test Case ID: zDb0SW
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_gps_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_image_gps_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_gps_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wb // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/gps/json/
+
+__________________ GET /api/annot/image/contributor/tag/json/ __________________
+1. Test Case ID: MYTHrg
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_contributor_tag_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_image_contributor_tag_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_contributor_tag_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_in // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/contributor/tag/json/
+
+_____________________ GET /api/annot/age/months/min/text/ ______________________
+1. Test Case ID: oOoDuj
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_min_texts(ibs, aid_list, eager=True, nInput=None)\nReceived Function Definition: get_annot_age_months_est_min_texts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_min_texts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controll // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/min/text/
+
+_____________________ GET /api/annot/age/months/max/text/ ______________________
+1. Test Case ID: CjPEQq
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_max_texts(ibs, aid_list, eager=True, nInput=None)\nReceived Function Definition: get_annot_age_months_est_max_texts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_max_texts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controll // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/max/text/
+
+_________________________ GET /api/annot/quality/text/ _________________________
+1. Test Case ID: NwqT9f
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_quality_texts(ibs, aid_list)\nReceived Function Definition: get_annot_quality_texts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_quality_texts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    o // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/quality/text/
+
+___________________________ GET /api/annot/sex/text/ ___________________________
+1. Test Case ID: wczQOf
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_sex_texts(ibs, aid_list, eager=True, nInput=None)\nReceived Function Definition: get_annot_sex_texts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_sex_texts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_w // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/sex/text/
+
+___________________________ GET /api/annot/yaw/text/ ___________________________
+1. Test Case ID: 2eBQch
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_yaw_texts(ibs, aid_list, assume_unique=False)\nReceived Function Definition: get_annot_yaw_texts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_yaw_texts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webca // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/yaw/text/
+
+_________________________ PUT /api/annot/rotate/left/ __________________________
+1. Test Case ID: uuaxAF
+
+- Server error
+
+- Unsupported methods
+
+    Unsupported method POST returned 500, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: update_annot_rotate_left_90(ibs, aid_list)\nReceived Function Definition: update_annot_rotate_left_90(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[])\nReceived Function Parameters:\n\t'aid_list': []\nValueError: not enough values to unpack (expected 4, got 0)\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_web // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": []}' http://localhost:85/api/annot/rotate/left/
+
+2. Test Case ID: dKVdKM
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/rotate/left/
+
+_________________________ PUT /api/annot/rotate/right/ _________________________
+1. Test Case ID: wIM2zo
+
+- Server error
+
+- Unsupported methods
+
+    Unsupported method POST returned 500, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: update_annot_rotate_right_90(ibs, aid_list)\nReceived Function Definition: update_annot_rotate_right_90(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[])\nReceived Function Parameters:\n\t'aid_list': []\nValueError: not enough values to unpack (expected 4, got 0)\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_w // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": []}' http://localhost:85/api/annot/rotate/right/
+
+2. Test Case ID: Bpaum5
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/rotate/right/
+
+_______________________ GET /api/annot/encounter/static/ _______________________
+1. Test Case ID: q9sC6g
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_static_encounter(ibs, aids)\nReceived Function Definition: get_annot_static_encounter(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_static_encounter() missing 1 required positional argument: 'aids'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n     // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/encounter/static/
+
+____________________ GET /api/annot/image/contributor/tag/ _____________________
+1. Test Case ID: m2L9QA
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_contributor_tag(ibs, aid_list)\nReceived Function Definition: get_annot_image_contributor_tag(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_contributor_tag() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in trans // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/contributor/tag/
+
+__________________________ GET /api/annot/image/gps2/ __________________________
+1. Test Case ID: Tk5RGe
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_image_gps2(ibs, aid_list)\nReceived Function Definition: get_annot_image_gps2(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_image_gps2() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = f // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/image/gps2/
+
+_______________________ GET /api/image/annot/rowid/json/ _______________________
+1. Test Case ID: rbQfZU
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_aids_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_aids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_aids_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/annot/rowid/json/
+
+_______________________ GET /api/image/annot/uuid/json/ ________________________
+1. Test Case ID: 1Ar7zm
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_annot_uuids_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_annot_uuids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_annot_uuids_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in transl // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/annot/uuid/json/
+
+_____________________ GET /api/image/imageset/rowid/json/ ______________________
+1. Test Case ID: UtxYHN
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_imgsetids_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_imgsetids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_imgsetids_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wb // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/imageset/rowid/json/
+
+______________________ GET /api/image/imageset/text/json/ ______________________
+1. Test Case ID: 9hLMbh
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_imagesettext_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_imagesettext_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_imagesettext_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in tra // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/imageset/text/json/
+
+______________________ GET /api/image/imageset/uuid/json/ ______________________
+1. Test Case ID: bzIv1g
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_imgset_uuids_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_imgset_uuids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_imgset_uuids_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in tra // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/imageset/uuid/json/
+
+______________________ GET /api/image/species/rowid/json/ ______________________
+1. Test Case ID: rAqP7z
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_species_rowids_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_species_rowids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_species_rowids_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597,  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/species/rowid/json/
+
+______________________ GET /api/image/species/uuid/json/ _______________________
+1. Test Case ID: GvLd5U
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_species_uuids_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_species_uuids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_species_uuids_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/species/uuid/json/
+
+___________________________ GET /api/image/gps/str/ ____________________________
+1. Test Case ID: QR4cmC
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/gps/str/
+
+2. Test Case ID: ioSqiw
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/gps/str/?gid_list='
+
+_______________________ GET /api/image/orientation/str/ ________________________
+1. Test Case ID: Nd8dXN
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_orientation_str(ibs, gid_list)\nReceived Function Definition: get_image_orientation_str(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_orientation_str() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/orientation/str/
+
+_________________________ PUT /api/image/rotate/left/ __________________________
+1. Test Case ID: gEi9FL
+
+- Unsupported methods
+
+    Unsupported method POST returned 200, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[200] OK:
+
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": []}' http://localhost:85/api/image/rotate/left/
+
+2. Test Case ID: eURKLj
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/image/rotate/left/
+
+_________________________ PUT /api/image/rotate/right/ _________________________
+1. Test Case ID: qxQscf
+
+- Unsupported methods
+
+    Unsupported method POST returned 200, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[200] OK:
+
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": []}' http://localhost:85/api/image/rotate/right/
+
+2. Test Case ID: zsMBv7
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/image/rotate/right/
+
+__________________________ PUT /api/image/rotate/180/ __________________________
+1. Test Case ID: SV56WJ
+
+- Unsupported methods
+
+    Unsupported method POST returned 200, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[200] OK:
+
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": []}' http://localhost:85/api/image/rotate/180/
+
+2. Test Case ID: 6B8Zeb
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/image/rotate/180/
+
+_______________________ GET /api/image/contributor/tag/ ________________________
+1. Test Case ID: NzsiOl
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_contributor_tag(ibs, gid_list, eager=True, nInput=None)\nReceived Function Definition: get_image_contributor_tag(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_contributor_tag() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, i // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/contributor/tag/
+
+___________________ GET /api/annot/age/months/max/text/json/ ___________________
+1. Test Case ID: h96qXC
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_max_texts_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_age_months_est_max_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_max_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/co // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/max/text/json/
+
+___________________ GET /api/annot/age/months/min/text/json/ ___________________
+1. Test Case ID: 4AJaBW
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_age_months_est_min_texts_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_age_months_est_min_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_age_months_est_min_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/co // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/age/months/min/text/json/
+
+______________________ GET /api/annot/quality/text/json/ _______________________
+1. Test Case ID: gozPBt
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_quality_texts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_quality_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_quality_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/quality/text/json/
+
+________________________ GET /api/annot/sex/text/json/ _________________________
+1. Test Case ID: gxeKL8
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_sex_texts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_sex_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_sex_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wb // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/sex/text/json/
+
+_____________________ GET /api/annot/viewpoint/text/json/ ______________________
+1. Test Case ID: MzGDxj
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_viewpoint_texts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_viewpoint_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_viewpoint_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 59 // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/viewpoint/text/json/
+
+________________________ GET /api/annot/yaw/text/json/ _________________________
+1. Test Case ID: JjJ0YV
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_yaw_texts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_yaw_texts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_yaw_texts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wb // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/yaw/text/json/
+
+_________________________ GET /api/annot/species/json/ _________________________
+1. Test Case ID: SUilbz
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_species_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_species_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_species_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_web // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/species/json/
+
+__________________________ GET /api/annot/rowid/uuid/ __________________________
+1. Test Case ID: 8bUNt2
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_aids_from_uuid(ibs, uuid_list)\nReceived Function Definition: get_annot_aids_from_uuid(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_aids_from_uuid() missing 1 required positional argument: 'uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/rowid/uuid/
+
+_______________________ GET /api/annot/rowid/uuid/json/ ________________________
+1. Test Case ID: 15uQDT
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_aids_from_uuid_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_aids_from_uuid_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_aids_from_uuid_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597,  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/rowid/uuid/json/
+
+__________________________ GET /api/annot/tags/json/ ___________________________
+1. Test Case ID: qnATVc
+
+- Undocumented HTTP status code
+
+    Received: 405
+    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/tags/json/
+
+2. Test Case ID: 37ljw7
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[405] Method Not Allowed:
+
+    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+    <title>405 Method Not Allowed</title>
+    <h1>Method Not Allowed</h1>
+    <p>The method is not allowed for the requested URL.</p>`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/tags/json/?aid_list='
+
+_________________________ GET /api/annot/uuid/hashid/ __________________________
+1. Test Case ID: R2kM83
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_hashid_uuid(ibs, aid_list, prefix='')\nReceived Function Definition: get_annot_hashid_uuid(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_hashid_uuid() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/uuid/hashid/
+
+_______________________ GET /api/annot/uuid/hashid/json/ _______________________
+1. Test Case ID: Shdza6
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_hashid_uuid_json(ibs, annot_uuid_list, **kwargs)\nReceived Function Definition: get_annot_hashid_uuid_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_hashid_uuid_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/uuid/hashid/json/
+
+_________________________ GET /api/annot/vert/rotated/ _________________________
+1. Test Case ID: 1qObQa
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_rotated_verts(ibs, aid_list)\nReceived Function Definition: get_annot_rotated_verts(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_rotated_verts() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    o // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/vert/rotated/
+
+______________________ GET /api/annot/vert/rotated/json/ _______________________
+1. Test Case ID: 3nQchT
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_rotated_verts_json(ibs, annot_uuid_list)\nReceived Function Definition: get_annot_rotated_verts_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_rotated_verts_json() missing 1 required positional argument: 'annot_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/vert/rotated/json/
+
+____________________________ GET /api/annot/staged/ ____________________________
+1. Test Case ID: Gj9mks
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_staged_flags(ibs, aid_list)\nReceived Function Definition: get_annot_staged_flags(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_staged_flags() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    outp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/staged/
+
+_______________________ GET /api/annot/staged/metadata/ ________________________
+1. Test Case ID: OT2Q6y
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_staged_metadata(ibs, aid_list, return_raw=False)\nReceived Function Definition: get_annot_staged_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_staged_metadata() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in trans // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/staged/metadata/
+
+_________________________ GET /api/annot/staged/user/ __________________________
+1. Test Case ID: IFK953
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_staged_user_ids(ibs, aid_list)\nReceived Function Definition: get_annot_staged_user_ids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_staged_user_ids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/staged/user/
+
+_________________________ GET /api/annot/staged/uuid/ __________________________
+1. Test Case ID: cPU1wH
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_annot_staged_uuids(ibs, aid_list)\nReceived Function Definition: get_annot_staged_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_annot_staged_uuids() missing 1 required positional argument: 'aid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    outp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/annot/staged/uuid/
+
+___________________________ GET /api/annot/<rowid>/ ____________________________
+1. Test Case ID: FyEu25
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "(builtins.ValueError) invalid literal for int() with base 10: '<rowid>'\n[SQL: SELECT chips.annotations_rowid, chips.config_rowid, chips.chips_rowid \nFROM chips \nWHERE (chips.annotations_rowid, chips.config_rowid) IN ([POSTCOMPILE_params])]\n[parameters: [{'params': [('<rowid>', 2)]}]]", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/%3Crowid%3E/
+
+_________________________ GET /api/annot/json/<uuid>/ __________________________
+1. Test Case ID: uPYypc
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: annotation_src_api_json(ibs, uuid=None)\nReceived Function Definition: annotation_src_api_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, uuid='<uuid>')\nReceived Function Parameters:\n\t'uuid': '<uuid>'\nStatementError: (builtins.ValueError) badly formed hexadecimal UUID string\n[SQL: SELECT annotations.annot_uuid, annotations.annot_rowid \nFROM annotations \nWHERE annotations.annot_uuid IN ([POS // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/json/%3Cuuid%3E/
+
+_____________________ GET /api/image/annot/rowid/species/ ______________________
+1. Test Case ID: QvEi6X
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_aids_of_species(ibs, gid_list, species=None)\nReceived Function Definition: get_image_aids_of_species(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_aids_of_species() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/annot/rowid/species/
+
+___________________ GET /api/image/annot/rowid/species/json/ ___________________
+1. Test Case ID: H89j6Y
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_aids_of_species_json(ibs, image_uuid_list, **kwargs)\nReceived Function Definition: get_image_aids_of_species_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_aids_of_species_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/annot/rowid/species/json/
+
+______________________ GET /api/image/annot/uuid/species/ ______________________
+1. Test Case ID: 56GpIU
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_annot_uuids_of_species(ibs, gid_list, **kwargs)\nReceived Function Definition: get_image_annot_uuids_of_species(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_annot_uuids_of_species() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/annot/uuid/species/
+
+___________________ GET /api/image/annot/uuid/species/json/ ____________________
+1. Test Case ID: LLjnTt
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_annot_uuids_of_species_json(ibs, image_uuid_list, **kwargs)\nReceived Function Definition: get_image_annot_uuids_of_species_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_annot_uuids_of_species_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/annot/uuid/species/json/
+
+__________________________ GET /api/image/name/rowid/ __________________________
+1. Test Case ID: BXuhnp
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_nids(ibs, gid_list)\nReceived Function Definition: get_image_nids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_nids() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTyp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/name/rowid/
+
+_______________________ GET /api/image/name/rowid/json/ ________________________
+1. Test Case ID: 9HOSo1
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_nids_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_nids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_nids_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/name/rowid/json/
+
+__________________________ GET /api/image/name/uuid/ ___________________________
+1. Test Case ID: FoSIf4
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_name_uuids(ibs, gid_list)\nReceived Function Definition: get_image_name_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_name_uuids() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = f // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/name/uuid/
+
+________________________ GET /api/image/name/uuid/json/ ________________________
+1. Test Case ID: zRRjdY
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_name_uuids_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_name_uuids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_name_uuids_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/name/uuid/json/
+
+__________________________ GET /api/image/rowid/uuid/ __________________________
+1. Test Case ID: SfDkDI
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_gids_from_uuid(ibs, uuid_list)\nReceived Function Definition: get_image_gids_from_uuid(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_gids_from_uuid() missing 1 required positional argument: 'uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/rowid/uuid/
+
+_______________________ GET /api/image/rowid/uuid/json/ ________________________
+1. Test Case ID: E2yx8a
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_gids_from_uuid_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_gids_from_uuid_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_gids_from_uuid_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597,  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/rowid/uuid/json/
+
+_____________________ GET /api/image/orientation/str/json/ _____________________
+1. Test Case ID: gNdF3w
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_orientation_str_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_orientation_str_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_orientation_str_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 59 // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/orientation/str/json/
+
+________________________ GET /api/image/location/code/ _________________________
+1. Test Case ID: coHdvr
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_location_codes(ibs, gid_list, eager=True)\nReceived Function Definition: get_image_location_codes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_location_codes() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/location/code/
+
+______________________ GET /api/image/location/code/json/ ______________________
+1. Test Case ID: LUyowz
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_location_codes_json(ibs, image_uuid_list, **kwargs)\nReceived Function Definition: get_image_location_codes_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_location_codes_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\",  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/location/code/json/
+
+______________________ GET /api/image/contributor/rowid/ _______________________
+1. Test Case ID: y0QJlr
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_contributor_rowid(ibs, gid_list, eager=True, nInput=None)\nReceived Function Definition: get_image_contributor_rowid(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_contributor_rowid() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/contributor/rowid/
+
+_____________________________ GET /api/image/dict/ _____________________________
+1. Test Case ID: 1VOaYi
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_gids_with_aids(ibs, gid_list=None)\nReceived Function Definition: get_image_gids_with_aids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[\"['null'\", \" 'null']\"])\nReceived Function Parameters:\n\t'gid_list': [\"['null'\", \" 'null']\"]\nStatementError: (builtins.ValueError) invalid literal for int() with base 10: \"['null'\"\n[SQL: SELECT rowid, images.image_tile_parent_rowid \ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/dict/?gid_list=%5B%27null%27%2C+%27null%27%5D'
+
+__________________________ GET /api/image/dict/json/ ___________________________
+1. Test Case ID: sPL5B4
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_uuids_with_annot_uuids(ibs, gid_list=None)\nReceived Function Definition: get_image_uuids_with_annot_uuids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[\"['null'\", \" 'null']\"])\nReceived Function Parameters:\n\t'gid_list': [\"['null'\", \" 'null']\"]\nStatementError: (builtins.ValueError) invalid literal for int() with base 10: \"['null'\"\n[SQL: SELECT rowid, images.image_til // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/dict/json/?gid_list=%5B%27null%27%2C+%27null%27%5D'
+
+____________________________ GET /api/image/thumb/ _____________________________
+1. Test Case ID: 2UDEmY
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "invalid literal for int() with base 10: 'thumb'", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/thumb/
+
+__________________________ GET /api/image/unixtime2/ ___________________________
+1. Test Case ID: kc7M5j
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_unixtime2(ibs, gid_list, **kwargs)\nReceived Function Definition: get_image_unixtime2(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_unixtime2() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    out // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/unixtime2/
+
+___________________________ GET /api/image/uri/json/ ___________________________
+1. Test Case ID: 8t2rKH
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_uris_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_uris_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_uris_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/uri/json/
+
+_________________________ GET /api/image/uri/original/ _________________________
+1. Test Case ID: rRRwha
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_uris_original(ibs, gid_list)\nReceived Function Definition: get_image_uris_original(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_uris_original() missing 1 required positional argument: 'gid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    o // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/uri/original/
+
+______________________ GET /api/image/uri/original/json/ _______________________
+1. Test Case ID: cJJJBS
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_image_uris_original_json(ibs, image_uuid_list)\nReceived Function Definition: get_image_uris_original_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_image_uris_original_json() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in  // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/image/uri/original/json/
+
+___________________________ GET /api/image/<rowid>/ ____________________________
+1. Test Case ID: ozHNuG
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "invalid literal for int() with base 10: '<rowid>'", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/image/%3Crowid%3E/
+
+_________________________ GET /api/image/json/<uuid>/ __________________________
+1. Test Case ID: l34odT
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: image_base64_api_json(ibs, uuid=None, thumbnail=False, fresh=False, **kwargs)\nReceived Function Definition: image_base64_api_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, uuid='<uuid>')\nReceived Function Parameters:\n\t'uuid': '<uuid>'\nAttributeError: 'IBEISController' object has no attribute 'get_image_rowid_from_uuid'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/cont // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/image/json/%3Cuuid%3E/
+
+_______________________ GET /api/image/feature/<rowid>/ ________________________
+1. Test Case ID: i88v0e
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "(builtins.ValueError) invalid literal for int() with base 10: '<rowid>'\n[SQL: SELECT features.images_rowid, features.config_rowid, features.features_rowid \nFROM features \nWHERE (features.images_rowid, features.config_rowid) IN ([POSTCOMPILE_params])]\n[parameters: [{'params': [('<rowid>', 1)]}]]", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/image/feature/%3Crowid%3E/
+
+________________________ GET /api/engine/job/metadata/ _________________________
+1. Test Case ID: xiH3Bk
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_job_metadata(ibs, jobid)\nReceived Function Definition: get_job_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_job_metadata() missing 1 required positional argument: 'jobid'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTyp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/engine/job/metadata/
+
+________________________ POST /api/engine/job/metadata/ ________________________
+1. Test Case ID: dknTGK
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'jobid' value: incorrect type)
+
+[200] OK:
+
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": {"status": "error", "jobid": {}}}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"jobid": {}}' http://localhost:85/api/engine/job/metadata/
+
+2. Test Case ID: HfKDp2
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_job_metadata(ibs, jobid)\nReceived Function Definition: get_job_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_job_metadata() missing 1 required positional argument: 'jobid'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTyp // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/job/metadata/
+
+=================================== SUMMARY ====================================
+
+API Operations:
+  Selected: 227/227
+  Tested: 227
+
+Test Phases:
+  🚫 Examples
+  ❌ Coverage
+  ❌ Fuzzing
+  ⏭  Stateful (not applicable)
+
+Failures:
+  ❌ Server error: 215
+  ❌ API accepted schema-violating request: 7
+  ❌ API rejected schema-compliant request: 14
+  ❌ Undocumented HTTP status code: 14
+  ❌ Unsupported methods: 9
+
+Errors:
+  🚫 Network Error: 2
+
+Test cases:
+  3018 generated, 242 found 259 unique failures, 10 skipped
+
+Seed: 70030986943231090724917985802039060574
+
+====================== 259 failures, 2 errors in 198.73s =======================

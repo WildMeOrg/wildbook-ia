@@ -1,0 +1,431 @@
+Schemathesis v4.3.15
+━━━━━━━━━━━━━━━━━━━━
+
+
+ ✅  Loaded specification from ../openapi/api.yaml (in 0.14s)                                                                                       
+
+     Base URL:         http://localhost:85                                                                                                          
+     Specification:    Open API 3.0.4                                                                                                               
+     Operations:       19 selected / 19 total                                                                                                       
+
+
+ ✅  API capabilities:                                                                                                                              
+
+     Supports NULL byte in headers:    ✓                                                                                                            
+
+ ❌  Examples (in 0.60s)                                                                                                                            
+                                                                                                                                                    
+     ✅  3 passed  ❌  6 failed  ⏭  10 skipped                                                                                                      
+
+ ❌  Coverage (in 42.14s)                                                                                                                           
+                                                                                                                                                    
+     ✅  3 passed  ❌ 16 failed                                                                                                                     
+
+ ❌  Fuzzing (in 7.67s)                                                                                                                             
+                                                                                                                                                    
+     ✅  2 passed  ❌ 17 failed                                                                                                                     
+
+=================================== FAILURES ===================================
+______________________ POST /api/engine/detect/cnn/yolo/ _______________________
+1. Test Case ID: bdLJ7t
+
+- Server error
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[608] Unknown:
+
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (2, 0)", "cache": -1}, "response": {"invalid_image_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "a768243c-4456-4516-a2de-f2abc8702c0a"]], "invalid_annot_uuid_list": []}}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/engine/detect/cnn/yolo/
+
+2. Test Case ID: SPY9hN
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'jobid' value: incorrect type)
+
+[608] Unknown:
+
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (2, 0)", "cache": -1}, "response": {"invalid_image_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "a768243c-4456-4516-a2de-f2abc8702c0a"]], "invalid_annot_uuid_list": []}}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"], "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "fast", "jobid": {}}' http://localhost:85/api/engine/detect/cnn/yolo/
+
+3. Test Case ID: FUVhgD
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_yolo(ibs, image_uuid_list, callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_yolo(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: start_detect_image_yolo() missing 1 required positional argument: 'image_uuid_list'\nTraceback (most recent call // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/detect/cnn/yolo/
+
+____________________ POST /api/engine/query/graph/complete/ ____________________
+1. Test Case ID: sTTlH8
+
+- Server error
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[608] Unknown:
+
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 2)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "a768243c-4456-4516-a2de-f2abc8702c0a"]]}}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -d '{"annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/engine/query/graph/complete/
+
+2. Test Case ID: klOyqT
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_identify_annots_query_complete(ibs, annot_uuid_list=None, annot_name_list=None, matching_state_list=[], query_config_dict={}, k=5, echo_query_params=True, callback_url=None, callback_method=None, callback_detailed=False, lane='slow', jobid=None)\nReceived Function Definition: start_identify_annots_query_complete(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, annot_name_list=None, annot_uuid_list // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"annot_uuid_list": null, "annot_name_list": null, "query_config_dict": "", "k": 5, "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "slow", "jobid": {}}' http://localhost:85/api/engine/query/graph/complete/
+
+3. Test Case ID: UA8wLd
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+
+[200] OK:
+
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": "8c3df21f-a1a0-4e74-8488-44d302b70ae0"}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/query/graph/complete/
+
+____________________ GET /api/engine/query/graph/complete/ _____________________
+1. Test Case ID: 6VsS6J
+
+- Server error
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[608] Unknown:
+
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 2)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "[3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "a768243c-4456-4516-a2de-f2abc8702c0a]"]]}}`
+
+Reproduce with: 
+
+    curl -X GET 'http://localhost:85/api/engine/query/graph/complete/?annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a'
+
+2. Test Case ID: KnB7av
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_identify_annots_query_complete(ibs, annot_uuid_list=None, annot_name_list=None, matching_state_list=[], query_config_dict={}, k=5, echo_query_params=True, callback_url=None, callback_method=None, callback_detailed=False, lane='slow', jobid=None)\nReceived Function Definition: start_identify_annots_query_complete(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, annot_name_list=[''])\nReceived Funct // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/query/graph/complete/?annot_name_list='
+
+________________________ POST /api/engine/query/graph/ _________________________
+1. Test Case ID: KlvgJC
+
+- Server error
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[608] Unknown:
+
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 3)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [2, "a768243c-4456-4516-a2de-f2abc8702c0a"]]}}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -d '{"query_annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce"], "database_annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"], "matching_state_list": [["uuid1", "uuid2", "matched"], ["uuid1", "uuid3", "notmatched"]]}' http://localhost:85/api/engine/query/graph/
+
+2. Test Case ID: LeU7pw
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_identify_annots_query(ibs, query_annot_uuid_list=None, query_annot_name_list=None, database_annot_uuid_list=None, database_annot_name_list=None, database_imgsetid=None, matching_state_list=[], query_config_dict={}, echo_query_params=True, include_qaid_in_daids=True, callback_url=None, callback_method=None, callback_detailed=False, lane='slow', jobid=None)\nReceived Function Definition: start_identify_annots_query(<IBE // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"query_annot_uuid_list": null, "query_annot_name_list": null, "database_annot_uuid_list": null, "database_annot_name_list": null, "database_imgsetid": null, "matching_state_list": [["uuid1", "uuid2", "matched"], ["uuid1", "uuid3", "notmatched"]], "query_config_dict": "", "echo_query_params": true, "include_qaid_in_daids": true, "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "slow", "jobid": {}}' http://localhost:85/api/engine/query/graph/
+
+_________________________ GET /api/engine/query/graph/ _________________________
+1. Test Case ID: vZl55H
+
+- Server error
+
+- API rejected schema-compliant request
+
+    Valid data should have been accepted
+    Expected: 2xx, 401, 403, 404, 5xx
+
+[608] Unknown:
+
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 3)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "[3833d7c9-820a-44e0-af8c-e06d749e7fce"], [2, "a768243c-4456-4516-a2de-f2abc8702c0a]"]]}}`
+
+Reproduce with: 
+
+    curl -X GET 'http://localhost:85/api/engine/query/graph/?query_annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce&database_annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a&matching_state_list=%5B%27uuid1%27%2C+%27uuid2%27%2C+%27matched%27%5D%2C%5B%27uuid1%27%2C+%27uuid3%27%2C+%27notmatched%27%5D'
+
+2. Test Case ID: SzaulI
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_identify_annots_query(ibs, query_annot_uuid_list=None, query_annot_name_list=None, database_annot_uuid_list=None, database_annot_name_list=None, database_imgsetid=None, matching_state_list=[], query_config_dict={}, echo_query_params=True, include_qaid_in_daids=True, callback_url=None, callback_method=None, callback_detailed=False, lane='slow', jobid=None)\nReceived Function Definition: start_identify_annots_query(<IBE // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/query/graph/?query_annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce&query_annot_name_list=&database_annot_uuid_list=&database_annot_name_list=&database_imgsetid=0&matching_state_list=%5B%27uuid1%27%2C+%27uuid2%27%2C+%27matched%27%5D%2C%5B%27uuid1%27%2C+%27uuid3%27%2C+%27notmatched%27%5D&query_config_dict=&echo_query_params=true&include_qaid_in_daids=true&callback_url=https%3A%2F%2FA.COM&callback_method=GET&lane=fast&jobid='
+
+____________________________ POST /api/annot/json/ _____________________________
+1. Test Case ID: dG8tce
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: add_annots_json(ibs, image_uuid_list, annot_bbox_list, annot_theta_list, annot_viewpoint_list=None, annot_quality_list=None, annot_species_list=None, annot_multiple_list=None, annot_interest_list=None, annot_name_list=None, **kwargs)\nReceived Function Definition: add_annots_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, annot_bbox_list=[['x value of top left corner', 'y value of top left corner' // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -d '{"annot_bbox_list": [["x value of top left corner", "y value of top left corner", "width", "height"]], "image_uuid_list": [], "annot_theta_list": []}' http://localhost:85/api/annot/json/
+
+2. Test Case ID: 8IDKcC
+
+- Unsupported methods
+
+    Unsupported method DELETE returned 500, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_annots_json(ibs, annot_uuid_list)\nReceived Function Definition: delete_annots_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, annot_bbox_list=[['x value of top left corner', 'y value of top left corner', 'width', 'height']], annot_interest_list=[], annot_multiple_list=[], annot_name_list=None, annot_quality_list=[], annot_species_list=[], annot_theta_list=[], annot_uuid_list=None, annot_vi // Output truncated...`
+
+Reproduce with: 
+
+    curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uuid_list": [], "annot_bbox_list": [["x value of top left corner", "y value of top left corner", "width", "height"]], "annot_theta_list": [], "annot_viewpoint_list": [], "annot_quality_list": [], "annot_species_list": [], "annot_multiple_list": [], "annot_interest_list": [], "annot_name_list": null, "annot_uuid_list": null}' http://localhost:85/api/annot/json/
+
+____________________ POST /api/engine/detect/cnn/lightnet/ _____________________
+1. Test Case ID: am3wEj
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_lightnet(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, callback_detailed=False, callback_method=None, callback_url=None, image_uuid_list=['3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"], "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "fast", "jobid": {}}' http://localhost:85/api/engine/detect/cnn/lightnet/
+
+_____________________ GET /api/engine/detect/cnn/lightnet/ _____________________
+1. Test Case ID: cgratG
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_lightnet(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, callback_method='GET', callback_url='https://A.COM', image_uuid_list=['[3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de-f2abc8702c0 // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/detect/cnn/lightnet/?image_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a&callback_url=https%3A%2F%2FA.COM&callback_method=GET&lane=fast&jobid='
+
+_________________________ POST /api/engine/detect/cnn/ _________________________
+1. Test Case ID: dLTMbM
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "cannot convert dictionary update sequence element #0 to a sequence", "cache": -1}, "response": null}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[null, null]' http://localhost:85/api/engine/detect/cnn/
+
+_________________________ GET /api/engine/detect/cnn/ __________________________
+1. Test Case ID: L2BZnL
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_algo(ibs, image_uuid_list, algo='lightnet', callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_algo(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, callback_detailed=True, callback_method='GET', callback_url='https://A.COM', image_uuid_list=['[3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a7 // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/detect/cnn/?image_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a&callback_url=https%3A%2F%2FA.COM&callback_method=GET&callback_detailed=true&lane=fast&jobid='
+
+_________________________ POST /api/engine/job/status/ _________________________
+1. Test Case ID: RXECyT
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'jobid' value: incorrect type)
+
+[200] OK:
+
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": {"status": "error", "jobid": {}}}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"jobid": {}}' http://localhost:85/api/engine/job/status/
+
+_________________________ POST /api/engine/job/result/ _________________________
+1. Test Case ID: qw6nev
+
+- API accepted schema-violating request
+
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'jobid' value: incorrect type)
+
+[200] OK:
+
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": {"status": "error", "jobid": {}}}`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"jobid": {}}' http://localhost:85/api/engine/job/result/
+
+2. Test Case ID: C7GPxc
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_job_result(ibs, jobid)\nReceived Function Definition: get_job_result(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_job_result() missing 1 required positional argument: 'jobid'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTypeError // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/job/result/
+
+_________________________ GET /api/engine/job/result/ __________________________
+1. Test Case ID: QB4vSm
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_job_result(ibs, jobid)\nReceived Function Definition: get_job_result(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: get_job_result() missing 1 required positional argument: 'jobid'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\nTypeError // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET http://localhost:85/api/engine/job/result/
+
+_____________________________ GET /api/annot/json/ _____________________________
+1. Test Case ID: dWoXa7
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_valid_annot_uuids_json(ibs, **kwargs)\nReceived Function Definition: get_valid_annot_uuids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, x-schemathesis-unknown-property=42, yaw='no-filter')\nReceived Function Parameters:\n\t'yaw': 'no-filter'\n\t'x-schemathesis-unknown-property': 42\nTypeError: get_valid_aids() got an unexpected keyword argument 'x-schemathesis-unknown-property'\nTraceback ( // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/json/?yaw=no-filter&x-schemathesis-unknown-property=42'
+
+____________________________ POST /api/image/json/ _____________________________
+1. Test Case ID: sM1oKg
+
+- Server error
+
+- Unsupported methods
+
+    Unsupported method DELETE returned 500, expected 405 Method Not Allowed
+
+    Return 405 for methods not listed in the OpenAPI spec
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_images_json(ibs, image_uuid_list)\nReceived Function Definition: delete_images_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, image_gps_lat_list=None, image_gps_lon_list=None, image_unixtime_list=None, image_uri_list=[])\nReceived Function Parameters:\n\t'image_uri_list': []\n\t'image_unixtime_list': None\n\t'image_gps_lat_list': None\n\t'image_gps_lon_list': None\nTypeError: delete_images // Output truncated...`
+
+Reproduce with: 
+
+    curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uri_list": [], "image_unixtime_list": null, "image_gps_lat_list": null, "image_gps_lon_list": null}' http://localhost:85/api/image/json/
+
+_____________________________ GET /api/image/json/ _____________________________
+1. Test Case ID: l0pGNS
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_valid_image_uuids_json(ibs, **kwargs)\nReceived Function Definition: get_valid_image_uuids_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, imgsetid_list=[''], is_reviewed=True, is_tile=True, require_gps=True, require_unixtime=True)\nReceived Function Parameters:\n\t'imgsetid_list': ['']\n\t'require_unixtime': True\n\t'require_gps': True\n\t'is_tile': True\n\t'is_reviewed': True\nStatementError // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET 'http://localhost:85/api/image/json/?imgsetid_list=&require_unixtime=true&require_gps=true&is_tile=true&is_reviewed=true'
+
+_________________________ GET /api/engine/job/status/ __________________________
+1. Test Case ID: 5M2wUC
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_job_status(ibs, jobid=None)\nReceived Function Definition: get_job_status(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, ='')\nReceived Function Parameters:\n\t'': ''\nTypeError: get_job_status() got an unexpected keyword argument ''\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_webcall\n    output = func(**kwargs)\ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/job/status/?='
+
+=================================== SUMMARY ====================================
+
+API Operations:
+  Selected: 19/19
+  Tested: 19
+
+Test Phases:
+  ❌ Examples
+  ❌ Coverage
+  ❌ Fuzzing
+  ⏭  Stateful (not applicable)
+
+Failures:
+  ❌ Server error: 21
+  ❌ API accepted schema-violating request: 4
+  ❌ API rejected schema-compliant request: 5
+  ❌ Unsupported methods: 2
+
+Test cases:
+  2204 generated, 26 found 32 unique failures
+
+Seed: 99707115869272129825364581962004520821
+
+============================ 32 failures in 50.47s =============================
