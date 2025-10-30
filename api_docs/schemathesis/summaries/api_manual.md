@@ -43,7 +43,7 @@ Test Cases:
 20. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L375: `/api/image/json/` POST only validates GPS lat/lon when both are provided, resulting in success (200) rather than Missing or Invalid Input Error (400) when an invalid `image_gps_lon_list` is provided. 
 21. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L391: `/api/image/json/` POST accepts `image_uri_list` of the wrong type ([]) and then crashes with internal server error (500) rather than Missing or Invalid Input Error (400)
 22. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L404: `/api/image/json/` GET accepts invalid `imgsetid_list` and then crashes with internal server error (500) rather than Missing or Invalid Input Error (400)
-23. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#417: `/api/engine/job/status/` GET accepts invalid garbage parameters from the fuzzing test and then crashes with internal server error (500) rather than Missing or Invalid Input Error (400)
+23. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L417: `/api/engine/job/status/` GET accepts invalid garbage parameters from the fuzzing test and then crashes with internal server error (500) rather than Missing or Invalid Input Error (400)
 
 ### (2) `schemathesis` fails to recoginize custom 6XX error codes (LESS IMPORTANT) - 9 errors
 
