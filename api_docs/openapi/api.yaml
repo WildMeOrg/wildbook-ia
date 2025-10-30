@@ -165,7 +165,7 @@ components:
             type: string
             nullable: true
         query_config_dict: # wbia/web/apis_engine.py:410
-          type: string # see how the JSON is parsed in wbia/control/controller_inject.py:470-480
+          type: object
           description: Optional dictionary of algorithmic configuration parameters
         k: # wbia/web/apis_engine.py:391, wbia/web/apis_query.py:847
           type: integer
@@ -270,7 +270,7 @@ components:
             - ["uuid1", "uuid2", "matched"]
             - ["uuid1", "uuid3", "notmatched"]
         query_config_dict: # wbia/web/apis_engine.py:410
-          type: string # see how the JSON is parsed in wbia/control/controller_inject.py:470-480
+          type: object
           description: Optional dictionary of algorithmic configuration parameters
         echo_query_params: # wbia/web/apis_engine.py:502
           type: boolean
@@ -414,6 +414,21 @@ components:
             type: string
             format: uuid
             nullable: true 
+
+    DeleteAnnotationRequestBodySchema: # wbia/web/apis_json.py:2162
+      type: object 
+      required:
+        - annot_uuid_list
+      properties:
+        annot_uuid_list: # wbia/web/apis_json.py:2170
+          type: array
+          description: List of annotation UUIDs to delete from the database
+          items:
+            type: string
+            format: uuid
+          example:
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "a768243c-4456-4516-a2de-f2abc8702c0a"
 
     ###############################################################################
     # IMAGE REQUEST BODY SCHEMAS
@@ -640,6 +655,23 @@ components:
                 - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
                 - "a768243c-4456-4516-a2de-f2abc8702c0a"
 
+    Success200WithDeletionAnnotationUUIDs:
+      description: Successful operation with true response
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Annotations deleted successfully"
+              cache: -1
+            response:
+              type: boolean
+              example: true
+              description: Returns true when deletion succeeds
+
     Success200WithCreationImageUUIDs:
       description: Successful operation with Image UUIDs response
       content:
@@ -825,6 +857,12 @@ components:
         application/json: 
           schema:
             $ref: '#/components/schemas/AddAnnotationRequestBodySchema'
+    DeleteAnnotationRequestBody:
+      required: true 
+      content:
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/DeleteAnnotationRequestBodySchema'
     AddImageRequestBody:
       required: true 
       content:
@@ -1607,6 +1645,7 @@ paths:
 # ANNOTATION ENDPOINTS
 # wbia/web/apis_json.py:550:@register_api('/api/annot/json/', methods=['POST'])
 # wbia/web/apis_json.py:1408:@register_api('/api/annot/json/', methods=['GET'])
+# wbia/web/apis_json.py:2162:@register_api('/api/annot/json/', methods=['DELETE'])
 ###############################################################################
 
   /api/annot/json/:
@@ -1642,6 +1681,20 @@ paths:
         <<: *WBIAStandardErrors
         "200":
           $ref: '#/components/responses/Success200WithRetrievalAnnotationUUIDs'
+    delete: # wbia/web/apis_json.py:2162
+      tags:
+      - annotations
+      summary: (DELETE) Deletes annotation(s) by UUID
+      description: |
+        Deletes one or more annotations from the database using their UUIDs.
+        Returns true on successful deletion.
+      requestBody:
+        required: true
+        $ref: '#/components/requestBodies/DeleteAnnotationRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithDeletionAnnotationUUIDs'
 
 ###############################################################################
 # IMAGE ENDPOINTS
