@@ -1,0 +1,272 @@
+################################################################################
+# WBIA API ENDPOINTS
+# Scope: /api/annot/*, /api/image/*, /api/engine/detect/*, 
+#        /api/engine/query/graph/*, /api/engine/job/*
+################################################################################
+
+================================================================================
+SECTION 1: /api/annot/* ENDPOINTS (119 total)
+================================================================================
+
+--- Already Documented in api.yaml (2 paths, Tier 1 Core CRUD) ---
+/api/annot/json                               GET, POST
+
+--- Already Documented in api_claude.yaml ---
+/api/annot/                                   GET, POST, DELETE
+/api/annot/bbox/                              GET, PUT
+/api/annot/species/                           GET, PUT
+/api/annot/name/text/                         GET, PUT
+/api/annot/uuid/                              GET
+/api/annot/image/uuid/                        GET
+/api/annot/quality/                           GET, PUT
+/api/annot/
+/api/annot/age/months/
+/api/annot/age/months/json/
+/api/annot/age/months/max/
+/api/annot/age/months/max/json/
+/api/annot/age/months/max/text/
+/api/annot/age/months/max/text/json/
+/api/annot/age/months/min/
+/api/annot/age/months/min/json/
+/api/annot/age/months/min/text/
+/api/annot/age/months/min/text/json/
+/api/annot/age/months/text/
+/api/annot/age/months/text/json/
+/api/annot/bbox/
+/api/annot/bbox/json/
+/api/annot/canonical/
+/api/annot/detect/confidence/
+/api/annot/detect/confidence/json/
+/api/annot/encounter/static/
+/api/annot/exemplar/
+/api/annot/exemplar/json/
+/api/annot/image/contributor/tag/
+/api/annot/image/contributor/tag/json/
+/api/annot/image/file/path/
+/api/annot/image/file/path/json/
+/api/annot/image/gps/
+/api/annot/image/gps2/
+/api/annot/image/gps/json/
+/api/annot/image/name/
+/api/annot/image/name/json/
+/api/annot/image/rowid/
+/api/annot/image/rowid/json/
+/api/annot/imageset/rowid/
+/api/annot/imageset/rowid/json/
+/api/annot/imageset/text/
+/api/annot/imageset/text/json/
+/api/annot/imageset/uuid/
+/api/annot/imageset/uuid/json/
+/api/annot/image/unixtime/
+/api/annot/image/unixtime/json/
+/api/annot/image/uuid/
+/api/annot/image/uuid/json/
+/api/annot/interest/
+/api/annot/interest/json/
+/api/annot/json/<uuid>/
+/api/annot/metadata/
+/api/annot/multiple/
+/api/annot/multiple/json/
+/api/annot/name/
+/api/annot/name/rowid/
+/api/annot/name/rowid/json/
+/api/annot/name/text/
+/api/annot/name/text/json/
+/api/annot/name/uuid/
+/api/annot/name/uuid/json/
+/api/annot/note/
+/api/annot/note/json/
+/api/annot/num/vert/
+/api/annot/num/vert/json/
+/api/annot/part/rowid/
+/api/annot/quality/
+/api/annot/quality/json/
+/api/annot/quality/text/
+/api/annot/quality/text/json/
+/api/annot/reviewed/
+/api/annot/reviewed/json/
+/api/annot/rotate/left/
+/api/annot/rotate/right/
+/api/annot/<rowid>/
+/api/annot/rowid/uuid/
+/api/annot/rowid/uuid/json/
+/api/annot/sex/
+/api/annot/sex/json/
+/api/annot/sex/text/
+/api/annot/sex/text/json/
+/api/annot/species/
+/api/annot/species/json/
+/api/annot/species/rowid/
+/api/annot/species/rowid/json/
+/api/annot/species/text/
+/api/annot/species/text/json/
+/api/annot/species/uuid/
+/api/annot/species/uuid/json/
+/api/annot/staged/
+/api/annot/staged/metadata/
+/api/annot/staged/user/
+/api/annot/staged/uuid/
+/api/annot/tags/json/
+/api/annot/theta/
+/api/annot/theta/json/
+/api/annot/tile/rowid/
+/api/annot/uuid/
+/api/annot/uuid/hashid/
+/api/annot/uuid/hashid/json/
+/api/annot/vert/
+/api/annot/vert/json/
+/api/annot/vert/rotated/
+/api/annot/vert/rotated/json/
+/api/annot/viewpoint/
+/api/annot/viewpoint/json/
+/api/annot/viewpoint/text/json/
+/api/annot/yaw/
+/api/annot/yaw/json/
+/api/annot/yaw/text/
+/api/annot/yaw/text/json/
+
+--- Remaining /api/annot/* ---
+(None - all annotation endpoints covered in api.yaml and api_claude.yaml)
+
+================================================================================
+SECTION 2: /api/image/* ENDPOINTS
+================================================================================
+
+--- Already Documented in api.yaml (2 paths, Tier 1 Core CRUD) ---
+/api/image/json                               GET, POST
+
+--- Already Documented in api_claude.yaml ---
+/api/image/                                   GET, POST
+/api/image/uuid/                              GET
+/api/image/uri/                               GET, PUT
+/api/image/gps/                               GET, PUT
+/api/image/unixtime/                          GET, PUT
+/api/image/annot/rowid/
+/api/image/annot/rowid/json/
+/api/image/annot/rowid/species/
+/api/image/annot/rowid/species/json/
+/api/image/annot/uuid/
+/api/image/annot/uuid/json/
+/api/image/annot/uuid/species/
+/api/image/annot/uuid/species/json/
+/api/image/contributor/rowid/
+/api/image/contributor/tag/
+/api/image/detect/confidence/
+/api/image/detect/confidence/json/
+/api/image/dict/
+/api/image/dict/json/
+/api/image/feature/json/<uuid>/
+/api/image/feature/<rowid>/
+/api/image/file/hash/
+/api/image/file/hash/json/
+/api/image/file/name/
+/api/image/file/name/json/
+/api/image/file/path/
+/api/image/file/path/json/
+/api/image/gps/
+/api/image/gps2/
+/api/image/gps/json/
+/api/image/gps/str/
+/api/image/height/
+/api/image/height/json/
+/api/image/imageset/rowid/
+/api/image/imageset/rowid/json/
+/api/image/imageset/text/
+/api/image/imageset/text/json/
+/api/image/imageset/uuid/
+/api/image/imageset/uuid/json/
+/api/image/json/<uuid>/
+/api/image/lat/
+/api/image/lat/json/
+/api/image/location/code/
+/api/image/location/code/json/
+/api/image/lon/
+/api/image/lon/json/
+/api/image/metadata/
+/api/image/name/rowid/
+/api/image/name/rowid/json/
+/api/image/name/uuid/
+/api/image/name/uuid/json/
+/api/image/note/
+/api/image/note/json/
+/api/image/num/annot/
+/api/image/num/annot/json/
+/api/image/orientation/
+/api/image/orientation/json/
+/api/image/orientation/str/
+/api/image/orientation/str/json/
+/api/image/reviewed/
+/api/image/reviewed/json/
+/api/image/rotate/180/
+/api/image/rotate/left/
+/api/image/rotate/right/
+/api/image/<rowid>/
+/api/image/rowid/uuid/
+/api/image/rowid/uuid/json/
+/api/image/size/
+/api/image/size/json/
+/api/image/species/rowid/
+/api/image/species/rowid/json/
+/api/image/species/uuid/
+/api/image/species/uuid/json/
+/api/image/thumb/
+/api/image/timedelta/posix/
+/api/image/timedelta/posix/json/
+/api/image/time/posix/
+/api/image/unixtime/
+/api/image/unixtime2/
+/api/image/unixtime/json/
+/api/image/uri/
+/api/image/uri/json/
+/api/image/uri/original/
+/api/image/uri/original/json/
+/api/image/uuid/
+/api/image/width/
+/api/image/width/json/
+
+--- Remaining /api/image/* ---
+(None - all image endpoints covered in api.yaml and api_claude.yaml)
+
+================================================================================
+SECTION 3: /api/engine/detect/* ENDPOINTS
+================================================================================
+
+--- Already Documented in api.yaml (3 paths, manual) ---
+/api/engine/detect/cnn/                       POST
+/api/engine/detect/cnn/yolo/                  POST
+/api/engine/detect/cnn/lightnet/              POST
+
+--- Remaining /api/engine/detect/* ---
+(None - all detection endpoints covered in api.yaml)
+
+================================================================================
+SECTION 4: /api/engine/query/graph/* ENDPOINTS
+================================================================================
+
+--- Already Documented in api.yaml (2 paths, manual) ---
+/api/engine/query/graph/                      POST
+/api/engine/query/graph/complete/             POST
+
+--- Remaining /api/engine/query/graph/* ---
+(None - all engine query endpoints covered in api.yaml)
+
+================================================================================
+SECTION 5: /api/engine/job/* ENDPOINTS
+================================================================================
+
+--- Already Documented in api.yaml (3 paths, manual) ---
+/api/engine/job/                              POST
+/api/engine/job/status/                       GET, POST
+/api/engine/job/result/                       GET, POST
+
+--- Already Documented in api_claude.yaml (1 path) ---
+/api/engine/job/metadata/                     GET, POST
+
+--- Remaining /api/engine/job/* ---
+(None - all engine job endpoints covered in api.yaml and api_claude.yaml)
+
+################################################################################
+# SUMMARY 
+################################################################################
+
+TOTAL ENDPOINTS IN SCOPE: 216 paths
