@@ -1301,6 +1301,26 @@ components:
       $ref: '#/components/responses/InvalidImageInput415'
     "500":
       $ref: '#/components/responses/WebRuntimeException500'
+    "600":
+      $ref: '#/components/responses/MissingUUID600'
+    "601":
+      $ref: '#/components/responses/DuplicateUUID601'
+    "602":
+      $ref: '#/components/responses/UnknownUUID602'
+    "603":
+      $ref: '#/components/responses/ReviewNotReady603'
+    "604":
+      $ref: '#/components/responses/UnavailableUUID604'
+    "605":
+      $ref: '#/components/responses/ReviewFinished605'
+    "606":
+      $ref: '#/components/responses/MultipleNamedDuplicate606'
+    "607":
+      $ref: '#/components/responses/MatchThumb607'
+    "608":
+      $ref: '#/components/responses/InvalidUUID608'
+    "609":
+      $ref: '#/components/responses/InvalidMatch609'
 
 paths:
 
