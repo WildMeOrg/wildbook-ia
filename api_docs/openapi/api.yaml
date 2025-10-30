@@ -430,6 +430,21 @@ components:
             - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
             - "a768243c-4456-4516-a2de-f2abc8702c0a"
 
+    DeleteImageRequestBodySchema: # wbia/web/apis_json.py:2147
+      type: object 
+      required:
+        - image_uuid_list
+      properties:
+        image_uuid_list: # wbia/web/apis_json.py:2155
+          type: array
+          description: List of image UUIDs to be delete from IBEIS
+          items:
+            type: string
+            format: uuid
+          example:
+            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+
     ###############################################################################
     # IMAGE REQUEST BODY SCHEMAS
     ###############################################################################
@@ -672,6 +687,23 @@ components:
               example: true
               description: Returns true when deletion succeeds
 
+    Success200WithDeletionImageUUIDs:
+      description: Successful operation with true response
+      content:
+        application/json:
+          schema: 
+            $ref: '#/components/schemas/Envelope' 
+          example:
+            status:
+              success: true
+              code: 200
+              message: "Image(s) deleted successfully"
+              cache: -1
+            response:
+              type: boolean
+              example: true
+              description: Returns true when deletion succeeds
+
     Success200WithCreationImageUUIDs:
       description: Successful operation with Image UUIDs response
       content:
@@ -863,6 +895,12 @@ components:
         application/json: 
           schema:
             $ref: '#/components/schemas/DeleteAnnotationRequestBodySchema'
+    DeleteImageRequestBody:
+      required: true 
+      content:
+        application/json: 
+          schema:
+            $ref: '#/components/schemas/DeleteImageRequestBodySchema'
     AddImageRequestBody:
       required: true 
       content:
@@ -1700,6 +1738,7 @@ paths:
 # IMAGE ENDPOINTS
 # wbia/web/apis_json.py:294:@register_api('/api/image/json/', methods=['POST'])
 # wbia/web/apis_json.py:1167:@register_api('/api/image/json/', methods=['GET'])
+# wbia/web/apis_json.py:2147:@register_api('/api/image/json/', methods=['DELETE'])
 ###############################################################################
 
   /api/image/json/:
@@ -1734,3 +1773,17 @@ paths:
         <<: *WBIAStandardErrors
         "200":
           $ref: '#/components/responses/Success200WithRetrievalImageUUIDs'
+    delete: # wbia/web/apis_json.py:2147
+      tags:
+      - images
+      summary: (DELETE) Deletes image(s) by UUID
+      description: |
+        Deletes one or more image(s) from the database using their UUIDs.
+        Returns true on successful deletion.
+      requestBody:
+        required: true
+        $ref: '#/components/requestBodies/DeleteImageRequestBody'
+      responses:
+        <<: *WBIAStandardErrors
+        "200":
+          $ref: '#/components/responses/Success200WithDeletionImageUUIDs'

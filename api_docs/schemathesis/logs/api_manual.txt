@@ -1,33 +1,34 @@
-Schemathesis v4.3.15
+Installed 55 packages in 38ms
+Schemathesis v4.3.16
 ━━━━━━━━━━━━━━━━━━━━
 
 
- ✅  Loaded specification from ../openapi/api.yaml (in 0.15s)                                                                                                                         
+ ✅  Loaded specification from ../openapi/api.yaml (in 0.33s)                                                                                                       
 
-     Base URL:         http://localhost:85                                                                                                                                            
-     Specification:    Open API 3.0.4                                                                                                                                                 
-     Operations:       20 selected / 20 total                                                                                                                                         
+     Base URL:         http://localhost:85                                                                                                                          
+     Specification:    Open API 3.0.4                                                                                                                               
+     Operations:       21 selected / 21 total                                                                                                                       
 
 
- ✅  API capabilities:                                                                                                                                                                
+ ✅  API capabilities:                                                                                                                                              
 
-     Supports NULL byte in headers:    ✓                                                                                                                                              
+     Supports NULL byte in headers:    ✓                                                                                                                            
 
- ❌  Examples (in 0.70s)                                                                                                                                                              
-                                                                                                                                                                                      
-     ✅  3 passed  ❌  7 failed  ⏭  10 skipped                                                                                                                                        
+ ❌  Examples (in 1.06s)                                                                                                                                            
+                                                                                                                                                                    
+     ✅  3 passed  ❌  8 failed  ⏭  10 skipped                                                                                                                      
 
- ❌  Coverage (in 42.63s)                                                                                                                                                             
-                                                                                                                                                                                      
-     ✅  3 passed  ❌ 17 failed                                                                                                                                                       
+ ❌  Coverage (in 43.20s)                                                                                                                                           
+                                                                                                                                                                    
+     ✅  3 passed  ❌ 18 failed                                                                                                                                     
 
- ❌  Fuzzing (in 5.92s)                                                                                                                                                               
-                                                                                                                                                                                      
-     ✅  2 passed  ❌ 18 failed                                                                                                                                                       
+ ❌  Fuzzing (in 5.71s)                                                                                                                                             
+                                                                                                                                                                    
+     ✅  2 passed  ❌ 19 failed                                                                                                                                     
 
 =================================== FAILURES ===================================
 ______________________ POST /api/engine/detect/cnn/yolo/ _______________________
-1. Test Case ID: m0DETm
+1. Test Case ID: WZ0auH
 
 - Server error
 
@@ -44,7 +45,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/engine/detect/cnn/yolo/
 
-2. Test Case ID: T50bOs
+2. Test Case ID: rrZ4G2
 
 - API accepted schema-violating request
 
@@ -60,7 +61,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"], "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "fast", "jobid": {}}' http://localhost:85/api/engine/detect/cnn/yolo/
 
-3. Test Case ID: XoRryq
+3. Test Case ID: iH9COG
 
 - Server error
 
@@ -73,7 +74,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/detect/cnn/yolo/
 
 ____________________ POST /api/engine/query/graph/complete/ ____________________
-1. Test Case ID: BGfyon
+1. Test Case ID: tUmfcw
 
 - Server error
 
@@ -90,7 +91,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -d '{"annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/engine/query/graph/complete/
 
-2. Test Case ID: j3XGfS
+2. Test Case ID: ILPXTV
 
 - Server error
 
@@ -102,7 +103,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"annot_uuid_list": null, "annot_name_list": null, "query_config_dict": {}, "k": 5, "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "slow", "jobid": {}}' http://localhost:85/api/engine/query/graph/complete/
 
-3. Test Case ID: Vm6p9E
+3. Test Case ID: yf9cNt
 
 - API accepted schema-violating request
 
@@ -111,14 +112,14 @@ Reproduce with:
 
 [200] OK:
 
-    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": "18511974-117e-4d31-9cfe-1e265bd54b85"}`
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": "331e68aa-5d3f-4427-8f4e-31a7e74c117b"}`
 
 Reproduce with: 
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/query/graph/complete/
 
 ____________________ GET /api/engine/query/graph/complete/ _____________________
-1. Test Case ID: eO4QFC
+1. Test Case ID: 9QGwxw
 
 - Server error
 
@@ -135,7 +136,7 @@ Reproduce with:
 
     curl -X GET 'http://localhost:85/api/engine/query/graph/complete/?annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a'
 
-2. Test Case ID: KQkM4h
+2. Test Case ID: bYbKTI
 
 - Server error
 
@@ -148,7 +149,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/query/graph/complete/?annot_name_list='
 
 ________________________ POST /api/engine/query/graph/ _________________________
-1. Test Case ID: NZTrU6
+1. Test Case ID: Dr22s3
 
 - Server error
 
@@ -165,7 +166,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -d '{"query_annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce"], "database_annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"], "matching_state_list": [["uuid1", "uuid2", "matched"], ["uuid1", "uuid3", "notmatched"]]}' http://localhost:85/api/engine/query/graph/
 
-2. Test Case ID: lH8EIS
+2. Test Case ID: dMDCKx
 
 - Server error
 
@@ -178,7 +179,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"query_annot_uuid_list": null, "query_annot_name_list": null, "database_annot_uuid_list": null, "database_annot_name_list": null, "database_imgsetid": null, "matching_state_list": [["uuid1", "uuid2", "matched"], ["uuid1", "uuid3", "notmatched"]], "query_config_dict": {}, "echo_query_params": true, "include_qaid_in_daids": true, "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "slow", "jobid": {}}' http://localhost:85/api/engine/query/graph/
 
 _________________________ GET /api/engine/query/graph/ _________________________
-1. Test Case ID: S3r998
+1. Test Case ID: RaiMno
 
 - Server error
 
@@ -195,7 +196,7 @@ Reproduce with:
 
     curl -X GET 'http://localhost:85/api/engine/query/graph/?query_annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce&database_annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a&matching_state_list=%5B%27uuid1%27%2C+%27uuid2%27%2C+%27matched%27%5D%2C%5B%27uuid1%27%2C+%27uuid3%27%2C+%27notmatched%27%5D'
 
-2. Test Case ID: in5cuq
+2. Test Case ID: oSCPHR
 
 - Server error
 
@@ -208,7 +209,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/query/graph/?query_annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce&query_annot_name_list=&database_annot_uuid_list=&database_annot_name_list=&database_imgsetid=0&matching_state_list=%5B%27uuid1%27%2C+%27uuid2%27%2C+%27matched%27%5D%2C%5B%27uuid1%27%2C+%27uuid3%27%2C+%27notmatched%27%5D&query_config_dict=&echo_query_params=true&include_qaid_in_daids=true&callback_url=https%3A%2F%2FA.COM&callback_method=GET&lane=fast&jobid='
 
 ____________________________ POST /api/annot/json/ _____________________________
-1. Test Case ID: R0oBUD
+1. Test Case ID: JSplDT
 
 - Server error
 
@@ -221,7 +222,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -d '{"annot_bbox_list": [["x value of top left corner", "y value of top left corner", "width", "height"]], "image_uuid_list": [], "annot_theta_list": []}' http://localhost:85/api/annot/json/
 
 ___________________________ DELETE /api/annot/json/ ____________________________
-1. Test Case ID: 4QyU0x
+1. Test Case ID: iuapKG
 
 - Server error
 
@@ -233,8 +234,21 @@ Reproduce with:
 
     curl -X DELETE -H 'Content-Type: application/json' -d '{"annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/annot/json/
 
+___________________________ DELETE /api/image/json/ ____________________________
+1. Test Case ID: IhLNBM
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_images_json(ibs, image_uuid_list)\nReceived Function Definition: delete_images_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, image_uuid_list=['3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de-f2abc8702c0a'])\nReceived Function Parameters:\n\t'image_uuid_list': ['3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de-f2abc8702c0a']\nTypeError: unsupported operand ty // Output truncated...`
+
+Reproduce with: 
+
+    curl -X DELETE -H 'Content-Type: application/json' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/image/json/
+
 ____________________ POST /api/engine/detect/cnn/lightnet/ _____________________
-1. Test Case ID: oAMkQt
+1. Test Case ID: kxy3VN
 
 - Server error
 
@@ -247,7 +261,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"], "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "fast", "jobid": {}}' http://localhost:85/api/engine/detect/cnn/lightnet/
 
 _____________________ GET /api/engine/detect/cnn/lightnet/ _____________________
-1. Test Case ID: C2wm55
+1. Test Case ID: FUBpAj
 
 - Server error
 
@@ -260,7 +274,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/detect/cnn/lightnet/?image_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a&callback_url=https%3A%2F%2FA.COM&callback_method=GET&lane=fast&jobid='
 
 _________________________ POST /api/engine/detect/cnn/ _________________________
-1. Test Case ID: UWrWSf
+1. Test Case ID: yj2V27
 
 - Server error
 
@@ -273,7 +287,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[null, null]' http://localhost:85/api/engine/detect/cnn/
 
 _________________________ GET /api/engine/detect/cnn/ __________________________
-1. Test Case ID: n6N5sq
+1. Test Case ID: wb42x9
 
 - Server error
 
@@ -286,7 +300,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/detect/cnn/?image_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a&callback_url=https%3A%2F%2FA.COM&callback_method=GET&callback_detailed=true&lane=fast&jobid='
 
 _________________________ POST /api/engine/job/status/ _________________________
-1. Test Case ID: 9L7eub
+1. Test Case ID: IjBvUs
 
 - API accepted schema-violating request
 
@@ -303,7 +317,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"jobid": {}}' http://localhost:85/api/engine/job/status/
 
 _________________________ POST /api/engine/job/result/ _________________________
-1. Test Case ID: 71wa7w
+1. Test Case ID: 8WeKaz
 
 - API accepted schema-violating request
 
@@ -319,7 +333,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"jobid": {}}' http://localhost:85/api/engine/job/result/
 
-2. Test Case ID: skidnL
+2. Test Case ID: 10W9o8
 
 - Server error
 
@@ -332,7 +346,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/job/result/
 
 _________________________ GET /api/engine/job/result/ __________________________
-1. Test Case ID: snDkFI
+1. Test Case ID: rXxDZw
 
 - Server error
 
@@ -345,7 +359,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/engine/job/result/
 
 _____________________________ GET /api/annot/json/ _____________________________
-1. Test Case ID: OICGfv
+1. Test Case ID: 4XvsqJ
 
 - Server error
 
@@ -358,26 +372,36 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/json/?yaw=no-filter&x-schemathesis-unknown-property=42'
 
 ____________________________ POST /api/image/json/ _____________________________
-1. Test Case ID: aCa34E
+1. Test Case ID: hrJjmK
 
-- Server error
+- API accepted schema-violating request
 
-- Unsupported methods
+    Invalid data should have been rejected
+    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
+    Invalid component: parameter `application/json` in body (object with invalid 'image_gps_lon_list' value: array with invalid items: incorrect type)
 
-    Unsupported method DELETE returned 500, expected 405 Method Not Allowed
+[200] OK:
 
-    Return 405 for methods not listed in the OpenAPI spec
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_images_json(ibs, image_uuid_list)\nReceived Function Definition: delete_images_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, image_gps_lat_list=None, image_gps_lon_list=None, image_unixtime_list=None, image_uri_list=[])\nReceived Function Parameters:\n\t'image_uri_list': []\n\t'image_unixtime_list': None\n\t'image_gps_lat_list': None\n\t'image_gps_lon_list': None\nTypeError: delete_images // Output truncated...`
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": []}`
 
 Reproduce with: 
 
-    curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uri_list": [], "image_unixtime_list": null, "image_gps_lat_list": null, "image_gps_lon_list": null}' http://localhost:85/api/image/json/
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uri_list": [], "image_unixtime_list": null, "image_gps_lat_list": null, "image_gps_lon_list": [{}]}' http://localhost:85/api/image/json/
+
+2. Test Case ID: ItK9L8
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: add_images_json(ibs, image_uri_list, image_unixtime_list=None, image_gps_lat_list=None, image_gps_lon_list=None, **kwargs)\nReceived Function Definition: add_images_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>)\nReceived Function Parameters:\nTypeError: add_images_json() missing 1 required positional argument: 'image_uri_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/ // Output truncated...`
+
+Reproduce with: 
+
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/image/json/
 
 _____________________________ GET /api/image/json/ _____________________________
-1. Test Case ID: ysbrIe
+1. Test Case ID: b6UfXD
 
 - Server error
 
@@ -390,23 +414,23 @@ Reproduce with:
     curl -X GET 'http://localhost:85/api/image/json/?imgsetid_list=&require_unixtime=true&require_gps=true&is_tile=true&is_reviewed=true'
 
 _________________________ GET /api/engine/job/status/ __________________________
-1. Test Case ID: wuJ2EU
+1. Test Case ID: TNtBUh
 
 - Server error
 
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_job_status(ibs, jobid=None)\nReceived Function Definition: get_job_status(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, HY\udba5\udd06]\u00b7\uda0a\udf34\u001b\udb9c\ude27\u00e7\u00fc`;\u00ab\u00ef\u0092\ud854\udf08\u00a6\u0010='\\x11\\x9a', c\ud849\udfbe\u00d1\u00a1\u00d4\uf9a9\ud955\udd02M\u00b4='', jobid=6.777839798189416e-246, \u008d\u00e0\uda49\udf9f\u009caj\ud871\uddb7='', \u00a1\u00f1$='{\ // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_job_status(ibs, jobid=None)\nReceived Function Definition: get_job_status(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, a\u00c5y)\u0084\ud86b\ude9f='Gs\\U000a996c\u00b1\u00f4', e7d='\\x8fm\u00f5\u00dd}\u00de\\U000c2424}', \u00bd\u00f8r='}\u00cc\\x10\u00ec2\\x85\\U000911b1\u00ce\u00fe\u00de', \u00f2\ud818\uddb0='\u00c8', \uda8e\udd7e='')\nReceived Function Parameters:\n\t'a\u00c5y)\\x84\ud86b\ude9 // Output truncated...`
 
 Reproduce with: 
 
-    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/job/status/?jobid=6.777839798189416e-246&%C3%83q%F4%81%AA%97q%C2%BE%C2%9Fp%F3%A6%99%90%C2%90%16K=%C3%B0%F0%A7%AB%AB%C2%91&%C3%83q%F4%81%AA%97q%C2%BE%C2%9Fp%F3%A6%99%90%C2%90%16K=g%C3%84&%C3%83q%F4%81%AA%97q%C2%BE%C2%9Fp%F3%A6%99%90%C2%90%16K=%F0%AB%81%81%F0%BF%B1%A1%0C&%C2%8D%C3%A0%F2%A2%9E%9F%C2%9Caj%F0%AC%96%B7=&%C2%A1%C3%B1%24=%7B%C3%88%C2%AA%C2%AE%F1%8C%BB%A1%EA%84%8D%16y%C3%98p%F2%B9%87%B6&c%F0%A2%9E%BE%C3%91%C2%A1%C3%94%EF%A6%A9%F1%A5%94%82M%C2%B4=&%F0%B9%97%B9%F4%87%A4%B8%C2%BB=%C2%A7f1%C3%87%C2%B4&%F0%B9%97%B9%F4%87%A4%B8%C2%BB=%5E%F1%BD%AC%B2%C2%8C%C3%9Bfd%C2%A4n%C3%AE%C3%B5%F0%9B%8F%B0W&%F0%B9%97%B9%F4%87%A4%B8%C2%BB=-2.9703791941289788e%2B16&%F3%AB%95%92%F1%B3%B7%BB%04J%3D%3C%21=%C2%81%C3%8Eu%C2%95%C3%9C%15%C2%B3%1D%C3%86%23%C2%8E%F2%BF%84%99%F1%AB%BE%82k%5DRU&%F3%AB%95%92%F1%B3%B7%BB%04J%3D%3C%21=%F3%BC%9F%B6%C2%9Fz%C2%B9%F1%86%9C%88%C3%B3&%F3%AB%95%92%F1%B3%B7%BB%04J%3D%3C%21=&%E9%8A%BC%C2%89=-6.994409290001032e%2B16&%E9%8A%BC%C2%89=%C3%A2%C2%86%C3%AD%C2%A3&%E9%8A%BC%C2%89=%F0%B3%8E%A8&%E9%8A%BC%C2%89=I&%E9%8A%BC%C2%89=%C3%9E%C2%96%C3%AD%F0%A9%BA%A5j%28%C3%8D&%E9%8A%BC%C2%89=2&HY%F3%B9%94%86%5D%C2%B7%F2%92%AC%B4%1B%F3%B7%88%A7%C3%A7%C3%BC%60%3B%C2%AB%C3%AF%C2%92%F0%A5%8C%88%C2%A6%10=%11%C2%9A&HY%F3%B9%94%86%5D%C2%B7%F2%92%AC%B4%1B%F3%B7%88%A7%C3%A7%C3%BC%60%3B%C2%AB%C3%AF%C2%92%F0%A5%8C%88%C2%A6%10=6%1A%F3%BF%AE%8E'
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/job/status/?a%C3%85y%29%C2%84%F0%AA%BA%9F=Gs%F2%A9%A5%AC%C2%B1%C3%B4&a%C3%85y%29%C2%84%F0%AA%BA%9F=%F2%BF%8D%A1%C2%9E%C3%89&a%C3%85y%29%C2%84%F0%AA%BA%9F=%C2%BE%C3%A8%196RW%F3%BB%B3%92X%C2%A4%C2%B5%C2%90&%C3%B2%F0%96%86%B0=%C3%88&%C3%B2%F0%96%86%B0=%F3%8F%82%AD&%C2%BD%C3%B8r=%7D%C3%8C%10%C3%AC2%C2%85%F2%91%86%B1%C3%8E%C3%BE%C3%9E&%C2%BD%C3%B8r=&%F2%B3%A5%BE=&%F2%B3%A5%BE=None&%F2%B3%A5%BE=-6.932868661521968e-284&e7d=%C2%8Fm%C3%B5%C3%9D%7D%C3%9E%F3%82%90%A4%7D&e7d=%F3%AC%B5%85%18%F3%AB%AD%95%C3%B0'
 
 =================================== SUMMARY ====================================
 
 API Operations:
-  Selected: 20/20
-  Tested: 20
+  Selected: 21/21
+  Tested: 21
 
 Test Phases:
   ❌ Examples
@@ -415,14 +439,13 @@ Test Phases:
   ⏭  Stateful (not applicable)
 
 Failures:
-  ❌ Server error: 22
-  ❌ API accepted schema-violating request: 4
+  ❌ Server error: 23
+  ❌ API accepted schema-violating request: 5
   ❌ API rejected schema-compliant request: 5
-  ❌ Unsupported methods: 1
 
 Test cases:
-  2206 generated, 26 found 32 unique failures
+  2200 generated, 28 found 33 unique failures
 
-Seed: 17553214296899839614394800651751588620
+Seed: 30578503704274172441637658197614196494
 
-============================ 32 failures in 49.31s =============================
+============================ 33 failures in 50.04s =============================
