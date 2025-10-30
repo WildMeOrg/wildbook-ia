@@ -21,15 +21,15 @@ Errors:
 - API accepted schema-violating request (5)
 
 Test Cases: 
-1. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L47: `/api/engine/detect/cnn/yolo/` accepts `jobid` of the wrong type ({})
-2. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L63: `/api/engine/detect/cnn/yolo/` accepts invalid input and then crashes with type error resulting in server error (500) rather than Missing or Invalid Input Error (400)
-3. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L93: `/api/engine/query/graph/complete/` accepts `jobid` of the wrong type and then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
-4. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L105: `/api/engine/query/graph/complete/` accepts requestbody of the wrong type ([]).
-5. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L138: `/api/engine/query/graph/complete/` accepts empty GET parameter then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
-6. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L168: `/api/engine/query/graph/` accepts invalid requestbody then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
-7. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L198: `/api/engine/query/graph/` accepts invalid GET parameters then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
-8. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L211: `/api/annot/json/` accepts invalid requestbody then crashes, resulting in server error (500) rather than Missing or Invalid Input Error (400)
-9. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L224: `/api/annot/json/` DELETE accepts invalid UUIDs. `get_annot_aids_from_uuid` returns None for UUIDs that don't exist in the database. These None values are then passed to `delete_annots`, which causes the SQL error WHERE annotations_rowid IN ( None ). This causes a server error (500) rather than Missing or Invalid Input Error (400)
+1. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L48: `/api/engine/detect/cnn/yolo/` accepts `jobid` of the wrong type ({})
+2. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L64: `/api/engine/detect/cnn/yolo/` accepts invalid input and then crashes with type error resulting in server error (500) rather than Missing or Invalid Input Error (400)
+3. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L94: `/api/engine/query/graph/complete/` accepts `jobid` of the wrong type and then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
+4. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L106: `/api/engine/query/graph/complete/` accepts requestbody of the wrong type ([]).
+5. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L139: `/api/engine/query/graph/complete/` accepts empty GET parameter then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
+6. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L169: `/api/engine/query/graph/` accepts invalid requestbody then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
+7. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L199: `/api/engine/query/graph/` accepts invalid GET parameters then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
+8. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L212: `/api/annot/json/` accepts invalid requestbody then crashes, resulting in server error (500) rather than Missing or Invalid Input Error (400)
+9. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L225: `/api/annot/json/` DELETE accepts invalid UUIDs. `get_annot_aids_from_uuid` returns None for UUIDs that don't exist in the database. These None values are then passed to `delete_annots`, which causes the SQL error WHERE annotations_rowid IN ( None ). This causes a server error (500) rather than Missing or Invalid Input Error (400)
 10. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L238: `/api/image/json/` DELETE accepts invalid UUIDs. `get_annot_aids_from_uuid` returns None for UUIDs that don't exist in the database. These None values are then passed to `delete_annots`, which causes the SQL error WHERE annotations_rowid IN ( None ). This causes a server error (500) rather than Missing or Invalid Input Error (400)
 11. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L251: `/api/engine/detect/cnn/lightnet/` POST accepts `jobid` of the wrong type ({}) and then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
 12. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L264: `/api/engine/detect/cnn/lightnet/` GET accepts `jobid` of the wrong type and then crashes with assertion error resulting in server error (500) rather than Missing or Invalid Input Error (400)
@@ -52,8 +52,8 @@ Errors:
 - API rejected schema-compliant request (4)
 
 Test Cases: 
-1. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L30
-2. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L76
-3. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L121
-4. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L151
-5. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L181
+1. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L31
+2. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L77
+3. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L122
+4. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L152
+5. https://github.com/WildMeOrg/wildbook-ia/blob/api/api_docs/schemathesis/logs/api_manual.txt#L182
