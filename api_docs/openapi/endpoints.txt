@@ -8,7 +8,7 @@
 SECTION 1: /api/annot/* ENDPOINTS (119 total)
 ================================================================================
 
---- Already Documented in api.yaml (2 paths, Tier 1 Core CRUD) ---
+--- Already Documented in api_manual.yaml (2 paths, Tier 1 Core CRUD) ---
 /api/annot/json                               GET, POST
 
 --- Already Documented in api_claude.yaml ---
@@ -126,13 +126,13 @@ SECTION 1: /api/annot/* ENDPOINTS (119 total)
 /api/annot/yaw/text/json/
 
 --- Remaining /api/annot/* ---
-(None - all annotation endpoints covered in api.yaml and api_claude.yaml)
+(None - all annotation endpoints covered in api_manual.yaml and api_claude.yaml)
 
 ================================================================================
 SECTION 2: /api/image/* ENDPOINTS
 ================================================================================
 
---- Already Documented in api.yaml (2 paths, Tier 1 Core CRUD) ---
+--- Already Documented in api_manual.yaml (2 paths, Tier 1 Core CRUD) ---
 /api/image/json                               GET, POST
 
 --- Already Documented in api_claude.yaml ---
@@ -225,36 +225,36 @@ SECTION 2: /api/image/* ENDPOINTS
 /api/image/width/json/
 
 --- Remaining /api/image/* ---
-(None - all image endpoints covered in api.yaml and api_claude.yaml)
+(None - all image endpoints covered in api_manual.yaml and api_claude.yaml)
 
 ================================================================================
 SECTION 3: /api/engine/detect/* ENDPOINTS
 ================================================================================
 
---- Already Documented in api.yaml (3 paths, manual) ---
+--- Already Documented in api_manual.yaml (3 paths, manual) ---
 /api/engine/detect/cnn/                       POST
 /api/engine/detect/cnn/yolo/                  POST
 /api/engine/detect/cnn/lightnet/              POST
 
 --- Remaining /api/engine/detect/* ---
-(None - all detection endpoints covered in api.yaml)
+(None - all detection endpoints covered in api_manual.yaml)
 
 ================================================================================
 SECTION 4: /api/engine/query/graph/* ENDPOINTS
 ================================================================================
 
---- Already Documented in api.yaml (2 paths, manual) ---
+--- Already Documented in api_manual.yaml (2 paths, manual) ---
 /api/engine/query/graph/                      POST
 /api/engine/query/graph/complete/             POST
 
 --- Remaining /api/engine/query/graph/* ---
-(None - all engine query endpoints covered in api.yaml)
+(None - all engine query endpoints covered in api_manual.yaml)
 
 ================================================================================
 SECTION 5: /api/engine/job/* ENDPOINTS
 ================================================================================
 
---- Already Documented in api.yaml (3 paths, manual) ---
+--- Already Documented in api_manual.yaml (3 paths, manual) ---
 /api/engine/job/                              POST
 /api/engine/job/status/                       GET, POST
 /api/engine/job/result/                       GET, POST
@@ -263,7 +263,7 @@ SECTION 5: /api/engine/job/* ENDPOINTS
 /api/engine/job/metadata/                     GET, POST
 
 --- Remaining /api/engine/job/* ---
-(None - all engine job endpoints covered in api.yaml and api_claude.yaml)
+(None - all engine job endpoints covered in api_manual.yaml and api_claude.yaml)
 
 ################################################################################
 # SUMMARY 

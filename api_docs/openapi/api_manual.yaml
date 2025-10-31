@@ -68,8 +68,8 @@ components:
             type: string
             format: uuid # https://spec.openapis.org/registry/format/
           example: 
-            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
-            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+            - "66ec193a-1619-b3b6-216d-1784b4833b61"
+            - "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"
         callback_url: # wbia/web/apis_engine.py:778
           type: string
           nullable: true
@@ -153,8 +153,8 @@ components:
             type: string
             format: uuid
           example: 
-            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
-            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+            - "30f7639b-5161-a561-2c4f-41aed64e5b65"
+            - "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"
         annot_name_list: # wbia/web/apis_engine.py:407
           type: array
           nullable: true
@@ -212,7 +212,7 @@ components:
             type: string
             format: uuid
           example: 
-            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+            - "30f7639b-5161-a561-2c4f-41aed64e5b65"
         query_annot_name_list: # wbia/web/apis_engine.py:492
           type: array
           nullable: true
@@ -233,8 +233,8 @@ components:
             type: string
             format: uuid
           example: 
-            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
-            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+            - "30f7639b-5161-a561-2c4f-41aed64e5b65"
+            - "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"
         database_annot_name_list: # wbia/web/apis_engine.py:496
           type: array
           nullable: true
@@ -333,6 +333,9 @@ components:
           items:
             type: string
             format: uuid
+          example: 
+            - "66ec193a-1619-b3b6-216d-1784b4833b61"
+            - "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"
         annot_bbox_list: # wbia/web/apis_json.py:575
           type: array
           description: |
@@ -414,7 +417,9 @@ components:
             type: string
             format: uuid
             nullable: true 
-
+          example: 
+            - "30f7639b-5161-a561-2c4f-41aed64e5b65"
+            - "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"
     DeleteAnnotationRequestBodySchema: # wbia/web/apis_json.py:2162
       type: object 
       required:
@@ -426,10 +431,9 @@ components:
           items:
             type: string
             format: uuid
-          example:
-            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
-            - "a768243c-4456-4516-a2de-f2abc8702c0a"
-
+          example: 
+            - "30f7639b-5161-a561-2c4f-41aed64e5b65"
+            - "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"
     DeleteImageRequestBodySchema: # wbia/web/apis_json.py:2147
       type: object 
       required:
@@ -441,9 +445,9 @@ components:
           items:
             type: string
             format: uuid
-          example:
-            - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
-            - "a768243c-4456-4516-a2de-f2abc8702c0a"
+          example: 
+            - "66ec193a-1619-b3b6-216d-1784b4833b61"
+            - "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"
 
     ###############################################################################
     # IMAGE REQUEST BODY SCHEMAS
@@ -682,10 +686,7 @@ components:
               code: 200
               message: "Annotations deleted successfully"
               cache: -1
-            response:
-              type: boolean
-              example: true
-              description: Returns true when deletion succeeds
+            response: true
 
     Success200WithDeletionImageUUIDs:
       description: Successful operation with true response
@@ -699,10 +700,7 @@ components:
               code: 200
               message: "Image(s) deleted successfully"
               cache: -1
-            response:
-              type: boolean
-              example: true
-              description: Returns true when deletion succeeds
+            response: true
 
     Success200WithCreationImageUUIDs:
       description: Successful operation with Image UUIDs response
@@ -925,9 +923,9 @@ components:
         items:
           type: string
           format: uuid
-      example: 
-        - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
-        - "a768243c-4456-4516-a2de-f2abc8702c0a"
+        example: 
+          - "66ec193a-1619-b3b6-216d-1784b4833b61"
+          - "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"
 
     algo: # wbia/web/apis_engine.py:1005
       name: algo
@@ -990,9 +988,9 @@ components:
         items:
           type: string
           format: uuid
-      example: 
-        - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
-        - "a768243c-4456-4516-a2de-f2abc8702c0a"
+        example: 
+          - "30f7639b-5161-a561-2c4f-41aed64e5b65"
+          - "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"
 
     annot_name_list: # wbia/web/apis_engine.py:407
       name: annot_name_list
@@ -1032,7 +1030,7 @@ components:
           type: string
           format: uuid
       example: 
-        - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
+        - "30f7639b-5161-a561-2c4f-41aed64e5b65"
 
     query_annot_name_list: # wbia/web/apis_engine.py:492
       name: query_annot_name_list
@@ -1065,8 +1063,8 @@ components:
           type: string
           format: uuid
       example: 
-        - "3833d7c9-820a-44e0-af8c-e06d749e7fce"
-        - "a768243c-4456-4516-a2de-f2abc8702c0a"
+        - "30f7639b-5161-a561-2c4f-41aed64e5b65"
+        - "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"
 
     database_annot_name_list: # wbia/web/apis_engine.py:496
       name: database_annot_name_list

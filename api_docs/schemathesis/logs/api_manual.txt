@@ -1,34 +1,33 @@
-Installed 55 packages in 38ms
 Schemathesis v4.3.16
 ━━━━━━━━━━━━━━━━━━━━
 
 
- ✅  Loaded specification from ../openapi/api.yaml (in 0.33s)                                                                                                       
+ ✅  Loaded specification from ../openapi/api_manual.yaml (in 0.15s)                                                                 
 
-     Base URL:         http://localhost:85                                                                                                                          
-     Specification:    Open API 3.0.4                                                                                                                               
-     Operations:       21 selected / 21 total                                                                                                                       
+     Base URL:         http://localhost:85                                                                                           
+     Specification:    Open API 3.0.4                                                                                                
+     Operations:       21 selected / 21 total                                                                                        
 
 
- ✅  API capabilities:                                                                                                                                              
+ ✅  API capabilities:                                                                                                               
 
-     Supports NULL byte in headers:    ✓                                                                                                                            
+     Supports NULL byte in headers:    ✓                                                                                             
 
- ❌  Examples (in 1.06s)                                                                                                                                            
-                                                                                                                                                                    
-     ✅  3 passed  ❌  8 failed  ⏭  10 skipped                                                                                                                      
+ ❌  Examples (in 0.79s)                                                                                                             
+                                                                                                                                     
+     ✅  3 passed  ❌  8 failed  ⏭  10 skipped                                                                                       
 
- ❌  Coverage (in 43.20s)                                                                                                                                           
-                                                                                                                                                                    
-     ✅  3 passed  ❌ 18 failed                                                                                                                                     
+ ❌  Coverage (in 42.14s)                                                                                                            
+                                                                                                                                     
+     ✅  3 passed  ❌ 18 failed                                                                                                      
 
- ❌  Fuzzing (in 5.71s)                                                                                                                                             
-                                                                                                                                                                    
-     ✅  2 passed  ❌ 19 failed                                                                                                                                     
+ ❌  Fuzzing (in 5.87s)                                                                                                              
+                                                                                                                                     
+     ✅  2 passed  ❌ 19 failed                                                                                                      
 
 =================================== FAILURES ===================================
 ______________________ POST /api/engine/detect/cnn/yolo/ _______________________
-1. Test Case ID: WZ0auH
+1. Test Case ID: 1u5Tih
 
 - Server error
 
@@ -39,13 +38,13 @@ ______________________ POST /api/engine/detect/cnn/yolo/ _______________________
 
 [608] Unknown:
 
-    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (2, 0)", "cache": -1}, "response": {"invalid_image_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "a768243c-4456-4516-a2de-f2abc8702c0a"]], "invalid_annot_uuid_list": []}}`
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (2, 0)", "cache": -1}, "response": {"invalid_image_uuid_list": [[0, "66ec193a-1619-b3b6-216d-1784b4833b61"], [1, "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"]], "invalid_annot_uuid_list": []}}`
 
 Reproduce with: 
 
-    curl -X POST -H 'Content-Type: application/json' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/engine/detect/cnn/yolo/
+    curl -X POST -H 'Content-Type: application/json' -d '{"image_uuid_list": ["66ec193a-1619-b3b6-216d-1784b4833b61", "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"]}' http://localhost:85/api/engine/detect/cnn/yolo/
 
-2. Test Case ID: rrZ4G2
+2. Test Case ID: Wh9MMk
 
 - API accepted schema-violating request
 
@@ -55,13 +54,13 @@ Reproduce with:
 
 [608] Unknown:
 
-    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (2, 0)", "cache": -1}, "response": {"invalid_image_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "a768243c-4456-4516-a2de-f2abc8702c0a"]], "invalid_annot_uuid_list": []}}`
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (2, 0)", "cache": -1}, "response": {"invalid_image_uuid_list": [[0, "66ec193a-1619-b3b6-216d-1784b4833b61"], [1, "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"]], "invalid_annot_uuid_list": []}}`
 
 Reproduce with: 
 
-    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"], "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "fast", "jobid": {}}' http://localhost:85/api/engine/detect/cnn/yolo/
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uuid_list": ["66ec193a-1619-b3b6-216d-1784b4833b61", "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"], "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "fast", "jobid": {}}' http://localhost:85/api/engine/detect/cnn/yolo/
 
-3. Test Case ID: iH9COG
+3. Test Case ID: GvvHZZ
 
 - Server error
 
@@ -74,7 +73,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/detect/cnn/yolo/
 
 ____________________ POST /api/engine/query/graph/complete/ ____________________
-1. Test Case ID: tUmfcw
+1. Test Case ID: eDCMGG
 
 - Server error
 
@@ -85,13 +84,13 @@ ____________________ POST /api/engine/query/graph/complete/ ____________________
 
 [608] Unknown:
 
-    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 2)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "a768243c-4456-4516-a2de-f2abc8702c0a"]]}}`
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 2)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "30f7639b-5161-a561-2c4f-41aed64e5b65"], [1, "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"]]}}`
 
 Reproduce with: 
 
-    curl -X POST -H 'Content-Type: application/json' -d '{"annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/engine/query/graph/complete/
+    curl -X POST -H 'Content-Type: application/json' -d '{"annot_uuid_list": ["30f7639b-5161-a561-2c4f-41aed64e5b65", "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"]}' http://localhost:85/api/engine/query/graph/complete/
 
-2. Test Case ID: ILPXTV
+2. Test Case ID: WmI6kh
 
 - Server error
 
@@ -103,7 +102,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"annot_uuid_list": null, "annot_name_list": null, "query_config_dict": {}, "k": 5, "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "slow", "jobid": {}}' http://localhost:85/api/engine/query/graph/complete/
 
-3. Test Case ID: yf9cNt
+3. Test Case ID: hjUCKU
 
 - API accepted schema-violating request
 
@@ -112,14 +111,14 @@ Reproduce with:
 
 [200] OK:
 
-    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": "331e68aa-5d3f-4427-8f4e-31a7e74c117b"}`
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": "947fcf7d-bfcf-40ae-b23c-e27f2f699628"}`
 
 Reproduce with: 
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/query/graph/complete/
 
 ____________________ GET /api/engine/query/graph/complete/ _____________________
-1. Test Case ID: 9QGwxw
+1. Test Case ID: UFQgpe
 
 - Server error
 
@@ -130,13 +129,13 @@ ____________________ GET /api/engine/query/graph/complete/ _____________________
 
 [608] Unknown:
 
-    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 2)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "[3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "a768243c-4456-4516-a2de-f2abc8702c0a]"]]}}`
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 2)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "[30f7639b-5161-a561-2c4f-41aed64e5b65"], [1, "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2]"]]}}`
 
 Reproduce with: 
 
-    curl -X GET 'http://localhost:85/api/engine/query/graph/complete/?annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a'
+    curl -X GET 'http://localhost:85/api/engine/query/graph/complete/?annot_uuid_list=30f7639b-5161-a561-2c4f-41aed64e5b65%2C5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2'
 
-2. Test Case ID: bYbKTI
+2. Test Case ID: SCrBWZ
 
 - Server error
 
@@ -149,7 +148,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/query/graph/complete/?annot_name_list='
 
 ________________________ POST /api/engine/query/graph/ _________________________
-1. Test Case ID: Dr22s3
+1. Test Case ID: 7jTq7n
 
 - Server error
 
@@ -160,13 +159,13 @@ ________________________ POST /api/engine/query/graph/ _________________________
 
 [608] Unknown:
 
-    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 3)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [2, "a768243c-4456-4516-a2de-f2abc8702c0a"]]}}`
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 3)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "30f7639b-5161-a561-2c4f-41aed64e5b65"], [1, "30f7639b-5161-a561-2c4f-41aed64e5b65"], [2, "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"]]}}`
 
 Reproduce with: 
 
-    curl -X POST -H 'Content-Type: application/json' -d '{"query_annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce"], "database_annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"], "matching_state_list": [["uuid1", "uuid2", "matched"], ["uuid1", "uuid3", "notmatched"]]}' http://localhost:85/api/engine/query/graph/
+    curl -X POST -H 'Content-Type: application/json' -d '{"query_annot_uuid_list": ["30f7639b-5161-a561-2c4f-41aed64e5b65"], "database_annot_uuid_list": ["30f7639b-5161-a561-2c4f-41aed64e5b65", "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"], "matching_state_list": [["uuid1", "uuid2", "matched"], ["uuid1", "uuid3", "notmatched"]]}' http://localhost:85/api/engine/query/graph/
 
-2. Test Case ID: dMDCKx
+2. Test Case ID: LIh3w6
 
 - Server error
 
@@ -179,7 +178,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"query_annot_uuid_list": null, "query_annot_name_list": null, "database_annot_uuid_list": null, "database_annot_name_list": null, "database_imgsetid": null, "matching_state_list": [["uuid1", "uuid2", "matched"], ["uuid1", "uuid3", "notmatched"]], "query_config_dict": {}, "echo_query_params": true, "include_qaid_in_daids": true, "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "slow", "jobid": {}}' http://localhost:85/api/engine/query/graph/
 
 _________________________ GET /api/engine/query/graph/ _________________________
-1. Test Case ID: RaiMno
+1. Test Case ID: I2Gbsh
 
 - Server error
 
@@ -190,13 +189,13 @@ _________________________ GET /api/engine/query/graph/ _________________________
 
 [608] Unknown:
 
-    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 3)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "3833d7c9-820a-44e0-af8c-e06d749e7fce"], [1, "[3833d7c9-820a-44e0-af8c-e06d749e7fce"], [2, "a768243c-4456-4516-a2de-f2abc8702c0a]"]]}}`
+    `{"status": {"success": false, "code": 608, "message": "Invalid image and/or annotation UUIDs (0, 3)", "cache": -1}, "response": {"invalid_image_uuid_list": [], "invalid_annot_uuid_list": [[0, "30f7639b-5161-a561-2c4f-41aed64e5b65"], [1, "[30f7639b-5161-a561-2c4f-41aed64e5b65"], [2, "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2]"]]}}`
 
 Reproduce with: 
 
-    curl -X GET 'http://localhost:85/api/engine/query/graph/?query_annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce&database_annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a&matching_state_list=%5B%27uuid1%27%2C+%27uuid2%27%2C+%27matched%27%5D%2C%5B%27uuid1%27%2C+%27uuid3%27%2C+%27notmatched%27%5D'
+    curl -X GET 'http://localhost:85/api/engine/query/graph/?query_annot_uuid_list=30f7639b-5161-a561-2c4f-41aed64e5b65&database_annot_uuid_list=30f7639b-5161-a561-2c4f-41aed64e5b65%2C5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2&matching_state_list=%5B%27uuid1%27%2C+%27uuid2%27%2C+%27matched%27%5D%2C%5B%27uuid1%27%2C+%27uuid3%27%2C+%27notmatched%27%5D'
 
-2. Test Case ID: oSCPHR
+2. Test Case ID: gjVFec
 
 - Server error
 
@@ -206,10 +205,10 @@ Reproduce with:
 
 Reproduce with: 
 
-    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/query/graph/?query_annot_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce&query_annot_name_list=&database_annot_uuid_list=&database_annot_name_list=&database_imgsetid=0&matching_state_list=%5B%27uuid1%27%2C+%27uuid2%27%2C+%27matched%27%5D%2C%5B%27uuid1%27%2C+%27uuid3%27%2C+%27notmatched%27%5D&query_config_dict=&echo_query_params=true&include_qaid_in_daids=true&callback_url=https%3A%2F%2FA.COM&callback_method=GET&lane=fast&jobid='
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/query/graph/?query_annot_uuid_list=30f7639b-5161-a561-2c4f-41aed64e5b65&query_annot_name_list=&database_annot_uuid_list=&database_annot_name_list=&database_imgsetid=0&matching_state_list=%5B%27uuid1%27%2C+%27uuid2%27%2C+%27matched%27%5D%2C%5B%27uuid1%27%2C+%27uuid3%27%2C+%27notmatched%27%5D&query_config_dict=&echo_query_params=true&include_qaid_in_daids=true&callback_url=https%3A%2F%2FA.COM&callback_method=GET&lane=fast&jobid='
 
 ____________________________ POST /api/annot/json/ _____________________________
-1. Test Case ID: JSplDT
+1. Test Case ID: bLogGS
 
 - Server error
 
@@ -219,62 +218,62 @@ ____________________________ POST /api/annot/json/ _____________________________
 
 Reproduce with: 
 
-    curl -X POST -H 'Content-Type: application/json' -d '{"annot_bbox_list": [["x value of top left corner", "y value of top left corner", "width", "height"]], "image_uuid_list": [], "annot_theta_list": []}' http://localhost:85/api/annot/json/
+    curl -X POST -H 'Content-Type: application/json' -d '{"image_uuid_list": ["66ec193a-1619-b3b6-216d-1784b4833b61", "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"], "annot_bbox_list": [["x value of top left corner", "y value of top left corner", "width", "height"]], "annot_uuid_list": ["30f7639b-5161-a561-2c4f-41aed64e5b65", "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"], "annot_theta_list": []}' http://localhost:85/api/annot/json/
 
 ___________________________ DELETE /api/annot/json/ ____________________________
-1. Test Case ID: iuapKG
+1. Test Case ID: puhhMP
 
 - Server error
 
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_annots_json(ibs, annot_uuid_list)\nReceived Function Definition: delete_annots_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, annot_uuid_list=['3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de-f2abc8702c0a'])\nReceived Function Parameters:\n\t'annot_uuid_list': ['3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de-f2abc8702c0a']\nOperationalError: (sqlite3.Operat // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_annots_json(ibs, annot_uuid_list)\nReceived Function Definition: delete_annots_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, annot_uuid_list=['30f7639b-5161-a561-2c4f-41aed64e5b65', '5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2'])\nReceived Function Parameters:\n\t'annot_uuid_list': ['30f7639b-5161-a561-2c4f-41aed64e5b65', '5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2']\nOperationalError: (sqlite3.Operat // Output truncated...`
 
 Reproduce with: 
 
-    curl -X DELETE -H 'Content-Type: application/json' -d '{"annot_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/annot/json/
+    curl -X DELETE -H 'Content-Type: application/json' -d '{"annot_uuid_list": ["30f7639b-5161-a561-2c4f-41aed64e5b65", "5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2"]}' http://localhost:85/api/annot/json/
 
 ___________________________ DELETE /api/image/json/ ____________________________
-1. Test Case ID: IhLNBM
+1. Test Case ID: l51Y2d
 
 - Server error
 
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_images_json(ibs, image_uuid_list)\nReceived Function Definition: delete_images_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, image_uuid_list=['3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de-f2abc8702c0a'])\nReceived Function Parameters:\n\t'image_uuid_list': ['3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de-f2abc8702c0a']\nTypeError: unsupported operand ty // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_images_json(ibs, image_uuid_list)\nReceived Function Definition: delete_images_json(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, image_uuid_list=['66ec193a-1619-b3b6-216d-1784b4833b61', 'd8903434-942f-e0f5-d6c2-0dcbe3137bf7'])\nReceived Function Parameters:\n\t'image_uuid_list': ['66ec193a-1619-b3b6-216d-1784b4833b61', 'd8903434-942f-e0f5-d6c2-0dcbe3137bf7']\nTypeError: unsupported operand ty // Output truncated...`
 
 Reproduce with: 
 
-    curl -X DELETE -H 'Content-Type: application/json' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"]}' http://localhost:85/api/image/json/
+    curl -X DELETE -H 'Content-Type: application/json' -d '{"image_uuid_list": ["66ec193a-1619-b3b6-216d-1784b4833b61", "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"]}' http://localhost:85/api/image/json/
 
 ____________________ POST /api/engine/detect/cnn/lightnet/ _____________________
-1. Test Case ID: kxy3VN
+1. Test Case ID: 9LtXTf
 
 - Server error
 
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_lightnet(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, callback_detailed=False, callback_method=None, callback_url=None, image_uuid_list=['3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_lightnet(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, callback_detailed=False, callback_method=None, callback_url=None, image_uuid_list=['66ec193a-1619-b3b6-216d-1784b4833b61', 'd8903434-942f-e0f5-d6c2 // Output truncated...`
 
 Reproduce with: 
 
-    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uuid_list": ["3833d7c9-820a-44e0-af8c-e06d749e7fce", "a768243c-4456-4516-a2de-f2abc8702c0a"], "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "fast", "jobid": {}}' http://localhost:85/api/engine/detect/cnn/lightnet/
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uuid_list": ["66ec193a-1619-b3b6-216d-1784b4833b61", "d8903434-942f-e0f5-d6c2-0dcbe3137bf7"], "callback_url": null, "callback_method": null, "callback_detailed": false, "lane": "fast", "jobid": {}}' http://localhost:85/api/engine/detect/cnn/lightnet/
 
 _____________________ GET /api/engine/detect/cnn/lightnet/ _____________________
-1. Test Case ID: FUBpAj
+1. Test Case ID: bdFVoi
 
 - Server error
 
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_lightnet(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, callback_method='GET', callback_url='https://A.COM', image_uuid_list=['[3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a768243c-4456-4516-a2de-f2abc8702c0 // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_lightnet(ibs, image_uuid_list, callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_lightnet(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, callback_method='GET', callback_url='https://A.COM', image_uuid_list=['[66ec193a-1619-b3b6-216d-1784b4833b61', 'd8903434-942f-e0f5-d6c2-0dcbe3137bf // Output truncated...`
 
 Reproduce with: 
 
-    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/detect/cnn/lightnet/?image_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a&callback_url=https%3A%2F%2FA.COM&callback_method=GET&lane=fast&jobid='
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/detect/cnn/lightnet/?image_uuid_list=66ec193a-1619-b3b6-216d-1784b4833b61%2Cd8903434-942f-e0f5-d6c2-0dcbe3137bf7&callback_url=https%3A%2F%2FA.COM&callback_method=GET&lane=fast&jobid='
 
 _________________________ POST /api/engine/detect/cnn/ _________________________
-1. Test Case ID: yj2V27
+1. Test Case ID: i1NEfW
 
 - Server error
 
@@ -287,20 +286,20 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[null, null]' http://localhost:85/api/engine/detect/cnn/
 
 _________________________ GET /api/engine/detect/cnn/ __________________________
-1. Test Case ID: wb42x9
+1. Test Case ID: MjGgmc
 
 - Server error
 
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_algo(ibs, image_uuid_list, algo='lightnet', callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_algo(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, callback_detailed=True, callback_method='GET', callback_url='https://A.COM', image_uuid_list=['[3833d7c9-820a-44e0-af8c-e06d749e7fce', 'a7 // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: start_detect_image_algo(ibs, image_uuid_list, algo='lightnet', callback_url=None, callback_method=None, callback_detailed=False, lane='fast', jobid=None, **kwargs)\nReceived Function Definition: start_detect_image_algo(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, callback_detailed=True, callback_method='GET', callback_url='https://A.COM', image_uuid_list=['[66ec193a-1619-b3b6-216d-1784b4833b61', 'd8 // Output truncated...`
 
 Reproduce with: 
 
-    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/detect/cnn/?image_uuid_list=3833d7c9-820a-44e0-af8c-e06d749e7fce%2Ca768243c-4456-4516-a2de-f2abc8702c0a&callback_url=https%3A%2F%2FA.COM&callback_method=GET&callback_detailed=true&lane=fast&jobid='
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/detect/cnn/?image_uuid_list=66ec193a-1619-b3b6-216d-1784b4833b61%2Cd8903434-942f-e0f5-d6c2-0dcbe3137bf7&callback_url=https%3A%2F%2FA.COM&callback_method=GET&callback_detailed=true&lane=fast&jobid='
 
 _________________________ POST /api/engine/job/status/ _________________________
-1. Test Case ID: IjBvUs
+1. Test Case ID: 1X0QHd
 
 - API accepted schema-violating request
 
@@ -317,7 +316,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"jobid": {}}' http://localhost:85/api/engine/job/status/
 
 _________________________ POST /api/engine/job/result/ _________________________
-1. Test Case ID: 8WeKaz
+1. Test Case ID: eOqetb
 
 - API accepted schema-violating request
 
@@ -333,7 +332,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"jobid": {}}' http://localhost:85/api/engine/job/result/
 
-2. Test Case ID: 10W9o8
+2. Test Case ID: 9BJink
 
 - Server error
 
@@ -346,7 +345,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/engine/job/result/
 
 _________________________ GET /api/engine/job/result/ __________________________
-1. Test Case ID: rXxDZw
+1. Test Case ID: NLmtrN
 
 - Server error
 
@@ -359,7 +358,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/engine/job/result/
 
 _____________________________ GET /api/annot/json/ _____________________________
-1. Test Case ID: 4XvsqJ
+1. Test Case ID: 2hx9rc
 
 - Server error
 
@@ -372,7 +371,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/json/?yaw=no-filter&x-schemathesis-unknown-property=42'
 
 ____________________________ POST /api/image/json/ _____________________________
-1. Test Case ID: hrJjmK
+1. Test Case ID: CB0BZz
 
 - API accepted schema-violating request
 
@@ -388,7 +387,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"image_uri_list": [], "image_unixtime_list": null, "image_gps_lat_list": null, "image_gps_lon_list": [{}]}' http://localhost:85/api/image/json/
 
-2. Test Case ID: ItK9L8
+2. Test Case ID: yH0hd9
 
 - Server error
 
@@ -401,7 +400,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/image/json/
 
 _____________________________ GET /api/image/json/ _____________________________
-1. Test Case ID: b6UfXD
+1. Test Case ID: enl1RZ
 
 - Server error
 
@@ -414,17 +413,17 @@ Reproduce with:
     curl -X GET 'http://localhost:85/api/image/json/?imgsetid_list=&require_unixtime=true&require_gps=true&is_tile=true&is_reviewed=true'
 
 _________________________ GET /api/engine/job/status/ __________________________
-1. Test Case ID: TNtBUh
+1. Test Case ID: v8P342
 
 - Server error
 
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_job_status(ibs, jobid=None)\nReceived Function Definition: get_job_status(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, a\u00c5y)\u0084\ud86b\ude9f='Gs\\U000a996c\u00b1\u00f4', e7d='\\x8fm\u00f5\u00dd}\u00de\\U000c2424}', \u00bd\u00f8r='}\u00cc\\x10\u00ec2\\x85\\U000911b1\u00ce\u00fe\u00de', \u00f2\ud818\uddb0='\u00c8', \uda8e\udd7e='')\nReceived Function Parameters:\n\t'a\u00c5y)\\x84\ud86b\ude9 // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: get_job_status(ibs, jobid=None)\nReceived Function Definition: get_job_status(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, \u0000\ud99a\udfcf\udaca\udffcy\u008a&='m', K6\u789a\u000e\u00db\udad1\ude67\udbac\ude97='M\\U0007c544\\U000fdc16\\U0006270a\\x0e\\U000e1de3B\\x0f\\x8a', b=[], jobid=dict(), \u0085='', \u0088\u0091\u00a1\u00dc\u001do\u008c\u0005\u001d\ud8a0\udc77\u00bbEB\u00cf='\\xa0j\u00e2', \u // Output truncated...`
 
 Reproduce with: 
 
-    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/job/status/?a%C3%85y%29%C2%84%F0%AA%BA%9F=Gs%F2%A9%A5%AC%C2%B1%C3%B4&a%C3%85y%29%C2%84%F0%AA%BA%9F=%F2%BF%8D%A1%C2%9E%C3%89&a%C3%85y%29%C2%84%F0%AA%BA%9F=%C2%BE%C3%A8%196RW%F3%BB%B3%92X%C2%A4%C2%B5%C2%90&%C3%B2%F0%96%86%B0=%C3%88&%C3%B2%F0%96%86%B0=%F3%8F%82%AD&%C2%BD%C3%B8r=%7D%C3%8C%10%C3%AC2%C2%85%F2%91%86%B1%C3%8E%C3%BE%C3%9E&%C2%BD%C3%B8r=&%F2%B3%A5%BE=&%F2%B3%A5%BE=None&%F2%B3%A5%BE=-6.932868661521968e-284&e7d=%C2%8Fm%C3%B5%C3%9D%7D%C3%9E%F3%82%90%A4%7D&e7d=%F3%AC%B5%85%18%F3%AB%AD%95%C3%B0'
+    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/engine/job/status/?jobid=%7B%7D&jobid=%7B%7D&jobid=%C2%B9%C2%BC%C2%BD&jobid=%F2%B9%95%AE%C3%8F%F1%B0%A7%81&jobid=%C2%B0%C2%BC%F2%96%A6%B9%C2%B5%C3%8A%C2%BA%C3%88%F3%93%98%9C%C3%9F%3C&jobid=&jobid=%5B%C3%BB%23v%C2%A7%3A&jobid=%29%21%C3%A9%06%F0%99%BA%99%C3%9F%24%C2%B5%F3%BD%B4%B1L%F2%AC%B4%AF&%F1%9C%AE%BA%F2%BF%BF%82%C3%94%1C%2C%21%F1%92%AB%91%F2%80%80%B0%C2%A9%19_=&%F1%9C%AE%BA%F2%BF%BF%82%C3%94%1C%2C%21%F1%92%AB%91%F2%80%80%B0%C2%A9%19_=%5D&%F1%9C%AE%BA%F2%BF%BF%82%C3%94%1C%2C%21%F1%92%AB%91%F2%80%80%B0%C2%A9%19_=F%C3%A7%03%C3%98%C2%95%C3%85%01&b=%5B%5D&b=%7B%7D&%00%F1%B6%AF%8F%F3%82%AF%BCy%C2%8A%26=m&%C2%88%C2%91%C2%A1%C3%9C%1Do%C2%8C%05%1D%F0%B8%81%B7%C2%BBEB%C3%8F=%C2%A0j%C3%A2&%C2%88%C2%91%C2%A1%C3%9C%1Do%C2%8C%05%1D%F0%B8%81%B7%C2%BBEB%C3%8F=%C2%91.%F3%96%9E%98%F3%88%B3%80%C2%A6L%C3%A9%F3%90%BA%A3%C2%A2%F3%88%95%BD%C2%BD%C2%8E%C3%81b&%C2%88%C2%91%C2%A1%C3%9C%1Do%C2%8C%05%1D%F0%B8%81%B7%C2%BBEB%C3%8F=%27&%C2%B5%F3%AC%BC%88%C3%A7%0D=%18%C3%9F%F3%84%83%86F%F3%B1%88%A7%1F%C2%A18&%C2%B5%F3%AC%BC%88%C3%A7%0D=&%C2%B5%F3%AC%BC%88%C3%A7%0D=%C3%99%F1%85%BB%84%C2%98&%C2%A0=&%C2%A0=%F0%9B%AB%98&%C2%85=&%C2%85=%3D%27%10%C3%A79%C2%A4%C3%BE%C3%B7GQ%5C%C3%AB%19%F2%B1%95%A8%F4%8E%B2%89%C2%BB9%C3%B89%C2%91&%F4%8A%B8%9AM=-8904495045497870.0&K6%E7%A2%9A%0E%C3%9B%F3%84%99%A7%F3%BB%8A%97=M%F1%BC%95%84%F3%BD%B0%96%F1%A2%9C%8A%0E%F3%A1%B7%A3B%0F%C2%8A&%F2%B3%A4%9C%F1%8B%A4%82%C2%87%C2%B4=False'
 
 =================================== SUMMARY ====================================
 
@@ -444,8 +443,8 @@ Failures:
   ❌ API rejected schema-compliant request: 5
 
 Test cases:
-  2200 generated, 28 found 33 unique failures
+  2202 generated, 28 found 33 unique failures
 
-Seed: 30578503704274172441637658197614196494
+Seed: 10599735727759439641263028498498848601
 
-============================ 33 failures in 50.04s =============================
+============================ 33 failures in 48.88s =============================
