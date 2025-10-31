@@ -71,6 +71,13 @@ components:
           schema:
             $ref: '#/components/schemas/Envelope'
 
+    MethodNotAllowed405:
+      description: HTTP method not allowed for this endpoint
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Envelope'
+
     InvalidImageInput415:
       description: Invalid image input
       content:
@@ -160,6 +167,8 @@ components:
       $ref: '#/components/responses/MissingOrInvalidInput400'
     "401":
       $ref: '#/components/responses/Unauthorized401'
+    "405":
+      $ref: '#/components/responses/MethodNotAllowed405'
     "415":
       $ref: '#/components/responses/InvalidImageInput415'
     "500":
@@ -1510,159 +1519,6 @@ paths:
                       - "easy"
                       - "hard"
                       - "jeff"
-    put:
-      summary: (PUT) Set individual name texts for annotations
-      description: |
-        Sets the individual name texts (identifying labels) for a list of annotations.
-
-        This endpoint accepts annotation IDs (aid_list) and corresponding name texts (name_text_list)
-        to assign names to annotations. Names are used to identify individual animals/subjects
-        within the database.
-
-        **Important Notes:**
-        - The lists must be the same length (one name per annotation ID)
-        - Empty strings are not allowed - use "____" for unknown/unnamed individuals
-        - Name texts are converted to name rowids internally
-        - Setting a name updates the annotation's semantic UUID and invalidates related caches
-        - If the name doesn't exist in the database, it will be created automatically
-        - Annotations set to "____" (unknown) will have their exemplar flag set to false
-
-        **Implementation Details:**
-        - Function: `set_annot_names()` in wbia/control/manual_annot_funcs.py:3176
-        - Decorators: `@accessor_decors.setter`, `@register_api`
-        - Database operations: Updates ANNOTATION_TABLE.name_rowid field
-        - Side effects: Updates semantic UUIDs, notifies dependency cache, may trigger Wildbook signals
-
-        **Related Endpoints:**
-        - GET /api/annot/name/text/ - Retrieve annotation name texts
-        - PUT /api/annot/name/ - Alternative endpoint (same functionality)
-        - PUT /api/annot/name/text/json/ - UUID-based version for JSON API
-      tags:
-        - annotations
-        - claude-generated
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - aid_list
-                - name_text_list
-              properties:
-                aid_list:
-                  type: array
-                  description: List of annotation IDs (integer rowids) to update
-                  items:
-                    type: integer
-                    format: int64
-                    minimum: 1
-                  example: [1, 2, 3, 4]
-                  minItems: 1
-                name_text_list:
-                  type: array
-                  description: |
-                    List of name texts (strings) corresponding to each annotation ID.
-                    Use "____" for unknown/unnamed individuals. Cannot be empty strings.
-                    Must have same length as aid_list.
-                  items:
-                    type: string
-                    minLength: 1
-                  example: ["zebra_001", "fred", "sue", "____"]
-                  minItems: 1
-            examples:
-              basic:
-                summary: Assign names to annotations
-                value:
-                  aid_list: [1, 2, 3]
-                  name_text_list: ["fred", "sue", "zebra_001"]
-              with_unknown:
-                summary: Assign names including unknown
-                value:
-                  aid_list: [4, 5, 6, 7]
-                  name_text_list: ["jeff", "____", "hard", "easy"]
-              create_new_name:
-                summary: Create new individual name
-                value:
-                  aid_list: [10]
-                  name_text_list: ["new_elephant_2024"]
-      responses:
-        <<: *WBIAStandardErrors
-        "200":
-          description: Successfully updated annotation name texts
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-              examples:
-                success:
-                  summary: Successful name update
-                  value:
-                    status:
-                      success: true
-                      code: 200
-                      message: "Success"
-                      cache: -1
-                    response: null
-        "400":
-          description: Bad request - invalid input parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-              examples:
-                mismatched_lengths:
-                  summary: aid_list and name_text_list have different lengths
-                  value:
-                    status:
-                      success: false
-                      code: 400
-                      message: "AssertionError: misaligned - aid_list and name_text_list must have the same length"
-                      cache: -1
-                    response: null
-                empty_string:
-                  summary: Empty string in name_text_list
-                  value:
-                    status:
-                      success: false
-                      code: 400
-                      message: "AssertionError: cannot change name to empty string use ____ for unknown."
-                      cache: -1
-                    response: null
-                invalid_aid:
-                  summary: Invalid annotation ID
-                  value:
-                    status:
-                      success: false
-                      code: 400
-                      message: "Invalid annotation ID(s) provided"
-                      cache: -1
-                    response: null
-                missing_parameter:
-                  summary: Missing required parameter
-                  value:
-                    status:
-                      success: false
-                      code: 400
-                      message: "WebMissingInput: Missing required parameter: aid_list or name_text_list"
-                      cache: -1
-                    response: null
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-              examples:
-                database_error:
-                  summary: Database operation failed
-                  value:
-                    status:
-                      success: false
-                      code: 500
-                      message: "Internal server error during name update"
-                      cache: -1
-                    response: null
 
   /api/annot/name/rowid/:
     get:
@@ -1682,25 +1538,6 @@ paths:
           content:
             application/json:
               schema: {$ref: '#/components/schemas/Envelope'}
-    put:
-      tags: [annotations, claude-generated]
-      summary: Set name rowids
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                aid_list: {type: array, items: {type: integer}}
-                nid_list: {type: array, items: {type: integer, nullable: true}}
-      responses:
-        <<: *WBIAStandardErrors
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema: {$ref: '#/components/schemas/Envelope'}
 
   /api/annot/name/uuid/:
     get:
@@ -1713,25 +1550,6 @@ paths:
           schema: {type: array, items: {type: integer}}
           style: form
           explode: false
-      responses:
-        <<: *WBIAStandardErrors
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema: {$ref: '#/components/schemas/Envelope'}
-    put:
-      tags: [annotations, claude-generated]
-      summary: Set name UUIDs
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                aid_list: {type: array, items: {type: integer}}
-                name_uuid_list: {type: array, items: {type: string, nullable: true}}
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -1796,25 +1614,6 @@ paths:
           content:
             application/json:
               schema: {$ref: '#/components/schemas/Envelope'}
-    put:
-      tags: [annotations, claude-generated]
-      summary: Set species text names
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                aid_list: {type: array, items: {type: integer}}
-                species_text_list: {type: array, items: {type: string, nullable: true}}
-      responses:
-        <<: *WBIAStandardErrors
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema: {$ref: '#/components/schemas/Envelope'}
 
   /api/annot/species/uuid/:
     get:
@@ -1827,25 +1626,6 @@ paths:
           schema: {type: array, items: {type: integer}}
           style: form
           explode: false
-      responses:
-        <<: *WBIAStandardErrors
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema: {$ref: '#/components/schemas/Envelope'}
-    put:
-      tags: [annotations, claude-generated]
-      summary: Set species UUIDs
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                aid_list: {type: array, items: {type: integer}}
-                species_uuid_list: {type: array, items: {type: string, nullable: true}}
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -2335,14 +2115,14 @@ paths:
                   type: array
                   items:
                     type: integer
-                age_months_est_min_list:
+                annot_age_months_est_min_list:
                   type: array
                   items:
                     type: integer
                     nullable: true
             example:
               aid_list: [1, 2, 3]
-              age_months_est_min_list: [12, 24, 6]
+              annot_age_months_est_min_list: [12, 24, 6]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -2414,14 +2194,14 @@ paths:
                   type: array
                   items:
                     type: integer
-                age_months_est_max_list:
+                annot_age_months_est_max_list:
                   type: array
                   items:
                     type: integer
                     nullable: true
             example:
               aid_list: [1, 2, 3]
-              age_months_est_max_list: [36, 48, 18]
+              annot_age_months_est_max_list: [36, 48, 18]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -2514,7 +2294,7 @@ paths:
                   cache: -1
                 response: [true, false, true, false]
 
-    put:
+    post:
       tags:
         - annotations
         - claude-generated
@@ -2688,13 +2468,13 @@ paths:
                   type: array
                   items:
                     type: integer
-                interest_list:
+                flag_list:
                   type: array
                   items:
                     type: boolean
             example:
               aid_list: [1, 2, 3]
-              interest_list: [false, true, false]
+              flag_list: [false, true, false]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -2766,13 +2546,13 @@ paths:
                   type: array
                   items:
                     type: integer
-                multiple_list:
+                flag_list:
                   type: array
                   items:
                     type: boolean
             example:
               aid_list: [1, 2, 3]
-              multiple_list: [false, true, false]
+              flag_list: [false, true, false]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -2844,13 +2624,13 @@ paths:
                   type: array
                   items:
                     type: integer
-                canonical_list:
+                flag_list:
                   type: array
                   items:
                     type: boolean
             example:
               aid_list: [1, 2, 3]
-              canonical_list: [true, false, false]
+              flag_list: [true, false, false]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -3363,14 +3143,14 @@ paths:
                   type: array
                   items:
                     type: integer
-                note_list:
+                notes_list:
                   type: array
                   items:
                     type: string
                     nullable: true
             example:
               aid_list: [1, 2, 3]
-              note_list: ["Good quality", "Check species ID", ""]
+              notes_list: ["Good quality", "Check species ID", ""]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -3443,14 +3223,14 @@ paths:
                   type: array
                   items:
                     type: integer
-                metadata_list:
+                metadata_dict_list:
                   type: array
                   items:
                     type: object
                     nullable: true
             example:
               aid_list: [1, 2, 3]
-              metadata_list: [{"key1": "value1"}, {"key2": "value2"}, null]
+              metadata_dict_list: [{"key1": "value1"}, {"key2": "value2"}, null]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -3523,14 +3303,14 @@ paths:
                   type: array
                   items:
                     type: integer
-                sex_list:
+                name_sex_list:
                   type: array
                   items:
                     type: integer
                     nullable: true
             example:
               aid_list: [1, 2, 3]
-              sex_list: [0, 1, -1]
+              name_sex_list: [0, 1, -1]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -3583,48 +3363,6 @@ paths:
                   message: "success"
                   cache: -1
                 response: [1, 2, null, 1]
-
-    put:
-      tags:
-        - annotations
-        - claude-generated
-      summary: Set part rowid for annotations
-      description: |
-        Sets the part row ID for the specified annotations.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                aid_list:
-                  type: array
-                  items:
-                    type: integer
-                part_rowid_list:
-                  type: array
-                  items:
-                    type: integer
-                    nullable: true
-            example:
-              aid_list: [1, 2, 3]
-              part_rowid_list: [1, 2, 1]
-      responses:
-        <<: *WBIAStandardErrors
-        "200":
-          description: Successfully updated part rowids
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-              example:
-                status:
-                  success: true
-                  code: 200
-                  message: "success"
-                  cache: -1
-                response: null
 
   /api/annot/tile/rowid/:
     get:
@@ -5440,14 +5178,14 @@ paths:
                   type: array
                   items:
                     type: integer
-                note_list:
+                notes_list:
                   type: array
                   items:
                     type: string
                     nullable: true
             example:
               gid_list: [1, 2, 3]
-              note_list: ["Good quality", "Check timestamp", ""]
+              notes_list: ["Good quality", "Check timestamp", ""]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -5520,14 +5258,14 @@ paths:
                   type: array
                   items:
                     type: integer
-                metadata_list:
+                metadata_dict_list:
                   type: array
                   items:
                     type: object
                     nullable: true
             example:
               gid_list: [1, 2, 3]
-              metadata_list: [{"camera": "Canon"}, {"device": "phone"}, null]
+              metadata_dict_list: [{"camera": "Canon"}, {"device": "phone"}, null]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -5623,42 +5361,6 @@ paths:
                 response: null
 
   /api/image/time/posix/:
-    get:
-      tags:
-        - images
-        - claude-generated
-      summary: Get unix timestamps for images
-      description: |
-        Returns the unix timestamp for the specified images.
-
-        Alias for /api/image/unixtime/. Returns null for images without timestamp.
-      parameters:
-        - name: gid_list
-          in: query
-          required: true
-          description: List of image IDs
-          schema:
-            type: array
-            items:
-              type: integer
-          style: form
-          explode: false
-      responses:
-        <<: *WBIAStandardErrors
-        "200":
-          description: Successfully retrieved timestamps
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Envelope'
-              example:
-                status:
-                  success: true
-                  code: 200
-                  message: "success"
-                  cache: -1
-                response: [1609459200, 1609545600, null, 1609632000]
-
     put:
       tags:
         - images
@@ -7360,7 +7062,7 @@ paths:
         "200": {description: Success, content: {application/json: {schema: {'$ref': '#/components/schemas/Envelope'}}}}
 
   /api/annot/rotate/left/:
-    put:
+    post:
       tags: [annotations, claude-generated]
       summary: Rotate annotations left 90°
       requestBody:
@@ -7373,7 +7075,7 @@ paths:
         "200": {description: Success, content: {application/json: {schema: {'$ref': '#/components/schemas/Envelope'}}}}
 
   /api/annot/rotate/right/:
-    put:
+    post:
       tags: [annotations, claude-generated]
       summary: Rotate annotations right 90°
       requestBody:
@@ -7485,16 +7187,6 @@ paths:
         <<: *WBIAStandardErrors
         "200": {description: Success, content: {application/json: {schema: {type: array}}}}
 
-  /api/image/gps/str/:
-    get:
-      tags: [images, claude-generated]
-      summary: Get GPS string
-      parameters:
-        - {name: gid_list, in: query, required: true, schema: {type: array, items: {type: integer}}, style: form, explode: false}
-      responses:
-        <<: *WBIAStandardErrors
-        "200": {description: Success, content: {application/json: {schema: {'$ref': '#/components/schemas/Envelope'}}}}
-
   /api/image/orientation/str/:
     get:
       tags: [images, claude-generated]
@@ -7506,7 +7198,7 @@ paths:
         "200": {description: Success, content: {application/json: {schema: {'$ref': '#/components/schemas/Envelope'}}}}
 
   /api/image/rotate/left/:
-    put:
+    post:
       tags: [images, claude-generated]
       summary: Rotate images left 90°
       requestBody:
@@ -7519,7 +7211,7 @@ paths:
         "200": {description: Success, content: {application/json: {schema: {'$ref': '#/components/schemas/Envelope'}}}}
 
   /api/image/rotate/right/:
-    put:
+    post:
       tags: [images, claude-generated]
       summary: Rotate images right 90°
       requestBody:

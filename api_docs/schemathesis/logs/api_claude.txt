@@ -1,29 +1,29 @@
-Schemathesis v4.3.15
+Schemathesis v4.3.16
 ━━━━━━━━━━━━━━━━━━━━
 
 
- ✅  Loaded specification from ../openapi/api_claude.yaml (in 0.34s)                                                                                                                  
+ ✅  Loaded specification from ../openapi/api_claude.yaml (in 0.37s)                                                                                                           
 
-     Base URL:         http://localhost:85                                                                                                                                            
-     Specification:    Open API 3.0.4                                                                                                                                                 
-     Operations:       227 selected / 227 total                                                                                                                                       
+     Base URL:         http://localhost:85                                                                                                                                     
+     Specification:    Open API 3.0.4                                                                                                                                          
+     Operations:       219 selected / 219 total                                                                                                                                
 
 
- ✅  API capabilities:                                                                                                                                                                
+ ✅  API capabilities:                                                                                                                                                         
 
-     Supports NULL byte in headers:    ✓                                                                                                                                              
+     Supports NULL byte in headers:    ✓                                                                                                                                       
 
- 🚫  Examples (in 87.65s)                                                                                                                                                             
-                                                                                                                                                                                      
-     ✅  18 passed  ❌  25 failed  🚫   3 errors  ⏭  181 skipped                                                                                                                      
+ 🚫  Examples (in 100.42s)                                                                                                                                                     
+                                                                                                                                                                               
+     ✅  27 passed  ❌  13 failed  🚫   4 errors  ⏭  175 skipped                                                                                                               
 
- ❌  Coverage (in 66.24s)                                                                                                                                                                                   
-                                                                                                                                                                                                            
-     ✅   1 passed  ❌ 226 failed                                                                                                                                                                           
+ ❌  Coverage (in 60.79s)                                                                                                                                                      
+                                                                                                                                                                               
+     ✅   1 passed  ❌ 218 failed                                                                                                                                              
 
- ❌  Fuzzing (in 44.67s)                                                                                                                                                                                    
-                                                                                                                                                                                                            
-     ✅   1 passed  ❌ 226 failed                                                                                                                                                                           
+ ❌  Fuzzing (in 51.85s)                                                                                                                                                       
+                                                                                                                                                                               
+     ✅   1 passed  ❌ 218 failed                                                                                                                                              
 
 ==================================== ERRORS ====================================
 _____________________________ GET /api/image/uri/ ______________________________
@@ -47,7 +47,7 @@ Need more help?
     Join our Discord server: https://discord.gg/R9ASRAmHnA
 =================================== FAILURES ===================================
 _______________________________ POST /api/annot/ _______________________________
-1. Test Case ID: 5pDKSi
+1. Test Case ID: 1nsk8t
 
 - Server error
 
@@ -60,7 +60,7 @@ Reproduce with:
     curl -X POST -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "bbox_list": [[10, 20, 300, 400], [50, 60, 250, 350]], "vert_list": [[[0, 0], [100, 0], [100, 100], [0, 100]]], "theta_list": [0.0, 1.57, 3.14], "species_list": ["zebra_plains", "elephant_savanna", "giraffe_reticulated"], "species_rowid_list": [1, 2, 3], "name_list": ["Fred", "Sally", "Unknown_123"], "nid_list": [1, 2, 3], "viewpoint_list": ["left", "right", "front"], "quality_list": [5, "good", 3, "excellent"], "detect_confidence_list": [0.95, 0.87, 0.92], "notes_list": ["Clear shot", "Partially occluded", "Good lighting"], "multiple_list": [false, true, false], "interest_list": [true, false, true], "canonical_list": [false, true, false], "annot_uuid_list": ["550e8400-e29b-41d4-a716-446655440000", "6ba7b810-9dad-11d1-80b4-00c04fd430c8"], "annot_visual_uuid_list": ["550e8400-e29b-41d4-a716-446655440001"], "annot_semantic_uuid_list": ["550e8400-e29b-41d4-a716-446655440002"], "staged_uuid_list": [null, "7ba7b810-9dad-11d1-80b4-00c04fd430c9", null], "staged_user_id_list": [null, "user@example.com", null]}' http://localhost:85/api/annot/
 
 _____________________________ PUT /api/annot/bbox/ _____________________________
-1. Test Case ID: StObPf
+1. Test Case ID: IRDQCz
 
 - Server error
 
@@ -73,7 +73,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "bbox_list": [[100, 150, 200, 250], [300, 400, 180, 220], [50, 75, 150, 175]]}' http://localhost:85/api/annot/bbox/
 
 ___________________________ PUT /api/annot/species/ ____________________________
-1. Test Case ID: B5C6d3
+1. Test Case ID: a8icgz
 
 - Server error
 
@@ -85,51 +85,8 @@ Reproduce with:
 
     curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "species_text_list": ["zebra_plains", "zebra_grevys", "bear_polar"]}' http://localhost:85/api/annot/species/
 
-__________________________ PUT /api/annot/name/text/ ___________________________
-1. Test Case ID: wvATBy
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3, 4], "name_text_list": ["zebra_001", "fred", "sue", "____"]}' http://localhost:85/api/annot/name/text/
-
-2. Test Case ID: rsBFnw
-
-- API accepted schema-violating request
-
-    Invalid data should have been rejected
-    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
-    Invalid component: parameter `application/json` in body (object with invalid 'name_text_list' value: array with fewer items than allowed by minitems)
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3, 4], "name_text_list": []}' http://localhost:85/api/annot/name/text/
-
 __________________________ GET /api/annot/image/uuid/ __________________________
-1. Test Case ID: t878CS
+1. Test Case ID: ty8IJe
 
 - Server error
 
@@ -141,73 +98,37 @@ Reproduce with:
 
     curl -X GET 'http://localhost:85/api/annot/image/uuid/?aid_list=1%2C2%2C3'
 
-________________________ PUT /api/annot/age/months/min/ ________________________
-1. Test Case ID: bKXzi9
+__________________________ POST /api/annot/exemplar/ ___________________________
+1. Test Case ID: HaKfLr
 
 - Server error
 
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list, duplicate_behavior='error')\nReceived Function Definition: set_annot_age_months_est_min(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, age_months_est_min_list=[12, 24, 6], aid_list=[1, 2, 3])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'age_months_est_min_list': [12, 24, 6]\nTypeError: set_annot_age_months_est_mi // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_view=None, imgsetid=None, dry_run=False, verbose=True, prog_hook=None)\nReceived Function Definition: set_exemplars_from_quality_and_viewpoint(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], flag_list=[True, False, True])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'flag_list': [True, False, Tr // Output truncated...`
 
 Reproduce with: 
 
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "age_months_est_min_list": [12, 24, 6]}' http://localhost:85/api/annot/age/months/min/
+    curl -X POST -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "flag_list": [true, false, true]}' http://localhost:85/api/annot/exemplar/
 
-________________________ PUT /api/annot/age/months/max/ ________________________
-1. Test Case ID: okNFLc
+2. Test Case ID: 0DDIfc
 
-- Server error
+- Unsupported methods
 
-[500] Internal Server Error:
+    Unsupported method PUT returned 200, expected 405 Method Not Allowed
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list, duplicate_behavior='error')\nReceived Function Definition: set_annot_age_months_est_max(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, age_months_est_max_list=[36, 48, 18], aid_list=[1, 2, 3])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'age_months_est_max_list': [36, 48, 18]\nTypeError: set_annot_age_months_est_ // Output truncated...`
+    Return 405 for methods not listed in the OpenAPI spec
 
-Reproduce with: 
+[200] OK:
 
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "age_months_est_max_list": [36, 48, 18]}' http://localhost:85/api/annot/age/months/max/
-
-___________________________ PUT /api/annot/interest/ ___________________________
-1. Test Case ID: mUlubB
-
-- Server error
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False, delete_thumbs=True)\nReceived Function Definition: set_annot_interest(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], interest_list=[False, True, False])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'interest_list': [False, True, False]\nTypeError: set_annot_interest() got an unexpected keyword arg // Output truncated...`
+    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": null}`
 
 Reproduce with: 
 
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "interest_list": [false, true, false]}' http://localhost:85/api/annot/interest/
-
-___________________________ PUT /api/annot/multiple/ ___________________________
-1. Test Case ID: dEA5Y6
-
-- Server error
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_multiple(ibs, aid_list, flag_list)\nReceived Function Definition: set_annot_multiple(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], multiple_list=[False, True, False])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'multiple_list': [False, True, False]\nTypeError: set_annot_multiple() got an unexpected keyword argument 'multiple_list'\nTraceback (most recent c // Output truncated...`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "multiple_list": [false, true, false]}' http://localhost:85/api/annot/multiple/
-
-__________________________ PUT /api/annot/canonical/ ___________________________
-1. Test Case ID: bumJ8t
-
-- Server error
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_canonical(ibs, aid_list, flag_list)\nReceived Function Definition: set_annot_canonical(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], canonical_list=[True, False, False])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'canonical_list': [True, False, False]\nTypeError: set_annot_canonical() got an unexpected keyword argument 'canonical_list'\nTraceback (most re // Output truncated...`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "canonical_list": [true, false, false]}' http://localhost:85/api/annot/canonical/
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "flag_list": [true, false, true]}' http://localhost:85/api/annot/exemplar/
 
 _____________________________ PUT /api/annot/yaw/ ______________________________
-1. Test Case ID: nSeLBl
+1. Test Case ID: flRJOy
 
 - Server error
 
@@ -220,7 +141,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "yaw_list": [0.0, 1.57, 3.14]}' http://localhost:85/api/annot/yaw/
 
 ____________________________ PUT /api/annot/theta/ _____________________________
-1. Test Case ID: JlqjzC
+1. Test Case ID: 8ildYO
 
 - Server error
 
@@ -233,7 +154,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "theta_list": [0.0, 0.5, 1.0]}' http://localhost:85/api/annot/theta/
 
 _____________________________ PUT /api/annot/vert/ _____________________________
-1. Test Case ID: 9UhFAe
+1. Test Case ID: EXWfPD
 
 - Server error
 
@@ -245,90 +166,8 @@ Reproduce with:
 
     curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2], "verts_list": [[[100, 100], [200, 100], [200, 200], [100, 200]], [[50, 50], [150, 50], [150, 150]]]}' http://localhost:85/api/annot/vert/
 
-_____________________________ PUT /api/annot/note/ _____________________________
-1. Test Case ID: tescTU
-
-- Server error
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_notes(ibs, aid_list, notes_list)\nReceived Function Definition: set_annot_notes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], note_list=['Good quality', 'Check species ID', ''])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'note_list': ['Good quality', 'Check species ID', '']\nTypeError: set_annot_notes() got an unexpected keyword argument 'note_list'\nTrac // Output truncated...`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "note_list": ["Good quality", "Check species ID", ""]}' http://localhost:85/api/annot/note/
-
-___________________________ PUT /api/annot/metadata/ ___________________________
-1. Test Case ID: E6QZW6
-
-- Server error
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_metadata(ibs, aid_list, metadata_dict_list)\nReceived Function Definition: set_annot_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], metadata_list=[dict(key1='value1'), dict(key2='value2'), None])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'metadata_list': [{'key1': 'value1'}, {'key2': 'value2'}, None]\nTypeError: set_annot_metadata() got an unexpe // Output truncated...`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "metadata_list": [{"key1": "value1"}, {"key2": "value2"}, null]}' http://localhost:85/api/annot/metadata/
-
-_____________________________ PUT /api/annot/sex/ ______________________________
-1. Test Case ID: VEClNp
-
-- Server error
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_sex(ibs, aid_list, name_sex_list, eager=True, nInput=None)\nReceived Function Definition: set_annot_sex(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], sex_list=[0, 1, -1])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'sex_list': [0, 1, -1]\nTypeError: set_annot_sex() got an unexpected keyword argument 'sex_list'\nTraceback (most recent call last):\n  File \" // Output truncated...`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "sex_list": [0, 1, -1]}' http://localhost:85/api/annot/sex/
-
-__________________________ PUT /api/annot/part/rowid/ __________________________
-1. Test Case ID: UE2Huu
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -d '{"aid_list": [1, 2, 3], "part_rowid_list": [1, 2, 1]}' http://localhost:85/api/annot/part/rowid/
-
-2. Test Case ID: 7cZGzL
-
-- API accepted schema-violating request
-
-    Invalid data should have been rejected
-    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
-    Invalid component: parameter `application/json` in body (object with invalid 'part_rowid_list' value: array with invalid items: incorrect type)
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "part_rowid_list": [{}]}' http://localhost:85/api/annot/part/rowid/
-
 _______________________________ GET /api/image/ ________________________________
-1. Test Case ID: cdEtes
+1. Test Case ID: HAUSEM
 
 - Server error
 
@@ -341,7 +180,7 @@ Reproduce with:
     curl -X GET 'http://localhost:85/api/image/?imgsetid=1&imgsetid_list=1%2C2%2C3&require_unixtime=False&require_gps=False&reviewed=True&is_tile=False&is_reviewed=True&sort=False'
 
 _____________________________ PUT /api/image/uri/ ______________________________
-1. Test Case ID: VBTAWs
+1. Test Case ID: GMY66X
 
 - Server error
 
@@ -351,10 +190,10 @@ _____________________________ PUT /api/image/uri/ ______________________________
 
 Reproduce with: 
 
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": 42, "new_gpath_list": "/data/images/localized/elephant_042.jpg"}' http://localhost:85/api/image/uri/
+    curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": 42, "new_gpath_list": "/data/images/localized/elephant_042.jpg"}' http://localhost:85/api/image/uri/
 
 _____________________________ PUT /api/image/gps/ ______________________________
-1. Test Case ID: WfurMe
+1. Test Case ID: 8AhSDw
 
 - Server error
 
@@ -367,7 +206,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "gps_list": [[-1.286389, 36.817223], [47.606209, -122.332069], [-1, -1]], "lat_list": [-1.286389, 47.606209, -1], "lon_list": [36.817223, -122.332069, -1]}' http://localhost:85/api/image/gps/
 
 _________________________ PUT /api/image/orientation/ __________________________
-1. Test Case ID: qX4ccm
+1. Test Case ID: cuzOET
 
 - Server error
 
@@ -379,34 +218,8 @@ Reproduce with:
 
     curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "orientation_list": [0, 1, 0]}' http://localhost:85/api/image/orientation/
 
-_____________________________ PUT /api/image/note/ _____________________________
-1. Test Case ID: Bke8co
-
-- Server error
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_notes(ibs, gid_list, notes_list)\nReceived Function Definition: set_image_notes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], note_list=['Good quality', 'Check timestamp', ''])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'note_list': ['Good quality', 'Check timestamp', '']\nTypeError: set_image_notes() got an unexpected keyword argument 'note_list'\nTraceb // Output truncated...`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "note_list": ["Good quality", "Check timestamp", ""]}' http://localhost:85/api/image/note/
-
-___________________________ PUT /api/image/metadata/ ___________________________
-1. Test Case ID: VVTzBt
-
-- Server error
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_metadata(ibs, gid_list, metadata_dict_list)\nReceived Function Definition: set_image_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], metadata_list=[dict(camera='Canon'), dict(device='phone'), None])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'metadata_list': [{'camera': 'Canon'}, {'device': 'phone'}, None]\nTypeError: set_image_metadata() got an un // Output truncated...`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "metadata_list": [{"camera": "Canon"}, {"device": "phone"}, null]}' http://localhost:85/api/image/metadata/
-
 _______________________ PUT /api/image/timedelta/posix/ ________________________
-1. Test Case ID: pHZaWa
+1. Test Case ID: 4FHDNE
 
 - Server error
 
@@ -419,7 +232,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "timedelta_list": [0, 3600, -7200]}' http://localhost:85/api/image/timedelta/posix/
 
 __________________________ PUT /api/image/time/posix/ __________________________
-1. Test Case ID: EAd0OY
+1. Test Case ID: kSBier
 
 - Server error
 
@@ -432,7 +245,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -d '{"gid_list": [1, 2, 3], "unixtime_list": [1609459200, 1609545600, 1609632000]}' http://localhost:85/api/image/time/posix/
 
 _______________________________ GET /api/annot/ ________________________________
-1. Test Case ID: hjrdLE
+1. Test Case ID: mrarJM
 
 - Server error
 
@@ -445,7 +258,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/?yaw=null&x-schemathesis-unknown-property=42'
 
 ______________________________ DELETE /api/annot/ ______________________________
-1. Test Case ID: VxAae1
+1. Test Case ID: ntVrJn
 
 - API accepted schema-violating request
 
@@ -461,7 +274,7 @@ Reproduce with:
 
     curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": []}' http://localhost:85/api/annot/
 
-2. Test Case ID: vMg1tu
+2. Test Case ID: yezU21
 
 - Server error
 
@@ -474,7 +287,7 @@ Reproduce with:
     curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '[]' http://localhost:85/api/annot/
 
 _____________________________ GET /api/annot/bbox/ _____________________________
-1. Test Case ID: Klffga
+1. Test Case ID: i77ylN
 
 - Server error
 
@@ -487,7 +300,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/bbox/?aid_list=&x-schemathesis-unknown-property=42'
 
 ___________________________ GET /api/annot/species/ ____________________________
-1. Test Case ID: nWDJxQ
+1. Test Case ID: Y7bYJd
 
 - Server error
 
@@ -500,7 +313,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/species/
 
 __________________________ GET /api/annot/name/text/ ___________________________
-1. Test Case ID: 15vF48
+1. Test Case ID: zBNpFM
 
 - Server error
 
@@ -513,7 +326,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/name/text/?aid_list=0&x-schemathesis-unknown-property=42'
 
 __________________________ GET /api/annot/name/rowid/ __________________________
-1. Test Case ID: wd9kKL
+1. Test Case ID: 2rySDy
 
 - Server error
 
@@ -525,50 +338,8 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/name/rowid/
 
-__________________________ PUT /api/annot/name/rowid/ __________________________
-1. Test Case ID: P2suAY
-
-- Server error
-
-- Unsupported methods
-
-    Unsupported method DELETE returned 500, expected 405 Method Not Allowed
-
-    Return 405 for methods not listed in the OpenAPI spec
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: delete_annot_nids(ibs, aid_list)\nReceived Function Definition: delete_annot_nids(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[], nid_list=[])\nReceived Function Parameters:\n\t'aid_list': []\n\t'nid_list': []\nTypeError: delete_annot_nids() got an unexpected keyword argument 'nid_list'\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", lin // Output truncated...`
-
-Reproduce with: 
-
-    curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "nid_list": []}' http://localhost:85/api/annot/name/rowid/
-
-2. Test Case ID: 7btOOy
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/name/rowid/
-
 __________________________ GET /api/annot/name/uuid/ ___________________________
-1. Test Case ID: hp4kd7
+1. Test Case ID: XbmyvU
 
 - Server error
 
@@ -580,51 +351,8 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/name/uuid/
 
-__________________________ PUT /api/annot/name/uuid/ ___________________________
-1. Test Case ID: w5c1lc
-
-- API accepted schema-violating request
-
-    Invalid data should have been rejected
-    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
-    Invalid component: parameter `application/json` in body (object with invalid 'name_uuid_list' value: array with invalid items: incorrect type)
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "name_uuid_list": [{}]}' http://localhost:85/api/annot/name/uuid/
-
-2. Test Case ID: OnL0Va
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/name/uuid/
-
 ________________________ GET /api/annot/species/rowid/ _________________________
-1. Test Case ID: NvZHSi
+1. Test Case ID: n0ivab
 
 - Server error
 
@@ -637,7 +365,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/species/rowid/
 
 ________________________ PUT /api/annot/species/rowid/ _________________________
-1. Test Case ID: Rruk8i
+1. Test Case ID: dzMoWG
 
 - Server error
 
@@ -656,7 +384,7 @@ Reproduce with:
     curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "species_rowid_list": []}' http://localhost:85/api/annot/species/rowid/
 
 _________________________ GET /api/annot/species/text/ _________________________
-1. Test Case ID: Tl5COw
+1. Test Case ID: rTzDp4
 
 - Server error
 
@@ -668,51 +396,8 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/species/text/
 
-_________________________ PUT /api/annot/species/text/ _________________________
-1. Test Case ID: xq9AVY
-
-- API accepted schema-violating request
-
-    Invalid data should have been rejected
-    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
-    Invalid component: parameter `application/json` in body (object with invalid 'species_text_list' value: array with invalid items: incorrect type)
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "species_text_list": [{}]}' http://localhost:85/api/annot/species/text/
-
-2. Test Case ID: VfPat5
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/species/text/
-
 _________________________ GET /api/annot/species/uuid/ _________________________
-1. Test Case ID: Gdt3Zw
+1. Test Case ID: IrIx4j
 
 - Server error
 
@@ -724,51 +409,8 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/species/uuid/
 
-_________________________ PUT /api/annot/species/uuid/ _________________________
-1. Test Case ID: DjefOX
-
-- API accepted schema-violating request
-
-    Invalid data should have been rejected
-    Expected: 400, 401, 403, 404, 406, 422, 428, 5xx
-    Invalid component: parameter `application/json` in body (object with invalid 'species_uuid_list' value: array with invalid items: incorrect type)
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [], "species_uuid_list": [{}]}' http://localhost:85/api/annot/species/uuid/
-
-2. Test Case ID: VsJC5e
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/species/uuid/
-
 ________________________ GET /api/annot/imageset/rowid/ ________________________
-1. Test Case ID: QKbL1v
+1. Test Case ID: YYbhHb
 
 - Server error
 
@@ -781,7 +423,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/imageset/rowid/
 
 ________________________ GET /api/annot/imageset/text/ _________________________
-1. Test Case ID: U0koC5
+1. Test Case ID: NcrKAE
 
 - Server error
 
@@ -794,7 +436,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/imageset/text/
 
 ________________________ GET /api/annot/imageset/uuid/ _________________________
-1. Test Case ID: x0ihdZ
+1. Test Case ID: IUUzua
 
 - Server error
 
@@ -807,7 +449,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/imageset/uuid/
 
 _____________________________ GET /api/annot/name/ _____________________________
-1. Test Case ID: YGy4to
+1. Test Case ID: 3JqqM1
 
 - Server error
 
@@ -820,7 +462,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/name/
 
 _________________________ GET /api/annot/image/rowid/ __________________________
-1. Test Case ID: fHB52k
+1. Test Case ID: uxLXjO
 
 - Server error
 
@@ -833,7 +475,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/rowid/
 
 __________________________ GET /api/annot/image/gps/ ___________________________
-1. Test Case ID: UZCuzn
+1. Test Case ID: r7kO2u
 
 - Server error
 
@@ -846,7 +488,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/gps/
 
 _____________________________ GET /api/annot/uuid/ _____________________________
-1. Test Case ID: xIeU7l
+1. Test Case ID: 5mORqv
 
 - Server error
 
@@ -859,7 +501,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/uuid/
 
 ___________________________ GET /api/annot/quality/ ____________________________
-1. Test Case ID: denJTu
+1. Test Case ID: alSgjY
 
 - Server error
 
@@ -872,7 +514,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/quality/
 
 ___________________________ PUT /api/annot/quality/ ____________________________
-1. Test Case ID: 8VMzvL
+1. Test Case ID: TLBiTx
 
 - Server error
 
@@ -885,7 +527,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "annot_quality_list": [6]}' http://localhost:85/api/annot/quality/
 
 __________________________ GET /api/annot/age/months/ __________________________
-1. Test Case ID: SbxFNL
+1. Test Case ID: zk4gT2
 
 - Server error
 
@@ -898,7 +540,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/
 
 ________________________ GET /api/annot/age/months/min/ ________________________
-1. Test Case ID: q07dFr
+1. Test Case ID: f4pGJ9
 
 - Server error
 
@@ -910,8 +552,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/age/months/min/
 
+________________________ PUT /api/annot/age/months/min/ ________________________
+1. Test Case ID: a4uQX1
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list, duplicate_behavior='error')\nReceived Function Definition: set_annot_age_months_est_min(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], annot_age_months_est_min_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'annot_age_months_est_min_list': [{}]\nAssertionError: list inputs have dif // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "annot_age_months_est_min_list": [{}]}' http://localhost:85/api/annot/age/months/min/
+
 ________________________ GET /api/annot/age/months/max/ ________________________
-1. Test Case ID: r8Z8H5
+1. Test Case ID: c6aohs
 
 - Server error
 
@@ -923,8 +578,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/age/months/max/
 
+________________________ PUT /api/annot/age/months/max/ ________________________
+1. Test Case ID: j4xCAR
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list, duplicate_behavior='error')\nReceived Function Definition: set_annot_age_months_est_max(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], annot_age_months_est_max_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'annot_age_months_est_max_list': [{}]\nAssertionError: list inputs have dif // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "annot_age_months_est_max_list": [{}]}' http://localhost:85/api/annot/age/months/max/
+
 _______________________ GET /api/annot/age/months/text/ ________________________
-1. Test Case ID: Ght3xg
+1. Test Case ID: II7LDH
 
 - Server error
 
@@ -937,7 +605,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/text/
 
 ___________________________ GET /api/annot/exemplar/ ___________________________
-1. Test Case ID: hTPuTx
+1. Test Case ID: Ozepnu
 
 - Server error
 
@@ -949,27 +617,8 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/exemplar/
 
-___________________________ PUT /api/annot/exemplar/ ___________________________
-1. Test Case ID: M56gUf
-
-- Server error
-
-- Unsupported methods
-
-    Unsupported method POST returned 500, expected 405 Method Not Allowed
-
-    Return 405 for methods not listed in the OpenAPI spec
-
-[500] Internal Server Error:
-
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_view=None, imgsetid=None, dry_run=False, verbose=True, prog_hook=None)\nReceived Function Definition: set_exemplars_from_quality_and_viewpoint(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], flag_list=[True, False, True])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'flag_list': [True, False, Tr // Output truncated...`
-
-Reproduce with: 
-
-    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "flag_list": [true, false, true]}' http://localhost:85/api/annot/exemplar/
-
 ___________________________ GET /api/annot/reviewed/ ___________________________
-1. Test Case ID: E9ydeo
+1. Test Case ID: scQdlk
 
 - Server error
 
@@ -982,7 +631,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/reviewed/
 
 ___________________________ PUT /api/annot/reviewed/ ___________________________
-1. Test Case ID: Nwr483
+1. Test Case ID: e1oP2g
 
 - Server error
 
@@ -995,7 +644,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "reviewed_list": [{}]}' http://localhost:85/api/annot/reviewed/
 
 ___________________________ GET /api/annot/interest/ ___________________________
-1. Test Case ID: ThcYfO
+1. Test Case ID: LXBdcE
 
 - Server error
 
@@ -1007,8 +656,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/interest/
 
+___________________________ PUT /api/annot/interest/ ___________________________
+1. Test Case ID: 2Iuedf
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False, delete_thumbs=True)\nReceived Function Definition: set_annot_interest(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], flag_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'flag_list': [{}]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \" // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "flag_list": [{}]}' http://localhost:85/api/annot/interest/
+
 ___________________________ GET /api/annot/multiple/ ___________________________
-1. Test Case ID: 44dxbS
+1. Test Case ID: GESRnG
 
 - Server error
 
@@ -1020,8 +682,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/multiple/
 
+___________________________ PUT /api/annot/multiple/ ___________________________
+1. Test Case ID: BzrQFv
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_multiple(ibs, aid_list, flag_list)\nReceived Function Definition: set_annot_multiple(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], flag_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'flag_list': [{}]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_injec // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "flag_list": [{}]}' http://localhost:85/api/annot/multiple/
+
 __________________________ GET /api/annot/canonical/ ___________________________
-1. Test Case ID: I5rMaP
+1. Test Case ID: P5Lkvx
 
 - Server error
 
@@ -1033,8 +708,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/canonical/
 
+__________________________ PUT /api/annot/canonical/ ___________________________
+1. Test Case ID: Nh5az3
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_canonical(ibs, aid_list, flag_list)\nReceived Function Definition: set_annot_canonical(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], flag_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'flag_list': [{}]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inj // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "flag_list": [{}]}' http://localhost:85/api/annot/canonical/
+
 _____________________________ GET /api/annot/yaw/ ______________________________
-1. Test Case ID: hbyBp1
+1. Test Case ID: 9xKsEh
 
 - Server error
 
@@ -1047,7 +735,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/yaw/
 
 ____________________________ GET /api/annot/theta/ _____________________________
-1. Test Case ID: Xn8UPN
+1. Test Case ID: xq8KpC
 
 - Server error
 
@@ -1060,7 +748,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/theta/
 
 __________________________ GET /api/annot/viewpoint/ ___________________________
-1. Test Case ID: mejizG
+1. Test Case ID: flWsDq
 
 - Server error
 
@@ -1073,7 +761,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/viewpoint/
 
 __________________________ PUT /api/annot/viewpoint/ ___________________________
-1. Test Case ID: qmOrhp
+1. Test Case ID: Idxfvd
 
 - Server error
 
@@ -1086,7 +774,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "viewpoint_list": [{}]}' http://localhost:85/api/annot/viewpoint/
 
 _____________________________ GET /api/annot/vert/ _____________________________
-1. Test Case ID: nIBTNi
+1. Test Case ID: ekpJB3
 
 - Server error
 
@@ -1099,7 +787,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/vert/
 
 ___________________________ GET /api/annot/num/vert/ ___________________________
-1. Test Case ID: 8ZQndV
+1. Test Case ID: NYX3zN
 
 - Server error
 
@@ -1112,7 +800,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/num/vert/
 
 ______________________ GET /api/annot/detect/confidence/ _______________________
-1. Test Case ID: 4ALZAg
+1. Test Case ID: uvAOlR
 
 - Server error
 
@@ -1125,7 +813,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/detect/confidence/
 
 ______________________ PUT /api/annot/detect/confidence/ _______________________
-1. Test Case ID: G74irb
+1. Test Case ID: 2rJMIu
 
 - Server error
 
@@ -1138,7 +826,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "confidence_list": [{}]}' http://localhost:85/api/annot/detect/confidence/
 
 _____________________________ GET /api/annot/note/ _____________________________
-1. Test Case ID: ZjM95E
+1. Test Case ID: kIwb8K
 
 - Server error
 
@@ -1150,8 +838,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/note/
 
+_____________________________ PUT /api/annot/note/ _____________________________
+1. Test Case ID: 5eGKPR
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_notes(ibs, aid_list, notes_list)\nReceived Function Definition: set_annot_notes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], notes_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'notes_list': [{}]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.p // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "notes_list": [{}]}' http://localhost:85/api/annot/note/
+
 ___________________________ GET /api/annot/metadata/ ___________________________
-1. Test Case ID: lw0XYs
+1. Test Case ID: qlVQF1
 
 - Server error
 
@@ -1163,8 +864,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/metadata/
 
+___________________________ PUT /api/annot/metadata/ ___________________________
+1. Test Case ID: j5LUa6
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_metadata(ibs, aid_list, metadata_dict_list)\nReceived Function Definition: set_annot_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], metadata_dict_list=[[None, None]])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'metadata_dict_list': [[None, None]]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbi // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "metadata_dict_list": [[null, null]]}' http://localhost:85/api/annot/metadata/
+
 _____________________________ GET /api/annot/sex/ ______________________________
-1. Test Case ID: jX6TdI
+1. Test Case ID: 7hjazF
 
 - Server error
 
@@ -1176,8 +890,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/sex/
 
+_____________________________ PUT /api/annot/sex/ ______________________________
+1. Test Case ID: 05JpGI
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_annot_sex(ibs, aid_list, name_sex_list, eager=True, nInput=None)\nReceived Function Definition: set_annot_sex(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[1, 2, 3], name_sex_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [1, 2, 3]\n\t'name_sex_list': [{}]\nAssertionError: lists should correspond. len(item_list)=1 len(flag_list)=3\nTraceback (most recent call last):\n  Fil // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [1, 2, 3], "name_sex_list": [{}]}' http://localhost:85/api/annot/sex/
+
 __________________________ GET /api/annot/part/rowid/ __________________________
-1. Test Case ID: znqypu
+1. Test Case ID: vcgmws
 
 - Server error
 
@@ -1190,7 +917,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/part/rowid/
 
 __________________________ GET /api/annot/tile/rowid/ __________________________
-1. Test Case ID: sRyMnW
+1. Test Case ID: rQyZ5k
 
 - Server error
 
@@ -1203,7 +930,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/tile/rowid/
 
 ________________________ GET /api/annot/image/unixtime/ ________________________
-1. Test Case ID: Qzz5o4
+1. Test Case ID: N9hqJH
 
 - Server error
 
@@ -1216,7 +943,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/unixtime/
 
 _______________________ GET /api/annot/image/file/path/ ________________________
-1. Test Case ID: L3l98h
+1. Test Case ID: qqpx7B
 
 - Server error
 
@@ -1229,7 +956,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/file/path/
 
 __________________________ GET /api/annot/image/name/ __________________________
-1. Test Case ID: ZB9i3E
+1. Test Case ID: Be865w
 
 - Server error
 
@@ -1242,7 +969,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/name/
 
 _______________________________ POST /api/image/ _______________________________
-1. Test Case ID: Wg4ru3
+1. Test Case ID: h6iySY
 
 - Server error
 
@@ -1261,7 +988,7 @@ Reproduce with:
     curl -X DELETE -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gpath_list": ["http://example.com/wildlife/zebra_001.jpg", "http://example.com/wildlife/elephant_002.jpg"]}' http://localhost:85/api/image/
 
 _____________________________ GET /api/image/uuid/ _____________________________
-1. Test Case ID: HNjh5l
+1. Test Case ID: bdn7So
 
 - Server error
 
@@ -1274,7 +1001,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/uuid/
 
 _____________________________ GET /api/image/uri/ ______________________________
-1. Test Case ID: D3r8Qg
+1. Test Case ID: oJALX5
 
 - Server error
 
@@ -1287,7 +1014,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/uri/
 
 _____________________________ GET /api/image/gps/ ______________________________
-1. Test Case ID: 8niaO5
+1. Test Case ID: mdv7Fz
 
 - Server error
 
@@ -1300,7 +1027,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/image/gps/
 
 ___________________________ GET /api/image/unixtime/ ___________________________
-1. Test Case ID: 28P50u
+1. Test Case ID: FyrRk4
 
 - Server error
 
@@ -1313,7 +1040,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/unixtime/?gid_list=0&x-schemathesis-unknown-property=42'
 
 ___________________________ PUT /api/image/unixtime/ ___________________________
-1. Test Case ID: kRIfJd
+1. Test Case ID: cAUVlR
 
 - Server error
 
@@ -1326,7 +1053,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": [1, 2, 3, 4], "unixtime_list": [1609459200, 1625097600, 1640995200, 1656633600], "duplicate_behavior": "AAA"}' http://localhost:85/api/image/unixtime/
 
 ____________________________ GET /api/image/width/ _____________________________
-1. Test Case ID: og9xuI
+1. Test Case ID: GXkzaC
 
 - Server error
 
@@ -1339,7 +1066,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/width/
 
 ____________________________ GET /api/image/height/ ____________________________
-1. Test Case ID: 360Ovk
+1. Test Case ID: 5qShoh
 
 - Server error
 
@@ -1352,7 +1079,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/height/
 
 _________________________ GET /api/image/orientation/ __________________________
-1. Test Case ID: Hm3Xsw
+1. Test Case ID: nId60a
 
 - Server error
 
@@ -1365,7 +1092,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/orientation/
 
 _____________________________ GET /api/image/size/ _____________________________
-1. Test Case ID: YLNJ7C
+1. Test Case ID: oVStsQ
 
 - Server error
 
@@ -1378,7 +1105,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/size/
 
 ___________________________ GET /api/image/reviewed/ ___________________________
-1. Test Case ID: UScdQl
+1. Test Case ID: LG9GKK
 
 - Server error
 
@@ -1391,7 +1118,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/reviewed/
 
 ___________________________ PUT /api/image/reviewed/ ___________________________
-1. Test Case ID: NEdN3M
+1. Test Case ID: ofM04G
 
 - Server error
 
@@ -1404,7 +1131,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": [1, 2, 3], "reviewed_list": [{}]}' http://localhost:85/api/image/reviewed/
 
 _____________________________ GET /api/image/lat/ ______________________________
-1. Test Case ID: eL6ZYX
+1. Test Case ID: x16hZC
 
 - Server error
 
@@ -1417,7 +1144,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/lat/
 
 _____________________________ GET /api/image/lon/ ______________________________
-1. Test Case ID: 0iJC1h
+1. Test Case ID: lvAkd5
 
 - Server error
 
@@ -1430,7 +1157,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/lon/
 
 _____________________________ GET /api/image/gps2/ _____________________________
-1. Test Case ID: URJxGN
+1. Test Case ID: pTYqOE
 
 - Server error
 
@@ -1443,7 +1170,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/gps2/
 
 ______________________ GET /api/image/detect/confidence/ _______________________
-1. Test Case ID: iEyMXl
+1. Test Case ID: EajBJd
 
 - Server error
 
@@ -1456,7 +1183,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/detect/confidence/
 
 _____________________________ GET /api/image/note/ _____________________________
-1. Test Case ID: gtdGlu
+1. Test Case ID: Ly2Tku
 
 - Server error
 
@@ -1468,8 +1195,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/image/note/
 
+_____________________________ PUT /api/image/note/ _____________________________
+1. Test Case ID: nQB5GP
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_notes(ibs, gid_list, notes_list)\nReceived Function Definition: set_image_notes(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], notes_list=[dict()])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'notes_list': [{}]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.p // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": [1, 2, 3], "notes_list": [{}]}' http://localhost:85/api/image/note/
+
 ___________________________ GET /api/image/metadata/ ___________________________
-1. Test Case ID: AUJWh3
+1. Test Case ID: WDaaFa
 
 - Server error
 
@@ -1481,8 +1221,21 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/image/metadata/
 
+___________________________ PUT /api/image/metadata/ ___________________________
+1. Test Case ID: URHOzo
+
+- Server error
+
+[500] Internal Server Error:
+
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: set_image_metadata(ibs, gid_list, metadata_dict_list)\nReceived Function Definition: set_image_metadata(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[1, 2, 3], metadata_dict_list=[[None, None]])\nReceived Function Parameters:\n\t'gid_list': [1, 2, 3]\n\t'metadata_dict_list': [[None, None]]\nAssertionError: list inputs have different lengths\nTraceback (most recent call last):\n  File \"/wbi // Output truncated...`
+
+Reproduce with: 
+
+    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": [1, 2, 3], "metadata_dict_list": [[null, null]]}' http://localhost:85/api/image/metadata/
+
 _______________________ GET /api/image/timedelta/posix/ ________________________
-1. Test Case ID: R14v6o
+1. Test Case ID: jhm5b6
 
 - Server error
 
@@ -1494,45 +1247,8 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/image/timedelta/posix/
 
-__________________________ GET /api/image/time/posix/ __________________________
-1. Test Case ID: 3QTIxi
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X GET http://localhost:85/api/image/time/posix/
-
-2. Test Case ID: rSAgvc
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/time/posix/?gid_list='
-
 __________________________ GET /api/image/file/name/ ___________________________
-1. Test Case ID: UPEjtx
+1. Test Case ID: Sp1AcT
 
 - Server error
 
@@ -1545,7 +1261,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/file/name/
 
 __________________________ GET /api/image/file/path/ ___________________________
-1. Test Case ID: oAih3z
+1. Test Case ID: KjtQJj
 
 - Server error
 
@@ -1558,7 +1274,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/file/path/
 
 __________________________ GET /api/image/file/hash/ ___________________________
-1. Test Case ID: Fn6K9n
+1. Test Case ID: eHOFpa
 
 - Server error
 
@@ -1571,7 +1287,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/file/hash/
 
 __________________________ GET /api/image/num/annot/ ___________________________
-1. Test Case ID: 0uCaIl
+1. Test Case ID: UKYrAv
 
 - Server error
 
@@ -1584,7 +1300,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/num/annot/
 
 _______________________ GET /api/annot/age/months/json/ ________________________
-1. Test Case ID: BLU68Z
+1. Test Case ID: kNSywf
 
 - Server error
 
@@ -1597,7 +1313,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/json/
 
 _____________________ GET /api/annot/age/months/max/json/ ______________________
-1. Test Case ID: ERaYeF
+1. Test Case ID: 2Hbg7L
 
 - Server error
 
@@ -1610,7 +1326,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/max/json/
 
 _____________________ GET /api/annot/age/months/min/json/ ______________________
-1. Test Case ID: h2XEOm
+1. Test Case ID: 1LBNqd
 
 - Server error
 
@@ -1623,7 +1339,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/min/json/
 
 _____________________ GET /api/annot/age/months/text/json/ _____________________
-1. Test Case ID: bInjqK
+1. Test Case ID: exxrgc
 
 - Server error
 
@@ -1636,7 +1352,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/text/json/
 
 __________________________ GET /api/annot/bbox/json/ ___________________________
-1. Test Case ID: Slrq9e
+1. Test Case ID: LIbEjA
 
 - Server error
 
@@ -1649,7 +1365,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/bbox/json/
 
 ____________________ GET /api/annot/detect/confidence/json/ ____________________
-1. Test Case ID: Mvo6dR
+1. Test Case ID: sbwhZt
 
 - Server error
 
@@ -1662,7 +1378,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/detect/confidence/json/
 
 ________________________ GET /api/annot/exemplar/json/ _________________________
-1. Test Case ID: 4VsYoC
+1. Test Case ID: ZWN7zJ
 
 - Server error
 
@@ -1675,7 +1391,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/exemplar/json/
 
 _____________________ GET /api/annot/image/file/path/json/ _____________________
-1. Test Case ID: jHqdYt
+1. Test Case ID: VbHxOR
 
 - Server error
 
@@ -1688,7 +1404,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/file/path/json/
 
 _______________________ GET /api/annot/image/name/json/ ________________________
-1. Test Case ID: KTfXeD
+1. Test Case ID: Zr0qYf
 
 - Server error
 
@@ -1701,7 +1417,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/name/json/
 
 _____________________ GET /api/annot/image/unixtime/json/ ______________________
-1. Test Case ID: D8flwX
+1. Test Case ID: 06eVgi
 
 - Server error
 
@@ -1714,7 +1430,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/unixtime/json/
 
 ________________________ GET /api/annot/interest/json/ _________________________
-1. Test Case ID: 7y9fWo
+1. Test Case ID: Jv9ovd
 
 - Server error
 
@@ -1727,7 +1443,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/interest/json/
 
 ________________________ GET /api/annot/multiple/json/ _________________________
-1. Test Case ID: p9UC6X
+1. Test Case ID: IvwDc2
 
 - Server error
 
@@ -1740,7 +1456,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/multiple/json/
 
 __________________________ GET /api/annot/note/json/ ___________________________
-1. Test Case ID: U3e3nM
+1. Test Case ID: W5yIu3
 
 - Server error
 
@@ -1753,7 +1469,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/note/json/
 
 ________________________ GET /api/annot/num/vert/json/ _________________________
-1. Test Case ID: knGH5F
+1. Test Case ID: MOIL5Z
 
 - Server error
 
@@ -1766,7 +1482,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/num/vert/json/
 
 _________________________ GET /api/annot/quality/json/ _________________________
-1. Test Case ID: 3Lmve1
+1. Test Case ID: cKdhYg
 
 - Server error
 
@@ -1779,7 +1495,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/quality/json/
 
 ________________________ GET /api/annot/reviewed/json/ _________________________
-1. Test Case ID: N7ggIf
+1. Test Case ID: kNyAiB
 
 - Server error
 
@@ -1792,7 +1508,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/reviewed/json/
 
 ___________________________ GET /api/annot/sex/json/ ___________________________
-1. Test Case ID: pSPbDc
+1. Test Case ID: AR2ZLD
 
 - Server error
 
@@ -1805,7 +1521,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/sex/json/
 
 __________________________ GET /api/annot/theta/json/ __________________________
-1. Test Case ID: D6Mrsq
+1. Test Case ID: ZgM8hV
 
 - Server error
 
@@ -1818,7 +1534,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/theta/json/
 
 __________________________ GET /api/annot/vert/json/ ___________________________
-1. Test Case ID: PfFwMq
+1. Test Case ID: VMuza1
 
 - Server error
 
@@ -1831,7 +1547,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/vert/json/
 
 ________________________ GET /api/annot/viewpoint/json/ ________________________
-1. Test Case ID: 0PKvsX
+1. Test Case ID: QFbKSC
 
 - Server error
 
@@ -1844,7 +1560,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/viewpoint/json/
 
 ___________________________ GET /api/annot/yaw/json/ ___________________________
-1. Test Case ID: p6Ht4V
+1. Test Case ID: Npw9jW
 
 - Server error
 
@@ -1857,7 +1573,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/yaw/json/
 
 ____________________ GET /api/image/detect/confidence/json/ ____________________
-1. Test Case ID: C0S9Oi
+1. Test Case ID: mWwiQd
 
 - Server error
 
@@ -1870,7 +1586,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/detect/confidence/json/
 
 ________________________ GET /api/image/file/hash/json/ ________________________
-1. Test Case ID: Z82n4I
+1. Test Case ID: zBrIt7
 
 - Server error
 
@@ -1883,7 +1599,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/file/hash/json/
 
 ________________________ GET /api/image/file/name/json/ ________________________
-1. Test Case ID: rrLLDy
+1. Test Case ID: V2HvtC
 
 - Server error
 
@@ -1896,7 +1612,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/file/name/json/
 
 ________________________ GET /api/image/file/path/json/ ________________________
-1. Test Case ID: ycznpe
+1. Test Case ID: GduzWw
 
 - Server error
 
@@ -1909,7 +1625,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/file/path/json/
 
 ___________________________ GET /api/image/gps/json/ ___________________________
-1. Test Case ID: HXg9eV
+1. Test Case ID: jqit2i
 
 - Server error
 
@@ -1922,7 +1638,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/gps/json/
 
 _________________________ GET /api/image/height/json/ __________________________
-1. Test Case ID: lnZRQf
+1. Test Case ID: dc5fFn
 
 - Server error
 
@@ -1935,7 +1651,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/height/json/
 
 ___________________________ GET /api/image/lat/json/ ___________________________
-1. Test Case ID: 9JqnGJ
+1. Test Case ID: CzFVFu
 
 - Server error
 
@@ -1948,7 +1664,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/lat/json/
 
 ___________________________ GET /api/image/lon/json/ ___________________________
-1. Test Case ID: sZQhgi
+1. Test Case ID: 2zAtOh
 
 - Server error
 
@@ -1961,7 +1677,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/lon/json/
 
 __________________________ GET /api/image/note/json/ ___________________________
-1. Test Case ID: iEyaLc
+1. Test Case ID: dOKIhs
 
 - Server error
 
@@ -1974,7 +1690,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/note/json/
 
 ________________________ GET /api/image/num/annot/json/ ________________________
-1. Test Case ID: udh4Zz
+1. Test Case ID: TTXByS
 
 - Server error
 
@@ -1987,7 +1703,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/num/annot/json/
 
 _______________________ GET /api/image/orientation/json/ _______________________
-1. Test Case ID: vsCyjS
+1. Test Case ID: skmKKm
 
 - Server error
 
@@ -2000,7 +1716,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/orientation/json/
 
 ________________________ GET /api/image/reviewed/json/ _________________________
-1. Test Case ID: 0nVT17
+1. Test Case ID: GmJkoq
 
 - Server error
 
@@ -2013,7 +1729,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/reviewed/json/
 
 __________________________ GET /api/image/size/json/ ___________________________
-1. Test Case ID: 298eId
+1. Test Case ID: sZWHc4
 
 - Server error
 
@@ -2026,7 +1742,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/size/json/
 
 _____________________ GET /api/image/timedelta/posix/json/ _____________________
-1. Test Case ID: TIwGMt
+1. Test Case ID: 0jl2g4
 
 - Server error
 
@@ -2039,7 +1755,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/timedelta/posix/json/
 
 ________________________ GET /api/image/unixtime/json/ _________________________
-1. Test Case ID: YDuHCo
+1. Test Case ID: q8KoCz
 
 - Server error
 
@@ -2052,7 +1768,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/unixtime/json/
 
 __________________________ GET /api/image/width/json/ __________________________
-1. Test Case ID: WdcZKa
+1. Test Case ID: Lx3VSb
 
 - Server error
 
@@ -2065,7 +1781,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/width/json/
 
 _________________________ GET /api/image/annot/rowid/ __________________________
-1. Test Case ID: sUCrpZ
+1. Test Case ID: 55KDxN
 
 - Server error
 
@@ -2078,7 +1794,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/annot/rowid/
 
 __________________________ GET /api/image/annot/uuid/ __________________________
-1. Test Case ID: Zfw2DX
+1. Test Case ID: s5NJEP
 
 - Server error
 
@@ -2091,7 +1807,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/annot/uuid/
 
 ________________________ GET /api/image/imageset/rowid/ ________________________
-1. Test Case ID: Ll7d56
+1. Test Case ID: 8uDvIz
 
 - Server error
 
@@ -2104,7 +1820,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/imageset/rowid/
 
 ________________________ GET /api/image/imageset/text/ _________________________
-1. Test Case ID: QNzvI5
+1. Test Case ID: RkVSzP
 
 - Server error
 
@@ -2117,7 +1833,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/imageset/text/
 
 ________________________ GET /api/image/imageset/uuid/ _________________________
-1. Test Case ID: fy4BTV
+1. Test Case ID: i2Jxrw
 
 - Server error
 
@@ -2130,7 +1846,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/imageset/uuid/
 
 ________________________ GET /api/image/species/rowid/ _________________________
-1. Test Case ID: u0PgZz
+1. Test Case ID: 0MhrJC
 
 - Server error
 
@@ -2143,7 +1859,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/species/rowid/
 
 _________________________ GET /api/image/species/uuid/ _________________________
-1. Test Case ID: YaQyrR
+1. Test Case ID: jSWnsu
 
 - Server error
 
@@ -2156,7 +1872,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/species/uuid/
 
 _______________________ GET /api/annot/name/rowid/json/ ________________________
-1. Test Case ID: kDWvwM
+1. Test Case ID: gHbGi1
 
 - Server error
 
@@ -2169,7 +1885,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/name/rowid/json/
 
 ________________________ GET /api/annot/name/text/json/ ________________________
-1. Test Case ID: 4IcfKp
+1. Test Case ID: T908sH
 
 - Server error
 
@@ -2182,7 +1898,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/name/text/json/
 
 ________________________ GET /api/annot/name/uuid/json/ ________________________
-1. Test Case ID: 3K8KMN
+1. Test Case ID: 5MWs29
 
 - Server error
 
@@ -2195,7 +1911,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/name/uuid/json/
 
 ______________________ GET /api/annot/species/rowid/json/ ______________________
-1. Test Case ID: f3o8N8
+1. Test Case ID: UvCQyM
 
 - Server error
 
@@ -2208,7 +1924,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/species/rowid/json/
 
 ______________________ GET /api/annot/species/text/json/ _______________________
-1. Test Case ID: bexsU8
+1. Test Case ID: 42Qpqh
 
 - Server error
 
@@ -2221,7 +1937,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/species/text/json/
 
 ______________________ GET /api/annot/species/uuid/json/ _______________________
-1. Test Case ID: BinzDN
+1. Test Case ID: 7LHXE5
 
 - Server error
 
@@ -2234,7 +1950,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/species/uuid/json/
 
 _____________________ GET /api/annot/imageset/rowid/json/ ______________________
-1. Test Case ID: gm6kbf
+1. Test Case ID: orbkTS
 
 - Server error
 
@@ -2247,7 +1963,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/imageset/rowid/json/
 
 ______________________ GET /api/annot/imageset/text/json/ ______________________
-1. Test Case ID: UyDVyA
+1. Test Case ID: DSRUTV
 
 - Server error
 
@@ -2260,7 +1976,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/imageset/text/json/
 
 ______________________ GET /api/annot/imageset/uuid/json/ ______________________
-1. Test Case ID: 6Xof23
+1. Test Case ID: 3wlR29
 
 - Server error
 
@@ -2273,7 +1989,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/imageset/uuid/json/
 
 _______________________ GET /api/annot/image/rowid/json/ _______________________
-1. Test Case ID: iP1HAD
+1. Test Case ID: umE5Tt
 
 - Server error
 
@@ -2286,7 +2002,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/rowid/json/
 
 _______________________ GET /api/annot/image/uuid/json/ ________________________
-1. Test Case ID: 3QasfD
+1. Test Case ID: AlQCpf
 
 - Server error
 
@@ -2299,7 +2015,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/uuid/json/
 
 ________________________ GET /api/annot/image/gps/json/ ________________________
-1. Test Case ID: zDb0SW
+1. Test Case ID: ztnsBp
 
 - Server error
 
@@ -2312,7 +2028,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/gps/json/
 
 __________________ GET /api/annot/image/contributor/tag/json/ __________________
-1. Test Case ID: MYTHrg
+1. Test Case ID: PhUIaP
 
 - Server error
 
@@ -2325,7 +2041,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/contributor/tag/json/
 
 _____________________ GET /api/annot/age/months/min/text/ ______________________
-1. Test Case ID: oOoDuj
+1. Test Case ID: MDrT4C
 
 - Server error
 
@@ -2338,7 +2054,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/min/text/
 
 _____________________ GET /api/annot/age/months/max/text/ ______________________
-1. Test Case ID: CjPEQq
+1. Test Case ID: gyj2GZ
 
 - Server error
 
@@ -2351,7 +2067,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/max/text/
 
 _________________________ GET /api/annot/quality/text/ _________________________
-1. Test Case ID: NwqT9f
+1. Test Case ID: gIdlXb
 
 - Server error
 
@@ -2364,7 +2080,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/quality/text/
 
 ___________________________ GET /api/annot/sex/text/ ___________________________
-1. Test Case ID: wczQOf
+1. Test Case ID: Szeyd1
 
 - Server error
 
@@ -2377,7 +2093,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/sex/text/
 
 ___________________________ GET /api/annot/yaw/text/ ___________________________
-1. Test Case ID: 2eBQch
+1. Test Case ID: Ib9iNp
 
 - Server error
 
@@ -2389,92 +2105,34 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/yaw/text/
 
-_________________________ PUT /api/annot/rotate/left/ __________________________
-1. Test Case ID: uuaxAF
+_________________________ POST /api/annot/rotate/left/ _________________________
+1. Test Case ID: YWLEz5
 
 - Server error
 
-- Unsupported methods
-
-    Unsupported method POST returned 500, expected 405 Method Not Allowed
-
-    Return 405 for methods not listed in the OpenAPI spec
-
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: update_annot_rotate_left_90(ibs, aid_list)\nReceived Function Definition: update_annot_rotate_left_90(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[])\nReceived Function Parameters:\n\t'aid_list': []\nValueError: not enough values to unpack (expected 4, got 0)\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_web // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: update_annot_rotate_left_90(ibs, aid_list)\nReceived Function Definition: update_annot_rotate_left_90(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [{}]\nStatementError: (builtins.TypeError) int() argument must be a string, a bytes-like object or a number, not 'dict'\n[SQL: SELECT rowid, annotations.annot_theta \nFROM annotations \nWHER // Output truncated...`
 
 Reproduce with: 
 
-    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": []}' http://localhost:85/api/annot/rotate/left/
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [{}]}' http://localhost:85/api/annot/rotate/left/
 
-2. Test Case ID: dKVdKM
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/rotate/left/
-
-_________________________ PUT /api/annot/rotate/right/ _________________________
-1. Test Case ID: wIM2zo
+________________________ POST /api/annot/rotate/right/ _________________________
+1. Test Case ID: Fgz0Cn
 
 - Server error
 
-- Unsupported methods
-
-    Unsupported method POST returned 500, expected 405 Method Not Allowed
-
-    Return 405 for methods not listed in the OpenAPI spec
-
 [500] Internal Server Error:
 
-    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: update_annot_rotate_right_90(ibs, aid_list)\nReceived Function Definition: update_annot_rotate_right_90(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[])\nReceived Function Parameters:\n\t'aid_list': []\nValueError: not enough values to unpack (expected 4, got 0)\nTraceback (most recent call last):\n  File \"/wbia/wildbook-ia/wbia/control/controller_inject.py\", line 597, in translate_wbia_w // Output truncated...`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: update_annot_rotate_right_90(ibs, aid_list)\nReceived Function Definition: update_annot_rotate_right_90(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, aid_list=[dict()])\nReceived Function Parameters:\n\t'aid_list': [{}]\nStatementError: (builtins.TypeError) int() argument must be a string, a bytes-like object or a number, not 'dict'\n[SQL: SELECT rowid, annotations.annot_theta \nFROM annotations \nWH // Output truncated...`
 
 Reproduce with: 
 
-    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": []}' http://localhost:85/api/annot/rotate/right/
-
-2. Test Case ID: Bpaum5
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/annot/rotate/right/
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"aid_list": [{}]}' http://localhost:85/api/annot/rotate/right/
 
 _______________________ GET /api/annot/encounter/static/ _______________________
-1. Test Case ID: q9sC6g
+1. Test Case ID: hcvbNz
 
 - Server error
 
@@ -2487,7 +2145,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/encounter/static/
 
 ____________________ GET /api/annot/image/contributor/tag/ _____________________
-1. Test Case ID: m2L9QA
+1. Test Case ID: cbjYm2
 
 - Server error
 
@@ -2500,7 +2158,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/contributor/tag/
 
 __________________________ GET /api/annot/image/gps2/ __________________________
-1. Test Case ID: Tk5RGe
+1. Test Case ID: A0i0E7
 
 - Server error
 
@@ -2513,7 +2171,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/image/gps2/
 
 _______________________ GET /api/image/annot/rowid/json/ _______________________
-1. Test Case ID: rbQfZU
+1. Test Case ID: 1lbNjh
 
 - Server error
 
@@ -2526,7 +2184,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/annot/rowid/json/
 
 _______________________ GET /api/image/annot/uuid/json/ ________________________
-1. Test Case ID: 1Ar7zm
+1. Test Case ID: ybokoW
 
 - Server error
 
@@ -2539,7 +2197,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/annot/uuid/json/
 
 _____________________ GET /api/image/imageset/rowid/json/ ______________________
-1. Test Case ID: UtxYHN
+1. Test Case ID: 5yC1fi
 
 - Server error
 
@@ -2552,7 +2210,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/imageset/rowid/json/
 
 ______________________ GET /api/image/imageset/text/json/ ______________________
-1. Test Case ID: 9hLMbh
+1. Test Case ID: fZeI9X
 
 - Server error
 
@@ -2565,7 +2223,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/imageset/text/json/
 
 ______________________ GET /api/image/imageset/uuid/json/ ______________________
-1. Test Case ID: bzIv1g
+1. Test Case ID: rK69PM
 
 - Server error
 
@@ -2578,7 +2236,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/imageset/uuid/json/
 
 ______________________ GET /api/image/species/rowid/json/ ______________________
-1. Test Case ID: rAqP7z
+1. Test Case ID: vW3Oxj
 
 - Server error
 
@@ -2591,7 +2249,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/species/rowid/json/
 
 ______________________ GET /api/image/species/uuid/json/ _______________________
-1. Test Case ID: GvLd5U
+1. Test Case ID: 1cq3KU
 
 - Server error
 
@@ -2603,45 +2261,8 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/image/species/uuid/json/
 
-___________________________ GET /api/image/gps/str/ ____________________________
-1. Test Case ID: QR4cmC
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X GET http://localhost:85/api/image/gps/str/
-
-2. Test Case ID: ioSqiw
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/gps/str/?gid_list='
-
 _______________________ GET /api/image/orientation/str/ ________________________
-1. Test Case ID: Nd8dXN
+1. Test Case ID: mDw2JJ
 
 - Server error
 
@@ -2653,88 +2274,34 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/image/orientation/str/
 
-_________________________ PUT /api/image/rotate/left/ __________________________
-1. Test Case ID: gEi9FL
+_________________________ POST /api/image/rotate/left/ _________________________
+1. Test Case ID: JgxlLD
 
-- Unsupported methods
+- Server error
 
-    Unsupported method POST returned 200, expected 405 Method Not Allowed
+[500] Internal Server Error:
 
-    Return 405 for methods not listed in the OpenAPI spec
-
-[200] OK:
-
-    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": null}`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: update_image_rotate_left_90(ibs, gid_list)\nReceived Function Definition: update_image_rotate_left_90(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[dict()])\nReceived Function Parameters:\n\t'gid_list': [{}]\nStatementError: (builtins.TypeError) int() argument must be a string, a bytes-like object or a number, not 'dict'\n[SQL: SELECT rowid, images.image_orientation \nFROM images \nWHERE ro // Output truncated...`
 
 Reproduce with: 
 
-    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": []}' http://localhost:85/api/image/rotate/left/
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": [{}]}' http://localhost:85/api/image/rotate/left/
 
-2. Test Case ID: eURKLj
+________________________ POST /api/image/rotate/right/ _________________________
+1. Test Case ID: WLvxQF
 
-- API rejected schema-compliant request
+- Server error
 
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
+[500] Internal Server Error:
 
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
+    `{"status": {"success": false, "code": 500, "message": "Expected Function Definition: update_image_rotate_right_90(ibs, gid_list)\nReceived Function Definition: update_image_rotate_right_90(<IBEISController(db) with UUID 776092c0-2943-4e0f-927c-c75f86692f59>, gid_list=[dict()])\nReceived Function Parameters:\n\t'gid_list': [{}]\nStatementError: (builtins.TypeError) int() argument must be a string, a bytes-like object or a number, not 'dict'\n[SQL: SELECT rowid, images.image_orientation \nFROM images \nWHERE  // Output truncated...`
 
 Reproduce with: 
 
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/image/rotate/left/
-
-_________________________ PUT /api/image/rotate/right/ _________________________
-1. Test Case ID: qxQscf
-
-- Unsupported methods
-
-    Unsupported method POST returned 200, expected 405 Method Not Allowed
-
-    Return 405 for methods not listed in the OpenAPI spec
-
-[200] OK:
-
-    `{"status": {"success": true, "code": 200, "message": "", "cache": -1}, "response": null}`
-
-Reproduce with: 
-
-    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": []}' http://localhost:85/api/image/rotate/right/
-
-2. Test Case ID: zsMBv7
-
-- API rejected schema-compliant request
-
-    Valid data should have been accepted
-    Expected: 2xx, 401, 403, 404, 5xx
-
-- Undocumented HTTP status code
-
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
-
-[405] Method Not Allowed:
-
-    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>405 Method Not Allowed</title>
-    <h1>Method Not Allowed</h1>
-    <p>The method is not allowed for the requested URL.</p>`
-
-Reproduce with: 
-
-    curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/image/rotate/right/
+    curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": [{}]}' http://localhost:85/api/image/rotate/right/
 
 __________________________ PUT /api/image/rotate/180/ __________________________
-1. Test Case ID: SV56WJ
+1. Test Case ID: eSIKXh
 
 - Unsupported methods
 
@@ -2750,17 +2317,17 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"gid_list": []}' http://localhost:85/api/image/rotate/180/
 
-2. Test Case ID: 6B8Zeb
+2. Test Case ID: BBbfgC
 
 - API rejected schema-compliant request
 
     Valid data should have been accepted
     Expected: 2xx, 401, 403, 404, 5xx
 
-- Undocumented HTTP status code
+- Undocumented Content-Type
 
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+    Received: text/html
+    Documented: application/json
 
 [405] Method Not Allowed:
 
@@ -2774,7 +2341,7 @@ Reproduce with:
     curl -X PUT -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{}' http://localhost:85/api/image/rotate/180/
 
 _______________________ GET /api/image/contributor/tag/ ________________________
-1. Test Case ID: NzsiOl
+1. Test Case ID: MCtlcm
 
 - Server error
 
@@ -2787,7 +2354,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/contributor/tag/
 
 ___________________ GET /api/annot/age/months/max/text/json/ ___________________
-1. Test Case ID: h96qXC
+1. Test Case ID: 0ZjLSH
 
 - Server error
 
@@ -2800,7 +2367,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/max/text/json/
 
 ___________________ GET /api/annot/age/months/min/text/json/ ___________________
-1. Test Case ID: 4AJaBW
+1. Test Case ID: bTHZkc
 
 - Server error
 
@@ -2813,7 +2380,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/age/months/min/text/json/
 
 ______________________ GET /api/annot/quality/text/json/ _______________________
-1. Test Case ID: gozPBt
+1. Test Case ID: grRifd
 
 - Server error
 
@@ -2826,7 +2393,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/quality/text/json/
 
 ________________________ GET /api/annot/sex/text/json/ _________________________
-1. Test Case ID: gxeKL8
+1. Test Case ID: 5JGQUC
 
 - Server error
 
@@ -2839,7 +2406,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/sex/text/json/
 
 _____________________ GET /api/annot/viewpoint/text/json/ ______________________
-1. Test Case ID: MzGDxj
+1. Test Case ID: e5G0AX
 
 - Server error
 
@@ -2852,7 +2419,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/viewpoint/text/json/
 
 ________________________ GET /api/annot/yaw/text/json/ _________________________
-1. Test Case ID: JjJ0YV
+1. Test Case ID: aSJHo1
 
 - Server error
 
@@ -2865,7 +2432,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/yaw/text/json/
 
 _________________________ GET /api/annot/species/json/ _________________________
-1. Test Case ID: SUilbz
+1. Test Case ID: 6gZgxy
 
 - Server error
 
@@ -2878,7 +2445,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/species/json/
 
 __________________________ GET /api/annot/rowid/uuid/ __________________________
-1. Test Case ID: 8bUNt2
+1. Test Case ID: 4xXRIK
 
 - Server error
 
@@ -2891,7 +2458,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/rowid/uuid/
 
 _______________________ GET /api/annot/rowid/uuid/json/ ________________________
-1. Test Case ID: 15uQDT
+1. Test Case ID: 6Wybrm
 
 - Server error
 
@@ -2904,12 +2471,12 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/rowid/uuid/json/
 
 __________________________ GET /api/annot/tags/json/ ___________________________
-1. Test Case ID: qnATVc
+1. Test Case ID: n1phx7
 
-- Undocumented HTTP status code
+- Undocumented Content-Type
 
-    Received: 405
-    Documented: 400, 401, 415, 500, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 200
+    Received: text/html
+    Documented: application/json
 
 [405] Method Not Allowed:
 
@@ -2922,7 +2489,7 @@ Reproduce with:
 
     curl -X GET http://localhost:85/api/annot/tags/json/
 
-2. Test Case ID: 37ljw7
+2. Test Case ID: JAjm9X
 
 - API rejected schema-compliant request
 
@@ -2941,7 +2508,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/annot/tags/json/?aid_list='
 
 _________________________ GET /api/annot/uuid/hashid/ __________________________
-1. Test Case ID: R2kM83
+1. Test Case ID: nSrdBb
 
 - Server error
 
@@ -2954,7 +2521,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/uuid/hashid/
 
 _______________________ GET /api/annot/uuid/hashid/json/ _______________________
-1. Test Case ID: Shdza6
+1. Test Case ID: Sjcp32
 
 - Server error
 
@@ -2967,7 +2534,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/uuid/hashid/json/
 
 _________________________ GET /api/annot/vert/rotated/ _________________________
-1. Test Case ID: 1qObQa
+1. Test Case ID: FnBMx3
 
 - Server error
 
@@ -2980,7 +2547,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/vert/rotated/
 
 ______________________ GET /api/annot/vert/rotated/json/ _______________________
-1. Test Case ID: 3nQchT
+1. Test Case ID: 5mxnuW
 
 - Server error
 
@@ -2993,7 +2560,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/vert/rotated/json/
 
 ____________________________ GET /api/annot/staged/ ____________________________
-1. Test Case ID: Gj9mks
+1. Test Case ID: VJJrJx
 
 - Server error
 
@@ -3006,7 +2573,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/staged/
 
 _______________________ GET /api/annot/staged/metadata/ ________________________
-1. Test Case ID: OT2Q6y
+1. Test Case ID: C0hCSo
 
 - Server error
 
@@ -3019,7 +2586,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/staged/metadata/
 
 _________________________ GET /api/annot/staged/user/ __________________________
-1. Test Case ID: IFK953
+1. Test Case ID: q33XPW
 
 - Server error
 
@@ -3032,7 +2599,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/staged/user/
 
 _________________________ GET /api/annot/staged/uuid/ __________________________
-1. Test Case ID: cPU1wH
+1. Test Case ID: NhMYpx
 
 - Server error
 
@@ -3045,7 +2612,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/annot/staged/uuid/
 
 ___________________________ GET /api/annot/<rowid>/ ____________________________
-1. Test Case ID: FyEu25
+1. Test Case ID: kZhIim
 
 - Server error
 
@@ -3058,7 +2625,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/%3Crowid%3E/
 
 _________________________ GET /api/annot/json/<uuid>/ __________________________
-1. Test Case ID: uPYypc
+1. Test Case ID: nDvKQM
 
 - Server error
 
@@ -3071,7 +2638,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/annot/json/%3Cuuid%3E/
 
 _____________________ GET /api/image/annot/rowid/species/ ______________________
-1. Test Case ID: QvEi6X
+1. Test Case ID: XYqWR1
 
 - Server error
 
@@ -3084,7 +2651,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/annot/rowid/species/
 
 ___________________ GET /api/image/annot/rowid/species/json/ ___________________
-1. Test Case ID: H89j6Y
+1. Test Case ID: dGReLx
 
 - Server error
 
@@ -3097,7 +2664,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/annot/rowid/species/json/
 
 ______________________ GET /api/image/annot/uuid/species/ ______________________
-1. Test Case ID: 56GpIU
+1. Test Case ID: BLnP4e
 
 - Server error
 
@@ -3110,7 +2677,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/annot/uuid/species/
 
 ___________________ GET /api/image/annot/uuid/species/json/ ____________________
-1. Test Case ID: LLjnTt
+1. Test Case ID: 7fc4IC
 
 - Server error
 
@@ -3123,7 +2690,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/annot/uuid/species/json/
 
 __________________________ GET /api/image/name/rowid/ __________________________
-1. Test Case ID: BXuhnp
+1. Test Case ID: g2pZ0N
 
 - Server error
 
@@ -3136,7 +2703,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/name/rowid/
 
 _______________________ GET /api/image/name/rowid/json/ ________________________
-1. Test Case ID: 9HOSo1
+1. Test Case ID: LIzDir
 
 - Server error
 
@@ -3149,7 +2716,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/name/rowid/json/
 
 __________________________ GET /api/image/name/uuid/ ___________________________
-1. Test Case ID: FoSIf4
+1. Test Case ID: gDKsBo
 
 - Server error
 
@@ -3162,7 +2729,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/name/uuid/
 
 ________________________ GET /api/image/name/uuid/json/ ________________________
-1. Test Case ID: zRRjdY
+1. Test Case ID: lkmuLS
 
 - Server error
 
@@ -3175,7 +2742,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/name/uuid/json/
 
 __________________________ GET /api/image/rowid/uuid/ __________________________
-1. Test Case ID: SfDkDI
+1. Test Case ID: LiwHYf
 
 - Server error
 
@@ -3188,7 +2755,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/rowid/uuid/
 
 _______________________ GET /api/image/rowid/uuid/json/ ________________________
-1. Test Case ID: E2yx8a
+1. Test Case ID: 9M7LI1
 
 - Server error
 
@@ -3201,7 +2768,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/rowid/uuid/json/
 
 _____________________ GET /api/image/orientation/str/json/ _____________________
-1. Test Case ID: gNdF3w
+1. Test Case ID: fDJqLl
 
 - Server error
 
@@ -3214,7 +2781,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/orientation/str/json/
 
 ________________________ GET /api/image/location/code/ _________________________
-1. Test Case ID: coHdvr
+1. Test Case ID: YR09U5
 
 - Server error
 
@@ -3227,7 +2794,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/location/code/
 
 ______________________ GET /api/image/location/code/json/ ______________________
-1. Test Case ID: LUyowz
+1. Test Case ID: eI8l2r
 
 - Server error
 
@@ -3240,7 +2807,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/location/code/json/
 
 ______________________ GET /api/image/contributor/rowid/ _______________________
-1. Test Case ID: y0QJlr
+1. Test Case ID: 4HGBl1
 
 - Server error
 
@@ -3253,7 +2820,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/contributor/rowid/
 
 _____________________________ GET /api/image/dict/ _____________________________
-1. Test Case ID: 1VOaYi
+1. Test Case ID: VyJ7eM
 
 - Server error
 
@@ -3266,7 +2833,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/dict/?gid_list=%5B%27null%27%2C+%27null%27%5D'
 
 __________________________ GET /api/image/dict/json/ ___________________________
-1. Test Case ID: sPL5B4
+1. Test Case ID: ZolYgE
 
 - Server error
 
@@ -3279,7 +2846,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' 'http://localhost:85/api/image/dict/json/?gid_list=%5B%27null%27%2C+%27null%27%5D'
 
 ____________________________ GET /api/image/thumb/ _____________________________
-1. Test Case ID: 2UDEmY
+1. Test Case ID: zABoUq
 
 - Server error
 
@@ -3292,7 +2859,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/thumb/
 
 __________________________ GET /api/image/unixtime2/ ___________________________
-1. Test Case ID: kc7M5j
+1. Test Case ID: IXRbD6
 
 - Server error
 
@@ -3305,7 +2872,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/unixtime2/
 
 ___________________________ GET /api/image/uri/json/ ___________________________
-1. Test Case ID: 8t2rKH
+1. Test Case ID: bs8o0N
 
 - Server error
 
@@ -3318,7 +2885,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/uri/json/
 
 _________________________ GET /api/image/uri/original/ _________________________
-1. Test Case ID: rRRwha
+1. Test Case ID: 5olIkk
 
 - Server error
 
@@ -3331,7 +2898,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/uri/original/
 
 ______________________ GET /api/image/uri/original/json/ _______________________
-1. Test Case ID: cJJJBS
+1. Test Case ID: AguKSx
 
 - Server error
 
@@ -3344,7 +2911,7 @@ Reproduce with:
     curl -X GET http://localhost:85/api/image/uri/original/json/
 
 ___________________________ GET /api/image/<rowid>/ ____________________________
-1. Test Case ID: ozHNuG
+1. Test Case ID: L2JPX1
 
 - Server error
 
@@ -3357,7 +2924,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/image/%3Crowid%3E/
 
 _________________________ GET /api/image/json/<uuid>/ __________________________
-1. Test Case ID: l34odT
+1. Test Case ID: v9PO3e
 
 - Server error
 
@@ -3370,7 +2937,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/image/json/%3Cuuid%3E/
 
 _______________________ GET /api/image/feature/<rowid>/ ________________________
-1. Test Case ID: i88v0e
+1. Test Case ID: i6QLMi
 
 - Server error
 
@@ -3383,7 +2950,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/image/feature/%3Crowid%3E/
 
 ________________________ GET /api/engine/job/metadata/ _________________________
-1. Test Case ID: xiH3Bk
+1. Test Case ID: RIAH7W
 
 - Server error
 
@@ -3396,7 +2963,7 @@ Reproduce with:
     curl -X GET -H 'Cookie: [Filtered]' http://localhost:85/api/engine/job/metadata/
 
 ________________________ POST /api/engine/job/metadata/ ________________________
-1. Test Case ID: dknTGK
+1. Test Case ID: r8L84B
 
 - API accepted schema-violating request
 
@@ -3412,7 +2979,7 @@ Reproduce with:
 
     curl -X POST -H 'Content-Type: application/json' -H 'Cookie: [Filtered]' -d '{"jobid": {}}' http://localhost:85/api/engine/job/metadata/
 
-2. Test Case ID: HfKDp2
+2. Test Case ID: gbLXTl
 
 - Server error
 
@@ -3427,8 +2994,8 @@ Reproduce with:
 =================================== SUMMARY ====================================
 
 API Operations:
-  Selected: 227/227
-  Tested: 227
+  Selected: 219/219
+  Tested: 219
 
 Test Phases:
   🚫 Examples
@@ -3437,18 +3004,18 @@ Test Phases:
   ⏭  Stateful (not applicable)
 
 Failures:
-  ❌ Server error: 215
-  ❌ API accepted schema-violating request: 7
-  ❌ API rejected schema-compliant request: 14
-  ❌ Undocumented HTTP status code: 14
-  ❌ Unsupported methods: 9
+  ❌ Server error: 216
+  ❌ API accepted schema-violating request: 2
+  ❌ API rejected schema-compliant request: 2
+  ❌ Undocumented Content-Type: 2
+  ❌ Unsupported methods: 4
 
 Errors:
   🚫 Network Error: 2
 
 Test cases:
-  3018 generated, 242 found 259 unique failures, 10 skipped
+  2921 generated, 223 found 226 unique failures, 11 skipped
 
-Seed: 70030986943231090724917985802039060574
+Seed: 277830298704161359367351848699413930299
 
-====================== 259 failures, 2 errors in 198.73s =======================
+====================== 226 failures, 2 errors in 213.24s =======================
