@@ -4196,32 +4196,26 @@ paths:
                 gid_list:
                   description: |
                     List of image row IDs (gids) to update.
-                    Can also accept a single integer for updating one image.
-                  oneOf:
-                    - type: integer
-                      description: Single image ID
-                    - type: array
-                      description: List of image IDs
-                      items:
-                        type: integer
+                    Must be an array even for a single image.
+                  type: array
+                  items:
+                    type: integer
+                  minItems: 1
                   example: [1, 2, 3]
                 new_gpath_list:
                   description: |
                     List of new URI/file path strings, one for each image in gid_list.
-                    Can also accept a single string for updating one image.
+                    Must be an array even for a single image.
 
                     Paths can be:
                     - Absolute local paths (e.g., "/home/user/images/photo.jpg")
                     - Relative paths to WBIA image cache (e.g., "images/photo.jpg")
                     - Cloud URIs (e.g., "s3://bucket-name/path/to/image.jpg")
                     - HTTP(S) URLs (e.g., "https://example.com/images/photo.jpg")
-                  oneOf:
-                    - type: string
-                      description: Single URI/path
-                    - type: array
-                      description: List of URIs/paths
-                      items:
-                        type: string
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
                   example:
                     - "/var/cache/wbia/images/zebra_001.jpg"
                     - "/var/cache/wbia/images/zebra_002.jpg"
@@ -5337,13 +5331,13 @@ paths:
                   type: array
                   items:
                     type: integer
-                timedelta_list:
+                image_timedelta_posix_list:
                   type: array
                   items:
                     type: integer
             example:
               gid_list: [1, 2, 3]
-              timedelta_list: [0, 3600, -7200]
+              image_timedelta_posix_list: [0, 3600, -7200]
       responses:
         <<: *WBIAStandardErrors
         "200":
@@ -5379,14 +5373,14 @@ paths:
                   type: array
                   items:
                     type: integer
-                unixtime_list:
+                image_time_posix_list:
                   type: array
                   items:
                     type: integer
                     nullable: true
             example:
               gid_list: [1, 2, 3]
-              unixtime_list: [1609459200, 1609545600, 1609632000]
+              image_time_posix_list: [1609459200, 1609545600, 1609632000]
       responses:
         <<: *WBIAStandardErrors
         "200":
