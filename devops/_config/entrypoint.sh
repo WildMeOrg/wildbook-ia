@@ -8,5 +8,10 @@ source /bin/setup
 if [ $EXEC_PRIVILEGED ]; then
     exec $@
 else
-    exec gosu ${HOST_USER}:docker $@
+    # Use docker group if it exists, otherwise use the user's primary group
+    if getent group docker >/dev/null 2>&1; then
+        exec gosu ${HOST_USER}:docker $@
+    else
+        exec gosu ${HOST_USER} $@
+    fi
 fi
