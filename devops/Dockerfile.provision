@@ -25,8 +25,8 @@ RUN set -ex \
  && PYVER=$(/virtualenv/env3/bin/python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")') \
  && case "$PYVER" in \
 			3.7) NUMPY_PIN="numpy==1.21.6" ;; \
-			3.8|3.9|3.10|3.11) NUMPY_PIN="numpy==1.23.5" ;; \
-			*) NUMPY_PIN="numpy==1.23.5" ;; \
+			3.8|3.9|3.10|3.11) NUMPY_PIN="numpy==1.22.4" ;; \
+			*) NUMPY_PIN="numpy==1.22.4" ;; \
 		esac \
  && echo "[toolchain] Detected Python ${PYVER}; using ${NUMPY_PIN}" \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
@@ -49,8 +49,8 @@ RUN set -ex \
  && PYVER=$(/virtualenv/env3/bin/python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")') \
  && case "$PYVER" in \
 			3.7) NUMPY_CONSTRAINT="numpy==1.21.6" ;; \
-			3.8|3.9|3.10|3.11) NUMPY_CONSTRAINT="numpy==1.23.5" ;; \
-			*) NUMPY_CONSTRAINT="numpy==1.23.5" ;; \
+			3.8|3.9|3.10|3.11) NUMPY_CONSTRAINT="numpy==1.22.4" ;; \
+			*) NUMPY_CONSTRAINT="numpy==1.22.4" ;; \
 		esac \
  && if [ ! -f requirements/constraints.txt ]; then \
 	  printf "PyYAML>=6.0,<7\nyorm<0\n${NUMPY_CONSTRAINT}\n" > requirements/constraints.txt; \
