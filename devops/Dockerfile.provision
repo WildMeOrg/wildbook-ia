@@ -46,8 +46,16 @@ COPY requirements.txt ./
 # Ensure constraints file (project may not ship it yet)
 RUN set -ex \
  && mkdir -p requirements \
+ && PYVER=$(/virtualenv/env3/bin/python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")') \
+ && case "$PYVER" in \
+			3.7) NUMPY_CONSTRAINT="numpy==1.21.6" ;; \
+			3.8|3.9|3.10|3.11) NUMPY_CONSTRAINT="numpy==1.23.5" ;; \
+			*) NUMPY_CONSTRAINT="numpy==1.23.5" ;; \
+		esac \
  && if [ ! -f requirements/constraints.txt ]; then \
-	  printf 'PyYAML>=6.0,<7\nyorm<0\n' > requirements/constraints.txt; \
+	  printf "PyYAML>=6.0,<7\nyorm<0\n${NUMPY_CONSTRAINT}\n" > requirements/constraints.txt; \
+	else \
+	  grep -qxF "${NUMPY_CONSTRAINT}" requirements/constraints.txt || echo "${NUMPY_CONSTRAINT}" >> requirements/constraints.txt; \
 	fi
 
 ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt \
