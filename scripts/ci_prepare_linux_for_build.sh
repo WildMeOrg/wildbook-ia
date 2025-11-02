@@ -19,11 +19,7 @@ $PYTHON_BIN -m pip --version
 # Ensure clean pip cache to avoid versioning bugs
 $PIP_BIN cache purge || true
 
-# Force omegaconf pin
-echo "Appending omegaconf==2.0.6 to requirements/build.txt if not present..."
-grep -qxF 'omegaconf==2.0.6' requirements/build.txt || echo 'omegaconf==2.0.6' >> requirements/build.txt
-
-# Install build deps
+# Install build deps (omegaconf==2.0.6 already pinned in requirements/build.txt)
 $PYTHON_BIN -m pip install -r requirements/build.txt
 
 if command -v yum &> /dev/null
