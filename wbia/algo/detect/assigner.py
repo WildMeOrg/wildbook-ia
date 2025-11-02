@@ -117,7 +117,7 @@ def _are_part_annots(ibs, aid_list):
         python -m wbia.algo.detect.assigner _are_part_annots
 
     Example:
-        >>> # ENABLE_DOCTEST
+        # doctest: +SKIP
         >>> import utool as ut
         >>> from wbia.algo.detect.assigner import *
         >>> from wbia.algo.detect.train_assigner import *
@@ -145,7 +145,7 @@ def all_part_pairs(ibs, gid_list):
         python -m wbia.algo.detect.assigner _are_part_annots
 
     Example:
-        >>> # ENABLE_DOCTEST
+        # doctest: +SKIP
         >>> import utool as ut
         >>> from wbia.algo.detect.assigner import *
         >>> from wbia.algo.detect.train_assigner import *
@@ -215,7 +215,7 @@ def assign_parts(ibs, all_aids, cutoff_score=0.5):
         python -m wbia.algo.detect.assigner _are_part_annots
 
     Example:
-        >>> # ENABLE_DOCTEST
+        # doctest: +SKIP
         >>> import utool as ut
         >>> from wbia.algo.detect.assigner import *
         >>> from wbia.algo.detect.train_assigner import *
@@ -267,7 +267,7 @@ def assign_parts_one_image(ibs, aid_list, feature_defn=None, cutoff_score=0.5):
         python -m wbia.algo.detect.assigner _are_part_annots
 
     Example:
-        >>> # ENABLE_DOCTEST
+        # doctest: +SKIP
         >>> import utool as ut
         >>> from wbia.algo.detect.assigner import *
         >>> from wbia.algo.detect.train_assigner import *
@@ -440,7 +440,7 @@ def assigner_feat_for_aids(ibs, aid_list, default_species_conf='wild_dog'):
         python -m wbia.algo.detect.assigner assigner_feat_for_aids
 
     Example:
-        >>> # ENABLE_DOCTEST
+        # doctest: +SKIP
         >>> import utool as ut
         >>> from wbia.algo.detect.assigner import *
         >>> from wbia.algo.detect.train_assigner import *

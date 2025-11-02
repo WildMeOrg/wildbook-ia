@@ -1430,7 +1430,7 @@ def test_interact_annots():
     ]
     # if img is None:
     try:
-        img_url = 'https://cthulhu.dyn.wildme.io/public/testimgs/Vq9CLok.jpg'
+        img_url = 'https://wildbookiarepository.azureedge.net/testimgs/Vq9CLok.jpg'
         img_fpath = ut.grab_file_url(img_url)
         img = vt.imread(img_fpath)
     except Exception as ex:

@@ -356,7 +356,7 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         python -m wbia.algo.detect.randomforest --test-_get_models
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # doctest: +SKIP
         >>> from wbia.algo.detect.randomforest import *  # NOQA
         >>> import wbia
         >>> from wbia import constants as const

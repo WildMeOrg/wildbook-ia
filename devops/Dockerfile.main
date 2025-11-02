@@ -1,0 +1,107 @@
+ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
+ARG WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest
+
+FROM ${WBIA_PROVISION_IMAGE} AS org.wildme.wbia.latest
+
+##########################################################################################
+FROM ${WBIA_BASE_IMAGE} AS org.wildme.wbia.install
+
+ARG VERSION="3.7.2"
+ARG VCS_URL="https://github.com/WildMeOrg/wildbook-ia"
+ARG VCS_REF="main"
+ARG BUILD_DATE="2023"
+
+LABEL autoheal="true" \
+    org.opencontainers.image.source="https://github.com/WildMeOrg/wildbook-ia" \
+    org.wildme.vendor="Wild Me" \
+    org.wildme.url="https://wildme.org" \
+    org.wildme.name="Wildbook IA" \
+    org.wildme.description="Wildbook's Image Analysis (WBIA) backend service supporting machine learning for wildlife conservation" \
+    org.wildme.version="${VERSION}" \
+    org.wildme.vcs-url="${VCS_URL}" \
+    org.wildme.vcs-ref="${VCS_REF}" \
+    org.wildme.build-date="${BUILD_DATE}" \
+    org.wildme.docker.schema-version="1.0"
+
+ENV HOST_USER=root HOST_UID=0
+
+WORKDIR /data/db
+
+COPY --from=org.wildme.wbia.latest /virtualenv /virtualenv
+COPY --from=org.wildme.wbia.latest /wbia /wbia
+
+# Config/scripts
+COPY devops/_config/theanorc /root/.theanorc
+COPY devops/_config/setup.sh /bin/setup
+COPY devops/_config/embed.sh /bin/embed
+COPY devops/_config/embedpg.sh /bin/embedpg
+COPY devops/_config/shell.sh /bin/shell
+COPY devops/_config/entrypoint.sh /bin/entrypoint
+COPY devops/_config/healthcheck.py /bin/healthcheck.py
+COPY devops/lightmode_prune_torch.py /tmp/lightmode_prune_torch.py
+
+# PyQt / OpenCV headers for pyhesaff runtime compatibility
+RUN set -ex \
+ && apt-get update \
+ && apt-get remove -y python3-pyqt5* \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+     qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libopencv-dev \
+ && /virtualenv/env3/bin/pip uninstall -y pyqt5 \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade pyqt5 \
+ && apt-get clean && apt-get autoclean && apt-get autoremove -y \
+ && rm -rf /var/cache/apt /var/lib/apt/lists/*
+
+# Optional CNN plugin setup (best-effort)
+RUN set -ex; \
+ if [ -d /wbia/wbia-plugin-cnn ]; then \
+     . /virtualenv/env3/bin/activate; \
+     cd /wbia/wbia-plugin-cnn; \
+     /bin/bash run_developer_setup.sh || echo "[warn] wbia-plugin-cnn setup failed"; \
+ else \
+     echo "[skip] wbia-plugin-cnn not present"; \
+ fi
+
+# Normalize OpenCV selection
+RUN set -ex \
+ && /virtualenv/env3/bin/pip uninstall -y opencv-python opencv-contrib-python opencv-python-headless opencv-contrib-python-headless || true \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade opencv-contrib-python-headless \
+ && /virtualenv/env3/bin/pip uninstall -y nvidia_cublas_cu11 || true
+
+# External smoke script (no heredoc)
+COPY devops/smoke_plugins.py /tmp/smoke_plugins.py
+RUN set -ex \
+ && mkdir -p /data \
+ && /virtualenv/env3/bin/python -m wbia.dev --set-workdir /data --preload-exit \
+ && /virtualenv/env3/bin/python /tmp/smoke_plugins.py \
+ && for pattern in /wbia/wbia* /wbia/wildbook*; do \
+      find $pattern -name '*.a' -print | grep -v 'cpython-37m-' | xargs -r -i /bin/bash -c 'echo {} && ld -d {}' || true; \
+      find $pattern -name '*.so' -print | grep -v 'cpython-37m-' | xargs -r -i /bin/bash -c 'echo {} && ld -d {}' || true; \
+    done || true
+
+ARG LIGHT_MODE=0
+
+# In light mode, run external prune script (heredoc removed for parser stability)
+RUN set -ex \
+ && if [ "$LIGHT_MODE" = "1" ]; then \
+            echo "[light-mode] running post-stage CUDA lib prune"; \
+            /virtualenv/env3/bin/python /tmp/lightmode_prune_torch.py || true; \
+        else \
+            echo "[light-mode] disabled (no prune)"; \
+        fi
+
+ENV LD_PRELOAD=""
+
+HEALTHCHECK --interval=10s --timeout=5s --retries=60 --start-period=1h \
+  CMD /virtualenv/env3/bin/python /bin/healthcheck.py
+
+STOPSIGNAL SIGTERM
+
+EXPOSE 5000
+
+ENTRYPOINT ["/bin/entrypoint", "/virtualenv/env3/bin/python", "-m", "wbia.dev", "--dbdir", "/data/db", "--logdir", "/data/db/logs", "--web", "--containerized", "--production"]
+CMD []
+
+##########################################################################################
+# Deprecated stage removed to avoid pulling legacy tensorflow / keras stacks that
+# conflict with pinned runtime dependencies and cause build failures.
+# (Original stage: org.wildme.wbia.depricated)

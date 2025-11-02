@@ -2,9 +2,29 @@
 
 set -ex
 
-export CUR_LOC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+PYTHON_BIN=$(which python3)
+PIP_BIN=$(which pip3)
 
-pip install -r requirements/build.txt
+# Force-clean pip environment before reinstall
+$PYTHON_BIN -m pip uninstall -y pip setuptools wheel || true
+
+# Reinstall specific versions cleanly
+$PYTHON_BIN -m ensurepip --upgrade
+$PYTHON_BIN -m pip install --upgrade --force-reinstall \
+  'pip==24.0' 'setuptools==59.5.0' 'wheel==0.38.4'
+
+# Confirm what pip we're running
+$PYTHON_BIN -m pip --version
+
+# Ensure clean pip cache to avoid versioning bugs
+$PIP_BIN cache purge || true
+
+# Force omegaconf pin
+echo "Appending omegaconf==2.0.6 to requirements/build.txt if not present..."
+grep -qxF 'omegaconf==2.0.6' requirements/build.txt || echo 'omegaconf==2.0.6' >> requirements/build.txt
+
+# Install build deps
+$PYTHON_BIN -m pip install -r requirements/build.txt
 
 if command -v yum &> /dev/null
 then
@@ -28,24 +48,12 @@ then
         qt5-qmake \
         coreutils
 else
-    apt-get install -y \
-        pgloader \
-        libgeos-dev \
-        libgdal-dev \
-        libproj-dev \
-        graphviz \
-        graphviz-dev \
-        postgresql \
-        libopencv-dev \
-        qt5-qmake \
-        qtbase5-dev \
-        qtchooser \
-        qtbase5-dev-tools \
-        qttools5-dev-tools \
-        qtchooser \
-        coreutils
+    echo "Skipping apt installs – handled in testing.yml"
 fi
 
-pip install --global-option=build_ext --global-option="-I/usr/include/graphviz/" --global-option="-L/usr/lib/graphviz/" pygraphviz
-pip uninstall -y pyqt5
-pip install --upgrade pyqt5
+$PYTHON_BIN -m pip install --global-option=build_ext \
+  --global-option="-I/usr/include/graphviz/" \
+  --global-option="-L/usr/lib/graphviz/" pygraphviz
+
+$PYTHON_BIN -m pip uninstall -y pyqt5
+$PYTHON_BIN -m pip install --upgrade pyqt5

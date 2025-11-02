@@ -1,10 +1,34 @@
-FROM ubuntu:22.04
+ARG WBIA_UBUNTU_IMAGE=nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
+
+FROM ${WBIA_UBUNTU_IMAGE} as org.wildme.wbia.base
+
+MAINTAINER Wild Me <dev@wildme.org>
+
+# Set up xvfb for running gui doctests
+ENV DISPLAY :1
+
+USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Allow overriding Ubuntu mirrors (helps when archive.ubuntu.com is flaky)
+ARG UBUNTU_MIRROR="https://archive.ubuntu.com/ubuntu"
+ARG UBUNTU_MIRROR_FALLBACK="https://azure.archive.ubuntu.com/ubuntu"
+ARG UBUNTU_SECURITY_MIRROR="https://security.ubuntu.com/ubuntu"
+ARG UBUNTU_SECURITY_MIRROR_FALLBACK="https://security.ubuntu.com/ubuntu"
+
+# Use a resilient APT flow with retries and mirror fallback
+RUN set -ex \
+    # Prefer the configured mirror if different from default
+    && sed -i "s|http://archive.ubuntu.com/ubuntu|${UBUNTU_MIRROR}|g; s|https://archive.ubuntu.com/ubuntu|${UBUNTU_MIRROR}|g; s|http://security.ubuntu.com/ubuntu|${UBUNTU_SECURITY_MIRROR}|g; s|https://security.ubuntu.com/ubuntu|${UBUNTU_SECURITY_MIRROR}|g" /etc/apt/sources.list \
+    # Retry apt-get update a few times, then switch mirror and try once more
+    && ( for i in 1 2 3; do apt-get update && break || { echo "apt-get update failed ($i)"; sleep $((i*5)); }; done \
+        || ( echo "Switching to fallback mirror: ${UBUNTU_MIRROR_FALLBACK}" \
+            && sed -i "s|${UBUNTU_MIRROR}|${UBUNTU_MIRROR_FALLBACK}|g; s|${UBUNTU_SECURITY_MIRROR}|${UBUNTU_SECURITY_MIRROR_FALLBACK}|g" /etc/apt/sources.list \
+            && apt-get update ) ) \
+    && apt-get install -y -o Acquire::Retries=5 --no-install-recommends \
     build-essential \
     cmake \
     ninja-build \
@@ -21,13 +45,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv \
     python3-setuptools \
     python3-wheel \
+    gosu \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Symlink Python & Pip
-RUN ln -s /usr/bin/python3 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip
+RUN ln -sf /usr/bin/python3 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
 
 # Install Python packages early
-RUN pip install --upgrade pip setuptools wheel scikit-build ninja numpy
+RUN python3 -m pip install --no-cache-dir --upgrade \
+    pip==22.3.1 setuptools==59.5.0 wheel==0.38.4 \
+    scikit-build ninja numpy
 
 # Install opencv-python (includes native libs but NOT OpenCVConfig.cmake)
-RUN pip install opencv-python-headless
+RUN python3 -m pip install --no-cache-dir opencv-python-headless==4.7.0.72

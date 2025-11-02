@@ -3,13 +3,16 @@ name: Build and upload to PyPI
 # Build on every branch push, tag push, and pull request change:
 on: push
 
+env:
+  MODEL_DIR: ${{ github.workspace }}/models
+  MODEL_SAS_QUERY: ${{ secrets.MODEL_SAS_QUERY }}
 jobs:
 
   build_wheels:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: [3.8]

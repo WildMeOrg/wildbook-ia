@@ -1,13 +1,99 @@
-FROM wildme/wbia-base:latest
+ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
+FROM ${WBIA_BASE_IMAGE} AS org.wildme.wbia.provision
 
-WORKDIR /wbia
+# Create workspace and ensure virtualenv (Python 3.x) exists early for cached layers
+RUN mkdir -p /wbia \
+ && ( [ -x /virtualenv/env3/bin/python ] || ( \
+		(python3 -m venv /virtualenv/env3 || (apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv && python3 -m venv /virtualenv/env3)) \
+		&& /virtualenv/env3/bin/python -m ensurepip --upgrade \
+		# Pin pip to <24 (23.3.2) early (metadata leniency needed for legacy omegaconf 2.0.x invalid PyYAML spec)
+		&& /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade 'pip==23.3.2' \
+		&& /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade setuptools wheel \
+	) )
 
-COPY requirements.txt .
+ENV PIP_PREFER_BINARY=1 \
+	PIP_NO_BUILD_ISOLATION=1 \
+	PIP_DISABLE_PIP_VERSION_CHECK=1
 
-RUN pip install -r requirements.txt
+# Light mode (CI) can skip heavy torch installs to save disk space
+ARG LIGHT_MODE=0
 
-# Inject OpenCV flags manually for pyhesaff
-ENV CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs
+# Preinstall build toolchain (setuptools & wheel already upgraded during venv bootstrap)
+# NOTE: Base image currently provides Python 3.7 (cp37 wheels observed). numpy>=1.22 requires >=3.8.
+#       We dynamically choose the highest compatible pin for the detected interpreter to ease future base upgrades.
+RUN set -ex \
+ && PYVER=$(/virtualenv/env3/bin/python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")') \
+ && case "$PYVER" in \
+			3.7) NUMPY_PIN="numpy==1.21.6" ;; \
+			3.8|3.9|3.10|3.11) NUMPY_PIN="numpy==1.23.5" ;; \
+			*) NUMPY_PIN="numpy==1.23.5" ;; \
+		esac \
+ && echo "[toolchain] Detected Python ${PYVER}; using ${NUMPY_PIN}" \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
+	scikit-build cmake ninja packaging "Cython>=0.29.36" ${NUMPY_PIN} \
+ && /virtualenv/env3/bin/python -m pip --version | awk '{print "[pip pinned]", $0}' \
+ && /virtualenv/env3/bin/python -c "import pkg_resources as pr, numpy, sys; print('[toolchain] setuptools', pr.get_distribution('setuptools').version); print('[toolchain] wheel', pr.get_distribution('wheel').version); print(f'[toolchain] numpy {numpy.__version__} (py{sys.version_info[0]}.{sys.version_info[1]})')"
 
-# Try to build pyhesaff — fail allowed if fallback needed
-RUN pip install pyhesaff fairseq --no-cache-dir || true
+# Global pip config (belt + suspenders for prefer-binary / no-build-isolation)
+RUN printf "[global]\nprefer-binary = true\nno-build-isolation = true\n" > /etc/pip.conf
+
+WORKDIR /wbia/wildbook-ia
+
+# Copy only dependency manifests first for better layer caching
+COPY requirements/ requirements/
+COPY requirements.txt ./
+
+# Ensure constraints file (project may not ship it yet)
+RUN set -ex \
+ && mkdir -p requirements \
+ && if [ ! -f requirements/constraints.txt ]; then \
+	  printf 'PyYAML>=6.0,<7\nyorm<0\n' > requirements/constraints.txt; \
+	fi
+
+ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt \
+	PIP_ONLY_BINARY=PyYAML
+
+# Install base requirements (no editable source yet). Re-assert pip pin defensively (no-op if already 23.3.2)
+RUN set -ex \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir 'pip==23.3.2' \
+ && /virtualenv/env3/bin/python -m pip --version | awk '{print "[pip verify]", $0}' \
+ && if [ "$LIGHT_MODE" = "1" ]; then \
+			echo "[light-mode] pruning torch packages from requirements"; \
+			grep -vi '^torch' requirements.txt > /tmp/requirements.pruned || true; \
+			echo "[light-mode] installing pruned requirements (no torch*)"; \
+			/virtualenv/env3/bin/python -m pip install --no-cache-dir -r /tmp/requirements.pruned; \
+		else \
+			/virtualenv/env3/bin/python -m pip install --no-cache-dir -r requirements.txt; \
+		fi
+
+# Copy full source after deps to leverage docker layer cache
+COPY . .
+
+# Editable install with local source, plus postgres extras if present
+RUN set -ex \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir -e . \
+ && if [ -f requirements/postgres.txt ]; then /virtualenv/env3/bin/python -m pip install --no-cache-dir -r requirements/postgres.txt; fi
+
+# Inject OpenCV flags (legacy build aid for pyhesaff) and build native toolkits if requested
+ARG CMAKE_PREFIX_PATH=""
+ENV OpenCV_DIR=/usr/lib/x86_64-linux-gnu/cmake/opencv4 \
+	CMAKE_PREFIX_PATH=/usr/local/lib/python3.12/dist-packages/opencv_python.libs:${CMAKE_PREFIX_PATH}
+
+# Allow space-constrained CI builds to remove large CUDA-enabled torch libs (script-based, avoids heredoc)
+COPY devops/lightmode_prune_torch.py /tmp/lightmode_prune_torch.py
+RUN set -ex \ 
+ && if [ "$LIGHT_MODE" = "1" ]; then \ 
+			echo "[light-mode] invoking prune script"; \ 
+			/virtualenv/env3/bin/python /tmp/lightmode_prune_torch.py || true; \ 
+		else \ 
+			echo "[light-mode] disabled (skipping torch prune)"; \ 
+		fi
+
+# Attempt optional native packages; failures tolerated. fairseq disabled (pulls legacy omegaconf 2.0.6)
+RUN set -ex \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir pyhesaff || true \
+ && echo "[skip] fairseq install disabled to avoid legacy omegaconf; enable by editing Dockerfile.provision if needed" 
+
+# Final sanity: show PyYAML version and assert yorm absence (non-fatal)
+COPY devops/sanity_pyyaml.py /tmp/sanity_pyyaml.py
+RUN set -ex && /virtualenv/env3/bin/python /tmp/sanity_pyyaml.py
