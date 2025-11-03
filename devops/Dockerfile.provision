@@ -67,6 +67,11 @@ RUN set -ex \
 # Copy full source after deps to leverage docker layer cache
 COPY . .
 
+# Force reinstall pandas to match numpy ABI (prevents binary incompatibility)
+RUN set -ex \
+ && /virtualenv/env3/bin/python -m pip uninstall -y pandas \
+ && /virtualenv/env3/bin/python -m pip install --no-cache-dir --no-binary pandas pandas==1.4.4
+
 # Editable install with local source, plus postgres extras if present
 RUN set -ex \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir -e . \
