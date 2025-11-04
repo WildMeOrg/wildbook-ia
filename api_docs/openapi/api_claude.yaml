@@ -8980,9 +8980,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9044,9 +9050,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9108,9 +9120,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9172,9 +9190,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9236,9 +9260,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9300,9 +9330,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9364,9 +9400,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9428,9 +9470,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9492,9 +9540,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9556,9 +9610,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9620,9 +9680,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9684,9 +9750,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9748,9 +9820,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9812,9 +9890,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9876,9 +9960,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -9940,9 +10030,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10004,9 +10100,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10068,9 +10170,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10132,9 +10240,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10196,9 +10310,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10260,9 +10380,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10324,9 +10450,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10388,9 +10520,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10452,9 +10590,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10516,9 +10660,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10580,9 +10730,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10644,9 +10800,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10708,9 +10870,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10772,9 +10940,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10836,9 +11010,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10900,9 +11080,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -10964,9 +11150,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -11028,9 +11220,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -11092,9 +11290,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -11156,9 +11360,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -11220,9 +11430,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
@@ -11284,9 +11500,15 @@ paths:
                       items: {}
                       nullable: true
               example:
-              - 1
-              - 2
-              - 3
+                status:
+                  success: true
+                  code: 200
+                  message: ''
+                  cache: -1
+                response:
+                - 1
+                - 2
+                - 3
         '404': *id016
         '422':
           description: Unprocessable Entity — validation failed
