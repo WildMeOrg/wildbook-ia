@@ -40,11 +40,14 @@ jobs:
           
       - name: Free Disk space
         run: |
-             sudo swapoff -a
-             sudo rm -f /swapfile
-             sudo rm -rf /opt/hostedtoolcache
-             sudo apt clean
-             docker rmi $(docker image ls -aq)
+             sudo swapoff -a || true
+             sudo rm -f /swapfile || true
+             sudo rm -rf /opt/hostedtoolcache /usr/share/dotnet /usr/local/lib/android || true
+             sudo rm -rf /usr/lib/jvm /home/runner/.dotnet /home/runner/.cache || true
+             sudo apt-get clean || true
+             docker system prune -af || true
+             docker rmi $(docker image ls -aq) || true
+             sudo rm -rf /home/runner/work/_temp/* || true
              df -h
             
       # Build images
@@ -56,6 +59,10 @@ jobs:
         env:
           # The wildbook-ia image is built at the same time as wbia, it is an alias
           BUILD_IMAGES: ${{ matrix.images }}
+
+      - name: Docker system prune (post-build)
+        if: always()
+        run: docker system prune -af || true
 
       # Log into image registries
       - name: Login to DockerHub
