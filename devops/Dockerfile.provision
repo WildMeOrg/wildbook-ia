@@ -19,10 +19,10 @@ ENV PIP_PREFER_BINARY=1 \
 ARG LIGHT_MODE=0
 
 # Preinstall build toolchain (setuptools & wheel already upgraded during venv bootstrap)
-# NOTE: Use numpy 1.21.6 for compatibility with scipy 1.7.3 (<1.23.0) and pandas 1.3.5 (built against 1.21.x)
+# NOTE: Use numpy 1.23.5 to align with pandas/scipy wheels on Python 3.10+
 RUN set -ex \
  && PYVER=$(/virtualenv/env3/bin/python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")') \
- && NUMPY_PIN="numpy==1.21.6" \
+ && NUMPY_PIN="numpy==1.23.5" \
  && echo "[toolchain] Detected Python ${PYVER}; using ${NUMPY_PIN}" \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
 	scikit-build cmake ninja packaging "Cython>=0.29.36" ${NUMPY_PIN} \
@@ -41,7 +41,7 @@ COPY requirements.txt ./
 # Ensure constraints file (project may not ship it yet)
 RUN set -ex \
  && mkdir -p requirements \
- && NUMPY_CONSTRAINT="numpy==1.21.6" \
+ && NUMPY_CONSTRAINT="numpy==1.23.5" \
  && if [ ! -f requirements/constraints.txt ]; then \
 	  printf "PyYAML>=6.0,<7\nyorm<0\n${NUMPY_CONSTRAINT}\n" > requirements/constraints.txt; \
 	else \
@@ -66,11 +66,6 @@ RUN set -ex \
 
 # Copy full source after deps to leverage docker layer cache
 COPY . .
-
-# Force reinstall pandas to match numpy ABI (prevents binary incompatibility)
-RUN set -ex \
- && /virtualenv/env3/bin/python -m pip uninstall -y pandas \
- && /virtualenv/env3/bin/python -m pip install --no-cache-dir --no-binary pandas pandas==1.4.4
 
 # Editable install with local source, plus postgres extras if present
 RUN set -ex \
