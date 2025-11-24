@@ -37,17 +37,9 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-<<<<<<< HEAD
           name: wheel-${{ matrix.os }}
           path: ./dist/*.whl
     
-=======
-          name: wheel-artifact-${{ github.run_number }}
-          path: ./dist/*.whl
-          overwrite: true
-
-
->>>>>>> origin/main
   build_sdist:
     name: Build source distribution
     runs-on: ubuntu-latest
@@ -65,17 +57,10 @@ jobs:
           pip install build
           rm -rf dist && mkdir dist
           python -m build --sdist --outdir dist/ .
-<<<<<<< HEAD
 
       - uses: actions/upload-artifact@v4
         with:
           name: sdist
-=======
-         
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdist-artifact-${{ github.run_number }}
->>>>>>> origin/main
           path: ./dist/*.tar.gz
           overwrite: true
 
