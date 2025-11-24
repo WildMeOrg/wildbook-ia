@@ -559,6 +559,7 @@ def add_annots_json(
     annot_multiple_list=None,
     annot_interest_list=None,
     annot_name_list=None,
+    annot_uuid_list=None,
     **kwargs,
 ):
     """
@@ -580,6 +581,7 @@ def add_annots_json(
             If the list is partially known, use None (null in JSON) for unknown entries.
         annot_name_list (list of str) : list of names for the annotation, if known.
             If the list is partially known, use None (null in JSON) for unknown entries.
+        annot_uuid_list (list of str) : list of annotation UUIDs to assign to the new annotations being added; if provided, these UUIDs will be used for the created annotations.
         **kwargs : key-value pairs passed to the ibs.add_annots() function.
 
     CommandLine:
@@ -676,7 +678,6 @@ def add_annots_json(
         return value
 
     depricated_list = [
-        'annot_uuid_list',
         'annot_notes_list',
     ]
 
@@ -704,8 +705,15 @@ def add_annots_json(
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     gid_list = _verify(gid_list, 'image_uuid_list', expected_length)
 
+    if annot_uuid_list is not None:
+        annot_uuid_list = _rectify(annot_uuid_list, None, expected_length, _uuid)
+        annot_uuid_list = _verify(annot_uuid_list, 'annot_uuid_list', expected_length)
+
     aid_list = ibs.add_annots(
-        gid_list, bbox_list=annot_bbox_list, theta_list=annot_theta_list
+        gid_list,
+        bbox_list=annot_bbox_list,
+        theta_list=annot_theta_list,
+        annot_uuid_list=annot_uuid_list,
     )
 
     if annot_viewpoint_list is not None:

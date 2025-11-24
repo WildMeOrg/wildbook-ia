@@ -1001,7 +1001,6 @@ def start_detect_image_algo(
     REST:
         Method: GET/api/engine/detect/cnn/
         URL:
-
     Args:
         algo (str): either 'lightnet' (default) or 'yolo'
         image_uuid_list (list) : list of image uuids or urls to detect on.
@@ -1120,7 +1119,6 @@ def start_predict_ws_injury_interim_svm(
     """
     # Check UUIDs
     ibs.web_check_uuids(qannot_uuid_list=annot_uuid_list)
-
     # import wbia
     # from wbia.web import apis_engine
     # ibs.load_plugin_module(apis_engine)

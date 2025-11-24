@@ -35,8 +35,11 @@ ARCHIVE_URL_DICT = {
     'msv2_multilabel_flip_effnet_v0': 'https://wildbookiarepository.blob.core.windows.net/models/labeler_msv2_multilabel_flip_effnet.v2.zip',
     'grouper_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_grouper_effnet.v0.zip',
     'whaleshark_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_whaleshark_effnet.v0.zip',
+
     'amphibian_effnet_v4': 'https://wildbookiarepository.azureedge.net/models/labeler_amphibian_effnet.v4.zip',
-    'python_effnet_v1': 'https://wildbookiarepository.azureedge.net/models/labeler_python_effnet.v1.zip'
+
+    'python_effnet_v1': 'https://wildbookiarepository.azureedge.net/models/labeler_python_effnet.v1.zip',
+    'elephant_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_elephant_effnet.v0.zip',
 }
 
 
