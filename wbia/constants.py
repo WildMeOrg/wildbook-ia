@@ -589,10 +589,10 @@ SPECIES_WITH_DETECTORS = (
     'physeter_macrocephalus',
     'physeter_macrocephalus+fluke',
     'vitulina',
-    'deer', 
-    'deer_axis_axis', 
-    'seal', 
-    'seal+head' 
+    'deer',
+    'deer_axis_axis',
+    'seal',
+    'seal+head'
 )
 
 
