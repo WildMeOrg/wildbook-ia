@@ -3,6 +3,13 @@ ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
 ARG WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest
 
 FROM ${WBIA_PROVISION_IMAGE} AS org.wildme.wbia.latest
+
+# Trim unnecessary VCS metadata and caches before handing off to final stage to
+# keep multi-stage COPY operations within GitHub runner disk limits.
+RUN set -ex \
+ && find /wbia -mindepth 1 -maxdepth 4 -type d -name '.git' -prune -exec rm -rf {} + \
+ && find /wbia -type d -name '__pycache__' -prune -exec rm -rf {} + \
+ && rm -rf /wbia/wildbook-ia/.cache /wbia/wildbook-ia/.mypy_cache || true
 #  && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
 # && git reset --hard origin/main \
 # && git pull \
