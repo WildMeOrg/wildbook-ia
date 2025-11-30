@@ -48,6 +48,76 @@ The WBIA software is built and deployed as a Docker image `wildme/wbia`.  You ca
 
 This image is built using the multi-stage Dockerfiles in `devops/`. Once the container is up and running, go to `localhost:84` to see the WBIA landing page.
 
+Configuration
+~~~~~~~~~~~~~
+
+Environment Variables
+^^^^^^^^^^^^^^^^^^^^^
+
+The following environment variables can be configured in your Docker deployment:
+
+**Model Storage Configuration**
+
+* ``MODEL_DIR`` - Base directory for model storage (default: ``/models``). Supports local volumes or named volumes for persistent model caching.
+
+* ``MODEL_SAS_QUERY`` - Azure Blob Storage SAS token for downloading private models. Optional; only required if models are stored in private Azure blobs.
+
+* ``MODEL_VERIFY_CHECKSUM`` - Enable MD5 checksum verification for downloaded models (default: ``0``). Set to ``1`` to enable integrity checks.
+
+* ``WBIA_MODELS_DIR`` - Legacy alias for ``MODEL_DIR``. Use ``MODEL_DIR`` in new deployments.
+
+**Storage Options**
+
+*Option 1: Local/NAS Storage (Recommended for Production)*
+
+Mount a local or NAS folder to ``/models`` in your container. Models persist across restarts and eliminate Azure dependencies after initial download.
+
+.. code:: yaml
+
+    volumes:
+      - /nas/models:/models
+
+*Option 2: Azure Blob with Local Caching*
+
+Set ``MODEL_SAS_QUERY`` for private blob access. Models are downloaded on first run and cached in a named volume for subsequent restarts.
+
+.. code:: yaml
+
+    environment:
+      MODEL_SAS_QUERY: "?sp=r&st=2024-01-01T00:00:00Z&..."
+    volumes:
+      - model-cache:/models
+
+**Expected Directory Structure**
+
+.. code:: text
+
+    /models/
+    ├── detectmodels/
+    │   └── rf/              # Detection models
+    └── lightnet/            # Lightnet models (cached by utool)
+
+**Docker Compose Example**
+
+.. code:: yaml
+
+    version: "3"
+    services:
+      wbia:
+        image: wildme/wbia:nightly
+        environment:
+          MODEL_DIR: /models
+          MODEL_SAS_QUERY: ${MODEL_SAS_QUERY:-}
+          MODEL_VERIFY_CHECKSUM: 0
+          HOST_UID: "${HOST_UID}"
+          HOST_USER: "${HOST_USER}"
+        volumes:
+          - /nas/models:/models
+          - /data/db:/data/db
+        ports:
+          - "5000:5000"
+        restart: unless-stopped
+
 Dependencies
 ~~~~~~
 

@@ -83,6 +83,11 @@ MODEL_URLS = {
     DETECTOR_KEY_RF: 'https://wildbookiarepository.azureedge.net/models/rf.v3.zip',
 }
 
+# Optional: MD5 checksums for integrity verification (set MODEL_VERIFY_CHECKSUM=1 to enable)
+MODEL_CHECKSUMS = {
+    DETECTOR_KEY_RF: None,  # Add MD5 hash here if available
+}
+
 
 def _expand_modeldir(modeldir='default'):
     """returns default unless another path is specified"""
@@ -199,6 +204,10 @@ def _download_model(algo, algo_modeldir):
     logger.info('[grabmodels] Downloading model for %s from %s -> %s', algo, masked_url, dest_fpath)
     _stream_download(url_with_sas, dest_fpath)
 
+    # Optional integrity check
+    if os.getenv('MODEL_VERIFY_CHECKSUM') == '1' and MODEL_CHECKSUMS.get(algo):
+        _verify_checksum(dest_fpath, MODEL_CHECKSUMS[algo])
+
     # If it's a zip, unzip and remove the archive
     if dest_name.lower().endswith('.zip'):
         try:
@@ -283,3 +292,20 @@ def _mask_sas(url):
             return parsed._replace(query='').geturl()
         except Exception:
             return 'URL(redacted)'
+
+
+def _verify_checksum(filepath, expected_md5):
+    """Verify MD5 checksum of downloaded file."""
+    import hashlib
+    logger.info('[grabmodels] Verifying checksum for %s', filepath)
+    md5 = hashlib.md5()
+    with open(filepath, 'rb') as f:
+        for chunk in iter(lambda: f.read(1048576), b''):
+            md5.update(chunk)
+    actual = md5.hexdigest()
+    if actual != expected_md5:
+        raise ValueError(
+            f'Checksum mismatch for {filepath}: '
+            f'expected {expected_md5}, got {actual}'
+        )
+    logger.info('[grabmodels] Checksum verified: %s', expected_md5)
