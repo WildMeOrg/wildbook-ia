@@ -3,7 +3,7 @@ name: Build and upload Docker
 on:
   push:
      branches:
-      - build-fix-jul25
+      - main
      #tags:
      # - v*
   schedule:
