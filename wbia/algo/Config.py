@@ -245,7 +245,7 @@ class NNConfig(ConfigBase):
         # number of annots before a new multi-indexer is built
         # nn_cfg.max_subindexers = 2
         # nn_cfg.valid_index_methods = ['single', 'multi', 'name']
-        nn_cfg.valid_index_methods = ['single']
+        nn_cfg.valid_index_methods = ['single', 'faiss']
         nn_cfg.update(**kwargs)
 
     def make_feasible(nn_cfg):
@@ -435,6 +435,54 @@ class FlannConfig(ConfigBase):
 
 
 @six.add_metaclass(ConfigMetaclass)
+class FaissConfig(ConfigBase):
+    r"""
+    FAISS configuration for scalable nearest neighbor search.
+
+    FAISS IVF (Inverted File Index) provides significant speedups for large
+    databases by clustering the feature space and only searching relevant
+    clusters at query time.
+
+    References:
+        https://github.com/facebookresearch/faiss
+        https://faiss.ai/
+    """
+
+    def __init__(faiss_cfg, **kwargs):
+        super(FaissConfig, faiss_cfg).__init__(name='faiss_cfg')
+        # IVF clustering params
+        faiss_cfg.nlist = 100         # Number of IVF clusters (auto-tuned if 0)
+        faiss_cfg.nprobe = 10         # Number of clusters to search at query time
+        # GPU settings
+        faiss_cfg.use_gpu = True      # Use GPU acceleration if available
+        faiss_cfg.gpu_id = 0          # GPU device ID
+        # Training settings
+        faiss_cfg.train_ratio = 1.0   # Ratio of vectors to use for training
+        faiss_cfg.update(**kwargs)
+
+    def get_faiss_params(faiss_cfg):
+        faiss_params = dict(
+            nlist=faiss_cfg.nlist,
+            nprobe=faiss_cfg.nprobe,
+            use_gpu=faiss_cfg.use_gpu,
+            gpu_id=faiss_cfg.gpu_id,
+            train_ratio=faiss_cfg.train_ratio,
+        )
+        return faiss_params
+
+    def get_cfgstr_list(faiss_cfg, **kwargs):
+        faiss_cfgstrs = ['_FAISS(']
+        faiss_cfgstrs += [
+            'nlist=%d,' % faiss_cfg.nlist,
+            'nprobe=%d' % faiss_cfg.nprobe,
+        ]
+        if faiss_cfg.use_gpu:
+            faiss_cfgstrs += [',gpu=%d' % faiss_cfg.gpu_id]
+        faiss_cfgstrs += [')']
+        return faiss_cfgstrs
+
+
+@six.add_metaclass(ConfigMetaclass)
 class NNWeightConfig(ConfigBase):
     r"""
     CommandLine:
@@ -560,6 +608,7 @@ class QueryConfig(ConfigBase):
         NNWeightConfig,
         SpatialVerifyConfig,
         FlannConfig,
+        FaissConfig,
         FeatureWeightConfig,
     ]
 
@@ -571,6 +620,7 @@ class QueryConfig(ConfigBase):
         query_cfg.sv_cfg = SpatialVerifyConfig(**kwargs)
         query_cfg.agg_cfg = AggregateConfig(**kwargs)
         query_cfg.flann_cfg = FlannConfig(**kwargs)
+        query_cfg.faiss_cfg = FaissConfig(**kwargs)
         # causes some bug in Preference widget if these don't have underscore
         query_cfg._featweight_cfg = FeatureWeightConfig(**kwargs)
         query_cfg.use_cache = False

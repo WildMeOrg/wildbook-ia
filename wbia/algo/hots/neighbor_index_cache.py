@@ -10,6 +10,13 @@ import utool as ut
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from wbia.algo.hots.neighbor_index import NeighborIndex, get_support_data
 
+# Try to import FAISS indexer (optional dependency)
+try:
+    from wbia.algo.hots.neighbor_index_faiss import FaissNeighborIndex, FAISS_AVAILABLE
+except ImportError:
+    FaissNeighborIndex = None
+    FAISS_AVAILABLE = False
+
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 
@@ -898,3 +905,200 @@ def background_flann_func(
     if len(visual_uuid_list) > min_reindex_thresh:
         UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
     logger.info('[BG] Finished Background FLANN')
+
+
+# =============================================================================
+# FAISS Indexer Functions
+# =============================================================================
+
+# Separate LRU cache for FAISS indexers
+FAISS_NEIGHBOR_CACHE = ut.get_lru_cache(MAX_NEIGHBOR_CACHE_SIZE)
+
+
+def build_faiss_nnindex_cfgstr(qreq_, daid_list):
+    """
+    Builds a string that uniquely identifies a FAISS indexer built with
+    parameters from the input query request and indexing descriptors from
+    the input annotation ids.
+    """
+    faiss_cfgstr = qreq_.qparams.faiss_params
+    faiss_cfg_str = 'FAISS(nlist=%d,nprobe=%d)' % (
+        faiss_cfgstr.get('nlist', 100),
+        faiss_cfgstr.get('nprobe', 10),
+    )
+    featweight_cfgstr = qreq_.qparams.featweight_cfgstr
+    feat_cfgstr = qreq_.qparams.feat_cfgstr
+    chip_cfgstr = qreq_.qparams.chip_cfgstr
+    data_hashid = get_data_cfgstr(qreq_.ibs, daid_list)
+    nnindex_cfgstr = ''.join(
+        (data_hashid, faiss_cfg_str, featweight_cfgstr, feat_cfgstr, chip_cfgstr)
+    )
+    return nnindex_cfgstr
+
+
+def request_wbia_faiss_nnindexer(qreq_, verbose=True, **kwargs):
+    """
+    WBIA interface to request a FAISS-based neighbor indexer.
+
+    Args:
+        qreq_ (QueryRequest): query request object with hyper-parameters
+
+    Returns:
+        FaissNeighborIndex: nnindexer
+    """
+    if not FAISS_AVAILABLE:
+        raise ImportError(
+            'FAISS is not available. Install with: pip install faiss-gpu (or faiss-cpu). '
+            'Falling back to FLANN is not automatic - set index_method="single" to use FLANN.'
+        )
+
+    daid_list = qreq_.get_internal_daids()
+    nnindexer = request_memcached_wbia_faiss_nnindexer(qreq_, daid_list, **kwargs)
+    return nnindexer
+
+
+def request_memcached_wbia_faiss_nnindexer(
+    qreq_,
+    daid_list,
+    use_memcache=True,
+    verbose=ut.NOT_QUIET,
+    force_rebuild=False,
+    memtrack=None,
+    prog_hook=None,
+):
+    """
+    Request a FAISS indexer, using memory cache if available.
+    """
+    global FAISS_NEIGHBOR_CACHE
+
+    nnindex_cfgstr = build_faiss_nnindex_cfgstr(qreq_, daid_list)
+
+    # Check memory cache first
+    if (
+        not force_rebuild
+        and use_memcache
+        and FAISS_NEIGHBOR_CACHE.has_key(nnindex_cfgstr)  # NOQA (has_key is for lru cache)
+    ):
+        if verbose:
+            logger.info('[faiss] Memory cache hit: cfgstr=%s' % nnindex_cfgstr[:50])
+        nnindexer = FAISS_NEIGHBOR_CACHE[nnindex_cfgstr]
+    else:
+        if verbose:
+            logger.info('[faiss] Memory cache miss, loading/building index')
+        nnindexer = request_diskcached_wbia_faiss_nnindexer(
+            qreq_,
+            daid_list,
+            nnindex_cfgstr,
+            verbose=verbose,
+            force_rebuild=force_rebuild,
+            memtrack=memtrack,
+            prog_hook=prog_hook,
+        )
+        # Write to memory cache
+        if use_memcache:
+            FAISS_NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
+
+    return nnindexer
+
+
+def request_diskcached_wbia_faiss_nnindexer(
+    qreq_,
+    daid_list,
+    nnindex_cfgstr=None,
+    verbose=True,
+    force_rebuild=False,
+    memtrack=None,
+    prog_hook=None,
+):
+    """
+    Builds a new FAISS NeighborIndexer, using disk cache if available.
+    """
+    if nnindex_cfgstr is None:
+        nnindex_cfgstr = build_faiss_nnindex_cfgstr(qreq_, daid_list)
+
+    cfgstr = nnindex_cfgstr
+    cachedir = qreq_.ibs.get_flann_cachedir()  # Reuse flann cache dir for faiss
+    faiss_params = qreq_.qparams.faiss_params
+
+    # Get annotation descriptors to index
+    if prog_hook is not None:
+        prog_hook.set_progress(1, 3, 'Loading support data for FAISS indexer')
+    logger.info('[faiss] Loading support data for indexer')
+    vecs_list, fgws_list, fxs_list = get_support_data(qreq_, daid_list)
+
+    if memtrack is not None:
+        memtrack.report('[FAISS AFTER GET SUPPORT DATA]')
+
+    try:
+        nnindexer = new_faiss_neighbor_index(
+            daid_list,
+            vecs_list,
+            fgws_list,
+            fxs_list,
+            faiss_params,
+            cachedir,
+            cfgstr,
+            force_rebuild=force_rebuild,
+            verbose=verbose,
+            memtrack=memtrack,
+            prog_hook=prog_hook,
+        )
+    except Exception as ex:
+        ut.printex(
+            ex, 'Failed to build FAISS indexer',
+            keys=['daid_list', 'faiss_params', 'cfgstr'],
+        )
+        raise
+
+    return nnindexer
+
+
+def new_faiss_neighbor_index(
+    daid_list,
+    vecs_list,
+    fgws_list,
+    fxs_list,
+    faiss_params,
+    cachedir,
+    cfgstr,
+    force_rebuild=False,
+    verbose=True,
+    memtrack=None,
+    prog_hook=None,
+):
+    """
+    Constructs a FAISS neighbor index.
+
+    Args:
+        daid_list (list): annotation IDs
+        vecs_list (list): descriptor vectors per annotation
+        fgws_list (list): foreground weights (or None)
+        fxs_list (list): feature indices per annotation
+        faiss_params (dict): FAISS configuration parameters
+        cachedir (str): directory for caching
+        cfgstr (str): configuration string for cache identification
+
+    Returns:
+        FaissNeighborIndex: the constructed indexer
+    """
+    nnindexer = FaissNeighborIndex(faiss_params, cfgstr)
+
+    # Initialize with support data
+    nnindexer.init_support(daid_list, vecs_list, fgws_list, fxs_list, verbose=verbose)
+
+    if memtrack is not None:
+        memtrack.report('[FAISS AFTER INIT SUPPORT]')
+
+    # Load or build the index
+    nnindexer.ensure_indexer(
+        cachedir,
+        verbose=verbose,
+        force_rebuild=force_rebuild,
+        memtrack=memtrack,
+        prog_hook=prog_hook,
+    )
+
+    if memtrack is not None:
+        memtrack.report('[FAISS AFTER ENSURE INDEXER]')
+
+    return nnindexer
