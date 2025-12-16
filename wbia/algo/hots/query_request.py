@@ -1252,6 +1252,16 @@ class QueryRequest(ut.NiceRepr):
                     prog_hook=prog_hook,
                     **qreq_._indexer_request_params,
                 )
+            elif index_method == 'faiss':
+                # FAISS-based indexer for large-scale search
+                if ut.VERYVERBOSE or verbose:
+                    logger.info('[qreq] loading FAISS indexer')
+                indexer = neighbor_index_cache.request_wbia_faiss_nnindexer(
+                    qreq_,
+                    verbose=verbose,
+                    prog_hook=prog_hook,
+                    **qreq_._indexer_request_params,
+                )
             # elif index_method == 'multi':
             #    if ut.VERYVERBOSE or verbose:
             #        logger.info('[qreq] loading multi indexer normalizer')

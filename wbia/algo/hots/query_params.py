@@ -69,6 +69,7 @@ class QueryParams(Mapping):
         pipeline_root = query_cfg.pipeline_root
         qparams.chip_cfg_dict = query_cfg._featweight_cfg._feat_cfg._chip_cfg.to_dict()
         qparams.flann_params = query_cfg.flann_cfg.get_flann_params()
+        qparams.faiss_params = query_cfg.faiss_cfg.get_faiss_params()
         qparams.hesaff_params = query_cfg._featweight_cfg._feat_cfg.get_hesaff_params()
         qparams.pipeline_root = pipeline_root
         qparams.vsmany = pipeline_root == 'vsmany'
