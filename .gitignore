@@ -73,3 +73,4 @@ map.png
 ca_*/
 devops/migrate.sh
 .buildx.cache/
+.claude/settings.local.json

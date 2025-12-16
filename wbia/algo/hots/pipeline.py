@@ -75,6 +75,10 @@ USE_NN_MID_CACHE = (
 )
 USE_NN_MID_CACHE = False
 
+# Parallel spatial verification settings
+PARALLEL_SVER = not ut.get_argflag('--no-parallel-sver')
+SVER_PARALLEL_MIN_CANDIDATES = 4  # Only parallelize if >= this many candidates
+
 
 NN_LBL = 'Assign NN:       '
 FILT_LBL = 'Filter NN:       '
@@ -1347,6 +1351,44 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     return cm_list_SVER
 
 
+def _sver_single_candidate_worker(
+    kpts2, fm, dlen_sqrd2, match_weights,
+    kpts1, xy_thresh, scale_thresh, ori_thresh, min_nInliers,
+    full_homog_checks, refine_method
+):
+    """
+    Worker function for parallel spatial verification of a single candidate.
+
+    Returns the sv_tup result or None if verification fails/skipped.
+    """
+    if len(fm) == 0:
+        return None
+    try:
+        sv_tup = vt.spatially_verify_kpts(
+            kpts1,
+            kpts2,
+            fm,
+            xy_thresh,
+            scale_thresh,
+            ori_thresh,
+            dlen_sqrd2,
+            min_nInliers,
+            match_weights=match_weights,
+            full_homog_checks=full_homog_checks,
+            refine_method=refine_method,
+            returnAff=True,
+        )
+    except Exception as ex:
+        ut.printex(
+            ex,
+            'Unknown error in spatial verification (parallel worker).',
+            keys=['kpts1', 'kpts2', 'fm', 'xy_thresh', 'scale_thresh',
+                  'dlen_sqrd2', 'min_nInliers'],
+        )
+        sv_tup = None
+    return sv_tup
+
+
 # @profile
 def sver_single_chipmatch(qreq_, cm, verbose=False):
     r"""
@@ -1486,75 +1528,99 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         match_weight_list = [np.ones(len(fm), dtype=np.float64) for fm in cm.fm_list]
 
     # Make an svtup for every daid in the shortlist
-    _iter1 = zip(
-        cm.daid_list,
-        cm.fm_list,
-        cm.fsv_list,
-        kpts2_list,
-        top_dlen_sqrd_list,
-        match_weight_list,
+    num_candidates = len(cm.daid_list)
+    use_parallel = (
+        PARALLEL_SVER
+        and num_candidates >= SVER_PARALLEL_MIN_CANDIDATES
+        and ut.num_cpus() > 1
     )
-    if verbose:
-        _iter1 = ut.ProgIter(
-            _iter1, length=len(cm.daid_list), lbl='sver shortlist', freq=1
+
+    if use_parallel:
+        # Parallel spatial verification using ut.generate2
+        # Build args iterator: per-candidate varying args
+        args_iter = zip(
+            kpts2_list,
+            cm.fm_list,
+            top_dlen_sqrd_list,
+            match_weight_list,
         )
-    svtup_list = []
-    for daid, fm, fsv, kpts2, dlen_sqrd2, match_weights in _iter1:
-        if len(fm) == 0:
-            # skip results without any matches
-            sv_tup = None
-        else:
-
-            # sver_testdata = dict(
-            #     kpts1=kpts1,
-            #     kpts2=kpts2,
-            #     fm=fm,
-            #     xy_thresh=xy_thresh,
-            #     scale_thresh=scale_thresh,
-            #     ori_thresh=ori_thresh,
-            #     dlen_sqrd2=dlen_sqrd2,
-            #     min_nInliers=min_nInliers,
-            #     match_weights=match_weights,
-            #     full_homog_checks=full_homog_checks,
-            #     refine_method=refine_method
-            # )
-
-            # locals().update(ut.load_data('sver_testdata.pkl'))
-
-            try:
-                # Compute homography from chip2 to chip1 returned homography
-                # maps image1 space into image2 space image1 is a query chip
-                # and image2 is a database chip
-                sv_tup = vt.spatially_verify_kpts(
-                    kpts1,
-                    kpts2,
-                    fm,
-                    xy_thresh,
-                    scale_thresh,
-                    ori_thresh,
-                    dlen_sqrd2,
-                    min_nInliers,
-                    match_weights=match_weights,
-                    full_homog_checks=full_homog_checks,
-                    refine_method=refine_method,
-                    returnAff=True,
-                )
-            except Exception as ex:
-                ut.printex(
-                    ex,
-                    'Unknown error in spatial verification.',
-                    keys=[
-                        'kpts1',
-                        'kpts2',
-                        'fm',
-                        'xy_thresh',
-                        'scale_thresh',
-                        'dlen_sqrd2',
-                        'min_nInliers',
-                    ],
-                )
+        # Shared kwargs for all candidates
+        sver_kwargs = {
+            'kpts1': kpts1,
+            'xy_thresh': xy_thresh,
+            'scale_thresh': scale_thresh,
+            'ori_thresh': ori_thresh,
+            'min_nInliers': min_nInliers,
+            'full_homog_checks': full_homog_checks,
+            'refine_method': refine_method,
+        }
+        if verbose:
+            logger.info(
+                '[hs] Running parallel SVER on %d candidates with %d CPUs'
+                % (num_candidates, ut.num_cpus())
+            )
+        svtup_list = list(ut.generate2(
+            _sver_single_candidate_worker,
+            args_iter,
+            sver_kwargs,
+            nTasks=num_candidates,
+            ordered=True,
+            verbose=False,
+        ))
+    else:
+        # Sequential spatial verification (original behavior)
+        _iter1 = zip(
+            cm.daid_list,
+            cm.fm_list,
+            cm.fsv_list,
+            kpts2_list,
+            top_dlen_sqrd_list,
+            match_weight_list,
+        )
+        if verbose:
+            _iter1 = ut.ProgIter(
+                _iter1, length=num_candidates, lbl='sver shortlist', freq=1
+            )
+        svtup_list = []
+        for daid, fm, fsv, kpts2, dlen_sqrd2, match_weights in _iter1:
+            if len(fm) == 0:
+                # skip results without any matches
                 sv_tup = None
-        svtup_list.append(sv_tup)
+            else:
+                try:
+                    # Compute homography from chip2 to chip1 returned homography
+                    # maps image1 space into image2 space image1 is a query chip
+                    # and image2 is a database chip
+                    sv_tup = vt.spatially_verify_kpts(
+                        kpts1,
+                        kpts2,
+                        fm,
+                        xy_thresh,
+                        scale_thresh,
+                        ori_thresh,
+                        dlen_sqrd2,
+                        min_nInliers,
+                        match_weights=match_weights,
+                        full_homog_checks=full_homog_checks,
+                        refine_method=refine_method,
+                        returnAff=True,
+                    )
+                except Exception as ex:
+                    ut.printex(
+                        ex,
+                        'Unknown error in spatial verification.',
+                        keys=[
+                            'kpts1',
+                            'kpts2',
+                            'fm',
+                            'xy_thresh',
+                            'scale_thresh',
+                            'dlen_sqrd2',
+                            'min_nInliers',
+                        ],
+                    )
+                    sv_tup = None
+            svtup_list.append(sv_tup)
 
     # <SENTINAL>
 
