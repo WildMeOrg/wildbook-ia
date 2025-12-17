@@ -10,12 +10,32 @@ import utool as ut
 from wbia.algo.hots import _pipeline_helpers as plh  # NOQA
 from wbia.algo.hots.neighbor_index import NeighborIndex, get_support_data
 
-# Try to import FAISS indexer (optional dependency)
-try:
-    from wbia.algo.hots.neighbor_index_faiss import FaissNeighborIndex, FAISS_AVAILABLE
-except ImportError:
-    FaissNeighborIndex = None
-    FAISS_AVAILABLE = False
+# FAISS imports are deferred until actually needed to avoid startup issues
+# when FAISS/CUDA libraries are not properly configured
+FAISS_AVAILABLE = None  # Lazy-loaded
+FaissNeighborIndex = None  # Lazy-loaded
+
+
+def _lazy_import_faiss():
+    """Lazily import FAISS module only when needed."""
+    global FAISS_AVAILABLE, FaissNeighborIndex
+    if FAISS_AVAILABLE is None:
+        try:
+            from wbia.algo.hots.neighbor_index_faiss import (
+                FaissNeighborIndex as _FaissNeighborIndex,
+                FAISS_AVAILABLE as _FAISS_AVAILABLE,
+            )
+            FAISS_AVAILABLE = _FAISS_AVAILABLE
+            FaissNeighborIndex = _FaissNeighborIndex
+        except ImportError as ex:
+            logger.warning('[faiss] Failed to import FAISS module: %s' % ex)
+            FAISS_AVAILABLE = False
+            FaissNeighborIndex = None
+        except Exception as ex:
+            logger.warning('[faiss] Unexpected error importing FAISS: %s' % ex)
+            FAISS_AVAILABLE = False
+            FaissNeighborIndex = None
+    return FAISS_AVAILABLE
 
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
@@ -946,6 +966,9 @@ def request_wbia_faiss_nnindexer(qreq_, verbose=True, **kwargs):
     Returns:
         FaissNeighborIndex: nnindexer
     """
+    # Lazy import FAISS to avoid startup issues
+    _lazy_import_faiss()
+
     if not FAISS_AVAILABLE:
         raise ImportError(
             'FAISS is not available. Install with: pip install faiss-gpu (or faiss-cpu). '
@@ -1081,6 +1104,11 @@ def new_faiss_neighbor_index(
     Returns:
         FaissNeighborIndex: the constructed indexer
     """
+    # Ensure FAISS is loaded
+    _lazy_import_faiss()
+    if FaissNeighborIndex is None:
+        raise ImportError('FAISS is not available')
+
     nnindexer = FaissNeighborIndex(faiss_params, cfgstr)
 
     # Initialize with support data
