@@ -23,7 +23,12 @@ DOCKER_SOCKET=/var/run/docker.sock
 if [ -S ${DOCKER_SOCKET} ]; then
     DOCKER_GID=$(stat -c '%g' ${DOCKER_SOCKET})
     DOCKER_GROUP=docker
-    groupmod -g ${DOCKER_GID} ${DOCKER_GROUP}
+    
+    if getent group ${DOCKER_GROUP} >/dev/null; then
+        groupmod -g ${DOCKER_GID} ${DOCKER_GROUP}
+    else
+        groupadd -g ${DOCKER_GID} ${DOCKER_GROUP}
+    fi
 
     # addgroup -q --system --gid ${DOCKER_GID} ${DOCKER_GROUP}
     # usermod -aG ${DOCKER_GROUP} ${HOST_USER}
