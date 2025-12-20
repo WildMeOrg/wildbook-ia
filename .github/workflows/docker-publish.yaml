@@ -3,7 +3,7 @@ name: Build and upload Docker
 on:
   push:
      branches:
-      - fix/docker
+      - FAISS_IVF
      #tags:
      # - v*
   schedule:
@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v2
         if: github.event_name == 'schedule'
         with:
-          ref: fix/docker
+          ref: FAISS_IVF
 
       - uses: actions/checkout@v2
         if: github.event_name != 'schedule'
