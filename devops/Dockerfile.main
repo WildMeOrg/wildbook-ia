@@ -41,13 +41,13 @@ COPY devops/_config/healthcheck.py /bin/healthcheck.py
 COPY devops/lightmode_prune_torch.py /tmp/lightmode_prune_torch.py
 
 # PyQt / OpenCV headers for pyhesaff runtime compatibility
+# NOTE: DO NOT pip install/uninstall pyqt5 or opencv - they are already correctly installed
+# from provision stage. Reinstalling causes transitive dependency resolution that breaks numpy.
 RUN set -ex \
  && apt-get update \
  && apt-get remove -y python3-pyqt5* \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
      qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libopencv-dev \
- && /virtualenv/env3/bin/pip uninstall -y pyqt5 \
- && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade pyqt5 \
  && apt-get clean && apt-get autoclean && apt-get autoremove -y \
  && rm -rf /var/cache/apt /var/lib/apt/lists/*
 
@@ -61,10 +61,11 @@ RUN set -ex; \
      echo "[skip] wbia-plugin-cnn not present"; \
  fi
 
-# Normalize OpenCV selection
+# Ensure correct OpenCV version from provision stage
+# NOTE: Do NOT reinstall opencv - it causes transitive numpy dependency resolution
+# to upgrade to incompatible 4.12+ versions (requires numpy>=2, breaks pandas ABI).
+# opencv-contrib-python-headless==4.7.0.72 is already correctly installed from provision.
 RUN set -ex \
- && /virtualenv/env3/bin/pip uninstall -y opencv-python opencv-contrib-python opencv-python-headless opencv-contrib-python-headless || true \
- && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip uninstall -y nvidia_cublas_cu11 || true
 
 # External smoke script (no heredoc)
@@ -90,6 +91,9 @@ RUN set -ex \
         fi
 
 ENV LD_PRELOAD=""
+
+# Final sanity check: ensure numpy/pandas/scipy versions are correct
+RUN /virtualenv/env3/bin/python -c "import numpy, pandas, scipy; assert numpy.__version__ == '1.23.5', f'numpy {numpy.__version__} != 1.23.5'; assert pandas.__version__ == '1.5.3', f'pandas {pandas.__version__} != 1.5.3'; assert scipy.__version__ == '1.9.3', f'scipy {scipy.__version__} != 1.9.3'; print('[final-sanity] numpy/pandas/scipy versions correct')"
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=60 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
