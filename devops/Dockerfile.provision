@@ -38,20 +38,10 @@ WORKDIR /wbia/wildbook-ia
 COPY requirements/ requirements/
 COPY requirements.txt ./
 
-# Ensure constraints file (project may not ship it yet)
+# Ensure constraints file with correct numpy/pandas/scipy pins (overwrite any existing old pins)
 RUN set -ex \
  && mkdir -p requirements \
- && NUMPY_CONSTRAINT="numpy==1.23.5" \
- && PANDAS_CONSTRAINT="pandas==1.5.3" \
- && SCIPY_CONSTRAINT="scipy==1.9.3" \
- && if [ ! -f requirements/constraints.txt ]; then \
-	  printf "PyYAML>=6.0,<7\nyorm<0\n${NUMPY_CONSTRAINT}\n${PANDAS_CONSTRAINT}\n${SCIPY_CONSTRAINT}\n" > requirements/constraints.txt; \
-	else \
-	  TMPFILE=$(mktemp) \
-	  && grep -vE '^(numpy|pandas|scipy)==' requirements/constraints.txt > "${TMPFILE}" || true \
-	  && printf "${NUMPY_CONSTRAINT}\n${PANDAS_CONSTRAINT}\n${SCIPY_CONSTRAINT}\n" >> "${TMPFILE}" \
-	  && mv "${TMPFILE}" requirements/constraints.txt; \
-	fi
+ && printf "PyYAML>=6.0,<7\nyorm<0\nnumpy==1.23.5\npandas==1.5.3\nscipy==1.9.3\n" > requirements/constraints.txt
 
 ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt \
 	PIP_ONLY_BINARY=PyYAML,numpy,pandas,scipy
