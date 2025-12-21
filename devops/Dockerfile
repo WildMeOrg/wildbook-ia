@@ -112,7 +112,7 @@ RUN set -ex; \
 
 # Ensure packages from provision stage are not touched in final stage
 # This prevents transitive dependency resolution that would upgrade incompatible versions
-# Final stage: 2025-12-21 23:55 UTC
+# Force fresh build: 2025-12-21 23:56 UTC - removed all pip install/uninstall for PyQt5/OpenCV
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11 \
