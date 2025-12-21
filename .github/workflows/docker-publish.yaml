@@ -19,10 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    strategy:
-      matrix:
-        images:
-          - wbia-base wbia-provision wbia
+    env:
+      PUBLISH_IMAGES: wbia-base wbia-provision wbia wildbook-ia
 
     steps:
       - uses: actions/checkout@v2
@@ -54,11 +52,7 @@ jobs:
       - name: Build images
         run: |
           # Build Image
-          cd ./devops/
-          bash build.sh ${{ matrix.images }}
-        env:
-          # The wildbook-ia image is built at the same time as wbia, it is an alias
-          BUILD_IMAGES: ${{ matrix.images }}
+          bash ./devops/build.sh --skip-clone
 
       # - name: Docker system prune (post-build)
       #   if: always()
@@ -81,14 +75,16 @@ jobs:
       - name: Push to Docker Hub (Nightly)
         if: github.event_name == 'push'
         run: bash ./devops/publish.sh -t nightly ${PUBLISH_IMAGES}
-        env:
-          PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
 
       - name: Push to GitHub Packages (Nightly)
         if: github.event_name == 'push'
         run: bash ./devops/publish.sh -t nightly -r ghcr.io/wildmeorg/wildbook-ia ${PUBLISH_IMAGES}
-        env:
-          PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
+
+      - name: Push to GitHub Packages (SHA)
+        if: github.event_name == 'push'
+        run: |
+          SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)
+          bash ./devops/publish.sh -t faiss_ivf-${SHORT_SHA} -r ghcr.io/wildmeorg/wildbook-ia ${PUBLISH_IMAGES}
 
       - name: Push to Docker Hub (Latest)
         if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
@@ -96,8 +92,6 @@ jobs:
           VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
           bash ./devops/publish.sh -t ${VERSION} ${PUBLISH_IMAGES}
           bash ./devops/publish.sh -t latest ${PUBLISH_IMAGES}
-        env:
-          PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
 
       # Push containers out to container registries
       - name: Push to GitHub Packages (Latest)
@@ -106,8 +100,6 @@ jobs:
           VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
           bash ./devops/publish.sh -t ${VERSION} -r ghcr.io/wildmeorg/wildbook-ia ${PUBLISH_IMAGES}
           bash ./devops/publish.sh -t latest -r ghcr.io/wildmeorg/wildbook-ia ${PUBLISH_IMAGES}
-        env:
-          PUBLISH_IMAGES: ${{ matrix.images }} wildbook-ia
 
       # Notify status in Slack
       - name: Slack Notification

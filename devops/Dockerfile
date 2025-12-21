@@ -51,6 +51,9 @@ COPY --from=org.wildme.wbia.latest /virtualenv /virtualenv
 
 COPY --from=org.wildme.wbia.latest /wbia /wbia
 
+# Ensure any pip operations in the final stage cannot upgrade core ABI deps
+ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt
+
 # theano configuration file
 COPY devops/_config/theanorc /root/.theanorc
 
@@ -118,7 +121,7 @@ RUN set -ex \
      opencv-python-headless \
      opencv-contrib-python-headless \
  && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
-     opencv-contrib-python-headless \
+     opencv-contrib-python-headless==4.7.0.72 \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11
 
