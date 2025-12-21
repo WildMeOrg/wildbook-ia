@@ -46,7 +46,7 @@ networkx==2.6.3
 numpy==1.23.5
 opencv-contrib-python-headless==4.7.0.72
 PyYAML>=6.0,<7
-pandas==1.4.4
+pandas==1.5.3
 parse==1.8.4
 passlib==1.7.4
 permission==0.4.1
