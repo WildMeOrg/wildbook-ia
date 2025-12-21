@@ -83,6 +83,7 @@ COPY devops/_config/healthcheck.py /bin/healthcheck.py
 #ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0"
 
 # Fix PyQt5 and install OpenCV development headers for pyhesaff build
+# Build timestamp: 2025-12-21T23:50:00Z - Force cache invalidation
 RUN set -ex \
  && apt-get update \
  && apt-get remove -y \
