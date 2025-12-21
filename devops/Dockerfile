@@ -110,9 +110,9 @@ RUN set -ex; \
  fi \
  && /virtualenv/env3/bin/python -c "import numpy, pandas, scipy; print('[sanity-final-1] numpy', numpy.__version__, 'pandas', pandas.__version__, 'scipy', scipy.__version__)"
 
-# Fix OpenCV
-# NOTE: OpenCV is already correctly installed from provision stage with==4.7.0.72
-# Do NOT reinstall as it causes transitive numpy dependency resolution to incompatible 4.12+ versions
+# Ensure packages from provision stage are not touched in final stage
+# This prevents transitive dependency resolution that would upgrade incompatible versions
+# Final stage: 2025-12-21 23:55 UTC
 RUN set -ex \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11 \
