@@ -111,7 +111,8 @@ RUN set -ex; \
      /bin/bash run_developer_setup.sh || echo "[warn] wbia-plugin-cnn setup script failed"; \
  else \
      echo "[skip] wbia-plugin-cnn not present"; \
- fi
+ fi \
+ && /virtualenv/env3/bin/python -c "import numpy, pandas, scipy; print('[sanity-final-1] numpy', numpy.__version__, 'pandas', pandas.__version__, 'scipy', scipy.__version__)"
 
 # Fix OpenCV
 RUN set -ex \
@@ -123,7 +124,8 @@ RUN set -ex \
  && /virtualenv/env3/bin/pip install --no-cache-dir --upgrade \
      opencv-contrib-python-headless==4.7.0.72 \
  && /virtualenv/env3/bin/pip uninstall -y \
-     nvidia_cublas_cu11
+     nvidia_cublas_cu11 \
+ && /virtualenv/env3/bin/python -c "import numpy, pandas, scipy; print('[sanity-final-2] numpy', numpy.__version__, 'pandas', pandas.__version__, 'scipy', scipy.__version__)"
 
 # Run smoke tests
 # && /virtualenv/env3/bin/python -c "import wbia;             from wbia.__main__ import smoke_test; smoke_test()" \
@@ -167,6 +169,9 @@ PY \
     ; fi
 
 ENV LD_PRELOAD=""
+
+# Final sanity check: ensure numpy/pandas/scipy are correct versions before entrypoint
+RUN /virtualenv/env3/bin/python -c "import numpy, pandas, scipy; assert numpy.__version__ == '1.23.5', f'numpy version mismatch: {numpy.__version__}'; assert pandas.__version__ == '1.5.3', f'pandas version mismatch: {pandas.__version__}'; assert scipy.__version__ == '1.9.3', f'scipy version mismatch: {scipy.__version__}'; print('[sanity-final-ok] All versions correct')"
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=60 --start-period=1h \
   CMD /virtualenv/env3/bin/python /bin/healthcheck.py
