@@ -22,7 +22,7 @@ ARG LIGHT_MODE=0
 # NOTE: Use numpy 1.23.5 to align with pandas/scipy wheels on Python 3.10+
 RUN set -ex \
  && PYVER=$(/virtualenv/env3/bin/python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")') \
- && NUMPY_PIN="numpy==1.21.6" \
+ && NUMPY_PIN="numpy==1.23.5" \
  && echo "[toolchain] Detected Python ${PYVER}; using ${NUMPY_PIN}" \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
 	scikit-build cmake ninja packaging "Cython>=0.29.36" ${NUMPY_PIN} \
@@ -41,15 +41,20 @@ COPY requirements.txt ./
 # Ensure constraints file (project may not ship it yet)
 RUN set -ex \
  && mkdir -p requirements \
- && NUMPY_CONSTRAINT="numpy==1.21.6" \
+ && NUMPY_CONSTRAINT="numpy==1.23.5" \
+ && PANDAS_CONSTRAINT="pandas==1.5.3" \
+ && SCIPY_CONSTRAINT="scipy==1.9.3" \
  && if [ ! -f requirements/constraints.txt ]; then \
-	  printf "PyYAML>=6.0,<7\nyorm<0\n${NUMPY_CONSTRAINT}\n" > requirements/constraints.txt; \
+	  printf "PyYAML>=6.0,<7\nyorm<0\n${NUMPY_CONSTRAINT}\n${PANDAS_CONSTRAINT}\n${SCIPY_CONSTRAINT}\n" > requirements/constraints.txt; \
 	else \
-	  grep -qxF "${NUMPY_CONSTRAINT}" requirements/constraints.txt || echo "${NUMPY_CONSTRAINT}" >> requirements/constraints.txt; \
+	  TMPFILE=$(mktemp) \
+	  && grep -vE '^(numpy|pandas|scipy)==' requirements/constraints.txt > "${TMPFILE}" || true \
+	  && printf "${NUMPY_CONSTRAINT}\n${PANDAS_CONSTRAINT}\n${SCIPY_CONSTRAINT}\n" >> "${TMPFILE}" \
+	  && mv "${TMPFILE}" requirements/constraints.txt; \
 	fi
 
 ENV PIP_CONSTRAINT=/wbia/wildbook-ia/requirements/constraints.txt \
-	PIP_ONLY_BINARY=PyYAML
+	PIP_ONLY_BINARY=PyYAML,numpy,pandas,scipy
 
 # Install base requirements (no editable source yet). Re-assert pip pin defensively (no-op if already 23.3.2)
 RUN set -ex \
@@ -62,7 +67,8 @@ RUN set -ex \
 			/virtualenv/env3/bin/python -m pip install --no-cache-dir -r /tmp/requirements.pruned; \
 		else \
 			/virtualenv/env3/bin/python -m pip install --no-cache-dir -r requirements.txt; \
-		fi
+		fi \
+ && /virtualenv/env3/bin/python -c "import numpy, pandas, scipy; print('[sanity] numpy', numpy.__version__); print('[sanity] pandas', pandas.__version__); print('[sanity] scipy', scipy.__version__)"
 
 # Copy full source after deps to leverage docker layer cache
 COPY . .
