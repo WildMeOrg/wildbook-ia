@@ -51,8 +51,8 @@ jobs:
       # Build images
       - name: Build images
         run: |
-          # Build Image
-          bash ./devops/build.sh --skip-clone
+          # Build Image (--no-cache ensures old wheels/layers never reused when pins change)
+          bash ./devops/build.sh --skip-clone --no-cache
 
       # - name: Docker system prune (post-build)
       #   if: always()
