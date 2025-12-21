@@ -29,10 +29,11 @@ if [ -S ${DOCKER_SOCKET} ]; then
     else
         groupadd -g ${DOCKER_GID} ${DOCKER_GROUP}
     fi
-
-    # addgroup -q --system --gid ${DOCKER_GID} ${DOCKER_GROUP}
-    # usermod -aG ${DOCKER_GROUP} ${HOST_USER}
-    # sg ${DOCKER_GROUP} -c "/bin/bash"
+    
+    # Add HOST_USER to docker group if not root
+    if [ "${HOST_USER}" != "root" ]; then
+        usermod -aG ${DOCKER_GROUP} ${HOST_USER}
+    fi
 fi
 
 if [ ! -d "/data/db" ]; then
