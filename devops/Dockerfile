@@ -83,7 +83,6 @@ COPY devops/_config/healthcheck.py /bin/healthcheck.py
 #ENV LD_PRELOAD "${LD_PRELOAD}:/virtualenv/env3/lib/python3.7/site-packages/scikit_image.libs/libgomp-d22c30c5.so.1.0.0"
 
 # Fix PyQt5 and install OpenCV development headers for pyhesaff build
-# Build timestamp: 2025-12-21T23:50:00Z - Force cache invalidation
 RUN set -ex \
  && apt-get update \
  && apt-get remove -y \
@@ -94,8 +93,6 @@ RUN set -ex \
      qt5-qmake \
      qtbase5-dev-tools \
      libopencv-dev \
- && /virtualenv/env3/bin/pip install --no-cache-dir --force-reinstall --no-deps \
-     pyqt5==5.15.9 \
  && apt-get clean \
  && apt-get autoclean \
  && apt-get autoremove -y \
@@ -114,9 +111,9 @@ RUN set -ex; \
  && /virtualenv/env3/bin/python -c "import numpy, pandas, scipy; print('[sanity-final-1] numpy', numpy.__version__, 'pandas', pandas.__version__, 'scipy', scipy.__version__)"
 
 # Fix OpenCV
+# NOTE: OpenCV is already correctly installed from provision stage with==4.7.0.72
+# Do NOT reinstall as it causes transitive numpy dependency resolution to incompatible 4.12+ versions
 RUN set -ex \
- && /virtualenv/env3/bin/pip install --no-cache-dir --force-reinstall --no-deps \
-     opencv-contrib-python-headless==4.7.0.72 \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11 \
  && /virtualenv/env3/bin/python -c "import numpy, pandas, scipy; print('[sanity-final-2] numpy', numpy.__version__, 'pandas', pandas.__version__, 'scipy', scipy.__version__)"
