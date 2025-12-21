@@ -93,9 +93,7 @@ RUN set -ex \
      qt5-qmake \
      qtbase5-dev-tools \
      libopencv-dev \
- && /virtualenv/env3/bin/pip uninstall -y \
-     pyqt5 \
- && /virtualenv/env3/bin/pip install --no-cache-dir --no-deps \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --force-reinstall --no-deps \
      pyqt5==5.15.9 \
  && apt-get clean \
  && apt-get autoclean \
@@ -116,12 +114,7 @@ RUN set -ex; \
 
 # Fix OpenCV
 RUN set -ex \
- && /virtualenv/env3/bin/pip uninstall -y \
-     opencv-python \
-     opencv-contrib-python \
-     opencv-python-headless \
-     opencv-contrib-python-headless \
- && /virtualenv/env3/bin/pip install --no-cache-dir --no-deps \
+ && /virtualenv/env3/bin/pip install --no-cache-dir --force-reinstall --no-deps \
      opencv-contrib-python-headless==4.7.0.72 \
  && /virtualenv/env3/bin/pip uninstall -y \
      nvidia_cublas_cu11 \
