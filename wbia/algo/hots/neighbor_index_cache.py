@@ -37,6 +37,7 @@ def _lazy_import_faiss():
             FaissNeighborIndex = None
     return FAISS_AVAILABLE
 
+
 (print, rrr, profile) = ut.inject2(__name__)
 logger = logging.getLogger('wbia')
 

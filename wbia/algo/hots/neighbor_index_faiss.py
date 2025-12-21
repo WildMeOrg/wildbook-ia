@@ -19,7 +19,7 @@ References:
     https://faiss.ai/
 """
 import logging
-from os.path import basename, join
+from os.path import basename
 
 import numpy as np
 import utool as ut
@@ -44,7 +44,7 @@ DEFAULT_FAISS_PARAMS = {
     'nprobe': 10,       # Number of clusters to search (accuracy/speed trade-off)
     'use_gpu': True,    # Use GPU acceleration if available
     'gpu_id': 0,        # GPU device ID
-    'train_ratio': 1.0, # Ratio of vectors to use for training (1.0 = all)
+    'train_ratio': 1.0,  # Ratio of vectors to use for training (1.0 = all)
 }
 
 # Scaling recommendations for nlist based on database size
@@ -211,12 +211,12 @@ class FaissNeighborIndex(object):
         effective_nlist = min(indexer.nlist, num_vecs)
         if effective_nlist < indexer.nlist:
             logger.info('[faiss] Reducing nlist from %d to %d (num_vecs=%d)'
-                       % (indexer.nlist, effective_nlist, num_vecs))
+                        % (indexer.nlist, effective_nlist, num_vecs))
             indexer.nlist = effective_nlist
 
         if verbose:
             logger.info('[faiss] Building IVF index: %d vectors, dim=%d, nlist=%d'
-                       % (num_vecs, dim, indexer.nlist))
+                        % (num_vecs, dim, indexer.nlist))
 
         # Convert uint8 SIFT descriptors to float32 for FAISS
         vecs_float = indexer.idx2_vec.astype(np.float32)
@@ -239,7 +239,7 @@ class FaissNeighborIndex(object):
             train_indices = np.random.choice(num_vecs, n_train, replace=False)
             train_vecs = vecs_float[train_indices]
             logger.info('[faiss] Training on %d/%d vectors (%.1f%%)'
-                       % (n_train, num_vecs, train_ratio * 100))
+                        % (n_train, num_vecs, train_ratio * 100))
         else:
             train_vecs = vecs_float
 
@@ -269,7 +269,7 @@ class FaissNeighborIndex(object):
 
         if verbose:
             logger.info('[faiss] Index ready. nprobe=%d (searching %.1f%% of clusters)'
-                       % (indexer.nprobe, 100.0 * indexer.nprobe / indexer.nlist))
+                        % (indexer.nprobe, 100.0 * indexer.nprobe / indexer.nlist))
 
     def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False,
                        memtrack=None, prog_hook=None):
@@ -290,7 +290,7 @@ class FaissNeighborIndex(object):
         if load_success:
             if not ut.QUIET:
                 logger.info('[faiss] Cache hit: %d vectors, %d annots'
-                           % (nnindexer.num_indexed_vecs(), nnindexer.num_indexed_annots()))
+                            % (nnindexer.num_indexed_vecs(), nnindexer.num_indexed_annots()))
         else:
             if not ut.QUIET:
                 logger.info('[faiss] Cache miss: building new index')
