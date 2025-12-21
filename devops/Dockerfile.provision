@@ -22,7 +22,7 @@ ARG LIGHT_MODE=0
 # NOTE: Use numpy 1.23.5 to align with pandas/scipy wheels on Python 3.10+
 RUN set -ex \
  && PYVER=$(/virtualenv/env3/bin/python -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")') \
- && NUMPY_PIN="numpy==1.23.5" \
+ && NUMPY_PIN="numpy==1.21.6" \
  && echo "[toolchain] Detected Python ${PYVER}; using ${NUMPY_PIN}" \
  && /virtualenv/env3/bin/python -m pip install --no-cache-dir --upgrade \
 	scikit-build cmake ninja packaging "Cython>=0.29.36" ${NUMPY_PIN} \
@@ -41,7 +41,7 @@ COPY requirements.txt ./
 # Ensure constraints file (project may not ship it yet)
 RUN set -ex \
  && mkdir -p requirements \
- && NUMPY_CONSTRAINT="numpy==1.23.5" \
+ && NUMPY_CONSTRAINT="numpy==1.21.6" \
  && if [ ! -f requirements/constraints.txt ]; then \
 	  printf "PyYAML>=6.0,<7\nyorm<0\n${NUMPY_CONSTRAINT}\n" > requirements/constraints.txt; \
 	else \
