@@ -96,4 +96,4 @@ wbia-pyhesaff
 # webargs==5.5.3
 # werkzeug==0.15.6
 zennit==0.5.1
-faiss-gpu==1.7.2
+faiss-cpu==1.8.0
