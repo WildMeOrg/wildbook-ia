@@ -9,6 +9,10 @@ export DOCKER_BUILDKIT=1
 
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
+# Get current git branch for building from the right source
+export VCS_REF="${VCS_REF:-$(git -C ${ROOT_LOC}/.. rev-parse --abbrev-ref HEAD)}"
+echo "Building from branch: ${VCS_REF}"
+
 # Change to the script's root directory location
 cd ${ROOT_LOC}
 
@@ -21,7 +25,9 @@ while [ $# -ge 1 ]; do
             base
     elif [ "$1" == "wbia-provision" ]; then
         docker build \
+            --progress=plain \
             --compress \
+            --build-arg VCS_REF=${VCS_REF} \
             -t wildme/wbia-provision:latest \
             provision
     elif [ "$1" == "wbia" ] || [ "$1" == "wildbook-ia" ]; then
