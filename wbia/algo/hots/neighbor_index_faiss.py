@@ -252,7 +252,13 @@ class FaissNeighborIndex(object):
         index_cpu.add(vecs_float)
 
         # Move to GPU if requested and available
-        if indexer.use_gpu and faiss.get_num_gpus() > 0:
+        try:
+            num_gpus = faiss.get_num_gpus() if indexer.use_gpu else 0
+        except Exception as ex:
+            logger.warning('[faiss] GPU detection failed: %s. Using CPU.' % ex)
+            num_gpus = 0
+
+        if indexer.use_gpu and num_gpus > 0:
             if verbose:
                 logger.info('[faiss] Moving index to GPU %d' % indexer.gpu_id)
             indexer.gpu_resources = faiss.StandardGpuResources()
@@ -260,7 +266,7 @@ class FaissNeighborIndex(object):
                 indexer.gpu_resources, indexer.gpu_id, index_cpu
             )
         else:
-            if indexer.use_gpu and faiss.get_num_gpus() == 0:
+            if indexer.use_gpu and num_gpus == 0:
                 logger.warning('[faiss] GPU requested but no GPU available, using CPU')
             indexer.index = index_cpu
 
@@ -356,7 +362,13 @@ class FaissNeighborIndex(object):
             index_cpu = faiss.read_index(faiss_fpath)
 
             # Move to GPU if requested
-            if nnindexer.use_gpu and faiss.get_num_gpus() > 0:
+            try:
+                num_gpus = faiss.get_num_gpus() if nnindexer.use_gpu else 0
+            except Exception as ex:
+                logger.warning('[faiss] GPU detection failed: %s. Using CPU.' % ex)
+                num_gpus = 0
+
+            if nnindexer.use_gpu and num_gpus > 0:
                 if verbose:
                     logger.info('[faiss] Moving loaded index to GPU %d' % nnindexer.gpu_id)
                 nnindexer.gpu_resources = faiss.StandardGpuResources()
