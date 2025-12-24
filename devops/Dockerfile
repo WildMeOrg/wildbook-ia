@@ -2,10 +2,14 @@ ARG WBIA_BASE_IMAGE=wildme/wbia-base:latest
 
 ARG WBIA_PROVISION_IMAGE=wildme/wbia-provision:latest
 
+ARG VCS_REF="main"
+
 FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.latest
 #  && cd /wbia/wbia-plugin-curvrank/wbia_curvrank_v2 \
 # && git reset --hard origin/main \
 # && git pull \
+
+ARG VCS_REF
 
 # Grab latest code
 RUN set -ex \
@@ -24,10 +28,9 @@ RUN set -ex \
  && git reset --hard origin/main \
  && git pull \
  && cd /wbia/wildbook-ia/ \
- && git fetch \
- && git reset --hard origin/main  \
- && git config pull.rebase true \
- && git pull
+ && git fetch origin ${VCS_REF} \
+ && git checkout ${VCS_REF} \
+ && git reset --hard origin/${VCS_REF}
 
 ##########################################################################################
 

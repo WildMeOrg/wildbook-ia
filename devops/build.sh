@@ -32,7 +32,9 @@ while [ $# -ge 1 ]; do
             provision
     elif [ "$1" == "wbia" ] || [ "$1" == "wildbook-ia" ]; then
         docker build \
+            --progress=plain \
             --compress \
+            --build-arg VCS_REF=${VCS_REF} \
             -t wildme/wbia:latest \
             -t wildme/wildbook-ia:latest \
             --no-cache \
