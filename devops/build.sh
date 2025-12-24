@@ -27,6 +27,7 @@ while [ $# -ge 1 ]; do
         docker build \
             --progress=plain \
             --compress \
+            --no-cache \
             --build-arg VCS_REF=${VCS_REF} \
             -t wildme/wbia-provision:latest \
             provision
