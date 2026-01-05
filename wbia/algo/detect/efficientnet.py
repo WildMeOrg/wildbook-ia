@@ -40,6 +40,7 @@ ARCHIVE_URL_DICT = {
 
     'python_effnet_v1': 'https://wildbookiarepository.azureedge.net/models/labeler_python_effnet.v1.zip',
     'python_effnet_v2': 'https://wildbookiarepository.azureedge.net/models/labeler_python_effnet.v2.zip',
+    'python_effnet_v4': 'https://wildbookiarepository.azureedge.net/models/labeler_python_effnet.v4.zip',
     'elephant_effnet_v0': 'https://wildbookiarepository.azureedge.net/models/labeler_elephant_effnet.v0.zip',
 }
 
