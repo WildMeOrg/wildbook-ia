@@ -7,6 +7,8 @@ FROM ${WBIA_PROVISION_IMAGE} as org.wildme.wbia.latest
 # && git reset --hard origin/main \
 # && git pull \
 
+ARG VCS_REF="main"
+
 # Grab latest code
 RUN set -ex \
  && git config --global user.email "dev@wildme.org" \
@@ -25,7 +27,7 @@ RUN set -ex \
  && git pull \
  && cd /wbia/wildbook-ia/ \
  && git fetch \
- && git reset --hard origin/main  \
+ && git reset --hard origin/${VCS_REF}  \
  && git config pull.rebase true \
  && git pull
 

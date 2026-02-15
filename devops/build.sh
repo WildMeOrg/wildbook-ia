@@ -22,11 +22,13 @@ while [ $# -ge 1 ]; do
     elif [ "$1" == "wbia-provision" ]; then
         docker build \
             --compress \
+            --build-arg VCS_REF=${VCS_REF:-main} \
             -t wildme/wbia-provision:latest \
             provision
     elif [ "$1" == "wbia" ] || [ "$1" == "wildbook-ia" ]; then
         docker build \
             --compress \
+            --build-arg VCS_REF=${VCS_REF:-main} \
             -t wildme/wbia:latest \
             -t wildme/wildbook-ia:latest \
             --no-cache \
