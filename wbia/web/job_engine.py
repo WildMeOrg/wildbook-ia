@@ -144,6 +144,45 @@ def _get_engine_job_paths(ibs):
     return record_filepath_list
 
 
+def _save_engine_record(record_filepath, record):
+    """Write a job record .pkl atomically.
+
+    ``ut.save_cPkl`` opens the destination with ``'wb'`` and dumps in place,
+    so a process killed mid-write (container stop/restart, OOM) leaves a
+    truncated pickle behind and the next startup dies in
+    ``queue_interrupted_jobs``.  Write to a uniquely named sibling temp file
+    and ``os.replace`` it into position so readers only ever see a complete
+    record, and so two writers racing on the same job can never share (and
+    half-publish) one temp file.  The temp suffix does not end in ``.pkl`` so
+    the startup ``*.pkl`` glob ignores it; the ``{jobid}*`` archive glob still
+    sweeps up any stragglers.
+    """
+    tmp_filepath = '{}.{}.tmp'.format(record_filepath, uuid.uuid4().hex)
+    try:
+        ut.save_cPkl(tmp_filepath, record, verbose=False)
+        os.replace(tmp_filepath, record_filepath)
+    except BaseException:
+        try:
+            os.remove(tmp_filepath)
+        except OSError:
+            pass
+        raise
+
+
+def _archive_job_files(jobid, shelve_path, shelve_archive_path, job_store=None):
+    """Move every on-disk file for ``jobid`` into the archive directory and
+    drop its SQLite row (if any)."""
+    ut.ensuredir(shelve_archive_path)
+    job_scr_filepath_list = list(ut.iglob(join(shelve_path, '{}*'.format(jobid))))
+    for job_scr_filepath in job_scr_filepath_list:
+        job_dst_filepath = job_scr_filepath.replace(shelve_path, shelve_archive_path)
+        # ut.copy allows for overwrite, ut.move does not
+        ut.copy(job_scr_filepath, job_dst_filepath, overwrite=True)
+        ut.delete(job_scr_filepath)
+    if job_store is not None:
+        job_store.delete_job(jobid)
+
+
 @register_ibs_method
 def fetch_job(ibs, jobid):
     from os.path import exists
@@ -683,7 +722,30 @@ def initialize_process_record(
     jobcounter = None
 
     # Load the engine record (.pkl — still written by web threads for crash recovery)
-    record = ut.load_cPkl(record_filepath, verbose=False)
+    try:
+        record = ut.load_cPkl(record_filepath, verbose=False)
+        if not isinstance(record, dict):
+            raise TypeError('expected dict, got {!r}'.format(type(record)))
+    except Exception as ex:
+        # A truncated / unreadable record (e.g. the process was killed
+        # mid-write) must not abort startup.  Quarantine it and move on.
+        print(
+            '[job_engine] Unreadable job record %r (%s: %s) — archiving'
+            % (record_filepath, type(ex).__name__, ex)
+        )
+        try:
+            _archive_job_files(jobid, shelve_path, shelve_archive_path, job_store)
+        except Exception as archive_ex:
+            # Quarantine itself failed (permissions, disk full, SQLite lock).
+            # It may be partial (e.g. file moved but SQLite row not dropped);
+            # whatever is left gets retried next boot.  Skip the record for
+            # this boot rather than aborting startup.
+            print(
+                '[job_engine] Quarantine FAILED for %r (%s: %s) — skipping for this boot'
+                % (record_filepath, type(archive_ex).__name__, archive_ex)
+            )
+        archived, completed, suppressed, corrupted = True, False, False, True
+        return jobcounter, jobid, None, archived, completed, suppressed, corrupted
 
     # Load the record info
     engine_request = record.get('request', None)
@@ -737,21 +799,9 @@ def initialize_process_record(
                 color = 'brightmagenta'
                 print_ = partial(ut.colorprint, color=color)
                 print_('ARCHIVING JOB (AGE: %d SECONDS)' % (job_age,))
-                # Move .pkl (and any leftover shelve files) to archive
-                job_scr_filepath_list = list(
-                    ut.iglob(join(shelve_path, '{}*'.format(jobid)))
-                )
-                for job_scr_filepath in job_scr_filepath_list:
-                    job_dst_filepath = job_scr_filepath.replace(
-                        shelve_path, shelve_archive_path
-                    )
-                    ut.copy(
-                        job_scr_filepath, job_dst_filepath, overwrite=True
-                    )  # ut.copy allows for overwrite, ut.move does not
-                    ut.delete(job_scr_filepath)
-                # Also remove from SQLite
-                if job_store is not None:
-                    job_store.delete_job(jobid)
+                # Move .pkl (and any leftover shelve files) to archive and
+                # remove from SQLite
+                _archive_job_files(jobid, shelve_path, shelve_archive_path, job_store)
 
     if archived:
         # We have archived the job, don't bother registering it
@@ -776,7 +826,7 @@ def initialize_process_record(
             engine_request['restart_received'] = received
             record['attempts'] = attempts + 1
 
-            ut.save_cPkl(record_filepath, record, verbose=False)
+            _save_engine_record(record_filepath, record)
 
     values = jobcounter, jobid, engine_request, archived, completed, suppressed, corrupted
     return values
@@ -1276,7 +1326,7 @@ class JobInterface(object):
                 'attempts': 0,
                 'completed': False,
             }
-            ut.save_cPkl(record_filepath, record, verbose=False)
+            _save_engine_record(record_filepath, record)
 
         # Release memory
         action = None
@@ -2179,7 +2229,7 @@ def on_collect_request(
                     if exists(_path):
                         _rec = ut.load_cPkl(_path, verbose=False)
                         _rec['completed'] = True
-                        ut.save_cPkl(_path, _rec, verbose=False)
+                        _save_engine_record(_path, _rec)
                 except Exception:
                     pass
 
