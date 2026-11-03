@@ -3,6 +3,7 @@
 Dependencies: flask, tornado
 """
 import logging
+import stat
 import time
 import uuid as uuid_module
 import zipfile
@@ -382,6 +383,13 @@ def image_upload_zip(**kwargs):
     # Extract the content
     try:
         with zipfile.ZipFile(image_archive, 'r') as zfile:
+            for member in zfile.infolist():
+                if (
+                    member.filename.startswith('/')
+                    or '..' in member.filename.split('/')
+                    or stat.S_ISLNK(member.external_attr >> 16)
+                ):
+                    raise IOError('Unsafe image archive entry')
             zfile.extractall(upload_path)
     except Exception:
         ut.remove_dirs(upload_path)
